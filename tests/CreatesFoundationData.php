@@ -2,16 +2,24 @@
 
 namespace Tests;
 
+use App\Domain\Simulation\SimulationLifecycleService;
+use App\Enums\SimulationVersionStatus;
 use App\Enums\PlatformRole;
 use App\Models\Course;
 use App\Models\Enrollment;
 use App\Models\Institution;
+use App\Models\SectionSimulation;
+use App\Models\Simulation;
+use App\Models\SimulationVariant;
+use App\Models\SimulationVersion;
+use App\Models\SimulationWeek;
 use App\Models\Section;
 use App\Models\SectionFaculty;
 use App\Models\Team;
 use App\Models\TeamMember;
 use App\Models\Tenant;
 use App\Models\User;
+use App\Models\WeekContentVersion;
 
 trait CreatesFoundationData
 {
@@ -90,5 +98,67 @@ trait CreatesFoundationData
             'tenant_id' => $tenant->id,
             'global_role' => $role,
         ]);
+    }
+
+    protected function simulationStructure(int $weeks = 14): array
+    {
+        $simulation = Simulation::factory()->create([
+            'slug' => 'halden-energy-'.uniqid(),
+            'name' => 'Halden Energy',
+        ]);
+
+        $variant = SimulationVariant::factory()->create([
+            'simulation_id' => $simulation->id,
+            'slug' => 'fourteen-week-'.uniqid(),
+            'name' => 'Fourteen-week flagship',
+            'duration_weeks' => $weeks,
+        ]);
+
+        $version = SimulationVersion::factory()->published()->create([
+            'simulation_id' => $simulation->id,
+            'simulation_variant_id' => $variant->id,
+            'version' => '2026-demo-'.uniqid(),
+            'configuration' => ['economics' => 'not-included'],
+        ]);
+
+        $simulationWeeks = collect(range(1, $weeks))->map(function (int $weekNumber) use ($simulation, $variant, $version): SimulationWeek {
+            $week = SimulationWeek::factory()->create([
+                'simulation_id' => $simulation->id,
+                'simulation_variant_id' => $variant->id,
+                'simulation_version_id' => $version->id,
+                'week_number' => $weekNumber,
+                'slug' => 'week-'.$weekNumber,
+                'title' => 'Week '.$weekNumber,
+            ]);
+
+            WeekContentVersion::factory()->create([
+                'simulation_version_id' => $version->id,
+                'simulation_week_id' => $week->id,
+            ]);
+
+            return $week;
+        });
+
+        return compact('simulation', 'variant', 'version', 'simulationWeeks');
+    }
+
+    protected function draftSimulationVersion(): SimulationVersion
+    {
+        $simulation = Simulation::factory()->create();
+        $variant = SimulationVariant::factory()->create([
+            'simulation_id' => $simulation->id,
+        ]);
+
+        return SimulationVersion::factory()->create([
+            'simulation_id' => $simulation->id,
+            'simulation_variant_id' => $variant->id,
+            'status' => SimulationVersionStatus::Draft,
+        ]);
+    }
+
+    protected function assignSimulation(array $graph, SimulationVersion $version): SectionSimulation
+    {
+        return app(SimulationLifecycleService::class)
+            ->assignToSection($graph['section'], $version, $graph['faculty']);
     }
 }

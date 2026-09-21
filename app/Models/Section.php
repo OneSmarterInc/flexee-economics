@@ -59,4 +59,12 @@ class Section extends Model
     {
         return $this->hasMany(Team::class);
     }
+
+    /**
+     * @return HasMany<SectionSimulation, $this>
+     */
+    public function sectionSimulations(): HasMany
+    {
+        return $this->hasMany(SectionSimulation::class);
+    }
 }

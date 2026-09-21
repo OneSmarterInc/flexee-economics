@@ -21,6 +21,19 @@ defineProps<{
             section: string;
             course: string;
         }>;
+        simulations: Array<{
+            name: string;
+            simulation: string;
+            variant: string;
+            version: string;
+            section: string;
+            course: string;
+            weeks: Array<{
+                number: number;
+                title: string;
+                status: string;
+            }>;
+        }>;
     };
 }>();
 
@@ -95,5 +108,53 @@ defineOptions({
                 </div>
             </section>
         </div>
+
+        <section class="rounded-lg border p-5">
+            <h2 class="font-medium">Available simulation weeks</h2>
+            <div class="mt-4 space-y-3">
+                <article
+                    v-for="simulation in foundation?.simulations"
+                    :key="`${simulation.course}-${simulation.section}-${simulation.name}`"
+                    class="rounded-md border p-3"
+                >
+                    <div
+                        class="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between"
+                    >
+                        <div>
+                            <p class="font-medium">
+                                {{ simulation.simulation }}
+                            </p>
+                            <p class="text-muted-foreground text-sm">
+                                {{ simulation.course }} -
+                                {{ simulation.section }}
+                            </p>
+                        </div>
+                        <p class="text-muted-foreground text-sm">
+                            {{ simulation.variant }} {{ simulation.version }}
+                        </p>
+                    </div>
+                    <div class="mt-3 grid gap-2 md:grid-cols-2">
+                        <div
+                            v-for="week in simulation.weeks"
+                            :key="`${simulation.name}-${week.number}`"
+                            class="rounded-md border px-3 py-2"
+                        >
+                            <p class="text-sm font-medium">
+                                Week {{ week.number }}: {{ week.title }}
+                            </p>
+                            <p class="text-muted-foreground text-xs">
+                                {{ week.status }}
+                            </p>
+                        </div>
+                    </div>
+                </article>
+                <p
+                    v-if="!foundation?.simulations.length"
+                    class="text-muted-foreground text-sm"
+                >
+                    No simulation weeks are available yet.
+                </p>
+            </div>
+        </section>
     </div>
 </template>

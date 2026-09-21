@@ -2,17 +2,26 @@
 
 namespace Database\Seeders;
 
+use App\Domain\Simulation\SimulationLifecycleService;
 use App\Enums\PlatformRole;
+use App\Enums\SectionSimulationWeekStatus;
+use App\Enums\SimulationVersionStatus;
 use App\Models\Course;
 use App\Models\Enrollment;
 use App\Models\Institution;
 use App\Models\Seat;
 use App\Models\Section;
 use App\Models\SectionFaculty;
+use App\Models\SectionSimulation;
+use App\Models\Simulation;
+use App\Models\SimulationVariant;
+use App\Models\SimulationVersion;
+use App\Models\SimulationWeek;
 use App\Models\Team;
 use App\Models\TeamMember;
 use App\Models\Tenant;
 use App\Models\User;
+use App\Models\WeekContentVersion;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
@@ -139,6 +148,100 @@ class DatabaseSeeder extends Seeder
                     'seat_id' => $seats->values()->get($index)?->id,
                 ]);
             }
+        }
+
+        $simulation = Simulation::query()->firstOrCreate([
+            'slug' => 'halden-energy',
+        ], [
+            'name' => 'Halden Energy',
+            'description' => 'Reusable Halden Energy simulation definition.',
+            'status' => 'active',
+            'metadata' => ['seeded_for' => 'batch-2-demo'],
+        ]);
+
+        $variant = SimulationVariant::query()->firstOrCreate([
+            'simulation_id' => $simulation->id,
+            'slug' => 'fourteen-week',
+        ], [
+            'name' => 'Fourteen-week flagship',
+            'duration_weeks' => 14,
+            'metadata' => ['cadence' => 'weekly'],
+        ]);
+
+        $version = SimulationVersion::query()->firstOrCreate([
+            'simulation_variant_id' => $variant->id,
+            'version' => '2026-demo',
+        ], [
+            'simulation_id' => $simulation->id,
+            'status' => SimulationVersionStatus::Published,
+            'config_hash' => 'halden-demo-structural-v1',
+            'configuration' => [
+                'source' => 'structural-demo',
+                'economics' => 'not-included',
+            ],
+            'notes' => 'Batch 2 seeded structure only.',
+            'published_at' => now(),
+        ]);
+
+        $weekTitles = [
+            1 => 'Asset register',
+            2 => 'Elasticity estimation',
+            3 => 'Shutdown point',
+            4 => 'Transfer pricing',
+            5 => 'Currency',
+            6 => 'Capital allocation',
+            7 => 'Competitive response',
+            8 => 'OPEC',
+            9 => 'Retail branding',
+            10 => 'Recession',
+            11 => 'Kessana hold-up',
+            12 => 'Transition portfolio',
+            13 => 'Factor markets',
+            14 => 'Board defense',
+        ];
+
+        foreach ($weekTitles as $weekNumber => $title) {
+            $week = SimulationWeek::query()->firstOrCreate([
+                'simulation_version_id' => $version->id,
+                'week_number' => $weekNumber,
+            ], [
+                'simulation_id' => $simulation->id,
+                'simulation_variant_id' => $variant->id,
+                'slug' => 'week-'.$weekNumber,
+                'title' => $title,
+                'pattern' => 'weekly-briefing',
+                'status' => 'active',
+                'content_metadata' => ['placeholder' => true],
+            ]);
+
+            WeekContentVersion::query()->firstOrCreate([
+                'simulation_week_id' => $week->id,
+                'version' => 'placeholder-v1',
+            ], [
+                'simulation_version_id' => $version->id,
+                'status' => 'placeholder',
+                'metadata' => ['placeholder' => true],
+            ]);
+        }
+
+        $sectionSimulation = SectionSimulation::query()
+            ->where('tenant_id', $tenant->id)
+            ->where('section_id', $sectionA->id)
+            ->where('simulation_version_id', $version->id)
+            ->first();
+
+        if (! $sectionSimulation) {
+            $sectionSimulation = app(SimulationLifecycleService::class)
+                ->assignToSection($sectionA, $version, $faculty, 'Section A Demo Halden Energy');
+        }
+
+        $weekOne = $sectionSimulation->weeks()
+            ->whereHas('definition', fn ($query) => $query->where('week_number', 1))
+            ->first();
+
+        if ($weekOne && $weekOne->status === SectionSimulationWeekStatus::Draft) {
+            app(SimulationLifecycleService::class)
+                ->transitionWeek($weekOne, SectionSimulationWeekStatus::Released, $faculty);
         }
     }
 }

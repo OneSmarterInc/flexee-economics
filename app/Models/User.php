@@ -97,4 +97,12 @@ class User extends Authenticatable implements PasskeyUser
             ->withPivot(['tenant_id', 'seat_id'])
             ->withTimestamps();
     }
+
+    /**
+     * @return HasMany<SectionSimulation, $this>
+     */
+    public function createdSectionSimulations(): HasMany
+    {
+        return $this->hasMany(SectionSimulation::class, 'created_by_user_id');
+    }
 }

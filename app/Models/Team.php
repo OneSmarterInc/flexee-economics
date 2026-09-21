@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable(['ulid', 'tenant_id', 'section_id', 'name', 'slug'])]
 class Team extends Model
@@ -33,5 +34,13 @@ class Team extends Model
         return $this->belongsToMany(User::class, 'team_members')
             ->withPivot(['tenant_id', 'seat_id'])
             ->withTimestamps();
+    }
+
+    /**
+     * @return HasMany<TeamSimulation, $this>
+     */
+    public function teamSimulations(): HasMany
+    {
+        return $this->hasMany(TeamSimulation::class);
     }
 }

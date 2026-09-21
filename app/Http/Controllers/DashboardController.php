@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Enums\PlatformRole;
+use App\Enums\SectionSimulationWeekStatus;
 use App\Models\Enrollment;
+use App\Models\SectionSimulation;
 use App\Models\Team;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -28,6 +30,28 @@ class DashboardController extends Controller
             ->with('section.course')
             ->get();
 
+        $visibleWeekStatuses = [
+            SectionSimulationWeekStatus::Released->value,
+            SectionSimulationWeekStatus::Open->value,
+            SectionSimulationWeekStatus::Closed->value,
+            SectionSimulationWeekStatus::Published->value,
+        ];
+
+        $sectionIds = $enrollments->pluck('section_id');
+        $sectionSimulations = SectionSimulation::query()
+            ->where('tenant_id', $user->tenant_id)
+            ->whereIn('section_id', $sectionIds)
+            ->with([
+                'section.course',
+                'simulation',
+                'variant',
+                'version',
+                'weeks' => fn ($query) => $query
+                    ->whereIn('status', $visibleWeekStatuses)
+                    ->with('definition'),
+            ])
+            ->get();
+
         return Inertia::render('Dashboard', [
             'foundation' => [
                 'tenant' => $user->tenant?->only(['name', 'slug']),
@@ -43,6 +67,25 @@ class DashboardController extends Controller
                     'section' => $team->section->name,
                     'course' => $team->section->course->name,
                 ])->values(),
+                'simulations' => $sectionSimulations
+                    ->filter(fn (SectionSimulation $sectionSimulation) => $sectionSimulation->weeks->isNotEmpty())
+                    ->map(fn (SectionSimulation $sectionSimulation) => [
+                        'name' => $sectionSimulation->name,
+                        'simulation' => $sectionSimulation->simulation->name,
+                        'variant' => $sectionSimulation->variant->name,
+                        'version' => $sectionSimulation->version->version,
+                        'section' => $sectionSimulation->section->name,
+                        'course' => $sectionSimulation->section->course->name,
+                        'weeks' => $sectionSimulation->weeks
+                            ->sortBy(fn ($runtimeWeek) => $runtimeWeek->definition->week_number)
+                            ->map(fn ($runtimeWeek) => [
+                                'number' => $runtimeWeek->definition->week_number,
+                                'title' => $runtimeWeek->definition->title,
+                                'status' => $runtimeWeek->status->value,
+                            ])
+                            ->values(),
+                    ])
+                    ->values(),
             ],
         ]);
     }

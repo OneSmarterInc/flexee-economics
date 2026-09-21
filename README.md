@@ -37,6 +37,8 @@ The development seeder creates a fictional demo tenant:
 - Sections: Section A and Section B
 - Users: demo administrator, faculty, and students
 - Teams: Team Alpha and Team Bravo
+- Simulation: Halden Energy, Fourteen-week flagship, 2026-demo
+- Runtime: Section A demo assignment with Week 1 released
 
 Development-only credentials:
 
@@ -76,3 +78,9 @@ npm run build
 Batch 1 establishes the Laravel application foundation: authentication, explicit tenant ownership, academic entities, team/seat structure, policies, development seed data, and isolation tests.
 
 Week 4 economics, simulation lifecycle, scoring, KPIs, rankings, Python artifact generation, and LLM integration are intentionally deferred.
+
+## Batch 2 Scope
+
+Batch 2 adds the reusable simulation definition hierarchy, section runtime lifecycle, runtime team/seat assignments, audit events, lifecycle policies, a faculty/admin lifecycle page at `/simulation-lifecycle`, and student dashboard visibility for released-or-later simulation weeks.
+
+Simulation submissions, Week 4 economics, scoring, KPIs, rankings, Python artifact generation, and LLM integration remain deferred.
