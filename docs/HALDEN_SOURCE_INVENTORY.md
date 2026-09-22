@@ -11,8 +11,7 @@ Search exclusions were limited to dependency/build/cache folders under the appli
 
 Current repository check:
 
-- `git status --short`: clean before this documentation work.
-- `HEAD`: `9ccfba4 docs: prepare Week 4 implementation plan`.
+- `HEAD` before this validation pass: `866f76c docs: reconcile authoritative Halden sources`.
 
 ## Authoritative markdown sources
 
@@ -33,27 +32,34 @@ The previously missing authoritative markdown files are present under `C:\Users\
 
 The current source-of-truth constants ledger is `halden-constants-ledger.md` unless an explicitly newer authoritative ledger is supplied.
 
-## Package directories
+## Week 4 package inventory
 
-The worked reference packages are still absent.
+The Week 4 reference files are present as flat files under `C:\Users\sakas\Documents\Flexee-economics`, not inside a `halden-week4-data-package/` directory. They were not renamed or moved.
 
-| Package                       | Expected location checked                                                                                                                              | Present | Blocking status                                                                               |
-| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ | ------- | --------------------------------------------------------------------------------------------- |
-| `halden-week4-data-package/`  | `C:\Users\sakas\Documents\Flexee-economics\halden-week4-data-package`, `C:\Users\sakas\Documents\ChatGPT\Flexee-economics\halden-week4-data-package`   | No      | Blocks READY and Week 4 implementation.                                                       |
-| `halden-week10-data-package/` | `C:\Users\sakas\Documents\Flexee-economics\halden-week10-data-package`, `C:\Users\sakas\Documents\ChatGPT\Flexee-economics\halden-week10-data-package` | No      | Blocks worked Week 10 package parity; does not block Week 4 formula reconciliation by itself. |
+| File                          | Path                                                                    | SHA-256                                                            | Classification                       | Status                                            |
+| ----------------------------- | ----------------------------------------------------------------------- | ------------------------------------------------------------------ | ------------------------------------ | ------------------------------------------------- |
+| `permian_lifting.csv`         | `C:\Users\sakas\Documents\Flexee-economics\permian_lifting.csv`         | `BE099BB7845D95AA989A2CE0C43E0A18DB660AB6E01B3C04B91E9FB5B54389E2` | canonical CSV                        | Present                                           |
+| `cost_constants.csv`          | `C:\Users\sakas\Documents\Flexee-economics\cost_constants.csv`          | `FEB8EE3F11BA6164658F6B4D5D7AB3CA30078CBF21D41A6BDF8C7215591150FE` | canonical CSV                        | Present                                           |
+| `segment_comp.csv`            | `C:\Users\sakas\Documents\Flexee-economics\segment_comp.csv`            | `BC305C5E4E90311B0452FA201A23663DD773A0006E655284F2F8066D3A2DD5A9` | canonical CSV                        | Present                                           |
+| `worked_example_prior.csv`    | `C:\Users\sakas\Documents\Flexee-economics\worked_example_prior.csv`    | `094146C787CBF95EBAFB3F6AEA0DCE949F1866929E5A9FEF714F31B77DE53AFB` | canonical CSV / worked-example input | Present                                           |
+| `halden_week4.xlsx`           | `C:\Users\sakas\Documents\Flexee-economics\halden_week4.xlsx`           | `A3BF2A23B4AAA6DCAB609B2BCFC293C063A5028921A03E6BE251C62A67FE90AA` | student workbook                     | Present                                           |
+| `halden_week4_analysis.ipynb` | `C:\Users\sakas\Documents\Flexee-economics\halden_week4_analysis.ipynb` | `5B75EAF76475C132E814A08A592A2F1CF9637C5CEB0CBD06F2D2B42360DD81CA` | student notebook                     | Present but path-broken as supplied               |
+| `MANIFEST.md`                 | `C:\Users\sakas\Documents\Flexee-economics\MANIFEST.md`                 | `A9D89991AD60937153EC951DF6E12B82E1954EE8AAA58451CA6C18CEB12113C6` | MANIFEST                             | Present, but describes Week 10 rather than Week 4 |
 
-Specific Week 4 and Week 10 artifact categories checked and not found:
+Missing Week 4 package artifacts:
 
-- MANIFEST files
-- canonical CSV files
-- XLSX/XLS workbooks
-- Jupyter notebooks
-- Python support files
-- faculty solution workbook/notebook
-- expected-output files
+- Week 4-specific MANIFEST
+- `data/` directory expected by `halden_week4_analysis.ipynb`
+- separate six-CSV layout promised by the Week 4 spec
+- faculty solution workbook
+- faculty solution notebook
+- expected-output fixture files
+- package README or validation instructions
 
-The only package-like search result was the unrelated application asset `public\fonts-manifest.dev.json`.
+## Week 10 package note
+
+`MANIFEST.md`, `halden_week10.xlsx`, and `halden_week10_analysis.ipynb` are present in the same source folder. The manifest describes the Week 10 package pattern, not Week 4. Week 10 was not validated in this pass beyond identifying that the root manifest is not a Week 4 manifest.
 
 ## Readiness implication
 
-The authoritative markdown layer is now present and reconciled enough to update the implementation plan, gap review, constant reconciliation, and invariant test plan. Full Week 4 implementation remains blocked until `halden-week4-data-package/` is supplied with its manifest, canonical data, worked example, and expected outputs.
+The authoritative markdown layer and flat Week 4 files are present and reconciled enough to create partial golden fixtures. Full Week 4 implementation remains blocked until the package defects above are resolved or explicitly accepted as the authoritative package shape.

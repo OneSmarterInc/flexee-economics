@@ -6,7 +6,7 @@ Inventory date: 2026-09-22.
 
 BLOCKED.
 
-The authoritative markdown specs are now available and reconcile enough to plan Week 4. Batch 4 Week 4 economics must still not be implemented until the worked `halden-week4-data-package/` is supplied and reconciled against the spec and ledger.
+The authoritative markdown specs and flat Week 4 files are available and reconcile enough to plan Week 4 and create partial golden fixtures. Batch 4 Week 4 economics must still not be implemented until the reference package defects are resolved: no Week 4 manifest, notebook path layout broken, no faculty solution artifacts, no expected-output files, and no package-specific custom-price or rounding rules.
 
 ## Current platform anchors
 
@@ -24,7 +24,7 @@ The Week 4 spec gives three anchor options:
 - marginal-cost: `$18.70/bbl`
 - midpoint/lazy: `$46.20/bbl`
 
-The spec also permits an intermediate/custom value. Do not invent precision, bounds, increments, or display rules until the reference package is available.
+The spec and workbook README permit an intermediate/custom value. The supplied package does not define precision, bounds, increments, or validation rules, so those remain unresolved.
 
 Destination in the existing Batch 3 architecture:
 
@@ -127,12 +127,15 @@ Role charters should be imported as versioned content per seat. Do not hard-code
 
 ## Numeric handling
 
-Recommendation pending package confirmation:
+Package-confirmed numeric strategy:
 
-- Use decimal-safe arithmetic for per-barrel values, rates, and percentages.
+- Use decimal-safe arithmetic for all per-barrel values, rates, percentages, and P&L.
 - Avoid PHP binary floats for parity-sensitive calculations.
-- Treat tolerance as zero unless the package defines one.
-- Do not choose rounding mode, intermediate rounding points, custom-price precision, or display format until the package supplies them.
+- Store internal per-barrel values at least to three decimal places because Geneva midpoint capture is `9.625/bbl`.
+- Display ordinary per-barrel workbook values to two decimals to match workbook format `$#,##0.00`.
+- Treat canonical CSV ingestion and two-decimal source values as exact decimal strings.
+- Use exact decimal equality for invariant and reference-fixture tests where the fixture has two decimals.
+- Do not choose a rounding method for half-cent values, custom transfer-price precision, or monthly Geneva P&L until the package supplies those rules.
 
 ## Failure behavior
 
@@ -148,12 +151,10 @@ Week 4 implementation should fail loudly when:
 
 ## Required before implementation
 
-- `halden-week4-data-package/`
-- Week 4 package MANIFEST
-- canonical CSVs
-- student workbook and notebook
+- Week 4 package MANIFEST or explicit approval that the flat package is authoritative without one
+- corrected `data/` layout or corrected notebook paths
 - faculty solution workbook/notebook
 - expected outputs
-- exact rounding/display conventions
+- exact rounding method for half-cent/three-decimal Geneva outputs
 - exact custom transfer-price validation constraints
 - exact Week 4 -> Week 6 cohort aggregation/classification rule

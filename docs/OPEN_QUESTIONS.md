@@ -2,20 +2,22 @@
 
 Updated: 2026-09-22.
 
-The authoritative markdown sources are now present. Remaining open questions are tied to missing worked packages, precision/rules not specified in the markdown sources, or later-stage product choices.
+The authoritative markdown sources and flat Week 4 files are now present. Remaining open questions are tied to package defects, missing faculty/expected-output files, precision/rules not specified in the package, or later-stage product choices.
 
-## Missing packages
+## Package-shape questions
 
-- Where is `halden-week4-data-package/`?
+- Should the flat Week 4 files in `C:\Users\sakas\Documents\Flexee-economics` be treated as authoritative despite the missing `halden-week4-data-package/` directory?
+- Where is the Week 4-specific MANIFEST? The available `MANIFEST.md` describes Week 10.
+- Should the CSVs be supplied under `data/` to match the notebook, or should the notebook be corrected to load flat CSV paths?
 - Where is `halden-week10-data-package/`?
-- For each package, where are the MANIFEST, canonical CSV files, XLSX workbook, Jupyter notebook, Python support files, faculty solution workbook/notebook, and expected-output files?
+- Where are the Week 4 faculty solution workbook/notebook and expected-output files?
 
 ## Week 4 reference package questions
 
-- What are the exact CSV schemas and source-version identifiers?
-- What are the exact workbook and notebook formulas?
-- What are the exact expected outputs for the worked example and current-week blank analysis?
-- What rounding mode, decimal scale, and display format apply to per-barrel values, percentages, rates, and monthly Geneva arbitrage?
+- What are the source-version identifiers for the flat CSV/workbook/notebook package?
+- What are the exact expected-output files for the worked example and current-week faculty solution?
+- What rounding mode applies to half-cent or three-decimal outputs such as Geneva `9.625/bbl`?
+- What time basis applies to Geneva volume/P&L beyond the supplied `40,000 bbl/day` cap?
 - What precision, bounds, and increment apply to custom/intermediate transfer prices?
 - Which analytical outputs, if any, are submitted by students versus kept entirely in the external Excel/Python package?
 - Are any Week 4 package outputs intended to become KPI values, score inputs, scores, or rank inputs?

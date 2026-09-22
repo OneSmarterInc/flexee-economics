@@ -1,0 +1,10 @@
+parameter,value,unit,note
+wti_prior,68.00,usd_bbl,Prior-period WTI for worked example
+permian_wellhead_discount,3.50,usd_bbl,same constant
+transport_permian_to_br,3.20,usd_bbl,same constant
+delivered_marginal_cost,14.10,usd_bbl,same marginal cost (2024 vintage)
+sr_capital_charge,4.60,usd_bbl,same
+gc_crack_321,19.00,usd_bbl,prior-period crack (lower)
+br_complexity_premium,4.75,usd_bbl,same
+br_opex,5.90,usd_bbl,same
+

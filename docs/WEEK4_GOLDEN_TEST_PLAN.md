@@ -4,11 +4,11 @@ Inventory date: 2026-09-22.
 
 ## Test oracle status
 
-The Week 4 spec and ledger are now present, so spec-derived invariant tests can be planned. Full golden-master testing is still blocked because `halden-week4-data-package/` is missing.
+The Week 4 spec, ledger, flat CSVs, student workbook, and student notebook are now present. Partial immutable fixtures exist under `tests/Fixtures/Week4/`. Full golden-master testing is still blocked because the package lacks a Week 4 manifest, executable notebook path layout, faculty solution artifacts, and expected-output files.
 
 ## Spec-derived invariant tests now possible
 
-These tests can be written once the Week 4 calculator exists, using values from the authoritative markdown sources. They are not replacements for reference-package parity.
+These tests can be written once the Week 4 calculator exists, using values from the authoritative markdown sources and `tests/Fixtures/Week4/expected_outputs.json`. They are not replacements for complete reference-package parity.
 
 | Test                               | Inputs                                                   | Expected result                              |
 | ---------------------------------- | -------------------------------------------------------- | -------------------------------------------- |
@@ -32,18 +32,37 @@ Additional property-style tests can assert `Integrated(T) = (T - 14.10) + (90.85
 
 ## Reference-package golden tests still blocked
 
-These tests require the actual `halden-week4-data-package/`:
+These tests require a corrected/completed Week 4 package:
 
-- package MANIFEST/checksum parity
-- canonical CSV schema and content parity
-- workbook expected-output parity
-- notebook expected-output parity
+- Week 4 package MANIFEST/checksum parity
+- notebook execution parity from the supplied package layout
 - faculty solution workbook/notebook parity
-- worked-example parity for the prior-period WTI `$68.00` case
-- exact rounding and display conventions
+- expected-output file parity
+- exact rounding method for half-cent/three-decimal outputs
 - exact custom transfer-price precision/bounds
 - exact monthly-volume convention for Geneva arbitrage
 - exact expected faculty trace payloads, if supplied
+
+## Fixture files
+
+Partial fixtures created from the available package files:
+
+- `tests/Fixtures/Week4/source_hashes.json`
+- `tests/Fixtures/Week4/inputs/permian_lifting.csv`
+- `tests/Fixtures/Week4/inputs/cost_constants.csv`
+- `tests/Fixtures/Week4/inputs/segment_comp.csv`
+- `tests/Fixtures/Week4/inputs/worked_example_prior.csv`
+- `tests/Fixtures/Week4/expected_outputs.json`
+
+Fixture tolerance policy:
+
+- canonical CSV ingestion: exact string/decimal equality;
+- worked-example and current-week two-decimal per-barrel values: exact decimal equality at two decimals;
+- Geneva `capture_per_bbl`: exact decimal equality at `9.625`;
+- daily Geneva cap calculation: exact decimal equality at `385000.000` if used;
+- no broad binary-float tolerance is allowed for these fixtures.
+
+The fixtures explicitly record that the supplied notebook is path-broken and that no faculty solution or expected-output source file was supplied.
 
 ## Expected output categories
 

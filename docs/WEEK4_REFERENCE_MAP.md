@@ -4,44 +4,66 @@ Inventory date: 2026-09-22.
 
 ## Reference package status
 
-`halden-week4-data-package/` was not found in the searched locations. The markdown spec now defines the intended Week 4 structure, but the worked package remains the missing calculation oracle.
+Week 4 files are present as flat files in `C:\Users\sakas\Documents\Flexee-economics`, but the package does not yet pass the final reference-package gate.
 
-Blocked missing artifacts:
+Blocking package issues:
 
-- Week 4 MANIFEST
-- Week 4 canonical CSV inputs
-- Week 4 Excel workbook(s)
-- Week 4 Jupyter notebooks
-- Week 4 Python support files
-- Week 4 faculty solution workbook/notebook
-- Week 4 expected outputs
-- Week 4 README or package notes
+- no Week 4-specific manifest was found;
+- the only `MANIFEST.md` describes Week 10;
+- no `halden-week4-data-package/` directory was found;
+- the student notebook references `data/*.csv`, but the supplied Week 4 CSV files are flat in the source folder;
+- no faculty solution workbook/notebook was found;
+- no expected-output fixture file was found;
+- no package-specific rounding, validation, or time-basis instructions were found.
 
 ## Spec-defined datasets
 
-The Week 4 spec says six datasets ship in both workbook tabs and CSV-backed Python notebook form:
+The Week 4 spec says six datasets ship in both workbook tabs and CSV-backed Python notebook form. The supplied package provides the values, but combines multiple spec datasets into `cost_constants.csv` rather than one CSV per dataset.
 
-| Dataset                                   | Purpose                                                | Package status            |
-| ----------------------------------------- | ------------------------------------------------------ | ------------------------- |
-| Permian lifting costs by vintage          | marginal-barrel and delivered-cost reasoning           | Specified, package absent |
-| Baton Rouge yield economics by crude type | crack, complexity, opex, refining economics            | Specified, package absent |
-| Gulf Coast market differentials           | WTI, wellhead discount, external anchor                | Specified, package absent |
-| Geneva trading desk arbitrage capability  | capture rate and volume cap                            | Specified, package absent |
-| Segment compensation plan                 | upstream/refining targets and political incentives     | Specified, package absent |
-| Integrated margin reconciliation          | worked example on adjacent data and current-week blank | Specified, package absent |
+| Dataset                                   | Source file/tab                                             | Purpose                                                | Package status                        |
+| ----------------------------------------- | ----------------------------------------------------------- | ------------------------------------------------------ | ------------------------------------- |
+| Permian lifting costs by vintage          | `permian_lifting.csv`; workbook `Data — Permian` rows 3-7   | marginal-barrel and delivered-cost reasoning           | Present                               |
+| Baton Rouge yield economics by crude type | `cost_constants.csv`; workbook `Data — Permian` rows 15-17  | crack, complexity, opex, refining economics            | Present inside combined constants CSV |
+| Gulf Coast market differentials           | `cost_constants.csv`; workbook `Data — Permian` rows 10-13  | WTI, wellhead discount, external anchor                | Present inside combined constants CSV |
+| Geneva trading desk arbitrage capability  | `cost_constants.csv`; workbook `Data — Permian` rows 18-19  | capture rate and volume cap                            | Present inside combined constants CSV |
+| Segment compensation plan                 | `segment_comp.csv`; workbook `Data — Compensation` rows 4-7 | upstream/refining targets and political incentives     | Present                               |
+| Integrated margin reconciliation          | `worked_example_prior.csv`; workbook `Worked Example`       | worked example on adjacent data and current-week blank | Present                               |
 
 ## Week 4 specification mapping
 
-| Requirement                | Spec status                                                                                                   | Reference artifact               | Implementation destination                    | Test strategy                                          | Ambiguity/blocker               |
-| -------------------------- | ------------------------------------------------------------------------------------------------------------- | -------------------------------- | --------------------------------------------- | ------------------------------------------------------ | ------------------------------- |
-| Decision field             | Transfer price with market, marginal-cost, midpoint anchors and custom/intermediate value                     | Missing package                  | Batch 3 decision definitions                  | Feature tests plus package parity                      | Bounds/precision unknown        |
-| Analytical evidence        | Students calculate integrated margin, segment splits, compensation deltas, Geneva arbitrage externally        | Missing workbook/notebook        | Package distribution, not runtime analysis UI | Package parity once supplied                           | Exact submitted outputs unknown |
-| Memo prompt                | Three sections: assumptions; method/result; decision/logic                                                    | Missing package/rubric           | Batch 3 memo definitions                      | Definition/rendering tests                             | Limits/rubric unknown           |
-| Transfer-price calculation | Spec and ledger give constants and invariants                                                                 | Missing expected outputs         | Future Week 4 PHP domain service              | Spec-derived invariant tests plus package golden tests | Rounding/display unknown        |
-| Faculty cohort view        | Transfer-price distribution against marginal and market benchmarks                                            | Missing faculty solution outputs | Stage 3 Livewire faculty tools                | Authorization and query tests later                    | Not Batch 4 implementation      |
-| Faculty causal trace       | Week 4 to arbitrage, standing, and later consequences                                                         | Missing package trace fixtures   | Stage 3 trace model/query layer               | Fixture tests later                                    | Consequence thresholds unknown  |
-| What-if rerun              | Rerun segment splits/standing consequences under alternate transfer price                                     | Missing expected outputs         | Stage 3 faculty console                       | Golden/counterfactual tests later                      | Standing effects unknown        |
-| Faculty LLM context        | chosen transfer price, alternatives, computed integrated margin, memo, cohort distribution, incoming standing | No runtime LLM source package    | Queued LLM service/job pattern                | Payload assembly tests later                           | Not Batch 4 implementation      |
+| Requirement                | Package finding                                                                                                 | Implementation destination                    | Test strategy                                 | Ambiguity/blocker                             |
+| -------------------------- | --------------------------------------------------------------------------------------------------------------- | --------------------------------------------- | --------------------------------------------- | --------------------------------------------- |
+| Decision field             | README says market-based, marginal-cost, midpoint, and intermediate custom value; no bounds/precision supplied  | Batch 3 decision definitions                  | Feature tests plus package parity             | Bounds/precision still unknown                |
+| Analytical evidence        | Workbook and notebook leave current-week analysis blank/TODO for students                                       | Package distribution, not runtime analysis UI | Student-package integrity tests               | Exact submitted analysis fields still unknown |
+| Memo prompt                | Workbook/notebook do not add package-specific memo limits or rubric beyond spec                                 | Batch 3 memo definitions                      | Definition/rendering tests                    | Limits/rubric unknown                         |
+| Transfer-price calculation | Workbook worked example has formulas and cached values; notebook has same method but cannot execute as supplied | Future Week 4 PHP domain service              | Fixture parity against `tests/Fixtures/Week4` | Notebook path defect blocks full parity       |
+| Faculty cohort view        | No faculty solution artifact supplied                                                                           | Stage 3 Livewire faculty tools                | Authorization and query tests later           | Missing faculty solution                      |
+| Faculty causal trace       | No package trace fixtures supplied                                                                              | Stage 3 trace model/query layer               | Fixture tests later                           | Consequence thresholds unknown                |
+| What-if rerun              | No faculty expected outputs supplied                                                                            | Stage 3 faculty console                       | Golden/counterfactual tests later             | Standing effects unknown                      |
+| Faculty LLM context        | No runtime LLM source package; requirements remain from spec/design docs                                        | Queued LLM service/job pattern                | Payload assembly tests later                  | Not Batch 4 implementation                    |
+
+## Workbook validation
+
+`halden_week4.xlsx` has five visible sheets: `README`, `Data — Permian`, `Data — Compensation`, `Worked Example`, and `Your Analysis`.
+
+Workbook findings:
+
+- no hidden sheets;
+- no named ranges;
+- no external workbook links;
+- yellow student-input cells are on `Your Analysis` at `B15:B20`, `B24:E26`, and `B30`;
+- workbook cached values reproduce the worked example integrated margin of `$68.25`;
+- current-week student analysis cells are blank by design;
+- per-barrel values display as `$#,##0.00`;
+- no native recalc engine was available in PATH (`soffice`/`libreoffice` not found), so validation used cached workbook values plus independent formula evaluation.
+
+## Notebook validation
+
+`halden_week4_analysis.ipynb` is student-facing and does not expose current-week answers. It loads `data/permian_lifting.csv`, `data/cost_constants.csv`, and `data/segment_comp.csv`.
+
+Execution status: blocked as supplied. The source folder does not contain a `data/` directory, so execution fails on `FileNotFoundError: data/permian_lifting.csv`.
+
+If the CSVs are placed under a `data/` folder without changing their contents, the notebook method matches the workbook method for the prior-period example. Do not treat that workaround as an authoritative package fix unless the source package is corrected or the package owner approves the flat-file layout.
 
 ## Week 10 reusable implications
 

@@ -1,0 +1,74 @@
+{
+    "units": "usd_bbl unless otherwise noted",
+    "precision_policy": {
+        "internal": "decimal exact from source constants; no binary floating point for parity-sensitive tests",
+        "display": "$#,##0.00 in workbook for per-barrel values",
+        "rounding_method": "not explicitly specified by the source package",
+        "geneva_capture_per_bbl": "retain 9.625 internally; display rounding unresolved because no package answer key is supplied"
+    },
+    "worked_example_prior": {
+        "wti": "68.00",
+        "realized_wellhead": "64.50",
+        "product_slate_value": "88.25",
+        "integrated_margin": "68.25",
+        "transfer_prices": {
+            "market": "67.70",
+            "marginal_cost": "18.70"
+        },
+        "segment_splits": {
+            "market": {
+                "upstream_margin": "53.60",
+                "refining_margin": "14.65",
+                "integrated_margin": "68.25"
+            },
+            "marginal_cost": {
+                "upstream_margin": "4.60",
+                "refining_margin": "63.65",
+                "integrated_margin": "68.25"
+            }
+        }
+    },
+    "current_week": {
+        "wti": "74.00",
+        "realized_wellhead": "70.50",
+        "product_slate_value": "96.75",
+        "delivered_marginal_cost": "14.10",
+        "integrated_margin": "76.75",
+        "transfer_prices": {
+            "market": "73.70",
+            "marginal_cost": "18.70",
+            "lazy_midpoint": "46.20"
+        },
+        "segment_splits": {
+            "market": {
+                "upstream_margin": "59.60",
+                "refining_margin": "17.15",
+                "upstream_vs_target": "14.60",
+                "refining_vs_target": "-12.85",
+                "integrated_margin": "76.75"
+            },
+            "marginal_cost": {
+                "upstream_margin": "4.60",
+                "refining_margin": "72.15",
+                "upstream_vs_target": "-40.40",
+                "refining_vs_target": "42.15",
+                "integrated_margin": "76.75"
+            },
+            "lazy_midpoint": {
+                "upstream_margin": "32.10",
+                "refining_margin": "44.65",
+                "upstream_vs_target": "-12.90",
+                "refining_vs_target": "14.65",
+                "integrated_margin": "76.75"
+            }
+        },
+        "geneva_arbitrage": {
+            "market_to_midpoint_gap": "27.50",
+            "capture_rate": "0.35",
+            "capture_per_bbl": "9.625",
+            "max_volume_bbl_day": 40000,
+            "daily_capture_at_volume_cap": "385000.000",
+            "time_basis": "not specified"
+        }
+    }
+}

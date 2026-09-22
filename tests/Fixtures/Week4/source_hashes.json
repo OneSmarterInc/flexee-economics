@@ -1,0 +1,17 @@
+{
+    "source_folder": "C:\\Users\\sakas\\Documents\\Flexee-economics",
+    "created_on": "2026-09-22",
+    "files": {
+        "cost_constants.csv": "FEB8EE3F11BA6164658F6B4D5D7AB3CA30078CBF21D41A6BDF8C7215591150FE",
+        "halden_week4_analysis.ipynb": "5B75EAF76475C132E814A08A592A2F1CF9637C5CEB0CBD06F2D2B42360DD81CA",
+        "halden_week4.xlsx": "A3BF2A23B4AAA6DCAB609B2BCFC293C063A5028921A03E6BE251C62A67FE90AA",
+        "permian_lifting.csv": "BE099BB7845D95AA989A2CE0C43E0A18DB660AB6E01B3C04B91E9FB5B54389E2",
+        "segment_comp.csv": "BC305C5E4E90311B0452FA201A23663DD773A0006E655284F2F8066D3A2DD5A9",
+        "worked_example_prior.csv": "094146C787CBF95EBAFB3F6AEA0DCE949F1866929E5A9FEF714F31B77DE53AFB",
+        "MANIFEST.md": "A9D89991AD60937153EC951DF6E12B82E1954EE8AAA58451CA6C18CEB12113C6"
+    },
+    "notes": [
+        "MANIFEST.md is a Week 10 manifest, not a Week 4 manifest.",
+        "Notebook references data/*.csv, but supplied Week 4 CSVs are flat in the source folder."
+    ]
+}
