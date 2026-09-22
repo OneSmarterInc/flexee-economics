@@ -6,6 +6,7 @@ use App\Http\Controllers\Foundation\SectionController;
 use App\Http\Controllers\Foundation\SectionSimulationController;
 use App\Http\Controllers\Foundation\SectionSimulationWeekController;
 use App\Http\Controllers\Foundation\TeamController;
+use App\Http\Controllers\Student\SubmissionController;
 use Illuminate\Support\Facades\Route;
 
 Route::inertia('/', 'Welcome')->name('home');
@@ -24,6 +25,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('foundation/section-simulations/{sectionSimulation}', [SectionSimulationController::class, 'show'])->name('foundation.section-simulations.show');
     Route::get('foundation/section-simulation-weeks/{sectionSimulationWeek}', [SectionSimulationWeekController::class, 'show'])->name('foundation.section-simulation-weeks.show');
     Route::post('foundation/section-simulation-weeks/{sectionSimulationWeek}/transition', [SectionSimulationWeekController::class, 'transition'])->name('foundation.section-simulation-weeks.transition');
+
+    Route::get('submissions/weeks/{sectionSimulationWeek}', [SubmissionController::class, 'show'])->name('student.submissions.show');
+    Route::post('submissions/weeks/{sectionSimulationWeek}/decisions/draft', [SubmissionController::class, 'saveDecisionDraft'])->name('student.submissions.decisions.draft');
+    Route::post('submissions/weeks/{sectionSimulationWeek}/decisions/submit', [SubmissionController::class, 'submitDecision'])->name('student.submissions.decisions.submit');
+    Route::post('submissions/weeks/{sectionSimulationWeek}/memo/draft', [SubmissionController::class, 'saveMemoDraft'])->name('student.submissions.memo.draft');
+    Route::post('submissions/weeks/{sectionSimulationWeek}/memo/submit', [SubmissionController::class, 'submitMemo'])->name('student.submissions.memo.submit');
 });
 
 require __DIR__.'/settings.php';

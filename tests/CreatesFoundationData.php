@@ -3,20 +3,27 @@
 namespace Tests;
 
 use App\Domain\Simulation\SimulationLifecycleService;
+use App\Enums\DecisionFieldType;
 use App\Enums\PlatformRole;
+use App\Enums\SectionSimulationWeekStatus;
 use App\Enums\SimulationVersionStatus;
 use App\Models\Course;
+use App\Models\DecisionFieldDefinition;
+use App\Models\DecisionFormDefinition;
 use App\Models\Enrollment;
 use App\Models\Institution;
+use App\Models\MemoDefinition;
 use App\Models\Section;
 use App\Models\SectionFaculty;
 use App\Models\SectionSimulation;
+use App\Models\SectionSimulationWeek;
 use App\Models\Simulation;
 use App\Models\SimulationVariant;
 use App\Models\SimulationVersion;
 use App\Models\SimulationWeek;
 use App\Models\Team;
 use App\Models\TeamMember;
+use App\Models\TeamSimulation;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Models\WeekContentVersion;
@@ -160,5 +167,60 @@ trait CreatesFoundationData
     {
         return app(SimulationLifecycleService::class)
             ->assignToSection($graph['section'], $version, $graph['faculty']);
+    }
+
+    protected function openRuntimeWeekWithDefinitions(array $graph): array
+    {
+        $sectionSimulation = $this->assignSimulation($graph, $this->simulationStructure(1)['version']);
+        /** @var SectionSimulationWeek $runtimeWeek */
+        $runtimeWeek = $sectionSimulation->weeks()->firstOrFail();
+        $service = app(SimulationLifecycleService::class);
+        $service->transitionWeek($runtimeWeek, SectionSimulationWeekStatus::Released, $graph['faculty']);
+        $service->transitionWeek($runtimeWeek->refresh(), SectionSimulationWeekStatus::Open, $graph['faculty'], now()->addDay());
+
+        /** @var DecisionFormDefinition $decisionDefinition */
+        $decisionDefinition = DecisionFormDefinition::factory()->create([
+            'simulation_version_id' => $runtimeWeek->simulation_version_id,
+            'simulation_week_id' => $runtimeWeek->simulation_week_id,
+            'key' => 'test_decisions',
+            'name' => 'Test decisions',
+        ]);
+
+        DecisionFieldDefinition::factory()->create([
+            'decision_form_definition_id' => $decisionDefinition->id,
+            'field_key' => 'demo_quantity',
+            'label' => 'Demo quantity',
+            'field_type' => DecisionFieldType::Integer,
+            'is_required' => true,
+            'display_order' => 1,
+            'validation' => ['min' => 0, 'max' => 100],
+        ]);
+
+        DecisionFieldDefinition::factory()->create([
+            'decision_form_definition_id' => $decisionDefinition->id,
+            'field_key' => 'demo_choice',
+            'label' => 'Demo choice',
+            'field_type' => DecisionFieldType::Select,
+            'is_required' => false,
+            'display_order' => 2,
+            'options' => [
+                ['value' => 'alpha', 'label' => 'Alpha'],
+                ['value' => 'beta', 'label' => 'Beta'],
+            ],
+        ]);
+
+        /** @var MemoDefinition $memoDefinition */
+        $memoDefinition = MemoDefinition::factory()->create([
+            'simulation_version_id' => $runtimeWeek->simulation_version_id,
+            'simulation_week_id' => $runtimeWeek->simulation_week_id,
+            'key' => 'test_memo',
+            'title' => 'Test memo',
+            'character_limit' => 100,
+        ]);
+
+        /** @var TeamSimulation $teamSimulation */
+        $teamSimulation = $sectionSimulation->teamSimulations()->firstOrFail();
+
+        return compact('sectionSimulation', 'runtimeWeek', 'decisionDefinition', 'memoDefinition', 'teamSimulation');
     }
 }

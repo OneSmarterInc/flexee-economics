@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use InvalidArgumentException;
 
 #[Fillable(['ulid', 'tenant_id', 'section_simulation_id', 'simulation_version_id', 'simulation_week_id', 'status', 'scheduled_at', 'released_at', 'opened_at', 'closes_at', 'closed_at', 'published_at', 'metadata'])]
@@ -78,5 +79,21 @@ class SectionSimulationWeek extends Model
     public function definition(): BelongsTo
     {
         return $this->belongsTo(SimulationWeek::class, 'simulation_week_id');
+    }
+
+    /**
+     * @return HasMany<DecisionSubmission, $this>
+     */
+    public function decisionSubmissions(): HasMany
+    {
+        return $this->hasMany(DecisionSubmission::class);
+    }
+
+    /**
+     * @return HasMany<MemoSubmission, $this>
+     */
+    public function memoSubmissions(): HasMany
+    {
+        return $this->hasMany(MemoSubmission::class);
     }
 }

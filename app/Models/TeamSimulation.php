@@ -66,4 +66,20 @@ class TeamSimulation extends Model
     {
         return $this->hasMany(SimulationSeatAssignment::class);
     }
+
+    /**
+     * @return HasMany<DecisionSubmission, $this>
+     */
+    public function decisionSubmissions(): HasMany
+    {
+        return $this->hasMany(DecisionSubmission::class);
+    }
+
+    /**
+     * @return HasMany<MemoSubmission, $this>
+     */
+    public function memoSubmissions(): HasMany
+    {
+        return $this->hasMany(MemoSubmission::class);
+    }
 }

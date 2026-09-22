@@ -60,4 +60,20 @@ class SimulationWeek extends Model
     {
         return $this->hasMany(WeekContentVersion::class);
     }
+
+    /**
+     * @return HasMany<DecisionFormDefinition, $this>
+     */
+    public function decisionFormDefinitions(): HasMany
+    {
+        return $this->hasMany(DecisionFormDefinition::class);
+    }
+
+    /**
+     * @return HasMany<MemoDefinition, $this>
+     */
+    public function memoDefinitions(): HasMany
+    {
+        return $this->hasMany(MemoDefinition::class);
+    }
 }

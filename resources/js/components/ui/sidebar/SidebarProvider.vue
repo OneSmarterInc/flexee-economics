@@ -2,7 +2,7 @@
 import type { HTMLAttributes, Ref } from "vue"
 import { defaultDocument, useEventListener, useMediaQuery, useVModel } from "@vueuse/core"
 import { TooltipProvider } from "reka-ui"
-import { computed, ref } from "vue"
+import { computed, onMounted, ref } from "vue"
 import { cn } from "@/lib/utils"
 import { provideSidebarContext, SIDEBAR_COOKIE_MAX_AGE, SIDEBAR_COOKIE_NAME, SIDEBAR_KEYBOARD_SHORTCUT, SIDEBAR_WIDTH, SIDEBAR_WIDTH_ICON } from "./utils"
 
@@ -19,7 +19,9 @@ const emits = defineEmits<{
   "update:open": [open: boolean]
 }>()
 
-const isMobile = useMediaQuery("(max-width: 768px)")
+const rawIsMobile = useMediaQuery("(max-width: 768px)")
+const isHydrated = ref(false)
+const isMobile = computed(() => isHydrated.value && rawIsMobile.value)
 const openMobile = ref(false)
 
 const open = useVModel(props, "open", emits, {
@@ -48,6 +50,10 @@ useEventListener("keydown", (event: KeyboardEvent) => {
     event.preventDefault()
     toggleSidebar()
   }
+})
+
+onMounted(() => {
+  isHydrated.value = true
 })
 
 // We add a state so that we can do data-state="expanded" or "collapsed".

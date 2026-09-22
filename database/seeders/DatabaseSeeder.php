@@ -7,8 +7,11 @@ use App\Enums\PlatformRole;
 use App\Enums\SectionSimulationWeekStatus;
 use App\Enums\SimulationVersionStatus;
 use App\Models\Course;
+use App\Models\DecisionFieldDefinition;
+use App\Models\DecisionFormDefinition;
 use App\Models\Enrollment;
 use App\Models\Institution;
+use App\Models\MemoDefinition;
 use App\Models\Seat;
 use App\Models\Section;
 use App\Models\SectionFaculty;
@@ -222,6 +225,58 @@ class DatabaseSeeder extends Seeder
                 'status' => 'placeholder',
                 'metadata' => ['placeholder' => true],
             ]);
+
+            if ($weekNumber === 1) {
+                $decisionDefinition = DecisionFormDefinition::query()->firstOrCreate([
+                    'simulation_week_id' => $week->id,
+                    'key' => 'development_demo_decisions',
+                    'version' => 'demo-v1',
+                ], [
+                    'simulation_version_id' => $version->id,
+                    'name' => 'Development demo decisions',
+                    'is_required' => true,
+                    'metadata' => ['development_demo_only' => true],
+                ]);
+
+                DecisionFieldDefinition::query()->firstOrCreate([
+                    'decision_form_definition_id' => $decisionDefinition->id,
+                    'field_key' => 'demo_quantity',
+                ], [
+                    'label' => 'Demo quantity',
+                    'field_type' => 'integer',
+                    'is_required' => true,
+                    'display_order' => 1,
+                    'help_text' => 'Development/demo only. Not an authoritative Halden field.',
+                    'validation' => ['min' => 0, 'max' => 100],
+                ]);
+
+                DecisionFieldDefinition::query()->firstOrCreate([
+                    'decision_form_definition_id' => $decisionDefinition->id,
+                    'field_key' => 'demo_percentage',
+                ], [
+                    'label' => 'Demo percentage',
+                    'field_type' => 'percentage',
+                    'is_required' => true,
+                    'display_order' => 2,
+                    'help_text' => 'Development/demo only. Not an authoritative Halden field.',
+                    'unit' => '%',
+                    'validation' => ['min' => 0, 'max' => 100],
+                ]);
+
+                MemoDefinition::query()->firstOrCreate([
+                    'simulation_week_id' => $week->id,
+                    'key' => 'development_demo_memo',
+                    'version' => 'demo-v1',
+                ], [
+                    'simulation_version_id' => $version->id,
+                    'title' => 'Development demo memo',
+                    'instructions' => 'Summarize the reasoning behind your demonstration decisions. Development/demo only.',
+                    'is_required' => true,
+                    'character_limit' => 2000,
+                    'submission_format' => 'text',
+                    'metadata' => ['development_demo_only' => true],
+                ]);
+            }
         }
 
         $sectionSimulation = SectionSimulation::query()
@@ -242,6 +297,11 @@ class DatabaseSeeder extends Seeder
         if ($weekOne && $weekOne->statusEnum() === SectionSimulationWeekStatus::Draft) {
             app(SimulationLifecycleService::class)
                 ->transitionWeek($weekOne, SectionSimulationWeekStatus::Released, $faculty);
+        }
+
+        if ($weekOne && $weekOne->refresh()->statusEnum() === SectionSimulationWeekStatus::Released) {
+            app(SimulationLifecycleService::class)
+                ->transitionWeek($weekOne, SectionSimulationWeekStatus::Open, $faculty, now()->addWeek());
         }
     }
 }

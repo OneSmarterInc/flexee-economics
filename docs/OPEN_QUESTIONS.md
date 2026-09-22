@@ -12,6 +12,9 @@ These questions are unsupported by the files currently available. They should be
 - What are the exact Week 4 decision fields, allowed options, validation constraints, and submission rules?
 - What are the exact Week 4 dataset files and student-visible package contents?
 - What is the exact Week 4 memo prompt, expected structure, and rubric?
+- Are multiple decision forms or multiple memo prompts required for a single runtime week?
+- Are final submissions ever reopenable, and if so who can reopen them and what audit trail is required?
+- Can specific Halden seats edit only specific decision fields, or can any team member edit every team field?
 - What KPIs must Week 4 produce?
 - What score components, weights, thresholds, rounding rules, and tie rules apply?
 - What faculty-only causal trace or review information is required?

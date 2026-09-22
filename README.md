@@ -38,7 +38,7 @@ The development seeder creates a fictional demo tenant:
 - Users: demo administrator, faculty, and students
 - Teams: Team Alpha and Team Bravo
 - Simulation: Halden Energy, Fourteen-week flagship, 2026-demo
-- Runtime: Section A demo assignment with Week 1 released
+- Runtime: Section A demo assignment with Week 1 open
 
 Development-only credentials:
 
@@ -84,3 +84,9 @@ Week 4 economics, simulation lifecycle, scoring, KPIs, rankings, Python artifact
 Batch 2 adds the reusable simulation definition hierarchy, section runtime lifecycle, runtime team/seat assignments, audit events, lifecycle policies, a faculty/admin lifecycle page at `/simulation-lifecycle`, and student dashboard visibility for released-or-later simulation weeks.
 
 Simulation submissions, Week 4 economics, scoring, KPIs, rankings, Python artifact generation, and LLM integration remain deferred.
+
+## Batch 3 Scope
+
+Batch 3 adds generic versioned decision form definitions, memo definitions, student draft/final submission flows, immutable submission revision history, team completeness status, a student submission page, and faculty lifecycle submission status.
+
+Week 4 economics, scoring, KPIs, rankings, Python artifact generation, LLM evaluation, and exact Halden Week 4 content remain deferred pending source materials.

@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Domain\Simulation\SimulationLifecycleService;
+use App\Domain\Submissions\SubmissionCompletenessService;
 use App\Enums\SectionSimulationWeekStatus;
 use App\Models\SectionSimulation;
 use App\Models\SectionSimulationWeek;
@@ -22,7 +23,7 @@ class SimulationLifecycleOverview extends Component
             ->transitionWeek($runtimeWeek, SectionSimulationWeekStatus::from($status), auth()->user());
     }
 
-    public function render(): View
+    public function render(SubmissionCompletenessService $completeness): View
     {
         $user = auth()->user();
 
@@ -33,13 +34,24 @@ class SimulationLifecycleOverview extends Component
             ->when($user->isFaculty() && ! $user->isAdministrator(), function ($query) use ($user): void {
                 $query->whereIn('section_id', $user->facultySections()->select('sections.id'));
             })
-            ->with(['section.course', 'simulation', 'variant', 'version', 'weeks.definition'])
+            ->with(['section.course', 'simulation', 'variant', 'version', 'teamSimulations.team', 'weeks.definition.decisionFormDefinitions', 'weeks.definition.memoDefinitions'])
             ->orderBy('name')
             ->get();
+
+        $teamStatuses = [];
+
+        foreach ($sectionSimulations as $sectionSimulation) {
+            foreach ($sectionSimulation->weeks as $week) {
+                foreach ($sectionSimulation->teamSimulations as $teamSimulation) {
+                    $teamStatuses[$week->id][$teamSimulation->id] = $completeness->statusFor($week, $teamSimulation);
+                }
+            }
+        }
 
         return view('livewire.simulation-lifecycle-overview', [
             'sectionSimulations' => $sectionSimulations,
             'validTransitions' => app(SimulationLifecycleService::class)->validTransitions(),
+            'teamStatuses' => $teamStatuses,
         ]);
     }
 }

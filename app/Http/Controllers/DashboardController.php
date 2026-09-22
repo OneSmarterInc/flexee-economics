@@ -82,6 +82,7 @@ class DashboardController extends Controller
                                 'number' => $runtimeWeek->definition->week_number,
                                 'title' => $runtimeWeek->definition->title,
                                 'status' => $runtimeWeek->statusValue(),
+                                'url' => route('student.submissions.show', $runtimeWeek),
                             ])
                             ->values(),
                     ])

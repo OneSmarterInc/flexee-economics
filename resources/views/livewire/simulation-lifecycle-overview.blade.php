@@ -39,6 +39,22 @@
                                 @endforeach
                             </div>
                         </div>
+                        <div class="bg-muted/30 border-t px-3 py-2">
+                            <p class="text-muted-foreground text-xs">Team submission status</p>
+                            <div class="mt-2 grid gap-2 md:grid-cols-2">
+                                @foreach ($sectionSimulation->teamSimulations as $teamSimulation)
+                                    @php($status = $teamStatuses[$runtimeWeek->id][$teamSimulation->id] ?? null)
+                                    <div class="rounded-md border bg-background p-2 text-sm">
+                                        <p class="font-medium">{{ $teamSimulation->team->name }}</p>
+                                        <p class="text-muted-foreground text-xs">
+                                            Decisions: {{ $status['decision_status'] ?? 'not_started' }} -
+                                            Memo: {{ $status['memo_status'] ?? 'not_started' }} -
+                                            {{ ($status['complete'] ?? false) ? 'complete' : 'incomplete' }}
+                                        </p>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
                     @endforeach
                 </div>
             </section>

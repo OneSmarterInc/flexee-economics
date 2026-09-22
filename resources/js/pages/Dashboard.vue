@@ -32,6 +32,7 @@ defineProps<{
                 number: number;
                 title: string;
                 status: string;
+                url: string;
             }>;
         }>;
     };
@@ -134,10 +135,11 @@ defineOptions({
                         </p>
                     </div>
                     <div class="mt-3 grid gap-2 md:grid-cols-2">
-                        <div
+                        <a
                             v-for="week in simulation.weeks"
                             :key="`${simulation.name}-${week.number}`"
                             class="rounded-md border px-3 py-2"
+                            :href="week.url"
                         >
                             <p class="text-sm font-medium">
                                 Week {{ week.number }}: {{ week.title }}
@@ -145,7 +147,7 @@ defineOptions({
                             <p class="text-muted-foreground text-xs">
                                 {{ week.status }}
                             </p>
-                        </div>
+                        </a>
                     </div>
                 </article>
                 <p
