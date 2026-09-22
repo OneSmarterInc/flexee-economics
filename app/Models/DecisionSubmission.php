@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use InvalidArgumentException;
 
 #[Fillable(['ulid', 'tenant_id', 'section_simulation_id', 'section_simulation_week_id', 'team_simulation_id', 'team_id', 'decision_form_definition_id', 'status', 'answers', 'lock_version', 'updated_by_user_id', 'submitted_by_user_id', 'draft_saved_at', 'submitted_at'])]
@@ -104,5 +105,13 @@ class DecisionSubmission extends Model
     public function revisions(): HasMany
     {
         return $this->hasMany(DecisionSubmissionRevision::class);
+    }
+
+    /**
+     * @return HasOne<EconomicResolution, $this>
+     */
+    public function economicResolution(): HasOne
+    {
+        return $this->hasOne(EconomicResolution::class);
     }
 }

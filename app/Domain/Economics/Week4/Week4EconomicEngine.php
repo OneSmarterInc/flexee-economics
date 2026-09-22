@@ -7,6 +7,10 @@ use Brick\Math\RoundingMode;
 
 final class Week4EconomicEngine
 {
+    public const ENGINE_IDENTIFIER = 'week4_transfer_pricing';
+
+    public const ENGINE_VERSION = 'week4_transfer_pricing_v1';
+
     public function deliveredMarginalCost(Week4EconomicInputs $inputs): BigDecimal
     {
         return $inputs->cashLiftingCost

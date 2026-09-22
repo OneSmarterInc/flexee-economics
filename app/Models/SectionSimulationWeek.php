@@ -96,4 +96,12 @@ class SectionSimulationWeek extends Model
     {
         return $this->hasMany(MemoSubmission::class);
     }
+
+    /**
+     * @return HasMany<EconomicResolution, $this>
+     */
+    public function economicResolutions(): HasMany
+    {
+        return $this->hasMany(EconomicResolution::class);
+    }
 }
