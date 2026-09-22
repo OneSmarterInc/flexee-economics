@@ -4,8 +4,8 @@ These questions are unsupported by the files currently available. They should be
 
 ## Missing source files
 
-- Where are `halden-development-instructions.md`, `halden-week4-data-package/`, `halden-week10-data-package/`, `halden-week4-data-package-spec.md`, `halden-energy-role-charters.md`, `halden-faculty-teaching-guide.md`, `halden-student-guide.md`, and `halden-calibration-review.md`?
-- Should the current empty Laravel repository be initialized here at `C:\Users\sakas\Documents\ChatGPT\Flexee-economics`, or should development happen in `C:\Users\sakas\Documents\Flexee-economics`?
+- Where are `halden-development-instructions.md`, `halden-week4-data-package/`, `halden-week10-data-package/`, `halden-week4-data-package-spec.md`, `halden-week10-data-package-spec.md`, `halden-calibration-review.md`, `halden-energy-role-charters.md`, `halden-faculty-teaching-guide.md`, `halden-student-guide.md`, and `halden-energy-design-v2.md`?
+- Is `C:\Users\sakas\Documents\Flexee-economics\halden-constants-ledger.md` the exported equivalent of the handoff's `constants-ledger.md`, or should another ledger be supplied?
 
 ## Week 4 specification questions
 
@@ -34,3 +34,4 @@ These questions are unsupported by the files currently available. They should be
 - What precision tolerance is permitted for golden economic regression tests?
 - How should content package versions be named and promoted from draft to active?
 - Are constants stored directly in the database, in versioned JSON, or imported from package manifests?
+- What exact decimal scale and rounding mode should be used for Week 4 currency, per-barrel values, percentages, rates, KPIs, and scores?

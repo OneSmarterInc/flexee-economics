@@ -1,15 +1,33 @@
-# Stage 1 Economic Dependencies
+# Economic Dependencies
 
 ## Scope and source status
 
-This inventory covers the Week 4 Stage 1 proof point using only the files currently available:
+This inventory covers the Week 4 Stage 1 proof point using only the authoritative files currently available:
 
 - `C:\Users\sakas\Documents\Flexee-economics\HANDOFF-README.md`
 - `C:\Users\sakas\Documents\Flexee-economics\halden-constants-ledger.md`
 
-The Week 4 specification, Week 4 reference package, Week 10 reference package, development instructions, calibration review, role charters, faculty guide, and student guide are not present in the current workspace. Therefore this document lists constants and formulas known from the constants ledger, plus required Week 4 items that are blocked until the missing package is supplied.
+The Week 4 specification, Week 4 reference package, Week 10 reference package, development instructions, calibration review, role charters, faculty guide, student guide, and design-v2 document are not present in the current workspace. Therefore this document lists constants and formulas known from the constants ledger, plus required Week 4 items that are blocked until the missing package is supplied.
 
-The constants ledger is authoritative for economic constants. No missing value below should be inferred or replaced.
+## Constants authority
+
+Authoritative constants ledger for this workspace:
+
+`C:\Users\sakas\Documents\Flexee-economics\halden-constants-ledger.md`
+
+SHA-256:
+
+`62D26482535FCD6CA8D9EDC5644D8784CBDCF9F3879B6CC87A30392251328BBC`
+
+Reason:
+
+- It is the only constants ledger found in the searched project locations.
+- Its title states it is the Halden Energy constants ledger and single source of economic truth.
+- `HANDOFF-README.md` says the constants ledger wins if a spec and ledger disagree.
+
+No second ledger was found, so no ledger-vs-ledger comparison was possible or needed. The exact filename named by the handoff, `constants-ledger.md`, was not found; `halden-constants-ledger.md` is treated as the exported ledger corresponding to that source until project owners supply another ledger.
+
+No missing value below should be inferred or replaced.
 
 ## Known Week 4 dependencies from the constants ledger
 
@@ -62,11 +80,14 @@ These are required for implementation but absent from the current workspace:
 | Week 4 notebooks                     | Needed to understand generation and validation workflow        | Missing |
 | Week 4 expected outputs              | Needed for economic regression tests                           | Missing |
 | `halden-week4-data-package-spec.md`  | Needed for decisions, memo prompt, faculty layer, and scoring  | Missing |
+| `halden-week10-data-package/`        | Needed to understand convergence-week architecture pattern     | Missing |
+| `halden-week10-data-package-spec.md` | Needed to compare single-decision and convergence-week specs   | Missing |
 | `halden-development-instructions.md` | Needed for exact Laravel architecture requirements             | Missing |
 | `halden-calibration-review.md`       | Needed to classify provisional calibration risks               | Missing |
 | `halden-energy-role-charters.md`     | Needed to load seat-specific content                           | Missing |
 | `halden-faculty-teaching-guide.md`   | Needed for faculty tool requirements                           | Missing |
 | `halden-student-guide.md`            | Needed for student onboarding and help content                 | Missing |
+| `halden-energy-design-v2.md`         | Useful for design intent when specs are unclear                | Missing |
 
 ## Conflicts and ambiguities
 
