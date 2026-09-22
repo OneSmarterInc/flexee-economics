@@ -24,11 +24,11 @@ class SectionSimulationWeekPolicy
             return $user->facultySections()->whereKey($sectionSimulation->section_id)->exists();
         }
 
-        if (! in_array($runtimeWeek->status, [
-            SectionSimulationWeekStatus::Released,
-            SectionSimulationWeekStatus::Open,
-            SectionSimulationWeekStatus::Closed,
-            SectionSimulationWeekStatus::Published,
+        if (! in_array($runtimeWeek->statusValue(), [
+            SectionSimulationWeekStatus::Released->value,
+            SectionSimulationWeekStatus::Open->value,
+            SectionSimulationWeekStatus::Closed->value,
+            SectionSimulationWeekStatus::Published->value,
         ], true)) {
             return false;
         }

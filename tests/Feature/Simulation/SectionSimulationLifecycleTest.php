@@ -5,8 +5,12 @@ namespace Tests\Feature\Simulation;
 use App\Domain\Simulation\SimulationLifecycleService;
 use App\Enums\SectionSimulationWeekStatus;
 use App\Models\AuditEvent;
+use App\Models\Seat;
+use App\Models\Section;
 use App\Models\SectionSimulation;
 use App\Models\SectionSimulationWeek;
+use App\Models\Team;
+use App\Models\TeamMember;
 use App\Models\TeamSimulation;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use InvalidArgumentException;
@@ -22,8 +26,8 @@ class SectionSimulationLifecycleTest extends TestCase
     {
         $graph = $this->tenantGraph('A');
         $structure = $this->simulationStructure(4);
-        $seat = \App\Models\Seat::factory()->create(['code' => 'evp-test']);
-        \App\Models\TeamMember::query()
+        $seat = Seat::factory()->create(['code' => 'evp-test']);
+        TeamMember::query()
             ->where('tenant_id', $graph['tenant']->id)
             ->where('team_id', $graph['team']->id)
             ->where('user_id', $graph['student']->id)
@@ -64,6 +68,81 @@ class SectionSimulationLifecycleTest extends TestCase
 
         app(SimulationLifecycleService::class)
             ->assignToSection($graph['section'], $structure['version'], $other['faculty']);
+    }
+
+    public function test_section_simulation_rejects_cross_tenant_section_context(): void
+    {
+        $graph = $this->tenantGraph('A');
+        $other = $this->tenantGraph('B');
+        $structure = $this->simulationStructure(1);
+
+        $this->expectException(InvalidArgumentException::class);
+
+        SectionSimulation::factory()->create([
+            'tenant_id' => $graph['tenant']->id,
+            'section_id' => $other['section']->id,
+            'simulation_id' => $structure['simulation']->id,
+            'simulation_variant_id' => $structure['variant']->id,
+            'simulation_version_id' => $structure['version']->id,
+            'created_by_user_id' => $graph['faculty']->id,
+        ]);
+    }
+
+    public function test_team_simulation_rejects_team_from_another_tenant(): void
+    {
+        $graph = $this->tenantGraph('A');
+        $other = $this->tenantGraph('B');
+        $sectionSimulation = $this->assignSimulation($graph, $this->simulationStructure(1)['version']);
+
+        $this->expectException(InvalidArgumentException::class);
+
+        TeamSimulation::factory()->create([
+            'tenant_id' => $graph['tenant']->id,
+            'section_simulation_id' => $sectionSimulation->id,
+            'section_id' => $graph['section']->id,
+            'team_id' => $other['team']->id,
+        ]);
+    }
+
+    public function test_team_simulation_rejects_team_from_another_section(): void
+    {
+        $graph = $this->tenantGraph('A');
+        $sectionSimulation = $this->assignSimulation($graph, $this->simulationStructure(1)['version']);
+        $otherSection = Section::factory()->create([
+            'tenant_id' => $graph['tenant']->id,
+            'course_id' => $graph['course']->id,
+        ]);
+        $otherTeam = Team::factory()->create([
+            'tenant_id' => $graph['tenant']->id,
+            'section_id' => $otherSection->id,
+            'slug' => 'other-section-team',
+        ]);
+
+        $this->expectException(InvalidArgumentException::class);
+
+        TeamSimulation::factory()->create([
+            'tenant_id' => $graph['tenant']->id,
+            'section_simulation_id' => $sectionSimulation->id,
+            'section_id' => $graph['section']->id,
+            'team_id' => $otherTeam->id,
+        ]);
+    }
+
+    public function test_runtime_week_rejects_definition_from_another_version(): void
+    {
+        $graph = $this->tenantGraph('A');
+        $first = $this->simulationStructure(1);
+        $second = $this->simulationStructure(1);
+        $sectionSimulation = $this->assignSimulation($graph, $first['version']);
+
+        $this->expectException(InvalidArgumentException::class);
+
+        SectionSimulationWeek::factory()->create([
+            'tenant_id' => $graph['tenant']->id,
+            'section_simulation_id' => $sectionSimulation->id,
+            'simulation_version_id' => $first['version']->id,
+            'simulation_week_id' => $second['simulationWeeks']->first()->id,
+        ]);
     }
 
     public function test_runtime_week_state_machine_allows_expected_sequence_and_audits_transition(): void

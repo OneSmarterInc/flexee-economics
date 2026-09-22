@@ -81,7 +81,7 @@ class DashboardController extends Controller
                             ->map(fn ($runtimeWeek) => [
                                 'number' => $runtimeWeek->definition->week_number,
                                 'title' => $runtimeWeek->definition->title,
-                                'status' => $runtimeWeek->status->value,
+                                'status' => $runtimeWeek->statusValue(),
                             ])
                             ->values(),
                     ])

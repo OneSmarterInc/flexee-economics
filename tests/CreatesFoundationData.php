@@ -3,18 +3,18 @@
 namespace Tests;
 
 use App\Domain\Simulation\SimulationLifecycleService;
-use App\Enums\SimulationVersionStatus;
 use App\Enums\PlatformRole;
+use App\Enums\SimulationVersionStatus;
 use App\Models\Course;
 use App\Models\Enrollment;
 use App\Models\Institution;
+use App\Models\Section;
+use App\Models\SectionFaculty;
 use App\Models\SectionSimulation;
 use App\Models\Simulation;
 use App\Models\SimulationVariant;
 use App\Models\SimulationVersion;
 use App\Models\SimulationWeek;
-use App\Models\Section;
-use App\Models\SectionFaculty;
 use App\Models\Team;
 use App\Models\TeamMember;
 use App\Models\Tenant;

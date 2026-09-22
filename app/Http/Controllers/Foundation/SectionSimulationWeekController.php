@@ -6,9 +6,9 @@ use App\Domain\Simulation\SimulationLifecycleService;
 use App\Enums\SectionSimulationWeekStatus;
 use App\Http\Controllers\Controller;
 use App\Models\SectionSimulationWeek;
-use Illuminate\Support\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Validation\Rules\Enum;
 
 class SectionSimulationWeekController extends Controller
@@ -21,7 +21,7 @@ class SectionSimulationWeekController extends Controller
 
         return response()->json([
             'ulid' => $sectionSimulationWeek->ulid,
-            'status' => $sectionSimulationWeek->status->value,
+            'status' => $sectionSimulationWeek->statusValue(),
             'section_simulation' => $sectionSimulationWeek->sectionSimulation->name,
             'section' => $sectionSimulationWeek->sectionSimulation->section->name,
             'course' => $sectionSimulationWeek->sectionSimulation->section->course->name,
@@ -54,7 +54,7 @@ class SectionSimulationWeekController extends Controller
 
         return response()->json([
             'ulid' => $updated->ulid,
-            'status' => $updated->status->value,
+            'status' => $updated->statusValue(),
         ]);
     }
 }

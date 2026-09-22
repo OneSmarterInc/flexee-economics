@@ -16,6 +16,7 @@ use App\Models\TeamMember;
 use App\Models\TeamSimulation;
 use App\Models\User;
 use Carbon\CarbonInterface;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
@@ -54,7 +55,7 @@ class SimulationLifecycleService
             throw new InvalidArgumentException('Simulation assignment actor must belong to the section tenant.');
         }
 
-        if ($version->status !== SimulationVersionStatus::Published) {
+        if ($version->statusEnum() !== SimulationVersionStatus::Published) {
             throw new InvalidArgumentException('Only published simulation versions can be assigned to sections.');
         }
 
@@ -70,7 +71,7 @@ class SimulationLifecycleService
                 'simulation_version_id' => $version->id,
                 'created_by_user_id' => $actor->id,
                 'name' => $name ?? $version->simulation->name.' - '.$section->name,
-                'status' => SectionSimulationStatus::Active,
+                'status' => SectionSimulationStatus::Active->value,
                 'metadata' => [
                     'assignment_source' => 'lifecycle_service',
                 ],
@@ -82,7 +83,7 @@ class SimulationLifecycleService
                     'section_simulation_id' => $sectionSimulation->id,
                     'simulation_version_id' => $version->id,
                     'simulation_week_id' => $week->id,
-                    'status' => SectionSimulationWeekStatus::Draft,
+                    'status' => SectionSimulationWeekStatus::Draft->value,
                 ]);
             }
 
@@ -97,7 +98,7 @@ class SimulationLifecycleService
                 auditable: $sectionSimulation,
                 before: null,
                 after: [
-                    'status' => $sectionSimulation->status->value,
+                    'status' => $sectionSimulation->statusValue(),
                     'section_id' => $section->id,
                     'simulation_version_id' => $version->id,
                 ],
@@ -117,7 +118,7 @@ class SimulationLifecycleService
             throw new InvalidArgumentException('Lifecycle actor must belong to the runtime week tenant.');
         }
 
-        $from = $runtimeWeek->status;
+        $from = $runtimeWeek->statusEnum();
         $allowed = $this->validTransitions()[$from->value] ?? [];
 
         if (! in_array($to, $allowed, true)) {
@@ -126,7 +127,7 @@ class SimulationLifecycleService
 
         return DB::transaction(function () use ($runtimeWeek, $to, $actor, $from, $closesAt): SectionSimulationWeek {
             $now = Carbon::now();
-            $runtimeWeek->status = $to;
+            $runtimeWeek->status = $to->value;
 
             match ($to) {
                 SectionSimulationWeekStatus::Scheduled => $runtimeWeek->scheduled_at = $now,
@@ -162,14 +163,14 @@ class SimulationLifecycleService
         });
     }
 
-    private function createTeamSimulation(SectionSimulation $sectionSimulation, Team $team): TeamSimulation
+    protected function createTeamSimulation(SectionSimulation $sectionSimulation, Team $team): TeamSimulation
     {
         $teamSimulation = TeamSimulation::query()->create([
             'tenant_id' => $sectionSimulation->tenant_id,
             'section_simulation_id' => $sectionSimulation->id,
             'section_id' => $sectionSimulation->section_id,
             'team_id' => $team->id,
-            'status' => TeamSimulationStatus::Active,
+            'status' => TeamSimulationStatus::Active->value,
         ]);
 
         TeamMember::query()
@@ -198,7 +199,7 @@ class SimulationLifecycleService
         int $tenantId,
         User $actor,
         string $action,
-        object $auditable,
+        Model $auditable,
         ?array $before,
         ?array $after,
         ?array $metadata = null,
@@ -208,7 +209,7 @@ class SimulationLifecycleService
             'actor_user_id' => $actor->id,
             'action' => $action,
             'auditable_type' => $auditable::class,
-            'auditable_id' => $auditable->id,
+            'auditable_id' => $auditable->getKey(),
             'before_state' => $before,
             'after_state' => $after,
             'metadata' => $metadata,

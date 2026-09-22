@@ -30,7 +30,7 @@ class SimulationVersion extends Model
 
         static::updating(function (SimulationVersion $version): void {
             $materialFields = ['simulation_id', 'simulation_variant_id', 'version', 'config_hash', 'configuration'];
-            $originalStatus = SimulationVersionStatus::tryFrom((string) $version->getOriginal('status'));
+            $originalStatus = $version->originalStatus();
             $isMaterialChange = $version->isDirty($materialFields);
             $isPublished = $originalStatus === SimulationVersionStatus::Published;
             $isInUse = $version->sectionSimulations()->exists();
@@ -39,6 +39,34 @@ class SimulationVersion extends Model
                 throw new InvalidArgumentException('Published or in-use simulation versions cannot be materially modified.');
             }
         });
+    }
+
+    public function isFrozen(): bool
+    {
+        return $this->statusEnum() === SimulationVersionStatus::Published
+            || $this->sectionSimulations()->exists();
+    }
+
+    public function statusEnum(): ?SimulationVersionStatus
+    {
+        $status = $this->getAttribute('status');
+
+        if ($status instanceof SimulationVersionStatus) {
+            return $status;
+        }
+
+        return SimulationVersionStatus::tryFrom((string) $status);
+    }
+
+    private function originalStatus(): ?SimulationVersionStatus
+    {
+        $status = $this->getOriginal('status');
+
+        if ($status instanceof SimulationVersionStatus) {
+            return $status;
+        }
+
+        return SimulationVersionStatus::tryFrom((string) $status);
     }
 
     protected function casts(): array

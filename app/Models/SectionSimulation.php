@@ -41,6 +41,14 @@ class SectionSimulation extends Model
                 }
             }
         });
+
+        static::updating(function (SectionSimulation $sectionSimulation): void {
+            $identityFields = ['tenant_id', 'section_id', 'simulation_id', 'simulation_variant_id', 'simulation_version_id'];
+
+            if ($sectionSimulation->isDirty($identityFields)) {
+                throw new InvalidArgumentException('Section simulations cannot be retargeted after assignment.');
+            }
+        });
     }
 
     protected function casts(): array
@@ -51,6 +59,17 @@ class SectionSimulation extends Model
             'metadata' => 'array',
             'status' => SectionSimulationStatus::class,
         ];
+    }
+
+    public function statusValue(): string
+    {
+        $status = $this->getAttribute('status');
+
+        if ($status instanceof SectionSimulationStatus) {
+            return $status->value;
+        }
+
+        return (string) $status;
     }
 
     /**

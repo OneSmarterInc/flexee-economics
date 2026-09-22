@@ -102,3 +102,65 @@ Batch 2 adds coverage for:
 - faculty/student/cross-tenant authorization
 - student dashboard visibility filtering
 - runtime seat assignment independence from platform role
+
+## Verification Results
+
+Verified on September 22, 2026 with PHP at `C:\Users\sakas\.config\herd-lite\bin\php.exe`.
+
+Migration and seed:
+
+- `php artisan migrate:fresh --seed` passed from an empty database.
+- Batch 1 and Batch 2 migrations executed in order.
+- Seeder created the Halden University demo, Halden Energy simulation, `Fourteen-week flagship` variant, `2026-demo` version, 14 structural weeks, Section A assignment, and Week 1 released state.
+
+PHP tests and quality gates:
+
+- `php artisan test` passed: 83 tests, 83 passed, 213 assertions.
+- `composer validate` passed.
+- `composer run lint:check` passed.
+- `composer run types:check` passed with 0 PHPStan errors.
+
+Frontend checks:
+
+- `npm run check` passed.
+- `npm run types:check` passed.
+- `npm run build` passed with Herd-lite PHP on `PATH`; Wayfinder generated route/action types successfully.
+
+State-machine verification:
+
+- Actual runtime week states are `draft`, `scheduled`, `released`, `open`, `closed`, and `published`.
+- Valid transitions are `draft -> scheduled`, `draft -> released`, `scheduled -> released`, `released -> open`, `open -> closed`, and `closed -> published`.
+- Tests verify the allowed release/open/close/publish path, the scheduled/released path, and forbidden shortcuts including `draft -> published` and `published -> open`.
+- Controllers and Livewire components call `SimulationLifecycleService`; repository search found no direct runtime-week lifecycle mutation bypassing the service outside seed/test setup.
+
+Version immutability verification:
+
+- Draft versions can be materially edited before use.
+- Published or in-use versions reject material edits server-side.
+- Week definitions for published or in-use versions reject material edits server-side.
+- Section simulations reject retargeting to another section, simulation, variant, or version after assignment.
+
+Tenant-isolation verification:
+
+- Cross-tenant lifecycle actors are rejected.
+- Tenant A section simulation with Tenant B section context is rejected.
+- Tenant A section simulation with Tenant B team context is rejected.
+- Section Simulation using Version A with runtime week definition from Version B is rejected.
+- Student/team/simulation context from different tenants is rejected.
+- Student from another section cannot be assigned into the Section A simulation team.
+- Students cannot access lifecycle controls or mutate runtime weeks by direct ULID route.
+- Students can see only released-or-later runtime weeks on the dashboard and cannot directly view unreleased weeks.
+
+Smoke test:
+
+- Faculty login (`faculty@example.test`) loaded `/simulation-lifecycle`, displayed Section A, `2026-demo`, and Week 1 lifecycle state, and an authorized Week 1 transition worked.
+- Student login (`student11@example.test`) displayed Halden Energy for Section A and only permitted weeks on the dashboard.
+- Student direct navigation to `/simulation-lifecycle` returned 403.
+
+Defects found and repaired during verification:
+
+- Fixed enum-cast handling in simulation version immutability checks.
+- Added frozen-version protection for simulation week definitions.
+- Added section-simulation retargeting protection.
+- Added explicit enum status helpers so PHPStan verifies lifecycle status handling.
+- Fixed `/simulation-lifecycle` Blade shell to avoid loading the Inertia app bundle on the standalone Livewire page.

@@ -239,7 +239,7 @@ class DatabaseSeeder extends Seeder
             ->whereHas('definition', fn ($query) => $query->where('week_number', 1))
             ->first();
 
-        if ($weekOne && $weekOne->status === SectionSimulationWeekStatus::Draft) {
+        if ($weekOne && $weekOne->statusEnum() === SectionSimulationWeekStatus::Draft) {
             app(SimulationLifecycleService::class)
                 ->transitionWeek($weekOne, SectionSimulationWeekStatus::Released, $faculty);
         }

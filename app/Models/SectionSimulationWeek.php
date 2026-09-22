@@ -48,6 +48,22 @@ class SectionSimulationWeek extends Model
         ];
     }
 
+    public function statusEnum(): SectionSimulationWeekStatus
+    {
+        $status = $this->getAttribute('status');
+
+        if ($status instanceof SectionSimulationWeekStatus) {
+            return $status;
+        }
+
+        return SectionSimulationWeekStatus::from((string) $status);
+    }
+
+    public function statusValue(): string
+    {
+        return $this->statusEnum()->value;
+    }
+
     /**
      * @return BelongsTo<SectionSimulation, $this>
      */

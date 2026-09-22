@@ -3,7 +3,6 @@
 namespace Tests\Feature\Simulation;
 
 use App\Models\SectionSimulation;
-use App\Models\SimulationVersion;
 use App\Models\SimulationWeek;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -54,6 +53,19 @@ class SimulationDefinitionTest extends TestCase
         $version->update(['config_hash' => 'new-hash']);
     }
 
+    public function test_draft_versions_can_be_materially_modified_before_use(): void
+    {
+        $version = $this->draftSimulationVersion();
+
+        $version->update([
+            'config_hash' => 'draft-hash-v2',
+            'configuration' => ['changed' => true],
+        ]);
+
+        $this->assertSame('draft-hash-v2', $version->refresh()->config_hash);
+        $this->assertSame(['changed' => true], $version->configuration);
+    }
+
     public function test_in_use_versions_cannot_be_materially_modified(): void
     {
         $graph = $this->tenantGraph('A');
@@ -71,6 +83,34 @@ class SimulationDefinitionTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
 
         $version->update(['configuration' => ['changed' => true]]);
+    }
+
+    public function test_weeks_for_published_versions_cannot_be_materially_modified(): void
+    {
+        $week = $this->simulationStructure(1)['simulationWeeks']->first();
+
+        $this->expectException(InvalidArgumentException::class);
+
+        $week->update(['title' => 'Changed after publish']);
+    }
+
+    public function test_section_simulation_remains_bound_to_the_original_version(): void
+    {
+        $graph = $this->tenantGraph('A');
+        $original = $this->simulationStructure(1);
+        $replacement = $this->simulationStructure(1);
+
+        $sectionSimulation = $this->assignSimulation($graph, $original['version']);
+
+        $this->assertSame($original['version']->id, $sectionSimulation->simulation_version_id);
+
+        $this->expectException(InvalidArgumentException::class);
+
+        $sectionSimulation->update([
+            'simulation_id' => $replacement['simulation']->id,
+            'simulation_variant_id' => $replacement['variant']->id,
+            'simulation_version_id' => $replacement['version']->id,
+        ]);
     }
 
     public function test_week_must_match_its_version_hierarchy(): void

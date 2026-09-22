@@ -3,11 +3,14 @@
 namespace Tests\Feature\Simulation;
 
 use App\Enums\PlatformRole;
+use App\Models\Enrollment;
 use App\Models\Seat;
+use App\Models\Section;
 use App\Models\SimulationSeatAssignment;
 use App\Models\Team;
 use App\Models\TeamMember;
 use App\Models\TeamSimulation;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use InvalidArgumentException;
 use Tests\CreatesFoundationData;
@@ -77,6 +80,38 @@ class SimulationSeatAssignmentTest extends TestCase
             'team_simulation_id' => $teamSimulation->id,
             'team_id' => $teamSimulation->team_id,
             'user_id' => $other['student']->id,
+            'seat_id' => $seat->id,
+        ]);
+    }
+
+    public function test_student_from_another_section_cannot_be_assigned_into_section_simulation_team(): void
+    {
+        $graph = $this->tenantGraph('A');
+        $otherSection = Section::factory()->create([
+            'tenant_id' => $graph['tenant']->id,
+            'course_id' => $graph['course']->id,
+        ]);
+        $otherStudent = User::factory()->student()->create([
+            'tenant_id' => $graph['tenant']->id,
+            'email' => 'other-section-student@example.test',
+        ]);
+        Enrollment::query()->create([
+            'tenant_id' => $graph['tenant']->id,
+            'section_id' => $otherSection->id,
+            'user_id' => $otherStudent->id,
+            'status' => 'active',
+        ]);
+        $sectionSimulation = $this->assignSimulation($graph, $this->simulationStructure(1)['version']);
+        $teamSimulation = TeamSimulation::query()->where('section_simulation_id', $sectionSimulation->id)->firstOrFail();
+        $seat = Seat::factory()->create(['code' => 'other-section-seat-test']);
+
+        $this->expectException(InvalidArgumentException::class);
+
+        SimulationSeatAssignment::factory()->create([
+            'tenant_id' => $graph['tenant']->id,
+            'team_simulation_id' => $teamSimulation->id,
+            'team_id' => $teamSimulation->team_id,
+            'user_id' => $otherStudent->id,
             'seat_id' => $seat->id,
         ]);
     }

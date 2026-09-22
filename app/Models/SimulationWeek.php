@@ -26,6 +26,15 @@ class SimulationWeek extends Model
                 throw new InvalidArgumentException('Simulation week must belong to the selected simulation version.');
             }
         });
+
+        static::updating(function (SimulationWeek $week): void {
+            $materialFields = ['simulation_id', 'simulation_variant_id', 'simulation_version_id', 'week_number', 'slug', 'title', 'pattern', 'content_key', 'content_metadata'];
+            $version = $week->version()->firstOrFail();
+
+            if ($week->isDirty($materialFields) && $version->isFrozen()) {
+                throw new InvalidArgumentException('Weeks belonging to published or in-use simulation versions cannot be materially modified.');
+            }
+        });
     }
 
     protected function casts(): array

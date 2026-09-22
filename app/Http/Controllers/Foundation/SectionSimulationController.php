@@ -22,14 +22,14 @@ class SectionSimulationController extends Controller
             'simulation' => $sectionSimulation->simulation->name,
             'variant' => $sectionSimulation->variant->name,
             'version' => $sectionSimulation->version->version,
-            'status' => $sectionSimulation->status->value,
+            'status' => $sectionSimulation->statusValue(),
             'weeks' => $sectionSimulation->weeks
                 ->sortBy(fn ($runtimeWeek) => $runtimeWeek->definition->week_number)
                 ->map(fn ($runtimeWeek) => [
                     'ulid' => $runtimeWeek->ulid,
                     'week_number' => $runtimeWeek->definition->week_number,
                     'title' => $runtimeWeek->definition->title,
-                    'status' => $runtimeWeek->status->value,
+                    'status' => $runtimeWeek->statusValue(),
                 ])
                 ->values(),
         ]);
