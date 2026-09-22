@@ -9,13 +9,9 @@ Searched locations:
 
 Search exclusions were limited to dependency/build/cache folders under the application repository (`node_modules`, `vendor`, `.git`, `public/build`, and development-cache storage). No unrelated personal directories were searched.
 
-Current repository check:
-
-- `HEAD` before this validation pass: `866f76c docs: reconcile authoritative Halden sources`.
-
 ## Authoritative markdown sources
 
-The previously missing authoritative markdown files are present under `C:\Users\sakas\Documents\Flexee-economics`. They were not copied into the application repository because the supplied source directory is clearly identified, stable, and outside generated application docs.
+The authoritative markdown files are present under `C:\Users\sakas\Documents\Flexee-economics`. They were not copied into the application repository because the supplied source directory is clearly identified, stable, and outside generated application docs.
 
 | Source                               | Path                                                                           | SHA-256                                                            | Status  | Purpose                                                                                       |
 | ------------------------------------ | ------------------------------------------------------------------------------ | ------------------------------------------------------------------ | ------- | --------------------------------------------------------------------------------------------- |
@@ -32,34 +28,47 @@ The previously missing authoritative markdown files are present under `C:\Users\
 
 The current source-of-truth constants ledger is `halden-constants-ledger.md` unless an explicitly newer authoritative ledger is supplied.
 
-## Week 4 package inventory
+## Week 4 source files
 
-The Week 4 reference files are present as flat files under `C:\Users\sakas\Documents\Flexee-economics`, not inside a `halden-week4-data-package/` directory. They were not renamed or moved.
+The original Week 4 files were supplied as flat files under `C:\Users\sakas\Documents\Flexee-economics`. They remain the external provenance inputs.
 
-| File                          | Path                                                                    | SHA-256                                                            | Classification                       | Status                                            |
-| ----------------------------- | ----------------------------------------------------------------------- | ------------------------------------------------------------------ | ------------------------------------ | ------------------------------------------------- |
-| `permian_lifting.csv`         | `C:\Users\sakas\Documents\Flexee-economics\permian_lifting.csv`         | `BE099BB7845D95AA989A2CE0C43E0A18DB660AB6E01B3C04B91E9FB5B54389E2` | canonical CSV                        | Present                                           |
-| `cost_constants.csv`          | `C:\Users\sakas\Documents\Flexee-economics\cost_constants.csv`          | `FEB8EE3F11BA6164658F6B4D5D7AB3CA30078CBF21D41A6BDF8C7215591150FE` | canonical CSV                        | Present                                           |
-| `segment_comp.csv`            | `C:\Users\sakas\Documents\Flexee-economics\segment_comp.csv`            | `BC305C5E4E90311B0452FA201A23663DD773A0006E655284F2F8066D3A2DD5A9` | canonical CSV                        | Present                                           |
-| `worked_example_prior.csv`    | `C:\Users\sakas\Documents\Flexee-economics\worked_example_prior.csv`    | `094146C787CBF95EBAFB3F6AEA0DCE949F1866929E5A9FEF714F31B77DE53AFB` | canonical CSV / worked-example input | Present                                           |
-| `halden_week4.xlsx`           | `C:\Users\sakas\Documents\Flexee-economics\halden_week4.xlsx`           | `A3BF2A23B4AAA6DCAB609B2BCFC293C063A5028921A03E6BE251C62A67FE90AA` | student workbook                     | Present                                           |
-| `halden_week4_analysis.ipynb` | `C:\Users\sakas\Documents\Flexee-economics\halden_week4_analysis.ipynb` | `5B75EAF76475C132E814A08A592A2F1CF9637C5CEB0CBD06F2D2B42360DD81CA` | student notebook                     | Present but path-broken as supplied               |
-| `MANIFEST.md`                 | `C:\Users\sakas\Documents\Flexee-economics\MANIFEST.md`                 | `A9D89991AD60937153EC951DF6E12B82E1954EE8AAA58451CA6C18CEB12113C6` | MANIFEST                             | Present, but describes Week 10 rather than Week 4 |
+| File                          | SHA-256                                                            | Classification                       | Normalized destination                                           |
+| ----------------------------- | ------------------------------------------------------------------ | ------------------------------------ | ---------------------------------------------------------------- |
+| `permian_lifting.csv`         | `BE099BB7845D95AA989A2CE0C43E0A18DB660AB6E01B3C04B91E9FB5B54389E2` | canonical CSV                        | `halden-week4-data-package/data/permian_lifting.csv`             |
+| `cost_constants.csv`          | `FEB8EE3F11BA6164658F6B4D5D7AB3CA30078CBF21D41A6BDF8C7215591150FE` | canonical CSV                        | `halden-week4-data-package/data/cost_constants.csv`              |
+| `segment_comp.csv`            | `BC305C5E4E90311B0452FA201A23663DD773A0006E655284F2F8066D3A2DD5A9` | canonical CSV                        | `halden-week4-data-package/data/segment_comp.csv`                |
+| `worked_example_prior.csv`    | `094146C787CBF95EBAFB3F6AEA0DCE949F1866929E5A9FEF714F31B77DE53AFB` | canonical CSV / worked-example input | `halden-week4-data-package/data/worked_example_prior.csv`        |
+| `halden_week4.xlsx`           | `A3BF2A23B4AAA6DCAB609B2BCFC293C063A5028921A03E6BE251C62A67FE90AA` | student workbook                     | `halden-week4-data-package/student/halden_week4.xlsx`            |
+| `halden_week4_analysis.ipynb` | `5B75EAF76475C132E814A08A592A2F1CF9637C5CEB0CBD06F2D2B42360DD81CA` | original student notebook            | normalized into executable `student/halden_week4_analysis.ipynb` |
 
-Missing Week 4 package artifacts:
+## Normalized Week 4 package
 
-- Week 4-specific MANIFEST
-- `data/` directory expected by `halden_week4_analysis.ipynb`
-- separate six-CSV layout promised by the Week 4 spec
-- faculty solution workbook
-- faculty solution notebook
-- expected-output fixture files
-- package README or validation instructions
+The repository now contains `halden-week4-data-package/`, a normalized reference package created from the supplied flat Week 4 materials without changing authoritative economic values.
+
+The package adds:
+
+- Week 4-specific `MANIFEST.md` and `README.md`;
+- `data/` layout matching notebook execution;
+- student workbook and student notebook;
+- faculty solution workbook and faculty solution notebook;
+- expected-output JSON for the worked example and current Week 4 reference;
+- provenance hashes and a validation script.
+
+Standalone Week 4 reference-package status: `READY WITH NON-BLOCKING QUESTIONS`.
+
+The package validates required files, hashes, CSV arithmetic, worked-example output, student/faculty notebook execution, expected-output consistency, workbook formulas, and workbook formula recalculation through Artifact Tool checks.
+
+## Remaining questions
+
+The normalized package does not settle every later implementation rule:
+
+- custom transfer-price minimum, maximum, increment, and precision;
+- display rounding for `9.625/bbl` Geneva capture;
+- monthly or annual Geneva period conversion beyond the supplied `40,000 bbl/day` cap;
+- Week 4 to Week 6 disciplined/base/lax cohort classification thresholds.
+
+These are not blockers for the standalone Week 4 package oracle. They remain blockers for the relevant UI validation, periodized Geneva P&L, and later consequence-engine implementation.
 
 ## Week 10 package note
 
-`MANIFEST.md`, `halden_week10.xlsx`, and `halden_week10_analysis.ipynb` are present in the same source folder. The manifest describes the Week 10 package pattern, not Week 4. Week 10 was not validated in this pass beyond identifying that the root manifest is not a Week 4 manifest.
-
-## Readiness implication
-
-The authoritative markdown layer and flat Week 4 files are present and reconciled enough to create partial golden fixtures. Full Week 4 implementation remains blocked until the package defects above are resolved or explicitly accepted as the authoritative package shape.
+`MANIFEST.md`, `halden_week10.xlsx`, and `halden_week10_analysis.ipynb` are present in the same external source folder. The root external manifest describes the Week 10 package pattern, not the normalized Week 4 package. Week 10 was not validated in this pass.

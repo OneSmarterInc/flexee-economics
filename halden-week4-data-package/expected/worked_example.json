@@ -1,0 +1,53 @@
+{
+    "metadata": {
+        "name": "Week 4 worked example",
+        "source": "worked_example_prior.csv and halden_week4.xlsx",
+        "units": "usd_bbl unless otherwise noted"
+    },
+    "inputs": {
+        "wti": "68.00",
+        "permian_wellhead_discount": "3.50",
+        "transport_permian_to_br": "3.20",
+        "delivered_marginal_cost": "14.10",
+        "sr_capital_charge": "4.60",
+        "gc_crack_321": "19.00",
+        "br_complexity_premium": "4.75",
+        "br_opex": "5.90"
+    },
+    "outputs": {
+        "realized_wellhead": "64.50",
+        "product_slate_value": "88.25",
+        "integrated_margin": "68.25",
+        "transfer_prices": {
+            "market": "67.70",
+            "marginal_cost": "18.70"
+        },
+        "segment_splits": {
+            "market": {
+                "upstream_margin": "53.60",
+                "refining_margin": "14.65",
+                "integrated_margin": "68.25"
+            },
+            "marginal_cost": {
+                "upstream_margin": "4.60",
+                "refining_margin": "63.65",
+                "integrated_margin": "68.25"
+            }
+        }
+    },
+    "provenance": {
+        "source_hashes": {
+            "halden-constants-ledger.md": "62D26482535FCD6CA8D9EDC5644D8784CBDCF9F3879B6CC87A30392251328BBC",
+            "halden-week4-data-package-spec.md": "8BA320474AAB95A13B72CCF854A335AC005DB42A799121B0B1957B51CD01CE55",
+            "data/permian_lifting.csv": "BE099BB7845D95AA989A2CE0C43E0A18DB660AB6E01B3C04B91E9FB5B54389E2",
+            "data/cost_constants.csv": "FEB8EE3F11BA6164658F6B4D5D7AB3CA30078CBF21D41A6BDF8C7215591150FE",
+            "data/segment_comp.csv": "BC305C5E4E90311B0452FA201A23663DD773A0006E655284F2F8066D3A2DD5A9",
+            "data/worked_example_prior.csv": "094146C787CBF95EBAFB3F6AEA0DCE949F1866929E5A9FEF714F31B77DE53AFB",
+            "student/halden_week4.xlsx": "A3BF2A23B4AAA6DCAB609B2BCFC293C063A5028921A03E6BE251C62A67FE90AA",
+            "student/halden_week4_analysis.ipynb": "9B6658C3291B6EE4E444CBBC526AD2BFF1C41A9F19D6DF8F40AD3546F4ECF0B7",
+            "faculty/halden_week4_solution.ipynb": "D547E5F5DE3CEF0EDD557E19CAAECFA1D2071DA5520F7775364D90B34E3FE85B",
+            "faculty/halden_week4_solution.xlsx": "BEE8D7209243FCCCA24B69AEE7DDF499AA96DC256411DF2F41E70AB1DCE11593"
+        },
+        "package_root": "halden-week4-data-package"
+    }
+}

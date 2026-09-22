@@ -18,7 +18,9 @@ The constants ledger remains the single source of economic truth. If the Week 4 
 
 ## Status
 
-The Week 4 markdown spec, ledger, supplied CSVs, and workbook reconcile on the numeric transfer-pricing values needed for mathematical invariants. Full reference-package parity remains blocked because the supplied Week 4 package lacks a Week 4 manifest, expected outputs, faculty solution artifacts, and an executable notebook path layout.
+The Week 4 markdown spec, ledger, supplied CSVs, workbook, normalized notebooks, faculty workbook, and expected outputs reconcile on the numeric transfer-pricing values needed for mathematical invariants. The normalized package in `halden-week4-data-package/` supplies the executable package layout, manifest, faculty artifacts, and expected-output files that were missing from the original flat source folder.
+
+Standalone Week 4 deterministic parity is ready with non-blocking questions. The unresolved items affect custom-price UI validation, Geneva period conversion/display rounding, and later Week 4 to Week 6 consequence logic.
 
 ## Reconciliation table
 
@@ -42,9 +44,9 @@ The Week 4 markdown spec, ledger, supplied CSVs, and workbook reconcile on the n
 | Geneva capacity                          | `40,000 bbl/day`                                                                      | `40,000 bbl/day`                                                                                  | `cost_constants.csv` `geneva_max_volume=40000`; workbook `B19=40000`                                           | Match                    | No time-basis beyond bbl/day supplied.                                                             |
 | Upstream target                          | `$45.00/bbl`                                                                          | `$45.00/bbl`                                                                                      | `segment_comp.csv` upstream target `45.00`; workbook `Data — Compensation!C5=45`                               | Match                    | Segment compensation target.                                                                       |
 | Refining target                          | `$30.00/bbl`                                                                          | `$30.00/bbl`                                                                                      | `segment_comp.csv` refining target `30.00`; workbook `Data — Compensation!C6=30`                               | Match                    | Segment compensation target.                                                                       |
-| Market segment outcomes                  | Upstream `+14.60`, refining `-12.85` vs target                                        | Same faculty answer-key table                                                                     | Expected fixture: upstream `59.60`, refining `17.15`, deltas `+14.60`/`-12.85`                                 | Match                    | No separate faculty solution file supplied.                                                        |
-| Marginal segment outcomes                | Upstream `-40.40`, refining `+42.15` vs target                                        | Same faculty answer-key table                                                                     | Expected fixture: upstream `4.60`, refining `72.15`, deltas `-40.40`/`+42.15`                                  | Match                    | No separate faculty solution file supplied.                                                        |
-| Midpoint segment outcomes                | Upstream `-12.90`, refining `+14.65` vs target                                        | Same faculty answer-key table                                                                     | Expected fixture: upstream `32.10`, refining `44.65`, deltas `-12.90`/`+14.65`                                 | Match                    | No separate faculty solution file supplied.                                                        |
+| Market segment outcomes                  | Upstream `+14.60`, refining `-12.85` vs target                                        | Same faculty answer-key table                                                                     | Expected fixture and faculty solution: upstream `59.60`, refining `17.15`, deltas `+14.60`/`-12.85`            | Match                    | Faculty workbook/notebook now included in normalized package.                                      |
+| Marginal segment outcomes                | Upstream `-40.40`, refining `+42.15` vs target                                        | Same faculty answer-key table                                                                     | Expected fixture and faculty solution: upstream `4.60`, refining `72.15`, deltas `-40.40`/`+42.15`             | Match                    | Faculty workbook/notebook now included in normalized package.                                      |
+| Midpoint segment outcomes                | Upstream `-12.90`, refining `+14.65` vs target                                        | Same faculty answer-key table                                                                     | Expected fixture and faculty solution: upstream `32.10`, refining `44.65`, deltas `-12.90`/`+14.65`            | Match                    | Faculty workbook/notebook now included in normalized package.                                      |
 | Integrated margin                        | `$76.75/bbl` at WTI `$74`; invariant to transfer price                                | Invariance required; worked current-week blank asks students to compute it                        | Expected fixture `76.75`; workbook worked example reproduces `$68.25` prior case                               | Match                    | Current-week workbook cells are blank by design.                                                   |
 | Week 4 -> Week 6 rates                   | Disciplined `6.5%`, base `8.5%`, lax `11.0%`; envelopes `$1,520M`, `$1,150M`, `$950M` | Spec says cohort transfer-pricing behavior shapes Week 6 constraints but does not list thresholds | Not present in supplied Week 4 package files                                                                   | Partial                  | Ledger supplies schedules; current sources do not give classification thresholds/aggregation rule. |
 
@@ -89,10 +91,8 @@ The package confirms per-barrel capture and a `bbl/day` volume cap but does not 
 
 No numeric Week 4 spec-vs-ledger-package conflict was found in the supplied CSV/workbook values.
 
-Unresolved before implementation:
+Unresolved before the affected implementation areas:
 
-- Week 4-specific manifest is absent.
-- The notebook cannot execute as supplied because it expects `data/*.csv` while CSVs were supplied flat.
-- Faculty solution workbook/notebook and expected-output files are absent.
+- Exact custom transfer-price validation bounds, increments, and precision remain unspecified.
 - Exact aggregation/classification thresholds for disciplined/base/lax Week 4 cohort behavior are not supplied by the markdown sources read in this pass.
-- Exact rounding method and monthly-volume convention for Geneva arbitrage remain unspecified.
+- Exact display rounding method and monthly-volume convention for Geneva arbitrage remain unspecified.

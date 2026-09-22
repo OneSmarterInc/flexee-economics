@@ -4,66 +4,75 @@ Inventory date: 2026-09-22.
 
 ## Reference package status
 
-Week 4 files are present as flat files in `C:\Users\sakas\Documents\Flexee-economics`, but the package does not yet pass the final reference-package gate.
+The normalized Week 4 reference package now lives in `halden-week4-data-package/`.
 
-Blocking package issues:
+Status: `READY WITH NON-BLOCKING QUESTIONS`.
 
-- no Week 4-specific manifest was found;
-- the only `MANIFEST.md` describes Week 10;
-- no `halden-week4-data-package/` directory was found;
-- the student notebook references `data/*.csv`, but the supplied Week 4 CSV files are flat in the source folder;
-- no faculty solution workbook/notebook was found;
-- no expected-output fixture file was found;
-- no package-specific rounding, validation, or time-basis instructions were found.
+Resolved package issues:
+
+- Week 4-specific manifest and README are present.
+- The package has a `data/` directory matching notebook execution.
+- Student workbook and student notebook are present.
+- Faculty solution workbook and faculty solution notebook are present.
+- Worked-example and current-week expected-output files are present.
+- The package records hashes for external authority files and normalized package files.
+- `scripts/validate_week4_package.py` validates required files, hashes, CSV arithmetic, notebook execution, workbook formulas, and expected-output parity.
+
+Still unresolved for later implementation:
+
+- custom transfer-price bounds, increment, and precision;
+- Geneva `9.625/bbl` display rounding and period conversion;
+- Week 4 to Week 6 disciplined/base/lax cohort thresholds.
+
+These do not block standalone Week 4 oracle use, but they do constrain UI validation, periodized Geneva reporting, and later consequence logic.
 
 ## Spec-defined datasets
 
-The Week 4 spec says six datasets ship in both workbook tabs and CSV-backed Python notebook form. The supplied package provides the values, but combines multiple spec datasets into `cost_constants.csv` rather than one CSV per dataset.
+The Week 4 spec says six conceptual datasets ship in both workbook tabs and CSV-backed Python notebook form. The normalized package preserves the supplied four-CSV layout rather than inventing extra source files.
 
-| Dataset                                   | Source file/tab                                             | Purpose                                                | Package status                        |
-| ----------------------------------------- | ----------------------------------------------------------- | ------------------------------------------------------ | ------------------------------------- |
-| Permian lifting costs by vintage          | `permian_lifting.csv`; workbook `Data — Permian` rows 3-7   | marginal-barrel and delivered-cost reasoning           | Present                               |
-| Baton Rouge yield economics by crude type | `cost_constants.csv`; workbook `Data — Permian` rows 15-17  | crack, complexity, opex, refining economics            | Present inside combined constants CSV |
-| Gulf Coast market differentials           | `cost_constants.csv`; workbook `Data — Permian` rows 10-13  | WTI, wellhead discount, external anchor                | Present inside combined constants CSV |
-| Geneva trading desk arbitrage capability  | `cost_constants.csv`; workbook `Data — Permian` rows 18-19  | capture rate and volume cap                            | Present inside combined constants CSV |
-| Segment compensation plan                 | `segment_comp.csv`; workbook `Data — Compensation` rows 4-7 | upstream/refining targets and political incentives     | Present                               |
-| Integrated margin reconciliation          | `worked_example_prior.csv`; workbook `Worked Example`       | worked example on adjacent data and current-week blank | Present                               |
+| Dataset                                   | Normalized source                                                | Purpose                                            | Package status                        |
+| ----------------------------------------- | ---------------------------------------------------------------- | -------------------------------------------------- | ------------------------------------- |
+| Permian lifting costs by vintage          | `data/permian_lifting.csv`; workbook `Data — Permian` rows 3-7   | marginal-barrel and delivered-cost reasoning       | Present                               |
+| Baton Rouge yield economics by crude type | `data/cost_constants.csv`; workbook `Data — Permian` rows 15-17  | crack, complexity, opex, refining economics        | Present inside combined constants CSV |
+| Gulf Coast market differentials           | `data/cost_constants.csv`; workbook `Data — Permian` rows 10-13  | WTI, wellhead discount, external anchor            | Present inside combined constants CSV |
+| Geneva trading desk arbitrage capability  | `data/cost_constants.csv`; workbook `Data — Permian` rows 18-19  | capture rate and volume cap                        | Present inside combined constants CSV |
+| Segment compensation plan                 | `data/segment_comp.csv`; workbook `Data — Compensation` rows 4-7 | upstream/refining targets and political incentives | Present                               |
+| Integrated margin reconciliation          | `data/worked_example_prior.csv`; workbook `Worked Example`       | prior worked example and current-week method       | Present                               |
 
 ## Week 4 specification mapping
 
-| Requirement                | Package finding                                                                                                 | Implementation destination                    | Test strategy                                 | Ambiguity/blocker                             |
-| -------------------------- | --------------------------------------------------------------------------------------------------------------- | --------------------------------------------- | --------------------------------------------- | --------------------------------------------- |
-| Decision field             | README says market-based, marginal-cost, midpoint, and intermediate custom value; no bounds/precision supplied  | Batch 3 decision definitions                  | Feature tests plus package parity             | Bounds/precision still unknown                |
-| Analytical evidence        | Workbook and notebook leave current-week analysis blank/TODO for students                                       | Package distribution, not runtime analysis UI | Student-package integrity tests               | Exact submitted analysis fields still unknown |
-| Memo prompt                | Workbook/notebook do not add package-specific memo limits or rubric beyond spec                                 | Batch 3 memo definitions                      | Definition/rendering tests                    | Limits/rubric unknown                         |
-| Transfer-price calculation | Workbook worked example has formulas and cached values; notebook has same method but cannot execute as supplied | Future Week 4 PHP domain service              | Fixture parity against `tests/Fixtures/Week4` | Notebook path defect blocks full parity       |
-| Faculty cohort view        | No faculty solution artifact supplied                                                                           | Stage 3 Livewire faculty tools                | Authorization and query tests later           | Missing faculty solution                      |
-| Faculty causal trace       | No package trace fixtures supplied                                                                              | Stage 3 trace model/query layer               | Fixture tests later                           | Consequence thresholds unknown                |
-| What-if rerun              | No faculty expected outputs supplied                                                                            | Stage 3 faculty console                       | Golden/counterfactual tests later             | Standing effects unknown                      |
-| Faculty LLM context        | No runtime LLM source package; requirements remain from spec/design docs                                        | Queued LLM service/job pattern                | Payload assembly tests later                  | Not Batch 4 implementation                    |
+| Requirement                | Package finding                                                                                         | Implementation destination                    | Test strategy                                                      | Remaining question                                   |
+| -------------------------- | ------------------------------------------------------------------------------------------------------- | --------------------------------------------- | ------------------------------------------------------------------ | ---------------------------------------------------- |
+| Decision field             | Market-based `$73.70`, marginal-cost `$18.70`, midpoint `$46.20`, and custom/intermediate value allowed | Batch 3 decision definitions                  | Feature tests plus package parity                                  | Custom bounds/precision still unknown                |
+| Analytical evidence        | Workbook and notebook leave current-week analysis blank/TODO for students                               | Package distribution, not runtime analysis UI | Student-package integrity tests                                    | Exact submitted analysis fields still product choice |
+| Memo prompt                | Spec supplies key assumptions, analytical method/result, and decision/logic structure                   | Batch 3 memo definitions                      | Definition/rendering tests                                         | Limits/rubric not package-defined                    |
+| Transfer-price calculation | Expected outputs define worked example and current-week reference                                       | Future Week 4 PHP domain service              | Fixture parity against `halden-week4-data-package/expected/*.json` | Custom validation rules still unknown                |
+| Faculty cohort view        | Faculty solution workbook/notebook now supplied in normalized package                                   | Stage 3 Livewire faculty tools                | Faculty artifact parity plus authorization/query tests later       | Consequence thresholds unknown                       |
+| Faculty causal trace       | Numeric deterministic trace values are present; later standing effects are not                          | Stage 3 trace model/query layer               | Fixture tests later                                                | Standing effects and thresholds unknown              |
+| What-if rerun              | Current deterministic anchors can be rerun; package does not define consequence thresholds              | Stage 3 faculty console                       | Golden/counterfactual tests later                                  | Standing effects unknown                             |
+| Faculty LLM context        | No runtime LLM source package; requirements remain from spec/design docs                                | Queued LLM service/job pattern                | Payload assembly tests later                                       | Not Batch 4 implementation                           |
 
 ## Workbook validation
 
-`halden_week4.xlsx` has five visible sheets: `README`, `Data — Permian`, `Data — Compensation`, `Worked Example`, and `Your Analysis`.
+`student/halden_week4.xlsx` and `faculty/halden_week4_solution.xlsx` each have five visible sheets: `README`, `Data — Permian`, `Data — Compensation`, `Worked Example`, and `Your Analysis`.
 
 Workbook findings:
 
 - no hidden sheets;
-- no named ranges;
 - no external workbook links;
-- yellow student-input cells are on `Your Analysis` at `B15:B20`, `B24:E26`, and `B30`;
-- workbook cached values reproduce the worked example integrated margin of `$68.25`;
-- current-week student analysis cells are blank by design;
-- per-barrel values display as `$#,##0.00`;
-- no native recalc engine was available in PATH (`soffice`/`libreoffice` not found), so validation used cached workbook values plus independent formula evaluation.
+- student current-week analysis cells remain blank by design;
+- faculty workbook fills the same cells with formulas;
+- worked example reproduces integrated margin of `$68.25`;
+- current-week faculty workbook reproduces delivered marginal cost `$14.10`, transfer prices `$73.70`, `$18.70`, `$46.20`, integrated margin `$76.75`, and Geneva midpoint capture `9.625/bbl`;
+- Artifact Tool recalculation produced no formula errors in the inspected ranges.
 
 ## Notebook validation
 
-`halden_week4_analysis.ipynb` is student-facing and does not expose current-week answers. It loads `data/permian_lifting.csv`, `data/cost_constants.csv`, and `data/segment_comp.csv`.
+`student/halden_week4_analysis.ipynb` is student-facing and does not expose current-week answer constants.
 
-Execution status: blocked as supplied. The source folder does not contain a `data/` directory, so execution fails on `FileNotFoundError: data/permian_lifting.csv`.
+`faculty/halden_week4_solution.ipynb` executes against the same canonical CSVs and produces `reference_outputs` matching `expected/week4_reference.json`.
 
-If the CSVs are placed under a `data/` folder without changing their contents, the notebook method matches the workbook method for the prior-period example. Do not treat that workaround as an authoritative package fix unless the source package is corrected or the package owner approves the flat-file layout.
+Both notebooks resolve `data/` relative to either the package root or their own subdirectory.
 
 ## Week 10 reusable implications
 

@@ -2,14 +2,14 @@
 
 ## Scope and source status
 
-This inventory covers the Batch 4 Week 4 readiness pass using the authoritative markdown sources and flat Week 4 package files available in `C:\Users\sakas\Documents\Flexee-economics`.
+This inventory covers the Batch 4 Week 4 readiness pass using the authoritative markdown sources in `C:\Users\sakas\Documents\Flexee-economics` and the normalized package in `halden-week4-data-package/`.
 
 The constants authority is:
 
 - `C:\Users\sakas\Documents\Flexee-economics\halden-constants-ledger.md`
 - SHA-256: `62D26482535FCD6CA8D9EDC5644D8784CBDCF9F3879B6CC87A30392251328BBC`
 
-Flat Week 4 CSV/workbook/notebook files are present, but the package is incomplete for implementation readiness. No missing rule below should be inferred from industry knowledge or implemented before the package gate clears.
+The normalized Week 4 package is complete enough for deterministic standalone Week 4 golden tests. No missing rule below should be inferred from industry knowledge.
 
 ## Known Week 4 dependencies
 
@@ -62,17 +62,14 @@ Do not refresh market values during Batch 4. Preserve:
 - Rotterdam net-negative-but-covers-variable structure
 - product income elasticity ordering and Week 8 integration conflict
 
-## Blocked dependencies
+## Remaining gated dependencies
 
-Still required before implementation:
+Required before the affected implementation areas:
 
-- Week 4-specific package MANIFEST or explicit approval of the flat-file package shape
-- corrected notebook data path or supplied `data/` directory
-- faculty solution workbook/notebook
-- expected outputs
-- exact custom transfer-price validation rules
-- exact rounding method for half-cent/three-decimal Geneva values
-- exact Week 4 -> Week 6 cohort aggregation/classification thresholds
+- custom transfer-price validation rules for app-side decision inputs;
+- exact rounding method for half-cent/three-decimal Geneva display values;
+- exact monthly or annual time basis for Geneva volume/P&L conversion;
+- exact Week 4 to Week 6 cohort aggregation/classification thresholds.
 
 ## Implementation guardrails
 

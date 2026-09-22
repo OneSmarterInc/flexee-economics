@@ -9,4 +9,3 @@ br_opex,5.90,usd_bbl,Baton Rouge refining opex (constant)
 wti,74.00,usd_bbl,WTI benchmark (this week's live-path value)
 geneva_capture_rate,0.35,fraction,Geneva arbitrage capture of internal-external gap
 geneva_max_volume,40000,bbl_day,Geneva max arbitrage volume
-

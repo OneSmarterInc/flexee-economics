@@ -4,9 +4,11 @@ Inventory date: 2026-09-22.
 
 ## Readiness decision
 
-BLOCKED.
+READY WITH NON-BLOCKING QUESTIONS.
 
-The authoritative markdown specs and flat Week 4 files are available and reconcile enough to plan Week 4 and create partial golden fixtures. Batch 4 Week 4 economics must still not be implemented until the reference package defects are resolved: no Week 4 manifest, notebook path layout broken, no faculty solution artifacts, no expected-output files, and no package-specific custom-price or rounding rules.
+The authoritative markdown specs and normalized Week 4 reference package are available. The package includes executable student/faculty notebooks, student/faculty workbooks, expected outputs, provenance hashes, and validation tooling. It is sufficient to proceed with deterministic Week 4 calculator design and golden tests against the standalone package oracle.
+
+Do not implement custom transfer-price validation bounds, periodized Geneva P&L, or Week 4 to Week 6 consequence classification until those specific rules are supplied.
 
 ## Current platform anchors
 
@@ -24,7 +26,7 @@ The Week 4 spec gives three anchor options:
 - marginal-cost: `$18.70/bbl`
 - midpoint/lazy: `$46.20/bbl`
 
-The spec and workbook README permit an intermediate/custom value. The supplied package does not define precision, bounds, increments, or validation rules, so those remain unresolved.
+The spec and workbook README permit an intermediate/custom value. The normalized package does not define precision, bounds, increments, or validation rules, so those remain unresolved for UI validation and submission guards.
 
 Destination in the existing Batch 3 architecture:
 
@@ -57,7 +59,7 @@ Do not implement LLM functionality in Batch 4 readiness. When implemented later,
 
 ## Deterministic economic engine boundary
 
-Future destination after package reconciliation:
+Destination after package normalization:
 
 - `app/Domain/Economics/Week4/`
 - immutable input DTOs from submitted decisions and package fixtures
@@ -103,7 +105,7 @@ Ledger schedule:
 - base: `8.5%`, `$1,150M`
 - lax: `11.0%`, `$950M`
 
-Do not implement this linkage until the reference package and exact aggregation/classification rule are available. The current markdown sources do not provide thresholds for mapping a cohort transfer-price distribution to disciplined/base/lax.
+Do not implement this linkage until the exact aggregation/classification rule is available. The current markdown sources and normalized Week 4 package do not provide thresholds for mapping a cohort transfer-price distribution to disciplined/base/lax.
 
 ## Week 10 architectural implications
 
@@ -149,12 +151,9 @@ Week 4 implementation should fail loudly when:
 - expected golden outputs drift
 - numeric scale/rounding cannot be determined from sources
 
-## Required before implementation
+## Required before affected implementation areas
 
-- Week 4 package MANIFEST or explicit approval that the flat package is authoritative without one
-- corrected `data/` layout or corrected notebook paths
-- faculty solution workbook/notebook
-- expected outputs
-- exact rounding method for half-cent/three-decimal Geneva outputs
-- exact custom transfer-price validation constraints
-- exact Week 4 -> Week 6 cohort aggregation/classification rule
+- deterministic Week 4 calculator and golden tests: normalized package is sufficient;
+- custom transfer-price input validation: exact min/max/increment/precision;
+- Geneva periodized P&L: exact rounding method and period/day-count convention;
+- Week 4 to Week 6 consequences: exact cohort aggregation/classification rule.
