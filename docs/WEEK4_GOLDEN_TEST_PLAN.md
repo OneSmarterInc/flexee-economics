@@ -56,6 +56,22 @@ The package validator currently covers:
 
 Artifact Tool workbook recalculation should remain part of the acceptance flow for workbook changes. It verifies representative values and scans for formula errors in both workbooks.
 
+## Implemented Batch 4A tests
+
+`tests/Feature/Economics/Week4EconomicEngineTest.php` now covers the deterministic Week 4 Laravel engine.
+
+Implemented checks:
+
+- delivered marginal cost equals `14.10`;
+- anchor transfer prices equal `73.70`, `18.70`, and `46.20`;
+- segment splits and compensation deltas match `expected/week4_reference.json`;
+- integrated margin remains `76.75` for reference anchors and arbitrary custom prices `20.00` and `50.00`;
+- Geneva midpoint gap equals `27.50` and capture equals `9.625`;
+- current-week engine output matches `halden-week4-data-package/expected/week4_reference.json`;
+- worked-example engine output matches `halden-week4-data-package/expected/worked_example.json`.
+
+These tests exercise deterministic economic outputs only. They do not assert scores, ranks, standing consequences, faculty trace payloads, or Week 4 to Week 6 cohort classification.
+
 ## Fixture tolerance policy
 
 - canonical CSV ingestion: exact string/decimal equality;
