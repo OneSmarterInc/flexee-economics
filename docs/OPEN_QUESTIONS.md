@@ -1,37 +1,42 @@
 # Open Questions
 
-These questions are unsupported by the files currently available. They should be resolved from the missing project materials before implementation, not answered by inference.
+Updated: 2026-09-22.
 
-## Missing source files
+The authoritative markdown sources are now present. Remaining open questions are tied to missing worked packages, precision/rules not specified in the markdown sources, or later-stage product choices.
 
-- Where are `halden-development-instructions.md`, `halden-week4-data-package/`, `halden-week10-data-package/`, `halden-week4-data-package-spec.md`, `halden-week10-data-package-spec.md`, `halden-calibration-review.md`, `halden-energy-role-charters.md`, `halden-faculty-teaching-guide.md`, `halden-student-guide.md`, and `halden-energy-design-v2.md`?
-- Is `C:\Users\sakas\Documents\Flexee-economics\halden-constants-ledger.md` the exported equivalent of the handoff's `constants-ledger.md`, or should another ledger be supplied?
+## Missing packages
 
-## Week 4 specification questions
+- Where is `halden-week4-data-package/`?
+- Where is `halden-week10-data-package/`?
+- For each package, where are the MANIFEST, canonical CSV files, XLSX workbook, Jupyter notebook, Python support files, faculty solution workbook/notebook, and expected-output files?
 
-- What are the exact Week 4 decision fields, allowed options, validation constraints, and submission rules?
-- What are the exact Week 4 dataset files and student-visible package contents?
-- What is the exact Week 4 memo prompt, expected structure, and rubric?
-- Are multiple decision forms or multiple memo prompts required for a single runtime week?
-- Are final submissions ever reopenable, and if so who can reopen them and what audit trail is required?
-- Can specific Halden seats edit only specific decision fields, or can any team member edit every team field?
-- What KPIs must Week 4 produce?
-- What score components, weights, thresholds, rounding rules, and tie rules apply?
-- What faculty-only causal trace or review information is required?
-- What cross-section comparison is required in Stage 1, and what visibility limits apply?
+## Week 4 reference package questions
 
-## Architecture questions
+- What are the exact CSV schemas and source-version identifiers?
+- What are the exact workbook and notebook formulas?
+- What are the exact expected outputs for the worked example and current-week blank analysis?
+- What rounding mode, decimal scale, and display format apply to per-barrel values, percentages, rates, and monthly Geneva arbitrage?
+- What precision, bounds, and increment apply to custom/intermediate transfer prices?
+- Which analytical outputs, if any, are submitted by students versus kept entirely in the external Excel/Python package?
+- Are any Week 4 package outputs intended to become KPI values, score inputs, scores, or rank inputs?
 
-- Does the development instruction require a specific Laravel version, starter kit, tenancy package, queue driver, auth package, or deployment target?
-- Should users be modeled with role-specific profile tables, or with enrollments and scoped roles only?
-- Are faculty assignments course-level, section-level, tenant-level, or a combination?
-- What queue backend and database engine should be used for Stage 1?
-- What exact queued LLM integration pattern is required?
+## Week 4 -> Week 6 consequence questions
 
-## Content/versioning questions
+- What aggregation rule maps the cohort transfer-price distribution to disciplined/base/lax?
+- What thresholds separate disciplined, base, and lax cohorts?
+- Does the classification use mean transfer price, median, share near marginal-cost anchor, dispersion, custom-price penalty, or another measure?
+- How are outliers or non-anchor custom prices treated?
 
-- What is the required package format for generated Python artifacts?
-- What precision tolerance is permitted for golden economic regression tests?
-- How should content package versions be named and promoted from draft to active?
-- Are constants stored directly in the database, in versioned JSON, or imported from package manifests?
-- What exact decimal scale and rounding mode should be used for Week 4 currency, per-barrel values, percentages, rates, KPIs, and scores?
+## Faculty/stage questions
+
+- What exact standing-state transitions does Week 4 create for Delacroix, upstream leadership, Kuhn/Geneva, and related counterparties?
+- Which Week 4 causal trace fields are required for Stage 3 faculty views?
+- What exact payload schema should the queued faculty LLM service assemble for Week 4?
+- What are the prepared teaching moment trigger thresholds for bimodal, midpoint-clustered, or market-clustered transfer-price distributions?
+
+## Later content/versioning questions
+
+- How should role charter content versions be named and promoted?
+- Is the Week 7 role rotation fixed or optional?
+- What institution-level setting governs student-side LLM help for analytical work?
+- Should the memo grading rubric be published to students on day one or discovered through feedback?

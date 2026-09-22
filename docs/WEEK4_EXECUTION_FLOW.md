@@ -2,7 +2,7 @@
 
 ## Source constraints
 
-The Week 4 specification and reference package are missing from the current workspace. This flow describes the platform sequence required by the handoff without inventing Week 4-specific formulas, datasets, decision fields, memo rubric, or expected outputs.
+The Week 4 specification and constants ledger are now present, but the worked Week 4 reference package is still missing from the current workspace. This flow describes the platform sequence required by the authoritative sources without implementing Week 4 economics or inventing package-level formulas, rounding, datasets, manifests, or expected outputs.
 
 ## Pre-activation
 
@@ -56,7 +56,7 @@ Expected actions:
 2. Application validates payload against the versioned Week 4 decision schema.
 3. Application verifies the week is open and the user can act for the team.
 4. Application stores the decision submission with payload, version, submitter, and timestamp.
-5. Resubmission behavior follows the missing Week 4/development specification. Until confirmed, model it as versioned submissions with one current/final submission selected by rule.
+5. Resubmission behavior follows the versioned Batch 3 submission framework unless the missing reference package or a later instruction supplies stricter Week 4 rules.
 
 ## Student/team submits memo
 
@@ -85,7 +85,7 @@ Expected actions:
 1. At close time or faculty action, Week 4 changes from open to closed.
 2. Application prevents ordinary student resubmission.
 3. Audit event records close action.
-4. Missing or invalid team submissions are marked according to rules from the missing specification.
+4. Missing or invalid team submissions are marked according to the versioned decision/memo definition rules, with any package-specific behavior deferred until the reference package is supplied.
 
 ## Calculation executes
 
@@ -176,15 +176,16 @@ Expected actions:
 
 ## Missing Week 4 specifics
 
-The following cannot be completed until the Week 4 package/specification is present:
+The following cannot be completed until the Week 4 reference package is present:
 
-- actual decision fields;
-- decision validation ranges and labels;
-- dataset names and file formats;
-- memo prompt and rubric;
+- exact package manifest and artifact checksums;
+- canonical CSV schemas and contents;
+- workbook and notebook formulas;
+- custom transfer-price validation bounds, precision, and labels;
+- package-specific memo limits or rubric;
 - KPI definitions;
 - score weights;
 - ranking/tie rules;
 - rounding and precision rules;
 - golden expected outputs;
-- faculty-visible causal trace requirements.
+- package-backed faculty-visible trace fixtures.

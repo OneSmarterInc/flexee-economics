@@ -23,7 +23,7 @@ The following items are intentionally deferred to later batches and are not Batc
 - Faculty publishing flow.
 - Economic regression tests against the Week 4 reference package.
 
-These remain blocked until the Week 4 specification and reference package are available.
+The Week 4 markdown specification is now available. Formula implementation, dataset import, and economic regression tests remain blocked until the worked Week 4 reference package is available.
 
 ## Python And LLM Boundaries
 

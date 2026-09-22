@@ -2,7 +2,7 @@
 
 ## Source constraints
 
-This proposal is based on the handoff and constants ledger currently available. It should be revised after `halden-development-instructions.md`, the Week 4 reference package, and the Week 4 specification are supplied.
+This historical proposal was based on the handoff and constants ledger then available. The authoritative markdown sources have since been supplied; the worked Week 4 reference package is still required before economics implementation.
 
 The repository currently has no Laravel application files. The initial implementation should therefore begin with a fresh Laravel scaffold that follows the handoff:
 
@@ -14,7 +14,7 @@ The repository currently has no Laravel application files. The initial implement
 
 ## Multi-tenancy
 
-Use an explicit hierarchy unless the missing development instructions define a different one:
+Use the explicit hierarchy confirmed by the development instructions:
 
 `Tenant / Institution -> Course -> Section -> Team -> Student`
 
@@ -136,7 +136,7 @@ A week definition should include:
 - expected precision and rounding policy;
 - reference fixture paths for tests.
 
-For Stage 1, Week 4 content should be loaded as a versioned package once the missing data package and specification are available.
+For Stage 1, Week 4 content should be loaded as a versioned package once the missing worked data package is available.
 
 ## Python/Laravel boundary
 

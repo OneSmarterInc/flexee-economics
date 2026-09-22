@@ -2,7 +2,7 @@
 
 ## Source constraints
 
-This is a proposed schema because the repository contains no migrations yet and the detailed development instructions are not currently available. Do not create migrations until the missing instructions and Week 4 package have been reviewed.
+This was the initial proposed schema before the Laravel implementation and before the authoritative development instructions were supplied. Future economic implementation still must wait for the worked Week 4 package to be reviewed.
 
 ## Tenancy model
 
@@ -12,7 +12,7 @@ Recommended root hierarchy:
 
 `tenants -> institutions -> courses -> sections -> teams -> team_members -> users`
 
-If the missing specifications define a different hierarchy, update this model before implementation.
+The development instructions confirm section-level isolation and installation-level comparability; keep this hierarchy aligned with the implemented migrations.
 
 ## Tables
 

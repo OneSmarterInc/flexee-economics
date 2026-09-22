@@ -6,9 +6,7 @@ Inventory date: 2026-09-22.
 
 BLOCKED.
 
-Batch 4 Week 4 economics cannot be implemented safely yet because the authoritative Week 4 specification, Week 4 reference package, development instructions, and calibration review are missing.
-
-This plan maps the expected destination for Week 4 elements once the missing sources are supplied. It does not define formulas beyond constants-ledger relationships and does not implement economics.
+The authoritative markdown specs are now available and reconcile enough to plan Week 4. Batch 4 Week 4 economics must still not be implemented until the worked `halden-week4-data-package/` is supplied and reconciled against the spec and ledger.
 
 ## Current platform anchors
 
@@ -16,147 +14,132 @@ This plan maps the expected destination for Week 4 elements once the missing sou
 - Batch 2 provides reusable simulation definitions, runtime section simulations, runtime weeks, team simulations, seat assignments, lifecycle transitions, and audit events.
 - Batch 3 provides generic versioned decision form definitions, memo definitions, draft/final submissions, immutable revisions, and completeness status.
 
-## Decision definitions
+## Authoritative Week 4 decision mapping
 
-Destination: Batch 3 decision definition tables:
+Primary student decision: internal transfer price for Permian crude delivered to Baton Rouge.
 
-- `decision_form_definitions`
-- `decision_field_definitions`
+The Week 4 spec gives three anchor options:
 
-Blocked mapping:
+- market-based: `$73.70/bbl`
+- marginal-cost: `$18.70/bbl`
+- midpoint/lazy: `$46.20/bbl`
 
-- Exact Week 4 student decision fields are unknown because `halden-week4-data-package-spec.md` is missing.
-- Allowed values, validation rules, field-level seat permissions, units, help text, and ordering are unknown.
+The spec also permits an intermediate/custom value. Do not invent precision, bounds, increments, or display rules until the reference package is available.
 
-Implementation rule once sources arrive:
+Destination in the existing Batch 3 architecture:
 
-- Encode Week 4 fields as versioned definitions tied to the Week 4 `simulation_weeks` row.
-- Preserve source metadata for every field and option.
-- Do not hard-code fields in Vue, controllers, or Eloquent event hooks.
+- one versioned Week 4 decision form definition tied to the Week 4 simulation week
+- a transfer-price field that can represent an anchor selection or custom/intermediate numeric value
+- stored source metadata for anchors and definitions
+- stored alternatives not taken for causal trace and LLM payloads
 
-## Memo
+The app must not perform the student analytical work. Students compute integrated margin invariance, segment splits, compensation effects, and Geneva arbitrage externally in the Excel/Python package, then submit the decision and memo.
 
-Destination: Batch 3 memo definition tables:
+## Week 4 memo mapping
 
-- `memo_definitions`
-- `memo_submissions`
-- `memo_submission_revisions`
+The authoritative memo structure has three sections:
 
-Blocked mapping:
+1. Key assumptions
+2. Analytical method and result
+3. Decision and logic
 
-- Exact Week 4 memo prompt, structure, rubric, word/character limits, and scoring relationship are unknown.
+Week 4-specific memo expectations:
 
-Implementation rule once sources arrive:
+- state assumptions about crude prices, segment-head reactions, and desk behavior
+- report integrated margin, segment splits, and arbitrage analysis
+- explain the transfer-price choice and how the team weighs integrated-optimal economics against political/standing cost
 
-- Store the memo prompt as a versioned memo definition.
-- Keep memo submission separate from deterministic economic outputs and scoring.
+Faculty inconsistency flag:
 
-## Data package
+- A team correctly demonstrates integrated-margin invariance but justifies its transfer-price decision as `maximizing segment margin`.
 
-Destination options already present or expected:
+Do not implement LLM functionality in Batch 4 readiness. When implemented later, the inconsistency assist belongs behind the queued LLM service/job pattern, not in controllers.
 
-- `week_content_versions` for source/package metadata.
-- `generated_artifacts` for generated or distributed artifacts.
-- Future storage path or manifest model if development instructions require one.
+## Deterministic economic engine boundary
 
-Blocked mapping:
-
-- Student datasets, package manifest, file names, columns, and visibility rules are unknown because the Week 4 package is missing.
-
-Implementation rule once sources arrive:
-
-- Store package metadata and checksums.
-- Treat package reference outputs as test oracles, not mutable app-generated truth.
-- Do not silently rewrite reference outputs.
-
-## Economic engine
-
-Proposed destination:
+Future destination after package reconciliation:
 
 - `app/Domain/Economics/Week4/`
-
-Expected shape:
-
-- immutable input DTOs for submitted decisions and package data
-- immutable configuration object sourced from the constants ledger and Week 4 package/spec
+- immutable input DTOs from submitted decisions and package fixtures
+- immutable configuration sourced from the ledger/spec/package version
 - deterministic calculator services
-- explicit result DTOs for economic outputs
-- explicit failure types for missing inputs, invalid package data, and ledger/spec conflicts
+- explicit result DTOs for deterministic outputs, faculty-only trace, and later score inputs
+- failure types for missing fixtures, invalid source versions, and ledger/spec/package conflicts
 
-Keep calculations out of:
+Keep calculations out of controllers, Vue components, Livewire components, Eloquent model events, and Python runtime calls.
 
-- controllers
-- Vue components
-- Livewire components
-- Eloquent model event hooks
+## Faculty-layer requirements
 
-Blocked mapping:
+Later Stage 3 faculty tools for Week 4 must include:
 
-- Exact calculation stages, package inputs, formulas, and rounding points are unknown.
+- cohort transfer-price distribution
+- benchmarks for marginal cost and market price
+- causal trace from Week 4 to Geneva arbitrage, segment standing consequences, and later consequences
+- what-if transfer-price rerun
+- prepared teaching moment keyed to cohort distribution
+- faculty LLM context payload
 
-## Offline Python artifacts
+The Week 4 faculty LLM payload must preserve:
 
-Blocked.
+- chosen transfer price
+- alternatives and anchors available but not taken
+- computed integrated margin
+- memo
+- cohort transfer-price distribution
+- incoming standing states
 
-The handoff says the missing development instructions define the Python-offline/Laravel-runtime split for synthetic paths and response functions. No Python files or notebooks were found in Week 4 or Week 10 packages because those packages are missing.
+Faculty screens must be Livewire. Student screens must remain Inertia/Vue.
 
-Implementation rule once sources arrive:
+## Week 4 -> Week 6 consequence
 
-- Only generate offline artifacts in Python if explicitly required by the development instructions or package manifest.
-- Laravel should consume versioned generated artifacts rather than recreate Python-only synthetic path generation at request time.
+The ledger clarifies the taxonomy:
 
-## Results
+- The fourteen-week arc has three cross-cohort market windows: Week 3 -> Week 5, Week 6 -> Week 8, and Week 7 -> Week 9.
+- The Week 4 -> Week 6 transfer-pricing-discipline linkage is separate: it affects cost of capital and capital envelopes, not a cross-cohort market price.
 
-Keep these concepts separate:
+Ledger schedule:
 
-1. economic outputs
-2. KPIs
-3. score inputs
-4. scores
-5. ranks
-6. published visibility state
+- disciplined: `6.5%`, `$1,520M`
+- base: `8.5%`, `$1,150M`
+- lax: `11.0%`, `$950M`
 
-Blocked mapping:
+Do not implement this linkage until the reference package and exact aggregation/classification rule are available. The current markdown sources do not provide thresholds for mapping a cohort transfer-price distribution to disciplined/base/lax.
 
-- Which Week 4 outputs become KPIs, score inputs, and ranking dimensions is unknown.
+## Week 10 architectural implications
 
-Implementation rule once sources arrive:
+Week 10 proves the economic engine cannot be single-input-only. It requires:
 
-- Implement deterministic economic outputs first.
-- Map outputs to KPIs only where the spec says to.
-- Map KPIs to scores only where the scoring/rubric source says to.
-- Rank only after score publication rules are known.
+- inherited decisions from Weeks 4-8
+- binding constraints from prior allocation, mandate, standing, and cash position
+- product-mix demand calculations
+- standing-dependent execution
+- causal trace over five converging threads
+- multiple simultaneous decision fields
+- prior-week state dependencies
 
-## Faculty visibility
+Week 4 can have a narrow Week 4 calculator, but the shared persistence model must keep decisions, alternatives, memos, standing states, consequence links, predictions, outcomes, KPIs, score inputs, scores, and ranks separable.
 
-Likely destinations:
+## Calibration and content versioning
 
-- Livewire faculty tools for lifecycle/status and future cohort/faculty views.
-- Future domain queries over economic outputs and causal traces.
+Current development must use supplied design calibration. The calibration review requires a final pre-launch market refresh, but that is not a Batch 4 task. Refresh inputs later; preserve the relationships that make the pedagogy work.
 
-Blocked mapping:
-
-- Week 4 faculty-only outputs, causal trace, what-if console expectations, and interpretive assistant requirements are unknown.
-- `halden-faculty-teaching-guide.md` is missing.
+Role charters should be imported as versioned content per seat. Do not hard-code charter text into PHP classes.
 
 ## Numeric handling
 
-Recommendation pending source confirmation:
+Recommendation pending package confirmation:
 
-- Do not use ordinary PHP float arithmetic for golden-master economic parity.
-- Use integer minor units where values are inherently fixed currency amounts.
-- Use decimal arithmetic for rates, percentages, per-barrel values, and rounded outputs.
-- Define rounding mode and scale per output only from the Week 4 spec/package.
-
-Blocked:
-
-- Exact rounding points and permitted precision are unknown.
+- Use decimal-safe arithmetic for per-barrel values, rates, and percentages.
+- Avoid PHP binary floats for parity-sensitive calculations.
+- Treat tolerance as zero unless the package defines one.
+- Do not choose rounding mode, intermediate rounding points, custom-price precision, or display format until the package supplies them.
 
 ## Failure behavior
 
 Week 4 implementation should fail loudly when:
 
 - package manifest/checksum does not match expected source metadata
+- required package artifacts are absent
 - required input columns are missing
 - submitted decision definitions do not match the Week 4 source version
 - a spec/package constant conflicts with the constants ledger
@@ -165,10 +148,12 @@ Week 4 implementation should fail loudly when:
 
 ## Required before implementation
 
-- `halden-development-instructions.md`
 - `halden-week4-data-package/`
-- `halden-week4-data-package-spec.md`
-- `halden-calibration-review.md`
-- Week 4 expected outputs
-- precision/rounding rules
-- KPI/score/rank definitions
+- Week 4 package MANIFEST
+- canonical CSVs
+- student workbook and notebook
+- faculty solution workbook/notebook
+- expected outputs
+- exact rounding/display conventions
+- exact custom transfer-price validation constraints
+- exact Week 4 -> Week 6 cohort aggregation/classification rule

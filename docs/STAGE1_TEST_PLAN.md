@@ -2,7 +2,7 @@
 
 ## Source constraints
 
-The repository has no application code or tests yet. The Week 4 reference package and detailed specification are missing, so exact golden fixtures cannot be written yet. This plan defines the required coverage before Stage 1 can be considered complete.
+This was the initial Stage 1 test plan. The Week 4 markdown specification is now present, but the worked reference package is still missing, so exact golden fixtures cannot be written yet.
 
 ## Unit tests
 

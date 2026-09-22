@@ -119,4 +119,4 @@ npm run build
 
 ## Notes
 
-`halden-development-instructions.md`, Week 4/10 packages, Week 4 spec, role charters, and calibration materials are still missing. Batch 1 does not depend on their economic details, but later batches will.
+The authoritative markdown sources have since been supplied and reconciled in the Batch 4 readiness docs. The worked Week 4/10 package directories are still missing. Batch 1 does not depend on those economic/package details, but later batches will.
