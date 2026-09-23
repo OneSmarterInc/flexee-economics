@@ -2,6 +2,7 @@
 
 namespace App\Domain\Economics\Resolution;
 
+use App\Domain\Consequences\Week4ConsequenceResolver;
 use App\Domain\Economics\Week4\Week4EconomicEngine;
 use App\Domain\Economics\Week4\Week4EconomicResult;
 use App\Domain\Economics\Week4\Week4GenevaArbitrageResult;
@@ -24,6 +25,7 @@ final class WeekResolutionService
     public function __construct(
         private readonly Week4EconomicEngine $week4Engine,
         private readonly Week4ResolutionInputMapper $week4Mapper,
+        private readonly Week4ConsequenceResolver $week4Consequences,
     ) {}
 
     public function resolveSubmittedDecision(
@@ -42,7 +44,7 @@ final class WeekResolutionService
         $result = $this->week4Engine->calculate($mapped->inputs, $mapped->transferPrice);
         $geneva = $this->week4Engine->genevaArbitrageAtMidpoint($mapped->inputs);
 
-        return DB::transaction(function () use ($submission, $actor, $process, $mapped, $result, $geneva): EconomicResolution {
+        $resolution = DB::transaction(function () use ($submission, $actor, $process, $mapped, $result, $geneva): EconomicResolution {
             $existing = EconomicResolution::query()
                 ->where('tenant_id', $submission->tenant_id)
                 ->where('section_simulation_week_id', $submission->section_simulation_week_id)
@@ -79,6 +81,10 @@ final class WeekResolutionService
                 'resolved_at' => Carbon::now(),
             ]);
         });
+
+        $this->week4Consequences->resolve($resolution, $actor);
+
+        return $resolution;
     }
 
     public function assertCanView(User $actor, EconomicResolution $resolution): void
