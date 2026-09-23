@@ -7,6 +7,7 @@ use App\Models\Concerns\HasUlidRouteKey;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use InvalidArgumentException;
 
 #[Fillable(['ulid', 'tenant_id', 'section_simulation_id', 'section_simulation_week_id', 'team_simulation_id', 'team_id', 'decision_submission_id', 'economic_engine', 'engine_version', 'input_snapshot', 'output_snapshot', 'transfer_price', 'integrated_margin', 'upstream_margin', 'refining_margin', 'upstream_vs_target', 'refining_vs_target', 'geneva_gap', 'geneva_capture_per_bbl', 'geneva_max_volume_bbl_day', 'resolved_by_user_id', 'resolved_by_process', 'resolved_at'])]
@@ -75,5 +76,13 @@ class EconomicResolution extends Model
     public function decisionSubmission(): BelongsTo
     {
         return $this->belongsTo(DecisionSubmission::class);
+    }
+
+    /**
+     * @return HasMany<KpiSnapshot, $this>
+     */
+    public function kpiSnapshots(): HasMany
+    {
+        return $this->hasMany(KpiSnapshot::class);
     }
 }

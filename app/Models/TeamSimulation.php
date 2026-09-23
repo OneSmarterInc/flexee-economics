@@ -90,4 +90,12 @@ class TeamSimulation extends Model
     {
         return $this->hasMany(EconomicResolution::class);
     }
+
+    /**
+     * @return HasMany<KpiSnapshot, $this>
+     */
+    public function kpiSnapshots(): HasMany
+    {
+        return $this->hasMany(KpiSnapshot::class);
+    }
 }
