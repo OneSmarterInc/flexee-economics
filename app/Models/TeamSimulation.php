@@ -98,4 +98,12 @@ class TeamSimulation extends Model
     {
         return $this->hasMany(KpiSnapshot::class);
     }
+
+    /**
+     * @return HasMany<RankingSnapshot, $this>
+     */
+    public function rankingSnapshots(): HasMany
+    {
+        return $this->hasMany(RankingSnapshot::class);
+    }
 }
