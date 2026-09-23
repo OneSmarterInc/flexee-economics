@@ -106,4 +106,12 @@ class TeamSimulation extends Model
     {
         return $this->hasMany(RankingSnapshot::class);
     }
+
+    /**
+     * @return HasMany<StandingState, $this>
+     */
+    public function standingStates(): HasMany
+    {
+        return $this->hasMany(StandingState::class);
+    }
 }
