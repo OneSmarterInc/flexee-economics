@@ -120,4 +120,20 @@ class SectionSimulationWeek extends Model
     {
         return $this->hasMany(RankingSnapshot::class);
     }
+
+    /**
+     * @return HasMany<ConsequenceLink, $this>
+     */
+    public function sourceConsequenceLinks(): HasMany
+    {
+        return $this->hasMany(ConsequenceLink::class, 'source_section_simulation_week_id');
+    }
+
+    /**
+     * @return HasMany<ConsequenceLink, $this>
+     */
+    public function targetConsequenceLinks(): HasMany
+    {
+        return $this->hasMany(ConsequenceLink::class, 'target_section_simulation_week_id');
+    }
 }

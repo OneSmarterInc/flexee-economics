@@ -114,4 +114,12 @@ class TeamSimulation extends Model
     {
         return $this->hasMany(StandingState::class);
     }
+
+    /**
+     * @return HasMany<ConsequenceLink, $this>
+     */
+    public function consequenceLinks(): HasMany
+    {
+        return $this->hasMany(ConsequenceLink::class);
+    }
 }
