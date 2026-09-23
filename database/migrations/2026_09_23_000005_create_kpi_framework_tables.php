@@ -50,6 +50,7 @@ return new class extends Migration
             $table->unique(['tenant_id', 'id']);
             $table->index(['tenant_id', 'section_simulation_week_id', 'team_simulation_id']);
             $table->index(['tenant_id', 'kpi_definition_id', 'calculated_at']);
+            $table->index(['tenant_id', 'economic_resolution_id', 'calculation_version'], 'kpi_snapshots_resolution_calculation_index');
             $table->foreign(['tenant_id', 'section_simulation_week_id'])->references(['tenant_id', 'id'])->on('section_simulation_weeks')->cascadeOnDelete();
             $table->foreign(['tenant_id', 'team_simulation_id', 'team_id'])->references(['tenant_id', 'id', 'team_id'])->on('team_simulations')->cascadeOnDelete();
             $table->foreign(['tenant_id', 'economic_resolution_id'])->references(['tenant_id', 'id'])->on('economic_resolutions')->restrictOnDelete();
