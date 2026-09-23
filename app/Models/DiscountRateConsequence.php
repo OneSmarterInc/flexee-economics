@@ -4,10 +4,13 @@ namespace App\Models;
 
 use App\Models\Concerns\BelongsToTenant;
 use App\Models\Concerns\HasUlidRouteKey;
+use Brick\Math\BigDecimal;
+use Brick\Math\RoundingMode;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use InvalidArgumentException;
+use JsonException;
 
 #[Fillable(['ulid', 'tenant_id', 'section_simulation_id', 'source_section_simulation_week_id', 'target_section_simulation_week_id', 'team_simulation_id', 'team_id', 'economic_resolution_id', 'discount_rate_schedule_id', 'schedule_key', 'schedule_version', 'status', 'classification', 'discount_rate_percent', 'capital_envelope_musd', 'input_snapshot', 'result_snapshot', 'resolved_by_user_id', 'resolved_at'])]
 class DiscountRateConsequence extends Model
@@ -52,6 +55,55 @@ class DiscountRateConsequence extends Model
             'result_snapshot' => 'array',
             'resolved_at' => 'datetime',
         ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     *
+     * @throws JsonException
+     */
+    public function resultSnapshot(): array
+    {
+        $snapshot = $this->getAttribute('result_snapshot');
+
+        if (is_array($snapshot)) {
+            return $snapshot;
+        }
+
+        if (is_string($snapshot)) {
+            $decoded = json_decode($snapshot, true, flags: JSON_THROW_ON_ERROR);
+
+            if (is_array($decoded)) {
+                return $decoded;
+            }
+        }
+
+        throw new InvalidArgumentException('Discount rate consequence result snapshot is unavailable.');
+    }
+
+    public function discountRatePercentValue(): ?string
+    {
+        return $this->nullableDecimal('discount_rate_percent');
+    }
+
+    public function capitalEnvelopeMusdValue(): ?string
+    {
+        return $this->nullableDecimal('capital_envelope_musd');
+    }
+
+    private function nullableDecimal(string $key): ?string
+    {
+        $value = $this->getRawOriginal($key);
+
+        if ($value === null) {
+            return null;
+        }
+
+        if (is_string($value) || is_int($value) || is_float($value)) {
+            return (string) BigDecimal::of((string) $value)->toScale(3, RoundingMode::Unnecessary);
+        }
+
+        throw new InvalidArgumentException("Discount rate consequence decimal [{$key}] is unavailable.");
     }
 
     /**
