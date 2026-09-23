@@ -122,4 +122,12 @@ class TeamSimulation extends Model
     {
         return $this->hasMany(ConsequenceLink::class);
     }
+
+    /**
+     * @return HasMany<AdvisorConsultationSession, $this>
+     */
+    public function advisorConsultations(): HasMany
+    {
+        return $this->hasMany(AdvisorConsultationSession::class);
+    }
 }

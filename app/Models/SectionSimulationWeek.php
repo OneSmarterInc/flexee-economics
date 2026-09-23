@@ -136,4 +136,12 @@ class SectionSimulationWeek extends Model
     {
         return $this->hasMany(ConsequenceLink::class, 'target_section_simulation_week_id');
     }
+
+    /**
+     * @return HasMany<AdvisorConsultationSession, $this>
+     */
+    public function advisorConsultations(): HasMany
+    {
+        return $this->hasMany(AdvisorConsultationSession::class);
+    }
 }
