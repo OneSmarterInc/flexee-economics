@@ -4,18 +4,25 @@ namespace Tests\Feature\Capital;
 
 use App\Domain\Capital\CapitalAllocationService;
 use App\Domain\Capital\DiscountRateConsequenceService;
+use App\Domain\Capital\Week6\Week6CapitalEconomicsEngine;
+use App\Domain\Capital\Week6\Week6CapitalEconomicsService;
+use App\Domain\Capital\Week6\Week6CapitalReferencePackage;
 use App\Domain\Economics\Resolution\WeekResolutionService;
 use App\Domain\Economics\Week4\Week4EconomicEngine;
 use App\Domain\Simulation\SimulationLifecycleService;
 use App\Domain\Submissions\SubmissionService;
 use App\Enums\DecisionFieldType;
 use App\Enums\SectionSimulationWeekStatus;
+use App\Models\CapitalAllocationEvaluation;
 use App\Models\CapitalProject;
+use App\Models\ConsequenceLink;
 use App\Models\DecisionFieldDefinition;
 use App\Models\DecisionFormDefinition;
 use App\Models\DiscountRateConsequence;
 use App\Models\DiscountRateSchedule;
 use App\Models\EconomicResolution;
+use App\Models\KpiSnapshot;
+use App\Models\RankingSnapshot;
 use App\Models\SectionSimulation;
 use App\Models\SectionSimulationWeek;
 use App\Models\SimulationWeek;
@@ -155,6 +162,136 @@ class CapitalAllocationFrameworkTest extends TestCase
             ['valve'],
             ['helix'],
         );
+    }
+
+    public function test_week6_reference_package_is_explicitly_unavailable(): void
+    {
+        $package = Week6CapitalReferencePackage::missing();
+
+        $this->assertFalse($package->isAvailable());
+        $this->assertNull($package->version());
+        $this->assertSame(Week6CapitalReferencePackage::MISSING_REASON, $package->unavailableReason());
+    }
+
+    public function test_week6_capital_evaluation_records_missing_package_without_npv_or_irr(): void
+    {
+        $context = $this->week6ContextWithDiscountRate();
+        $this->seedProjects();
+        $decision = app(CapitalAllocationService::class)->submitAllocation(
+            $context['graph']['student'],
+            $context['teamSimulation'],
+            $context['week6'],
+            ['helix'],
+            ['tamar'],
+        );
+
+        $evaluation = app(Week6CapitalEconomicsService::class)->evaluate($decision, $context['graph']['faculty']);
+
+        $this->assertSame(CapitalAllocationEvaluation::STATUS_UNAVAILABLE_REFERENCE_PACKAGE, $evaluation->status);
+        $this->assertSame(Week6CapitalEconomicsEngine::ENGINE_IDENTIFIER, $evaluation->engine_identifier);
+        $this->assertSame(Week6CapitalEconomicsEngine::ENGINE_VERSION, $evaluation->engine_version);
+        $this->assertSame(Week6CapitalReferencePackage::MISSING_REASON, $evaluation->unavailable_reason);
+        $this->assertNull($evaluation->portfolioNpvMusdValue());
+        $this->assertNull($evaluation->portfolioIrrPercentValue());
+        $this->assertNull($evaluation->capitalRequiredMusdValue());
+        $this->assertNull($evaluation->capital_envelope_feasible);
+        $this->assertSame('helix', $evaluation->input_snapshot['selected_projects'][0]['key']);
+        $this->assertSame('unavailable_reference_package', $evaluation->output_snapshot['status']);
+    }
+
+    public function test_week6_capital_evaluation_does_not_mutate_scoring_or_consequence_history(): void
+    {
+        $context = $this->week6ContextWithDiscountRate();
+        $this->seedProjects();
+        $decision = app(CapitalAllocationService::class)->submitAllocation(
+            $context['graph']['student'],
+            $context['teamSimulation'],
+            $context['week6'],
+            ['helix'],
+            ['tamar'],
+        );
+        $kpiCount = KpiSnapshot::query()->count();
+        $rankingCount = RankingSnapshot::query()->count();
+        $consequenceCount = ConsequenceLink::query()->count();
+
+        app(Week6CapitalEconomicsService::class)->evaluate($decision, $context['graph']['faculty']);
+
+        $this->assertSame($kpiCount, KpiSnapshot::query()->count());
+        $this->assertSame($rankingCount, RankingSnapshot::query()->count());
+        $this->assertSame($consequenceCount, ConsequenceLink::query()->count());
+    }
+
+    public function test_week6_capital_evaluation_is_idempotent(): void
+    {
+        $context = $this->week6ContextWithDiscountRate();
+        $this->seedProjects();
+        $decision = app(CapitalAllocationService::class)->submitAllocation(
+            $context['graph']['student'],
+            $context['teamSimulation'],
+            $context['week6'],
+            ['helix'],
+            ['tamar'],
+        );
+        $service = app(Week6CapitalEconomicsService::class);
+
+        $first = $service->evaluate($decision, $context['graph']['faculty']);
+        $second = $service->evaluate($decision, $context['graph']['faculty']);
+
+        $this->assertSame($first->id, $second->id);
+        $this->assertSame(1, CapitalAllocationEvaluation::query()->where('capital_allocation_decision_id', $decision->id)->count());
+    }
+
+    public function test_week6_capital_evaluation_is_immutable(): void
+    {
+        $context = $this->week6ContextWithDiscountRate();
+        $this->seedProjects();
+        $decision = app(CapitalAllocationService::class)->submitAllocation(
+            $context['graph']['student'],
+            $context['teamSimulation'],
+            $context['week6'],
+            ['helix'],
+            ['tamar'],
+        );
+        $evaluation = app(Week6CapitalEconomicsService::class)->evaluate($decision, $context['graph']['faculty']);
+
+        $this->expectException(InvalidArgumentException::class);
+
+        $evaluation->update(['status' => 'calculated']);
+    }
+
+    public function test_week6_capital_evaluation_enforces_tenant_and_faculty_access(): void
+    {
+        $first = $this->week6ContextWithDiscountRate(suffix: 'A');
+        $second = $this->week6ContextWithDiscountRate(suffix: 'B');
+        $this->seedProjects();
+        $decision = app(CapitalAllocationService::class)->submitAllocation(
+            $second['graph']['student'],
+            $second['teamSimulation'],
+            $second['week6'],
+            ['helix'],
+            ['tamar'],
+        );
+
+        $this->expectException(InvalidArgumentException::class);
+
+        app(Week6CapitalEconomicsService::class)->evaluate($decision, $first['graph']['faculty']);
+    }
+
+    public function test_students_cannot_run_week6_capital_evaluation(): void
+    {
+        $context = $this->week6ContextWithDiscountRate();
+        $this->seedProjects();
+        $decision = app(CapitalAllocationService::class)->submitAllocation(
+            $context['graph']['student'],
+            $context['teamSimulation'],
+            $context['week6'],
+            ['helix'],
+            ['tamar'],
+        );
+
+        $this->expectException(InvalidArgumentException::class);
+
+        app(Week6CapitalEconomicsService::class)->evaluate($decision, $context['graph']['student']);
     }
 
     /**

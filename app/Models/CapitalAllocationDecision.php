@@ -7,6 +7,7 @@ use App\Models\Concerns\HasUlidRouteKey;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use InvalidArgumentException;
 
 #[Fillable(['ulid', 'tenant_id', 'section_simulation_id', 'section_simulation_week_id', 'team_simulation_id', 'team_id', 'discount_rate_consequence_id', 'submitted_by_user_id', 'selected_projects', 'rejected_projects', 'context_snapshot', 'memo_references', 'submitted_at'])]
@@ -68,5 +69,21 @@ class CapitalAllocationDecision extends Model
     public function discountRateConsequence(): BelongsTo
     {
         return $this->belongsTo(DiscountRateConsequence::class);
+    }
+
+    /**
+     * @return BelongsTo<SectionSimulationWeek, $this>
+     */
+    public function runtimeWeek(): BelongsTo
+    {
+        return $this->belongsTo(SectionSimulationWeek::class, 'section_simulation_week_id');
+    }
+
+    /**
+     * @return HasOne<CapitalAllocationEvaluation, $this>
+     */
+    public function evaluation(): HasOne
+    {
+        return $this->hasOne(CapitalAllocationEvaluation::class);
     }
 }
