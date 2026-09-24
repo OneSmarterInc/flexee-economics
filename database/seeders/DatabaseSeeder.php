@@ -2,6 +2,8 @@
 
 namespace Database\Seeders;
 
+use App\Domain\Content\Week4\Week4ContentPackageRegistrationService;
+use App\Domain\Economics\Week4\Week4EconomicEngine;
 use App\Domain\Simulation\SimulationLifecycleService;
 use App\Enums\PlatformRole;
 use App\Enums\SectionSimulationWeekStatus;
@@ -277,6 +279,53 @@ class DatabaseSeeder extends Seeder
                     'metadata' => ['development_demo_only' => true],
                 ]);
             }
+
+            if ($weekNumber === 4) {
+                app(Week4ContentPackageRegistrationService::class)->ensureActivated($week);
+
+                $decisionDefinition = DecisionFormDefinition::query()->firstOrCreate([
+                    'simulation_week_id' => $week->id,
+                    'key' => 'week4_transfer_pricing',
+                    'version' => Week4EconomicEngine::ENGINE_VERSION,
+                ], [
+                    'simulation_version_id' => $version->id,
+                    'name' => 'Week 4 transfer pricing',
+                    'is_required' => true,
+                    'metadata' => [
+                        'economic_engine' => Week4EconomicEngine::ENGINE_IDENTIFIER,
+                        'development_demo_only' => true,
+                    ],
+                ]);
+
+                DecisionFieldDefinition::query()->firstOrCreate([
+                    'decision_form_definition_id' => $decisionDefinition->id,
+                    'field_key' => 'transfer_price',
+                ], [
+                    'label' => 'Transfer price',
+                    'field_type' => 'currency',
+                    'is_required' => true,
+                    'display_order' => 1,
+                    'unit' => '$/bbl',
+                    'validation' => ['min' => 0, 'max' => 250],
+                ]);
+
+                MemoDefinition::query()->firstOrCreate([
+                    'simulation_week_id' => $week->id,
+                    'key' => 'week4_transfer_pricing_memo',
+                    'version' => Week4EconomicEngine::ENGINE_VERSION,
+                ], [
+                    'simulation_version_id' => $version->id,
+                    'title' => 'Week 4 transfer pricing memo',
+                    'instructions' => 'Explain the transfer-pricing decision, segment tradeoffs, and expected operational consequences.',
+                    'is_required' => true,
+                    'character_limit' => 4000,
+                    'submission_format' => 'text',
+                    'metadata' => [
+                        'economic_engine' => Week4EconomicEngine::ENGINE_IDENTIFIER,
+                        'development_demo_only' => true,
+                    ],
+                ]);
+            }
         }
 
         $sectionSimulation = SectionSimulation::query()
@@ -302,6 +351,20 @@ class DatabaseSeeder extends Seeder
         if ($weekOne && $weekOne->refresh()->statusEnum() === SectionSimulationWeekStatus::Released) {
             app(SimulationLifecycleService::class)
                 ->transitionWeek($weekOne, SectionSimulationWeekStatus::Open, $faculty, now()->addWeek());
+        }
+
+        $weekFour = $sectionSimulation->weeks()
+            ->whereHas('definition', fn ($query) => $query->where('week_number', 4))
+            ->first();
+
+        if ($weekFour && $weekFour->statusEnum() === SectionSimulationWeekStatus::Draft) {
+            app(SimulationLifecycleService::class)
+                ->transitionWeek($weekFour, SectionSimulationWeekStatus::Released, $faculty);
+        }
+
+        if ($weekFour && $weekFour->refresh()->statusEnum() === SectionSimulationWeekStatus::Released) {
+            app(SimulationLifecycleService::class)
+                ->transitionWeek($weekFour, SectionSimulationWeekStatus::Open, $faculty, now()->addWeeks(4));
         }
     }
 }
