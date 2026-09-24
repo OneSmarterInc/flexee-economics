@@ -1,0 +1,3 @@
+risk_class,base_hurdle_rate,risk_flag,note
+refining_upgrade,0.085,0.000,"Baton Rouge and Rotterdam - core business"
+adjacent_transition,0.085,0.020,"Helix - new business, demand risk flag"

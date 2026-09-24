@@ -1,0 +1,4 @@
+project_type,actual_pct_of_forecast,note
+refining,0.88,"Refining upgrades historically 88% of forecast NPV"
+upstream,0.79,"Upstream 79%"
+new_business,0.61,"New-business/adjacency 61% - thin track record, high variance"

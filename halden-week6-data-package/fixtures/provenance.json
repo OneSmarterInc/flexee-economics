@@ -1,0 +1,17 @@
+{
+  "package": "halden-week6-data-package",
+  "package_version": "1.0.0-draft",
+  "artifacts": {
+    "MANIFEST.md": "7bc6593b5dbe95fe8b49c8e22d0294072f0b34e3ee374b38f035203ae29b6489",
+    "halden_week6.xlsx": "a904e1b6c402aad059a5c1a28bb756386a1152076977f4e20afeb2e46dc3eaa6",
+    "halden_week6_analysis.ipynb": "464f3dbb8ec8891dda0e49fe3710eac4da7a21cf8a1d7cf15ee251b692cc0aa7",
+    "data/cohort_discount_schedule.csv": "ad6827970a42e5e634275eabba02912f42339bda43ba7e2f0494e40f808f92f3",
+    "data/cost_of_capital.csv": "f65dcce6878cf35496cbc7f56ba1e3e6b14556eba80b3c797c5a806c86ddca41",
+    "data/currency_helix.csv": "7ca69bc3a2e7c904485c2aae968e2db36264363385a1fb9097f451b8b52c917c",
+    "data/forecast_haircuts.csv": "5a985f314e749172c087c7fb3ce7362c79074fdc13e007b29ae8b0ee7ad8116a",
+    "data/project_cashflows.csv": "8f3a1a58e9de786493817e7132075e1e31729e3fa87c64361afc93d5189ab774",
+    "data/worked_example_prior.csv": "2a19da6af972c227c0fe040e4bd5799869034fd7b628f25cbb607a060699268b",
+    "faculty/halden_week6_FACULTY_SOLUTION.xlsx": "818858daaa77fae696603d952817fbf855c7a6edd043baf7742dc1795dfc4225",
+    "fixtures/week6_golden.json": "4aff67afe576f7d1d2a5093cb721f6a46bd75ffed8476a8a0ec8675127e7d0fd"
+  }
+}

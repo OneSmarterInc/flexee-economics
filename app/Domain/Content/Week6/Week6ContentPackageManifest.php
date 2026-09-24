@@ -6,6 +6,8 @@ final class Week6ContentPackageManifest
 {
     public const PACKAGE_TYPE = 'week6_capital_allocation';
 
+    public const PACKAGE_ROOT = 'halden-week6-data-package';
+
     /**
      * @return array<string, mixed>
      */
@@ -16,21 +18,20 @@ final class Week6ContentPackageManifest
             'version' => $version,
             'week_number' => 6,
             'title' => 'Week 6 Capital Allocation',
-            'status' => 'awaiting_authoritative_package',
+            'status' => 'authoritative_package_available',
+            'package_root' => self::PACKAGE_ROOT,
             'required_sections' => [
                 'student' => [
                     'workbook',
                     'notebook',
-                    'instructions',
+                    'canonical_datasets',
                 ],
                 'faculty' => [
                     'solution_workbook',
-                    'solution_notebook',
-                    'teaching_notes',
                 ],
                 'expected' => [
                     'outputs',
-                    'validation_fixtures',
+                    'provenance',
                 ],
             ],
             'deferred_runtime_capabilities' => [
@@ -48,69 +49,110 @@ final class Week6ContentPackageManifest
      */
     public function artifacts(array $pathOverrides = []): array
     {
-        return array_map(
-            fn (array $artifact): array => [
-                ...$artifact,
-                'path_reference' => $pathOverrides[$artifact['artifact_key']] ?? $artifact['path_reference'],
+        $artifacts = [
+            [
+                'artifact_key' => 'week6_student_workbook',
+                'artifact_type' => 'workbook',
+                'visibility' => 'student',
+                'path_reference' => self::PACKAGE_ROOT.'/halden_week6.xlsx',
+                'version' => 'student-v1',
             ],
             [
-                [
-                    'artifact_key' => 'week6_student_workbook',
-                    'artifact_type' => 'workbook',
-                    'visibility' => 'student',
-                    'path_reference' => 'simulation-content/halden/week6/student/halden_week6.xlsx',
-                    'version' => 'student-v1',
-                ],
-                [
-                    'artifact_key' => 'week6_student_notebook',
-                    'artifact_type' => 'notebook',
-                    'visibility' => 'student',
-                    'path_reference' => 'simulation-content/halden/week6/student/halden_week6_analysis.ipynb',
-                    'version' => 'student-v1',
-                ],
-                [
-                    'artifact_key' => 'week6_student_instructions',
-                    'artifact_type' => 'instructions',
-                    'visibility' => 'student',
-                    'path_reference' => 'simulation-content/halden/week6/student/instructions.md',
-                    'version' => 'student-v1',
-                ],
-                [
-                    'artifact_key' => 'week6_faculty_solution_workbook',
-                    'artifact_type' => 'solution_workbook',
-                    'visibility' => 'solution',
-                    'path_reference' => 'simulation-content/halden/week6/faculty/halden_week6_solution.xlsx',
-                    'version' => 'faculty-v1',
-                ],
-                [
-                    'artifact_key' => 'week6_faculty_solution_notebook',
-                    'artifact_type' => 'solution_notebook',
-                    'visibility' => 'solution',
-                    'path_reference' => 'simulation-content/halden/week6/faculty/halden_week6_solution.ipynb',
-                    'version' => 'faculty-v1',
-                ],
-                [
-                    'artifact_key' => 'week6_faculty_teaching_notes',
-                    'artifact_type' => 'teaching_notes',
-                    'visibility' => 'faculty',
-                    'path_reference' => 'simulation-content/halden/week6/faculty/teaching_notes.md',
-                    'version' => 'faculty-v1',
-                ],
-                [
-                    'artifact_key' => 'week6_expected_outputs',
-                    'artifact_type' => 'expected_outputs',
-                    'visibility' => 'faculty',
-                    'path_reference' => 'simulation-content/halden/week6/expected/outputs.json',
-                    'version' => 'expected-v1',
-                ],
-                [
-                    'artifact_key' => 'week6_validation_fixtures',
-                    'artifact_type' => 'validation_fixtures',
-                    'visibility' => 'faculty',
-                    'path_reference' => 'simulation-content/halden/week6/expected/validation_fixtures.json',
-                    'version' => 'expected-v1',
-                ],
+                'artifact_key' => 'week6_student_notebook',
+                'artifact_type' => 'notebook',
+                'visibility' => 'student',
+                'path_reference' => self::PACKAGE_ROOT.'/halden_week6_analysis.ipynb',
+                'version' => 'student-v1',
             ],
-        );
+            [
+                'artifact_key' => 'week6_manifest',
+                'artifact_type' => 'manifest',
+                'visibility' => 'shared',
+                'path_reference' => self::PACKAGE_ROOT.'/MANIFEST.md',
+                'version' => 'manifest-v1',
+            ],
+            [
+                'artifact_key' => 'week6_project_cashflows',
+                'artifact_type' => 'dataset',
+                'visibility' => 'shared',
+                'path_reference' => self::PACKAGE_ROOT.'/data/project_cashflows.csv',
+                'version' => 'data-v1',
+            ],
+            [
+                'artifact_key' => 'week6_cohort_discount_schedule',
+                'artifact_type' => 'dataset',
+                'visibility' => 'shared',
+                'path_reference' => self::PACKAGE_ROOT.'/data/cohort_discount_schedule.csv',
+                'version' => 'data-v1',
+            ],
+            [
+                'artifact_key' => 'week6_cost_of_capital',
+                'artifact_type' => 'dataset',
+                'visibility' => 'shared',
+                'path_reference' => self::PACKAGE_ROOT.'/data/cost_of_capital.csv',
+                'version' => 'data-v1',
+            ],
+            [
+                'artifact_key' => 'week6_currency_helix',
+                'artifact_type' => 'dataset',
+                'visibility' => 'shared',
+                'path_reference' => self::PACKAGE_ROOT.'/data/currency_helix.csv',
+                'version' => 'data-v1',
+            ],
+            [
+                'artifact_key' => 'week6_forecast_haircuts',
+                'artifact_type' => 'dataset',
+                'visibility' => 'shared',
+                'path_reference' => self::PACKAGE_ROOT.'/data/forecast_haircuts.csv',
+                'version' => 'data-v1',
+            ],
+            [
+                'artifact_key' => 'week6_worked_example_prior',
+                'artifact_type' => 'dataset',
+                'visibility' => 'shared',
+                'path_reference' => self::PACKAGE_ROOT.'/data/worked_example_prior.csv',
+                'version' => 'data-v1',
+            ],
+            [
+                'artifact_key' => 'week6_faculty_solution_workbook',
+                'artifact_type' => 'solution_workbook',
+                'visibility' => 'solution',
+                'path_reference' => self::PACKAGE_ROOT.'/faculty/halden_week6_FACULTY_SOLUTION.xlsx',
+                'version' => 'faculty-v1',
+            ],
+            [
+                'artifact_key' => 'week6_expected_outputs',
+                'artifact_type' => 'expected_outputs',
+                'visibility' => 'solution',
+                'path_reference' => self::PACKAGE_ROOT.'/fixtures/week6_golden.json',
+                'version' => 'expected-v1',
+            ],
+            [
+                'artifact_key' => 'week6_provenance',
+                'artifact_type' => 'provenance',
+                'visibility' => 'solution',
+                'path_reference' => self::PACKAGE_ROOT.'/fixtures/provenance.json',
+                'version' => 'expected-v1',
+            ],
+        ];
+
+        return array_values(array_map(
+            function (array $artifact) use ($pathOverrides): array {
+                $pathReference = $pathOverrides[$artifact['artifact_key']] ?? $artifact['path_reference'];
+                $hash = is_file(base_path($pathReference))
+                    ? hash_file('sha256', base_path($pathReference))
+                    : null;
+
+                return [
+                    ...$artifact,
+                    'path_reference' => $pathReference,
+                    'checksum' => is_string($hash) ? $hash : null,
+                    'metadata' => [
+                        'package_root' => self::PACKAGE_ROOT,
+                    ],
+                ];
+            },
+            $artifacts,
+        ));
     }
 }

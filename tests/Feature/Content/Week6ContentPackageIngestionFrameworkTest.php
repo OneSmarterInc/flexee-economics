@@ -28,27 +28,52 @@ class Week6ContentPackageIngestionFrameworkTest extends TestCase
 
         $this->assertSame(Week6ContentPackageManifest::PACKAGE_TYPE, $manifest['package_type']);
         $this->assertSame(6, $manifest['week_number']);
-        $this->assertSame(['workbook', 'notebook', 'instructions'], $manifest['required_sections']['student']);
-        $this->assertSame(['outputs', 'validation_fixtures'], $manifest['required_sections']['expected']);
-        $this->assertCount(8, $artifacts);
+        $this->assertSame('halden-week6-data-package', $manifest['package_root']);
+        $this->assertSame(['workbook', 'notebook', 'canonical_datasets'], $manifest['required_sections']['student']);
+        $this->assertSame(['outputs', 'provenance'], $manifest['required_sections']['expected']);
+        $this->assertCount(12, $artifacts);
         $this->assertSame('student', $artifacts[0]['visibility']);
-        $this->assertSame('solution', $artifacts[3]['visibility']);
+        $this->assertSame('shared', $artifacts[2]['visibility']);
+        $this->assertSame('solution', $artifacts[9]['visibility']);
     }
 
-    public function test_week6_registration_records_missing_authoritative_artifacts_without_creating_fake_files(): void
+    public function test_authoritative_week6_package_validates_against_real_artifacts(): void
     {
         $week = $this->week(6);
 
-        $package = app(Week6ContentPackageRegistrationService::class)->register($week, 'week6-missing-v1');
+        $package = app(Week6ContentPackageRegistrationService::class)->register($week, 'week6-authoritative-v1');
+
+        $this->assertSame(SimulationContentPackage::STATUS_VALIDATED, $package->status);
+        $this->assertSame(0, $package->artifacts()->where('is_missing', true)->count());
+        $this->assertSame(12, $package->artifacts()->count());
+        $this->assertSame(
+            hash_file('sha256', base_path('halden-week6-data-package/fixtures/week6_golden.json')),
+            $package->artifacts()->where('artifact_key', 'week6_expected_outputs')->firstOrFail()->actual_checksum,
+        );
+    }
+
+    public function test_week6_registration_records_missing_artifacts_without_creating_fake_files(): void
+    {
+        $week = $this->week(6);
+
+        $package = app(Week6ContentPackageRegistrationService::class)->register(
+            $week,
+            'week6-missing-v1',
+            $this->missingPathOverrides(),
+        );
 
         $this->assertSame(SimulationContentPackage::STATUS_INVALID, $package->status);
-        $this->assertSame(8, $package->artifacts()->where('is_missing', true)->count());
+        $this->assertSame(12, $package->artifacts()->where('is_missing', true)->count());
         $this->assertStringContainsString('week6_student_workbook', $package->validation_summary['errors'][0]);
     }
 
     public function test_invalid_week6_package_cannot_activate(): void
     {
-        $package = app(Week6ContentPackageRegistrationService::class)->register($this->week(6), 'week6-invalid-v1');
+        $package = app(Week6ContentPackageRegistrationService::class)->register(
+            $this->week(6),
+            'week6-invalid-v1',
+            $this->missingPathOverrides(),
+        );
 
         $this->expectException(InvalidArgumentException::class);
 
@@ -69,7 +94,6 @@ class Week6ContentPackageIngestionFrameworkTest extends TestCase
         $package = app(Week6ContentPackageRegistrationService::class)->register(
             $runtimeWeek->definition,
             'week6-supplied-v1',
-            $this->pathOverrides(),
         );
 
         app(SimulationContentActivationService::class)->activate($package);
@@ -89,7 +113,6 @@ class Week6ContentPackageIngestionFrameworkTest extends TestCase
         $package = app(Week6ContentPackageRegistrationService::class)->register(
             $runtimeWeek->definition,
             'week6-auth-v1',
-            $this->pathOverrides(),
         );
         app(SimulationContentActivationService::class)->activate($package);
         $resolver = app(SimulationContentResolver::class);
@@ -107,13 +130,24 @@ class Week6ContentPackageIngestionFrameworkTest extends TestCase
             ->values()
             ->all();
 
-        $this->assertSame([
-            'week6_student_instructions',
-            'week6_student_notebook',
-            'week6_student_workbook',
-        ], $studentArtifacts);
+        $this->assertContains('week6_project_cashflows', $studentArtifacts);
+        $this->assertContains('week6_student_workbook', $studentArtifacts);
+        $this->assertContains('week6_student_notebook', $studentArtifacts);
+        $this->assertNotContains('week6_faculty_solution_workbook', $studentArtifacts);
+        $this->assertNotContains('week6_expected_outputs', $studentArtifacts);
         $this->assertContains('week6_faculty_solution_workbook', $facultyArtifacts);
         $this->assertContains('week6_expected_outputs', $facultyArtifacts);
+        $this->assertSame([
+            'week6_cohort_discount_schedule',
+            'week6_cost_of_capital',
+            'week6_currency_helix',
+            'week6_forecast_haircuts',
+            'week6_manifest',
+            'week6_project_cashflows',
+            'week6_student_notebook',
+            'week6_student_workbook',
+            'week6_worked_example_prior',
+        ], $studentArtifacts);
     }
 
     public function test_cross_tenant_week6_content_resolution_is_rejected(): void
@@ -124,7 +158,6 @@ class Week6ContentPackageIngestionFrameworkTest extends TestCase
         $package = app(Week6ContentPackageRegistrationService::class)->register(
             $runtimeWeek->definition,
             'week6-cross-tenant-v1',
-            $this->pathOverrides(),
         );
         app(SimulationContentActivationService::class)->activate($package);
 
@@ -140,13 +173,11 @@ class Week6ContentPackageIngestionFrameworkTest extends TestCase
     /**
      * @return array<string, string>
      */
-    private function pathOverrides(): array
+    private function missingPathOverrides(): array
     {
-        $doc = 'docs/BATCH12A_IMPLEMENTATION.md';
-
         return array_fill_keys(
             collect(app(Week6ContentPackageManifest::class)->artifacts())->pluck('artifact_key')->all(),
-            $doc,
+            'missing/week6-artifact-placeholder',
         );
     }
 

@@ -1,0 +1,23 @@
+{
+    "package_root": "halden-week6-data-package",
+    "updated_on": "2026-09-24",
+    "validation_script": "scripts/validate_week6_package.py",
+    "expected_outputs": [
+        "halden-week6-data-package/fixtures/week6_golden.json"
+    ],
+    "provenance": "halden-week6-data-package/fixtures/provenance.json",
+    "files": {
+        "halden-week6-data-package/MANIFEST.md": "7BC6593B5DBE95FE8B49C8E22D0294072F0B34E3EE374B38F035203AE29B6489",
+        "halden-week6-data-package/halden_week6.xlsx": "A904E1B6C402AAD059A5C1A28BB756386A1152076977F4E20AFEB2E46DC3EAA6",
+        "halden-week6-data-package/halden_week6_analysis.ipynb": "464F3DBB8EC8891DDA0E49FE3710EAC4DA7A21CF8A1D7CF15EE251B692CC0AA7",
+        "halden-week6-data-package/data/cohort_discount_schedule.csv": "AD6827970A42E5E634275EABBA02912F42339BDA43BA7E2F0494E40F808F92F3",
+        "halden-week6-data-package/data/cost_of_capital.csv": "F65DCCE6878CF35496CBC7F56BA1E3E6B14556EBA80B3C797C5A806C86DDCA41",
+        "halden-week6-data-package/data/currency_helix.csv": "7CA69BC3A2E7C904485C2AAE968E2DB36264363385A1FB9097F451B8B52C917C",
+        "halden-week6-data-package/data/forecast_haircuts.csv": "5A985F314E749172C087C7FB3CE7362C79074FDC13E007B29AE8B0EE7AD8116A",
+        "halden-week6-data-package/data/project_cashflows.csv": "8F3A1A58E9DE786493817E7132075E1E31729E3FA87C64361AFC93D5189AB774",
+        "halden-week6-data-package/data/worked_example_prior.csv": "2A19DA6AF972C227C0FE040E4BD5799869034FD7B628F25CBB607A060699268B",
+        "halden-week6-data-package/faculty/halden_week6_FACULTY_SOLUTION.xlsx": "818858DAAA77FAE696603D952817FBF855C7A6EDD043BAF7742DC1795DFC4225",
+        "halden-week6-data-package/fixtures/provenance.json": "4F9239F624FA597EB214828BA678A93EA68993875C69508DE5C36ACAA52482D5",
+        "halden-week6-data-package/fixtures/week6_golden.json": "4AFF67AFE576F7D1D2A5093CB721F6A46BD75FFED8476A8A0EC8675127E7D0FD"
+    }
+}
