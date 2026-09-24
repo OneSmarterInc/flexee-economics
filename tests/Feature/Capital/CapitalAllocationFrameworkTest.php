@@ -185,7 +185,11 @@ class CapitalAllocationFrameworkTest extends TestCase
             ['tamar'],
         );
 
-        $evaluation = app(Week6CapitalEconomicsService::class)->evaluate($decision, $context['graph']['faculty']);
+        $evaluation = app(Week6CapitalEconomicsService::class)->evaluate(
+            $decision,
+            $context['graph']['faculty'],
+            Week6CapitalReferencePackage::missing(),
+        );
 
         $this->assertSame(CapitalAllocationEvaluation::STATUS_UNAVAILABLE_REFERENCE_PACKAGE, $evaluation->status);
         $this->assertSame(Week6CapitalEconomicsEngine::ENGINE_IDENTIFIER, $evaluation->engine_identifier);
@@ -197,6 +201,32 @@ class CapitalAllocationFrameworkTest extends TestCase
         $this->assertNull($evaluation->capital_envelope_feasible);
         $this->assertSame('helix', $evaluation->input_snapshot['selected_projects'][0]['key']);
         $this->assertSame('unavailable_reference_package', $evaluation->output_snapshot['status']);
+    }
+
+    public function test_week6_capital_evaluation_calculates_against_reference_package(): void
+    {
+        $context = $this->week6ContextWithDiscountRate();
+        $this->seedPackageProjects();
+        $decision = app(CapitalAllocationService::class)->submitAllocation(
+            $context['graph']['student'],
+            $context['teamSimulation'],
+            $context['week6'],
+            ['baton_rouge', 'helix'],
+            ['rotterdam'],
+        );
+
+        $evaluation = app(Week6CapitalEconomicsService::class)->evaluate($decision, $context['graph']['faculty']);
+
+        $this->assertSame(CapitalAllocationEvaluation::STATUS_CALCULATED, $evaluation->status);
+        $this->assertSame('492.927', $evaluation->portfolioNpvMusdValue());
+        $this->assertSame('1520.000', $evaluation->capitalRequiredMusdValue());
+        $this->assertFalse($evaluation->capital_envelope_feasible);
+        $this->assertNull($evaluation->unavailable_reason);
+        $this->assertSame('256.72', $evaluation->output_snapshot['project_results']['baton_rouge']['npv_musd']);
+        $this->assertSame('236.21', $evaluation->output_snapshot['project_results']['helix']['npv_musd']);
+        $this->assertSame('19.43', $evaluation->output_snapshot['project_results']['baton_rouge']['irr_percent']);
+        $this->assertSame('12.40', $evaluation->output_snapshot['project_results']['helix']['irr_percent']);
+        $this->assertSame(['baton_rouge', 'helix'], $evaluation->output_snapshot['selected_project_keys']);
     }
 
     public function test_week6_capital_evaluation_does_not_mutate_scoring_or_consequence_history(): void
@@ -256,7 +286,7 @@ class CapitalAllocationFrameworkTest extends TestCase
 
         $this->expectException(InvalidArgumentException::class);
 
-        $evaluation->update(['status' => 'calculated']);
+        $evaluation->update(['evaluated_by_process' => 'manual_edit_attempt']);
     }
 
     public function test_week6_capital_evaluation_enforces_tenant_and_faculty_access(): void
@@ -393,6 +423,24 @@ class CapitalAllocationFrameworkTest extends TestCase
                 'cash_flow_reference' => 'deferred_until_week6_package',
                 'required_inputs' => ['requires_week6_package' => true],
                 'metadata' => ['fixture' => true],
+                'is_active' => true,
+            ]);
+        }
+    }
+
+    private function seedPackageProjects(): void
+    {
+        foreach ([
+            ['key' => 'baton_rouge', 'name' => 'Baton Rouge Upgrade', 'category' => 'refining', 'risk_class' => 'refining_upgrade'],
+            ['key' => 'rotterdam', 'name' => 'Rotterdam Upgrade', 'category' => 'refining', 'risk_class' => 'refining_upgrade'],
+            ['key' => 'helix', 'name' => 'Project Helix', 'category' => 'transition', 'risk_class' => 'adjacent_transition'],
+        ] as $project) {
+            CapitalProject::query()->create([
+                ...$project,
+                'version' => 'week6_reference_package_v1',
+                'cash_flow_reference' => 'halden-week6-data-package/data/project_cashflows.csv#'.$project['key'],
+                'required_inputs' => ['requires_week6_reference_package' => true],
+                'metadata' => ['package_root' => 'halden-week6-data-package'],
                 'is_active' => true,
             ]);
         }

@@ -64,6 +64,64 @@ class CapitalAllocationDecision extends Model
     }
 
     /**
+     * @return list<array<string, mixed>>
+     */
+    public function selectedProjectSnapshots(): array
+    {
+        return $this->projectSnapshotList('selected_projects');
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    public function rejectedProjectSnapshots(): array
+    {
+        return $this->projectSnapshotList('rejected_projects');
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function contextSnapshot(): array
+    {
+        $value = $this->getAttribute('context_snapshot');
+
+        if (is_array($value) && ! array_is_list($value)) {
+            return $value;
+        }
+
+        throw new InvalidArgumentException('Capital allocation context snapshot is unavailable.');
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    private function projectSnapshotList(string $key): array
+    {
+        $value = $this->getAttribute($key);
+
+        if ($value === null) {
+            return [];
+        }
+
+        if (! is_array($value)) {
+            throw new InvalidArgumentException("Capital allocation project snapshot [{$key}] is unavailable.");
+        }
+
+        $snapshots = [];
+
+        foreach ($value as $snapshot) {
+            if (! is_array($snapshot)) {
+                throw new InvalidArgumentException("Capital allocation project snapshot [{$key}] contains an invalid entry.");
+            }
+
+            $snapshots[] = $snapshot;
+        }
+
+        return $snapshots;
+    }
+
+    /**
      * @return BelongsTo<DiscountRateConsequence, $this>
      */
     public function discountRateConsequence(): BelongsTo

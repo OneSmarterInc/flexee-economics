@@ -18,6 +18,10 @@ class CapitalAllocationEvaluation extends Model
 
     public const STATUS_UNAVAILABLE_REFERENCE_PACKAGE = 'unavailable_reference_package';
 
+    public const STATUS_UNAVAILABLE_DISCOUNT_RATE_CONTEXT = 'unavailable_discount_rate_context';
+
+    public const STATUS_CALCULATED = 'calculated';
+
     protected static function booted(): void
     {
         static::saving(function (CapitalAllocationEvaluation $evaluation): void {
