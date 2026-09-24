@@ -2,24 +2,35 @@
 
 namespace App\Http\Controllers\Student;
 
+use App\Domain\Content\SimulationContentResolver;
 use App\Domain\Submissions\SubmissionCompletenessService;
 use App\Domain\Submissions\SubmissionService;
 use App\Enums\SectionSimulationWeekStatus;
 use App\Http\Controllers\Controller;
 use App\Models\DecisionFieldDefinition;
 use App\Models\DecisionFormDefinition;
+use App\Models\EconomicResolution;
 use App\Models\MemoDefinition;
 use App\Models\SectionSimulationWeek;
+use App\Models\SimulationContentPackage;
+use App\Models\TeamSimulation;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Inertia\Inertia;
 use Inertia\Response;
+use InvalidArgumentException;
 
 class SubmissionController extends Controller
 {
-    public function show(Request $request, SectionSimulationWeek $sectionSimulationWeek, SubmissionService $submissions, SubmissionCompletenessService $completeness): Response
-    {
+    public function show(
+        Request $request,
+        SectionSimulationWeek $sectionSimulationWeek,
+        SubmissionService $submissions,
+        SubmissionCompletenessService $completeness,
+        SimulationContentResolver $content,
+    ): Response {
         $this->authorize('view', $sectionSimulationWeek);
 
         $user = $request->user();
@@ -51,6 +62,8 @@ class SubmissionController extends Controller
         $closesAt = $sectionSimulationWeek->getAttribute('closes_at');
         $decisionAnswers = is_array($decisionSubmission?->getAttribute('answers')) ? $decisionSubmission->getAttribute('answers') : [];
         $memoBody = $memoSubmission?->getAttribute('body');
+        $contentState = $this->contentState($content, $user, $sectionSimulationWeek);
+        $resolutionState = $this->resolutionState($sectionSimulationWeek, $teamSimulation);
 
         return Inertia::render('Submissions/Show', [
             'week' => [
@@ -63,6 +76,8 @@ class SubmissionController extends Controller
                 'section' => $sectionSimulationWeek->sectionSimulation->section->name,
                 'can_write' => $canWrite,
             ],
+            'contentPackage' => $contentState['package'],
+            'artifacts' => $contentState['artifacts'],
             'team' => [
                 'name' => $teamSimulation->team->name,
             ],
@@ -92,7 +107,11 @@ class SubmissionController extends Controller
                 'body' => is_string($memoBody) ? $memoBody : '',
                 'status' => $memoSubmission?->statusValue() ?? 'not_started',
             ] : null,
-            'status' => $completeness->statusFor($sectionSimulationWeek, $teamSimulation),
+            'status' => [
+                ...$completeness->statusFor($sectionSimulationWeek, $teamSimulation),
+                'resolution_status' => $resolutionState['status'],
+                'resolved_at' => $resolutionState['resolved_at'],
+            ],
             'routes' => [
                 'decisionDraft' => route('student.submissions.decisions.draft', $sectionSimulationWeek),
                 'decisionSubmit' => route('student.submissions.decisions.submit', $sectionSimulationWeek),
@@ -174,5 +193,79 @@ class SubmissionController extends Controller
             ->where('simulation_version_id', $runtimeWeek->simulation_version_id)
             ->where('simulation_week_id', $runtimeWeek->simulation_week_id)
             ->firstOrFail();
+    }
+
+    /**
+     * @return array{
+     *     package: array{status: string, version: string|null, package_type: string, validation_status: string|null, message: string|null},
+     *     artifacts: list<array{key: string, type: string, visibility: string|null, version: string|null, reference: string}>
+     * }
+     */
+    private function contentState(SimulationContentResolver $content, User $user, SectionSimulationWeek $runtimeWeek): array
+    {
+        try {
+            $package = $content->activePackageFor($runtimeWeek);
+
+            $artifacts = [];
+            foreach ($content->authorizedArtifactsFor($user, $runtimeWeek) as $artifact) {
+                $artifacts[] = [
+                    'key' => $artifact->artifact_key,
+                    'type' => $artifact->artifact_type,
+                    'visibility' => $artifact->visibility,
+                    'version' => $artifact->version,
+                    'reference' => $artifact->path_reference,
+                ];
+            }
+
+            return [
+                'package' => $this->packagePayload($package, 'active', null),
+                'artifacts' => $artifacts,
+            ];
+        } catch (InvalidArgumentException $exception) {
+            return [
+                'package' => [
+                    'status' => 'unavailable',
+                    'version' => null,
+                    'package_type' => 'reference_package',
+                    'validation_status' => null,
+                    'message' => $exception->getMessage(),
+                ],
+                'artifacts' => [],
+            ];
+        }
+    }
+
+    /**
+     * @return array{status: string, resolved_at: string|null}
+     */
+    private function resolutionState(SectionSimulationWeek $runtimeWeek, TeamSimulation $teamSimulation): array
+    {
+        $resolution = EconomicResolution::query()
+            ->where('tenant_id', $runtimeWeek->tenant_id)
+            ->where('section_simulation_week_id', $runtimeWeek->id)
+            ->where('team_simulation_id', $teamSimulation->id)
+            ->latest('resolved_at')
+            ->first();
+
+        $resolvedAt = $resolution?->getAttribute('resolved_at');
+
+        return [
+            'status' => $resolution instanceof EconomicResolution ? 'resolved' : 'unresolved',
+            'resolved_at' => $resolvedAt instanceof Carbon ? $resolvedAt->toIso8601String() : null,
+        ];
+    }
+
+    /**
+     * @return array{status: string, version: string|null, package_type: string, validation_status: string|null, message: string|null}
+     */
+    private function packagePayload(SimulationContentPackage $package, string $status, ?string $message): array
+    {
+        return [
+            'status' => $status,
+            'version' => $package->version,
+            'package_type' => $package->package_type,
+            'validation_status' => $package->status,
+            'message' => $message,
+        ];
     }
 }
