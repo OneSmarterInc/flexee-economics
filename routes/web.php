@@ -16,6 +16,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::view('foundation', 'foundation')->name('foundation.overview');
     Route::view('simulation-lifecycle', 'simulation-lifecycle')->name('simulation-lifecycle.overview');
+    Route::view('faculty/week-control', 'faculty-week-control')->name('faculty.week-control');
     Route::view('faculty/causal-trace', 'faculty-causal-trace')->name('faculty.causal-trace');
     Route::view('faculty/what-if', 'faculty-what-if-console')->name('faculty.what-if');
     Route::get('foundation/courses/{course}', [CourseController::class, 'show'])->name('foundation.courses.show');
