@@ -2,11 +2,13 @@
 
 namespace App\Domain\Execution;
 
+use App\Domain\Capital\Week6\Week6CapitalEconomicsService;
 use App\Domain\Content\SimulationContentResolver;
 use App\Domain\Economics\Resolution\WeekResolutionService;
 use App\Domain\Ranking\RankingCalculationService;
 use App\Domain\Scoring\Week4KpiPopulationService;
 use App\Enums\SubmissionStatus;
+use App\Models\CapitalAllocationDecision;
 use App\Models\DecisionSubmission;
 use App\Models\EconomicResolution;
 use App\Models\SectionSimulationWeek;
@@ -38,6 +40,7 @@ final readonly class WeekExecutionService
     public function __construct(
         private SimulationContentResolver $contentResolver,
         private WeekResolutionService $weekResolution,
+        private Week6CapitalEconomicsService $week6CapitalEconomics,
         private Week4KpiPopulationService $week4Kpis,
         private RankingCalculationService $rankings,
     ) {}
@@ -174,11 +177,18 @@ final readonly class WeekExecutionService
             ->where('section_simulation_week_id', $runtimeWeek->id)
             ->where('status', SubmissionStatus::Submitted->value)
             ->count();
+        $capitalAllocationCount = CapitalAllocationDecision::query()
+            ->where('tenant_id', $runtimeWeek->tenant_id)
+            ->where('section_simulation_week_id', $runtimeWeek->id)
+            ->count();
 
         return [
             'status' => 'completed',
             'summary' => 'Submission set counted for execution.',
-            'outputs' => ['submitted_decision_count' => $submittedCount],
+            'outputs' => [
+                'submitted_decision_count' => $submittedCount,
+                'capital_allocation_decision_count' => $capitalAllocationCount,
+            ],
         ];
     }
 
@@ -187,10 +197,22 @@ final readonly class WeekExecutionService
      */
     private function resolveDecisions(SectionSimulationWeek $runtimeWeek, User $actor): array
     {
-        if ($runtimeWeek->definition->week_number !== 4) {
-            return $this->deferred('Decision resolution for this week is not implemented yet.');
+        if ($runtimeWeek->definition->week_number === 6) {
+            return $this->evaluateWeek6CapitalAllocations($runtimeWeek, $actor);
         }
 
+        if ($runtimeWeek->definition->week_number === 4) {
+            return $this->resolveWeek4SubmittedDecisions($runtimeWeek, $actor);
+        }
+
+        return $this->deferred('Decision resolution for this week is not implemented yet.');
+    }
+
+    /**
+     * @return array{status: string, summary: string, outputs: array<string, mixed>}
+     */
+    private function resolveWeek4SubmittedDecisions(SectionSimulationWeek $runtimeWeek, User $actor): array
+    {
         $resolved = 0;
         DecisionSubmission::query()
             ->where('tenant_id', $runtimeWeek->tenant_id)
@@ -207,6 +229,35 @@ final readonly class WeekExecutionService
             'status' => 'completed',
             'summary' => 'Resolved submitted decisions for supported week.',
             'outputs' => ['resolved_decision_count' => $resolved],
+        ];
+    }
+
+    /**
+     * @return array{status: string, summary: string, outputs: array<string, mixed>}
+     */
+    private function evaluateWeek6CapitalAllocations(SectionSimulationWeek $runtimeWeek, User $actor): array
+    {
+        $evaluated = 0;
+        $statuses = [];
+
+        CapitalAllocationDecision::query()
+            ->where('tenant_id', $runtimeWeek->tenant_id)
+            ->where('section_simulation_week_id', $runtimeWeek->id)
+            ->orderBy('id')
+            ->get()
+            ->each(function (CapitalAllocationDecision $decision) use ($actor, &$evaluated, &$statuses): void {
+                $evaluation = $this->week6CapitalEconomics->evaluate($decision, $actor, process: 'week_execution_service');
+                $evaluated++;
+                $statuses[$evaluation->status] = ($statuses[$evaluation->status] ?? 0) + 1;
+            });
+
+        return [
+            'status' => 'completed',
+            'summary' => 'Evaluated Week 6 capital allocation decisions.',
+            'outputs' => [
+                'capital_allocation_evaluation_count' => $evaluated,
+                'evaluation_status_counts' => $statuses,
+            ],
         ];
     }
 
