@@ -3,10 +3,12 @@
 namespace App\Livewire;
 
 use App\Domain\Content\SimulationContentResolver;
+use App\Domain\Content\Week6\Week6ContentPackageManifest;
 use App\Domain\Execution\WeekExecutionService;
 use App\Domain\Simulation\SimulationLifecycleService;
 use App\Domain\Submissions\SubmissionCompletenessService;
 use App\Enums\SectionSimulationWeekStatus;
+use App\Models\CapitalAllocationDecision;
 use App\Models\SectionSimulation;
 use App\Models\SectionSimulationWeek;
 use App\Models\WeekExecutionRecord;
@@ -65,7 +67,7 @@ class FacultyWeekControl extends Component
         }
 
         try {
-            app(WeekExecutionService::class)->execute($runtimeWeek, auth()->user());
+            app(WeekExecutionService::class)->execute($runtimeWeek, auth()->user(), $this->packageTypeFor($runtimeWeek));
             $this->resetErrorBag();
         } catch (InvalidArgumentException $exception) {
             $this->addError('execution', $exception->getMessage());
@@ -180,8 +182,9 @@ class FacultyWeekControl extends Component
     private function contentState(SimulationContentResolver $content, SectionSimulationWeek $runtimeWeek): array
     {
         try {
-            $package = $content->activePackageFor($runtimeWeek);
-            $artifacts = $content->authorizedArtifactsFor(auth()->user(), $runtimeWeek);
+            $packageType = $this->packageTypeFor($runtimeWeek);
+            $package = $content->activePackageFor($runtimeWeek, $packageType);
+            $artifacts = $content->authorizedArtifactsFor(auth()->user(), $runtimeWeek, $packageType);
 
             return [
                 'status' => 'validated',
@@ -200,12 +203,13 @@ class FacultyWeekControl extends Component
     }
 
     /**
-     * @return array{team_count: int, decision_submitted_count: int, memo_submitted_count: int, complete_count: int}
+     * @return array{team_count: int, decision_submitted_count: int, memo_submitted_count: int, capital_allocation_submitted_count: int, complete_count: int}
      */
     private function submissionState(SectionSimulation $sectionSimulation, SectionSimulationWeek $runtimeWeek, SubmissionCompletenessService $completeness): array
     {
         $decisionSubmitted = 0;
         $memoSubmitted = 0;
+        $capitalAllocationsSubmitted = 0;
         $complete = 0;
 
         foreach ($sectionSimulation->teamSimulations as $teamSimulation) {
@@ -219,6 +223,16 @@ class FacultyWeekControl extends Component
                 $memoSubmitted++;
             }
 
+            $hasCapitalAllocation = CapitalAllocationDecision::query()
+                ->where('tenant_id', $runtimeWeek->tenant_id)
+                ->where('section_simulation_week_id', $runtimeWeek->id)
+                ->where('team_simulation_id', $teamSimulation->id)
+                ->exists();
+
+            if ($hasCapitalAllocation) {
+                $capitalAllocationsSubmitted++;
+            }
+
             if ($status['complete']) {
                 $complete++;
             }
@@ -228,6 +242,7 @@ class FacultyWeekControl extends Component
             'team_count' => $sectionSimulation->teamSimulations->count(),
             'decision_submitted_count' => $decisionSubmitted,
             'memo_submitted_count' => $memoSubmitted,
+            'capital_allocation_submitted_count' => $capitalAllocationsSubmitted,
             'complete_count' => $complete,
         ];
     }
@@ -239,5 +254,12 @@ class FacultyWeekControl extends Component
             ->where('section_simulation_week_id', $runtimeWeek->id)
             ->latest('started_at')
             ->first();
+    }
+
+    private function packageTypeFor(SectionSimulationWeek $runtimeWeek): string
+    {
+        return $runtimeWeek->definition->week_number === 6
+            ? Week6ContentPackageManifest::PACKAGE_TYPE
+            : 'reference_package';
     }
 }

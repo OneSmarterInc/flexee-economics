@@ -32,6 +32,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('submissions/weeks/{sectionSimulationWeek}', [SubmissionController::class, 'show'])->name('student.submissions.show');
     Route::post('submissions/weeks/{sectionSimulationWeek}/decisions/draft', [SubmissionController::class, 'saveDecisionDraft'])->name('student.submissions.decisions.draft');
     Route::post('submissions/weeks/{sectionSimulationWeek}/decisions/submit', [SubmissionController::class, 'submitDecision'])->name('student.submissions.decisions.submit');
+    Route::post('submissions/weeks/{sectionSimulationWeek}/capital-allocation/submit', [SubmissionController::class, 'submitCapitalAllocation'])->name('student.submissions.capital-allocation.submit');
     Route::post('submissions/weeks/{sectionSimulationWeek}/memo/draft', [SubmissionController::class, 'saveMemoDraft'])->name('student.submissions.memo.draft');
     Route::post('submissions/weeks/{sectionSimulationWeek}/memo/submit', [SubmissionController::class, 'submitMemo'])->name('student.submissions.memo.submit');
 });

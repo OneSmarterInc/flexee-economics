@@ -33,6 +33,11 @@ type MemoFormPayload = {
     body: string;
 };
 
+type CapitalAllocationFormPayload = {
+    selected_project_keys: string[];
+    capital_allocation?: string;
+};
+
 type MemoDefinition = {
     ulid: string;
     title: string;
@@ -60,6 +65,28 @@ type ContentArtifact = {
     reference: string;
 };
 
+type CapitalAllocationProject = {
+    key: string;
+    name: string;
+    category: string;
+    risk_class: string;
+    cash_flow_reference: string;
+    metadata: Record<string, unknown>;
+};
+
+type CapitalAllocationWorkspace = {
+    status: string;
+    selected_project_keys: string[];
+    context: {
+        status: string;
+        classification?: string | null;
+        discount_rate_percent?: string | null;
+        capital_envelope_musd?: string | null;
+        reason?: string | null;
+    };
+    projects: CapitalAllocationProject[];
+};
+
 const props = defineProps<{
     week: {
         title: string;
@@ -80,14 +107,17 @@ const props = defineProps<{
     status: {
         decision_status: string;
         memo_status: string;
+        capital_allocation_status?: string;
         complete: boolean;
         ready_for_evaluation: boolean;
         resolution_status: string;
         resolved_at?: string | null;
     };
+    capitalAllocation: CapitalAllocationWorkspace | null;
     routes: {
         decisionDraft: string;
         decisionSubmit: string;
+        capitalAllocationSubmit: string;
         memoDraft: string;
         memoSubmit: string;
     };
@@ -103,11 +133,27 @@ const memoForm = useForm<MemoFormPayload>({
     body: props.memoDefinition?.body ?? '',
 });
 
+const capitalForm = useForm<CapitalAllocationFormPayload>({
+    selected_project_keys: [
+        ...(props.capitalAllocation?.selected_project_keys ?? []),
+    ],
+});
+
 const disabled = computed(() => !props.week.can_write);
 const submitted = computed(
     () =>
-        props.decisionDefinition?.status === 'submitted' &&
-        props.memoDefinition?.status === 'submitted',
+        (props.decisionDefinition?.status === 'submitted' ||
+            props.decisionDefinition === null) &&
+        (props.memoDefinition?.status === 'submitted' ||
+            props.memoDefinition === null) &&
+        (props.capitalAllocation === null ||
+            props.capitalAllocation.status === 'submitted'),
+);
+const capitalSubmitted = computed(
+    () => props.capitalAllocation?.status === 'submitted',
+);
+const capitalContextAvailable = computed(
+    () => props.capitalAllocation?.context.status === 'available',
 );
 const formattedClosesAt = computed(() =>
     props.week.closes_at
@@ -148,6 +194,44 @@ function postMemo(url: string) {
                 only: [
                     'decisionDefinition',
                     'memoDefinition',
+                    'status',
+                    'week',
+                    'contentPackage',
+                    'artifacts',
+                ],
+            }),
+    });
+}
+
+function toggleProject(key: string) {
+    if (capitalSubmitted.value || disabled.value) {
+        return;
+    }
+
+    if (capitalForm.selected_project_keys.includes(key)) {
+        capitalForm.selected_project_keys =
+            capitalForm.selected_project_keys.filter(
+                (selectedKey) => selectedKey !== key,
+            );
+
+        return;
+    }
+
+    capitalForm.selected_project_keys = [
+        ...capitalForm.selected_project_keys,
+        key,
+    ];
+}
+
+function postCapitalAllocation() {
+    capitalForm.post(props.routes.capitalAllocationSubmit, {
+        preserveScroll: true,
+        onSuccess: () =>
+            router.reload({
+                only: [
+                    'decisionDefinition',
+                    'memoDefinition',
+                    'capitalAllocation',
                     'status',
                     'week',
                     'contentPackage',
@@ -290,6 +374,135 @@ function postMemo(url: string) {
                     @click="postDecision(routes.decisionSubmit)"
                 >
                     Submit Decisions
+                </button>
+            </div>
+        </section>
+
+        <section v-if="capitalAllocation" class="rounded-lg border p-5">
+            <div
+                class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between"
+            >
+                <div>
+                    <h2 class="font-medium">Capital allocation</h2>
+                    <p class="text-muted-foreground mt-1 text-sm">
+                        {{ capitalAllocation.status }}
+                    </p>
+                </div>
+                <div class="grid gap-2 text-sm sm:grid-cols-3 lg:min-w-[32rem]">
+                    <div class="rounded-md border p-3">
+                        <p class="text-muted-foreground text-xs">
+                            Classification
+                        </p>
+                        <p class="font-medium">
+                            {{
+                                capitalAllocation.context.classification ??
+                                capitalAllocation.context.status
+                            }}
+                        </p>
+                    </div>
+                    <div class="rounded-md border p-3">
+                        <p class="text-muted-foreground text-xs">
+                            Discount rate
+                        </p>
+                        <p class="font-medium">
+                            {{
+                                capitalAllocation.context
+                                    .discount_rate_percent ?? 'Pending'
+                            }}
+                        </p>
+                    </div>
+                    <div class="rounded-md border p-3">
+                        <p class="text-muted-foreground text-xs">
+                            Capital envelope
+                        </p>
+                        <p class="font-medium">
+                            {{
+                                capitalAllocation.context
+                                    .capital_envelope_musd ?? 'Pending'
+                            }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <p
+                v-if="!capitalContextAvailable"
+                class="border-destructive/40 text-destructive mt-4 rounded-md border p-3 text-sm"
+            >
+                {{
+                    capitalAllocation.context.reason ??
+                    'Capital allocation context is not available yet.'
+                }}
+            </p>
+
+            <div class="mt-4 grid gap-3 lg:grid-cols-3">
+                <button
+                    v-for="project in capitalAllocation.projects"
+                    :key="project.key"
+                    type="button"
+                    class="bg-background hover:bg-accent rounded-md border p-4 text-left text-sm transition disabled:opacity-60"
+                    :class="{
+                        'border-primary ring-primary/20 ring-2':
+                            capitalForm.selected_project_keys.includes(
+                                project.key,
+                            ),
+                    }"
+                    :disabled="disabled || capitalSubmitted"
+                    @click="toggleProject(project.key)"
+                >
+                    <div class="flex items-start gap-3">
+                        <input
+                            type="checkbox"
+                            class="mt-1"
+                            :checked="
+                                capitalForm.selected_project_keys.includes(
+                                    project.key,
+                                )
+                            "
+                            :disabled="disabled || capitalSubmitted"
+                            @click.stop="toggleProject(project.key)"
+                        />
+                        <div class="min-w-0">
+                            <h3 class="font-medium">{{ project.name }}</h3>
+                            <p class="text-muted-foreground mt-1">
+                                {{ project.category }} /
+                                {{ project.risk_class }}
+                            </p>
+                            <p
+                                class="text-muted-foreground mt-3 text-xs break-all"
+                            >
+                                {{ project.cash_flow_reference }}
+                            </p>
+                        </div>
+                    </div>
+                </button>
+            </div>
+
+            <p
+                v-if="capitalForm.errors.selected_project_keys"
+                class="text-destructive mt-3 text-sm"
+            >
+                {{ capitalForm.errors.selected_project_keys }}
+            </p>
+            <p
+                v-if="capitalForm.errors.capital_allocation"
+                class="text-destructive mt-3 text-sm"
+            >
+                {{ capitalForm.errors.capital_allocation }}
+            </p>
+
+            <div class="mt-4 flex flex-wrap gap-2">
+                <button
+                    class="bg-primary text-primary-foreground rounded-md border px-3 py-2 text-sm disabled:opacity-50"
+                    :disabled="
+                        disabled ||
+                        capitalSubmitted ||
+                        capitalForm.processing ||
+                        capitalForm.selected_project_keys.length === 0
+                    "
+                    @click="postCapitalAllocation"
+                >
+                    Submit Allocation
                 </button>
             </div>
         </section>

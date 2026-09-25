@@ -2,11 +2,16 @@
 
 namespace App\Http\Controllers\Student;
 
+use App\Domain\Capital\CapitalAllocationService;
 use App\Domain\Content\SimulationContentResolver;
+use App\Domain\Content\Week6\Week6ContentPackageManifest;
 use App\Domain\Submissions\SubmissionCompletenessService;
 use App\Domain\Submissions\SubmissionService;
 use App\Enums\SectionSimulationWeekStatus;
 use App\Http\Controllers\Controller;
+use App\Models\CapitalAllocationDecision;
+use App\Models\CapitalAllocationEvaluation;
+use App\Models\CapitalProject;
 use App\Models\DecisionFieldDefinition;
 use App\Models\DecisionFormDefinition;
 use App\Models\EconomicResolution;
@@ -64,6 +69,7 @@ class SubmissionController extends Controller
         $memoBody = $memoSubmission?->getAttribute('body');
         $contentState = $this->contentState($content, $user, $sectionSimulationWeek);
         $resolutionState = $this->resolutionState($sectionSimulationWeek, $teamSimulation);
+        $capitalAllocationState = $this->capitalAllocationState($sectionSimulationWeek, $teamSimulation);
 
         return Inertia::render('Submissions/Show', [
             'week' => [
@@ -112,9 +118,11 @@ class SubmissionController extends Controller
                 'resolution_status' => $resolutionState['status'],
                 'resolved_at' => $resolutionState['resolved_at'],
             ],
+            'capitalAllocation' => $capitalAllocationState,
             'routes' => [
                 'decisionDraft' => route('student.submissions.decisions.draft', $sectionSimulationWeek),
                 'decisionSubmit' => route('student.submissions.decisions.submit', $sectionSimulationWeek),
+                'capitalAllocationSubmit' => route('student.submissions.capital-allocation.submit', $sectionSimulationWeek),
                 'memoDraft' => route('student.submissions.memo.draft', $sectionSimulationWeek),
                 'memoSubmit' => route('student.submissions.memo.submit', $sectionSimulationWeek),
             ],
@@ -131,6 +139,39 @@ class SubmissionController extends Controller
         $definition = $this->decisionDefinition($sectionSimulationWeek, $payload['definition_ulid']);
         $teamSimulation = $submissions->resolveTeamSimulationForActor($request->user(), $sectionSimulationWeek);
         $submissions->saveDecisionDraft($request->user(), $sectionSimulationWeek, $teamSimulation, $definition, $payload['answers'] ?? []);
+
+        return back();
+    }
+
+    public function submitCapitalAllocation(Request $request, SectionSimulationWeek $sectionSimulationWeek, SubmissionService $submissions, CapitalAllocationService $capitalAllocations): RedirectResponse
+    {
+        $sectionSimulationWeek->loadMissing('definition');
+
+        if ($sectionSimulationWeek->definition->week_number !== 6) {
+            abort(404);
+        }
+
+        $payload = $request->validate([
+            'selected_project_keys' => ['required', 'array', 'min:1'],
+            'selected_project_keys.*' => ['required', 'string'],
+        ]);
+
+        $teamSimulation = $submissions->resolveTeamSimulationForActor($request->user(), $sectionSimulationWeek);
+        $selected = array_values(array_unique($payload['selected_project_keys']));
+        $activeKeys = $capitalAllocations->activeProjects()->pluck('key')->all();
+        $rejected = array_values(array_diff($activeKeys, $selected));
+
+        try {
+            $capitalAllocations->submitAllocation(
+                $request->user(),
+                $teamSimulation,
+                $sectionSimulationWeek,
+                $selected,
+                $rejected,
+            );
+        } catch (InvalidArgumentException $exception) {
+            return back()->withErrors(['capital_allocation' => $exception->getMessage()]);
+        }
 
         return back();
     }
@@ -204,10 +245,11 @@ class SubmissionController extends Controller
     private function contentState(SimulationContentResolver $content, User $user, SectionSimulationWeek $runtimeWeek): array
     {
         try {
-            $package = $content->activePackageFor($runtimeWeek);
+            $packageType = $this->packageTypeFor($runtimeWeek);
+            $package = $content->activePackageFor($runtimeWeek, $packageType);
 
             $artifacts = [];
-            foreach ($content->authorizedArtifactsFor($user, $runtimeWeek) as $artifact) {
+            foreach ($content->authorizedArtifactsFor($user, $runtimeWeek, $packageType) as $artifact) {
                 $artifacts[] = [
                     'key' => $artifact->artifact_key,
                     'type' => $artifact->artifact_type,
@@ -226,7 +268,7 @@ class SubmissionController extends Controller
                 'package' => [
                     'status' => 'unavailable',
                     'version' => null,
-                    'package_type' => 'reference_package',
+                    'package_type' => $this->packageTypeFor($runtimeWeek),
                     'validation_status' => null,
                     'message' => $exception->getMessage(),
                 ],
@@ -240,6 +282,21 @@ class SubmissionController extends Controller
      */
     private function resolutionState(SectionSimulationWeek $runtimeWeek, TeamSimulation $teamSimulation): array
     {
+        if ($runtimeWeek->definition->week_number === 6) {
+            $evaluation = CapitalAllocationEvaluation::query()
+                ->where('tenant_id', $runtimeWeek->tenant_id)
+                ->where('section_simulation_week_id', $runtimeWeek->id)
+                ->where('team_simulation_id', $teamSimulation->id)
+                ->latest('evaluated_at')
+                ->first();
+            $evaluatedAt = $evaluation?->getAttribute('evaluated_at');
+
+            return [
+                'status' => $evaluation instanceof CapitalAllocationEvaluation ? 'resolved' : 'unresolved',
+                'resolved_at' => $evaluatedAt instanceof Carbon ? $evaluatedAt->toIso8601String() : null,
+            ];
+        }
+
         $resolution = EconomicResolution::query()
             ->where('tenant_id', $runtimeWeek->tenant_id)
             ->where('section_simulation_week_id', $runtimeWeek->id)
@@ -267,5 +324,44 @@ class SubmissionController extends Controller
             'validation_status' => $package->status,
             'message' => $message,
         ];
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private function capitalAllocationState(SectionSimulationWeek $runtimeWeek, TeamSimulation $teamSimulation): ?array
+    {
+        if ($runtimeWeek->definition->week_number !== 6) {
+            return null;
+        }
+
+        $decision = CapitalAllocationDecision::query()
+            ->where('tenant_id', $runtimeWeek->tenant_id)
+            ->where('section_simulation_week_id', $runtimeWeek->id)
+            ->where('team_simulation_id', $teamSimulation->id)
+            ->first();
+
+        return [
+            'status' => $decision instanceof CapitalAllocationDecision ? 'submitted' : 'not_started',
+            'selected_project_keys' => $decision instanceof CapitalAllocationDecision
+                ? collect($decision->selectedProjectSnapshots())->pluck('key')->values()->all()
+                : [],
+            'context' => app(CapitalAllocationService::class)->contextFor($teamSimulation, $runtimeWeek)->snapshot,
+            'projects' => app(CapitalAllocationService::class)->activeProjects()->map(fn (CapitalProject $project): array => [
+                'key' => $project->key,
+                'name' => $project->name,
+                'category' => $project->category,
+                'risk_class' => $project->risk_class,
+                'cash_flow_reference' => $project->cash_flow_reference,
+                'metadata' => is_array($project->getAttribute('metadata')) ? $project->getAttribute('metadata') : [],
+            ])->values()->all(),
+        ];
+    }
+
+    private function packageTypeFor(SectionSimulationWeek $runtimeWeek): string
+    {
+        return $runtimeWeek->definition->week_number === 6
+            ? Week6ContentPackageManifest::PACKAGE_TYPE
+            : 'reference_package';
     }
 }

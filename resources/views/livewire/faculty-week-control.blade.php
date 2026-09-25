@@ -91,6 +91,7 @@
                 </p>
                 <p class="text-muted-foreground mt-1 text-xs">
                     Decisions {{ $submissionState['decision_submitted_count'] ?? 0 }},
+                    allocations {{ $submissionState['capital_allocation_submitted_count'] ?? 0 }},
                     memos {{ $submissionState['memo_submitted_count'] ?? 0 }}
                 </p>
             </article>
