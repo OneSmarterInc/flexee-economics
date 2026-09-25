@@ -1,6 +1,6 @@
 # Week 8 Golden Test Plan
 
-Batch 18A validates the Week 8 package as a future Laravel regression oracle. It does not implement the Week 8 economic engine.
+Batch 18A validated the Week 8 package as a Laravel regression oracle. Batch 18B now implements the package-backed Week 8 economic engine and uses this fixture as the oracle.
 
 ## Source Oracle
 
@@ -14,7 +14,7 @@ Do not duplicate package inputs in tests unless a test needs a small explicit fi
 
 ## Required Golden Assertions
 
-Future Week 8 engine tests should verify:
+Week 8 engine tests verify:
 
 - package files exist and hashes match provenance;
 - scenario probabilities sum to `1.000000`;
@@ -61,6 +61,28 @@ Validated outputs:
 - expected upstream impact: `3.40/bbl`;
 - expected crack: `20.31/bbl`;
 - workbook worked-example cached values and notebook execution agree on the method.
+
+## Implemented In Batch 18B
+
+`tests/Feature/Economics/Week8EconomicEngineTest.php` verifies:
+
+- reference package loading and provenance metadata;
+- scenario probabilities sum to `1.000000`;
+- invalid prediction distributions are rejected;
+- expected WTI equals `80.70`;
+- expected upstream impact equals `6.70`;
+- expected crack equals `19.16`;
+- per-scenario outputs match `week8_golden.json`;
+- worked example matches `3.40/bbl` upstream impact and `20.31/bbl` crack;
+- prediction distribution and realized outcome remain separate;
+- retail precision matches package display behavior;
+- OPEC calculation does not create or mutate cohort feedback effects.
+
+Focused result:
+
+```text
+8 tests / 38 assertions
+```
 
 ## Deliberate Non-Assertions
 

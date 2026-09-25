@@ -1,8 +1,8 @@
 # Week 8 Implementation Plan
 
-This plan maps the validated Week 8 reference package into a future Laravel economic engine. Batch 18A stops at this plan and does not implement the engine.
+This plan maps the validated Week 8 reference package into Laravel runtime economics. Batch 18B implements the standalone package-backed economic engine; runtime submission/resolution integration remains future work.
 
-## Intended Boundary
+## Intended Runtime Boundary
 
 ```text
 Week 8 Decision Submission
@@ -13,9 +13,9 @@ Week 8 Decision Submission
 
 Controllers and UI should not call the engine directly.
 
-## Future Inputs
+## Implemented Engine Inputs
 
-Package inputs:
+Batch 18B consumes package inputs:
 
 - baseline state:
     - WTI pre-shock;
@@ -35,7 +35,7 @@ Package inputs:
 - compliance history;
 - worked-example prior inputs.
 
-Team decision inputs:
+Future team decision inputs:
 
 - team probability estimate by scenario;
 - upstream production posture;
@@ -43,17 +43,29 @@ Team decision inputs:
 - hedge posture;
 - memo reasoning.
 
-Prior state inputs:
+Future prior state inputs:
 
 - Week 6 balance-sheet/capital-allocation context where available;
 - hedge mandate / standing when implemented;
 - unresolved Week 6 -> Week 8 cohort response, if later supplied.
 
-## Future Outputs
+## Implemented Engine Outputs
 
 Keep prediction and realized outcome separate.
 
-Prediction outputs:
+Batch 18B implements:
+
+- package probability distribution;
+- optional team prediction probability distribution;
+- optional realized scenario;
+- expected WTI;
+- expected upstream impact;
+- expected refining crack;
+- scenario-level upstream/refining/retail outputs;
+- input/output snapshots;
+- engine identifier/version.
+
+Future prediction outputs:
 
 - team probability estimate;
 - expected WTI under team probabilities;
@@ -62,7 +74,7 @@ Prediction outputs:
 - expected retail volume effect;
 - consistency flags between probability estimate and operating posture.
 
-Scenario outputs:
+Future scenario outputs once persistence/submission integration exists:
 
 - resolved scenario;
 - realized WTI;
@@ -97,9 +109,8 @@ Week 6 aggregate Gulf Coast capacity additions -> Week 8 refining margin
 
 The Week 8 package's `refining_crack = -0.35` coefficient is an OPEC shock propagation coefficient. It must not be used as the cohort Window 2 response function.
 
-## Deferred Until Batch 18B+
+## Deferred After Batch 18B
 
-- `Week8EconomicEngine`;
 - scenario resolver;
 - persistence model;
 - KPI/ranking hooks;

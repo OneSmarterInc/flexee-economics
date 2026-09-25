@@ -2,7 +2,7 @@
 
 Updated: 2026-09-25.
 
-The authoritative markdown sources and normalized Week 4, Week 6, and Week 8 packages are now present. Week 4 and Week 6 have runtime paths; Week 8 is package-validated but does not yet have a Laravel economic engine.
+The authoritative markdown sources and normalized Week 4, Week 6, and Week 8 packages are now present. Week 4 and Week 6 have runtime paths; Week 8 has a package-backed Laravel economic engine but is not yet integrated into runtime execution or persistence.
 
 ## Week 4 package questions
 
@@ -54,7 +54,9 @@ Resolved by the authoritative package:
 - faculty solution workbook;
 - golden fixture;
 - provenance hashes;
-- package validation script.
+- package validation script;
+- package-backed Laravel OPEC/scenario economic engine;
+- prediction distribution and realized scenario represented separately in the engine result.
 
 Still open:
 
