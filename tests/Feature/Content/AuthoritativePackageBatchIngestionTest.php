@@ -48,7 +48,7 @@ class AuthoritativePackageBatchIngestionTest extends TestCase
             $this->assertGreaterThanOrEqual(11, $package->artifacts()->count());
         }
 
-        $this->assertSame([1, 2, 3, 5, 6, 7, 8, 9, 11, 13], $registered);
+        $this->assertSame([1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12, 13], $registered);
     }
 
     public function test_provenance_hashes_are_preserved_on_registered_artifacts(): void
@@ -115,22 +115,36 @@ class AuthoritativePackageBatchIngestionTest extends TestCase
         $this->assertTrue($facultyArtifacts->contains('artifact_key', 'week1_faculty_halden_week1_faculty_solution_xlsx'));
     }
 
-    public function test_week12_is_quarantined_and_cannot_be_registered_for_activation(): void
+    public function test_week10_upgraded_package_can_register_and_activate(): void
     {
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('Week 12 is quarantined');
+        $runtimeWeek = $this->runtimeWeek($this->tenantGraph('Week10Package'), 10);
+        $package = app(AuthoritativeContentPackageRegistrationService::class)
+            ->register($runtimeWeek->definition);
+        $activation = app(SimulationContentActivationService::class)->activate($package);
 
-        app(AuthoritativeContentPackageRegistrationService::class)
-            ->register($this->week($this->simulationStructure(14), 12));
+        $this->assertSame(SimulationContentPackage::STATUS_VALIDATED, $package->status);
+        $this->assertSame(10, $package->manifest['week_number']);
+        $this->assertSame(
+            'week10_fixtures_week10_golden_json',
+            $package->artifacts()->where('artifact_type', 'expected_outputs')->firstOrFail()->artifact_key,
+        );
+        $this->assertSame($package->id, $activation->simulation_content_package_id);
     }
 
-    public function test_week10_remains_explicitly_unready(): void
+    public function test_week12_revised_package_can_register_and_activate(): void
     {
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('Week 10 predates');
+        $runtimeWeek = $this->runtimeWeek($this->tenantGraph('Week12Package'), 12);
+        $package = app(AuthoritativeContentPackageRegistrationService::class)
+            ->register($runtimeWeek->definition);
+        $activation = app(SimulationContentActivationService::class)->activate($package);
 
-        app(AuthoritativeContentPackageRegistrationService::class)
-            ->register($this->week($this->simulationStructure(14), 10));
+        $this->assertSame(SimulationContentPackage::STATUS_VALIDATED, $package->status);
+        $this->assertSame(12, $package->manifest['week_number']);
+        $this->assertSame(
+            'week12_fixtures_week12_golden_json',
+            $package->artifacts()->where('artifact_type', 'expected_outputs')->firstOrFail()->artifact_key,
+        );
+        $this->assertSame($package->id, $activation->simulation_content_package_id);
     }
 
     public function test_week4_stable_reference_package_is_left_out_of_bulk_registration(): void

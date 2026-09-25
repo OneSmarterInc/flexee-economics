@@ -1,0 +1,34 @@
+{
+  "package": "halden-week12-data-package",
+  "package_version": "1.0.0-draft",
+  "artifacts": {
+    "MANIFEST.md": "c19baf7b580bf81bf582bbbdfabec3bb44e6d6fa4505ed37321a11af0de8962d",
+    "VALIDATION_16A.md": "494e8958d0a80068d8b4cf974e69be61b6936f1dcb25bca9589b3d28b8027316",
+    "halden_week12.xlsx": "917cd38526352a3b200d12e8f3cef161e3dc339ad2605f536184f03ccb57dc2e",
+    "halden_week12_analysis.ipynb": "9cb51b2c814378a0630b05586def695ce1f5997ab677e7062813d461c66fd870",
+    "data/buckets.csv": "24ec9addb42b79b3a13405abb0310684834c89c643359c070d514857957270f8",
+    "data/carbon_scenarios.csv": "5f50d3ec4d1173190fc88ed42f8a96181dc773f7f9432dd3796d9a5df4619d16",
+    "data/demand_scenarios.csv": "e3dd9a8d388572dabfa0a1acf1403d80bc1231b3ed9626b8130c6f032276225c",
+    "data/envelope.csv": "29b85e5b2b2cb7b66cf14d8920f06a70314a35377f0ea1a0b8fd266ac086501b",
+    "data/projects.csv": "d2c598b57827294b281d02593e6769e0770aa55a6acc9d0466a47d08ca4edf55",
+    "data/worked_example_projects.csv": "e2b17cabbd5e166d44986ee746b423c99f4aaa01150da40c9091cee698a7851d",
+    "faculty/halden_week12_FACULTY_SOLUTION.ipynb": "8765273e9fef10ddd8582c88300958cfaf08fdfe1e8f17f646d1cd364dc0580b",
+    "faculty/halden_week12_FACULTY_SOLUTION.xlsx": "ca04337158ab8f2a7f4c62c0d305891fe6f2d86f93e05c137787b35a51832a7a",
+    "fixtures/week12_golden.json": "b2f1fafaead76d9113fcced10f40e55dca887fee8e4fa39be753b88f5bdda18f"
+  },
+  "artifact_versions": {
+    "MANIFEST.md": "1.0.0-draft",
+    "VALIDATION_16A.md": "1.0.0-draft",
+    "halden_week12.xlsx": "1.0.0-draft",
+    "halden_week12_analysis.ipynb": "1.0.0-draft",
+    "data/buckets.csv": "1.0.0-draft",
+    "data/carbon_scenarios.csv": "1.0.0-draft",
+    "data/demand_scenarios.csv": "1.0.0-draft",
+    "data/envelope.csv": "1.0.0-draft",
+    "data/projects.csv": "1.0.0-draft",
+    "data/worked_example_projects.csv": "1.0.0-draft",
+    "faculty/halden_week12_FACULTY_SOLUTION.ipynb": "1.0.0-draft",
+    "faculty/halden_week12_FACULTY_SOLUTION.xlsx": "1.0.0-draft",
+    "fixtures/week12_golden.json": "1.0.0-draft"
+  }
+}

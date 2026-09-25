@@ -1,30 +1,44 @@
-# Week 12 Quarantine
+# Week 12 Revision Status
 
-Week 12 is not ingested or activated in Batch 18D.
+Week 12 is no longer quarantined.
 
-The user request for this batch explicitly requires Week 12 to remain excluded because of the Helix Rotterdam project and adjacent-transition bucket issue:
+The complete handoff bundle supersedes the earlier blocked state. The design revision is now explicitly accepted in the source package note and package artifacts:
 
-- Helix Rotterdam project cost: `$1,200M`
-- Previously cited adjacent-transition bucket ceiling: `$900M`
-- Previously cited divestment proceeds: `$320M`
+- Adjacent-transition ceiling: `$1,200M`
+- Divestment proceeds: `$550M`
+- Helix Rotterdam fills the adjacent-transition envelope alone.
+- Helix Rotterdam plus offshore wind totals `$1,750M` and is affordable only with divestment proceeds.
 
-The supplied ZIP's internal source note and Week 12 manifest now state that a design decision was applied:
+The registered package root is:
 
-- Adjacent-transition ceiling raised to `$1,200M`
-- Divestment proceeds raised to `$550M`
-- Week 12 validation report marked `PASS`
+```text
+halden-week12-data-package
+```
 
-That source update is useful, but it is not enough to override the explicit Batch 18D instruction. Week 12 remains quarantined until the design owner explicitly accepts the revised Week 12 economics and asks for ingestion.
+## Current Status
 
-## Runtime Guard
+- Week 12 package root is registered by Batch 18D reconciliation.
+- `AuthoritativeContentPackageRegistrationService` accepts Week 12 registration and activation.
+- The package includes `MANIFEST.md`, canonical CSVs, student workbook/notebook, faculty solution workbook/notebook, golden fixture, provenance, and `VALIDATION_16A.md`.
+- No Week 12 economics, runtime integration, KPI effects, ranking effects, or consequence mechanics are implemented in this reconciliation.
 
-`AuthoritativeContentPackageRegistrationService` rejects Week 12 registration. Because no package can be registered, no Week 12 package can be activated through the runtime content activation service.
+## Package Data
 
-## Required Before Ingestion
+The registered canonical datasets are:
 
-Before a future Week 12 ingestion batch:
+- `buckets.csv`
+- `carbon_scenarios.csv`
+- `demand_scenarios.csv`
+- `envelope.csv`
+- `projects.csv`
+- `worked_example_projects.csv`
 
-1. Confirm the revised bucket ceiling and divestment proceeds are accepted design changes.
-2. Reconcile the Week 12 spec, seven-week Week 12 spec, and constants ledger.
-3. Run the same package validation gate used for the other authoritative packages.
-4. Only then register the package and write Week 12 engine tests.
+The golden fixture is:
+
+```text
+fixtures/week12_golden.json
+```
+
+## Implementation Boundary
+
+The package is ready for a future Week 12 transition-portfolio economic implementation batch. That future batch should consume the package data and validate the engine against the golden fixture before connecting Week 12 to runtime execution.

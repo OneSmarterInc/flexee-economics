@@ -2,7 +2,7 @@
 
 Updated: 2026-09-25.
 
-The authoritative markdown sources and normalized Week 4, Week 6, and Week 8 packages are now present. Week 4 and Week 6 have runtime paths; Week 8 has a package-backed Laravel economic engine but is not yet integrated into runtime execution or persistence.
+The authoritative markdown sources and package roots for Weeks 1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12, and 13 are now present and registered through the content package framework. Week 4 remains the stable vertical-slice baseline. Week 4 and Week 6 have runtime paths; Week 8 has a package-backed Laravel economic engine but is not yet integrated into runtime execution or persistence.
 
 ## Week 4 package questions
 
@@ -43,6 +43,7 @@ Still open:
 - Is the Week 7 role rotation fixed or optional?
 - What institution-level setting governs student-side LLM help for analytical work?
 - Should the memo grading rubric be published to students on day one or discovered through feedback?
+- Which newly registered package should receive the next economic engine implementation after Week 8 runtime integration?
 
 ## Week 8 package questions
 

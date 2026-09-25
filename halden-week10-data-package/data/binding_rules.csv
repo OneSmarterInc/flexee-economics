@@ -1,0 +1,4 @@
+parameter,value
+min_cancellable_capex_musd,200.0
+min_crude_hedge_coverage,0.5
+min_cash_cushion_musd,150.0

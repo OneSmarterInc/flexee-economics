@@ -69,6 +69,8 @@ The normalized package does not settle every later implementation rule:
 
 These are not blockers for the standalone Week 4 package oracle. They remain blockers for the relevant UI validation, periodized Geneva P&L, and later consequence-engine implementation.
 
-## Week 10 package note
+## Complete handoff package note
 
-`MANIFEST.md`, `halden_week10.xlsx`, and `halden_week10_analysis.ipynb` are present in the same external source folder. The root external manifest describes the Week 10 package pattern, not the normalized Week 4 package. Week 10 was not validated in this pass.
+The complete handoff bundle supersedes the earlier Week 10 source note. The repository now contains registered authoritative package roots for Weeks 1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12, and 13. Week 4 remains the stable validated baseline and Week 14 has no computational package by design.
+
+Week 10 is upgraded to the 16A package standard. Week 12 is no longer quarantined; the package records the revised `$1,200M` adjacent-transition ceiling and `$550M` divestment proceeds.

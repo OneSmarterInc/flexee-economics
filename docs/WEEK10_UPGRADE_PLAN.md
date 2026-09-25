@@ -1,39 +1,37 @@
-# Week 10 Upgrade Plan
+# Week 10 Upgrade Status
 
-Week 10 remains explicitly unready for ingestion.
+Week 10 is now upgraded to the 16A package standard and registered as authoritative package content.
 
-The existing Week 10 files predate the current 16A package standard. They are useful source material, but they are not an authoritative runtime package yet.
+The complete handoff bundle supersedes the earlier state where Week 10 was pending. The registered package root is:
+
+```text
+halden-week10-data-package
+```
 
 ## Current Status
 
-- Week 10 package root is not registered by Batch 18D.
-- `AuthoritativeContentPackageRegistrationService` rejects Week 10 registration.
-- No Week 10 economics, runtime integration, KPI effects, ranking effects, or consequence mechanics are implemented in this batch.
+- Week 10 package root is registered by Batch 18D reconciliation.
+- `AuthoritativeContentPackageRegistrationService` accepts Week 10 registration and activation.
+- The package includes `MANIFEST.md`, canonical CSVs, student workbook/notebook, faculty solution workbook/notebook, golden fixture, provenance, and `VALIDATION_16A.md`.
+- Binding rules are encoded as data in `data/binding_rules.csv`.
+- No Week 10 economics, runtime integration, KPI effects, ranking effects, or consequence mechanics are implemented in this reconciliation.
 
-## Required Upgrade Artifacts
+## Package Data
 
-Week 10 needs a normalized package with:
+The registered canonical datasets are:
 
-- `MANIFEST.md`
-- canonical CSVs under `data/`
-- student workbook
-- student notebook
-- faculty solution workbook
-- faculty solution notebook
-- `fixtures/week10_golden.json`
-- `fixtures/provenance.json`
-- `VALIDATION_16A.md`
+- `binding_rules.csv`
+- `product_elasticities.csv`
+- `recession_params.csv`
+- `refinery_yields.csv`
+- `team_prior_state.csv`
 
-## Required Validation
+The golden fixture is:
 
-The upgraded package should pass the same checks as the registered batch packages:
+```text
+fixtures/week10_golden.json
+```
 
-- canonical CSVs complete and parseable;
-- student workbook and notebook align to package data;
-- faculty workbook and notebook recompute the golden outputs;
-- student/faculty separation holds;
-- SHA-256 provenance matches all artifacts;
-- golden tolerance uses relative `1e-3` and absolute `1e-5`;
-- ordering assertions are explicit and pass.
+## Implementation Boundary
 
-After that, Week 10 can receive its own ingestion batch and then a separate economics implementation batch.
+The package is ready for a future Week 10 economic implementation batch. That future batch should consume the package data and validate the engine against the golden fixture before connecting Week 10 to runtime execution.

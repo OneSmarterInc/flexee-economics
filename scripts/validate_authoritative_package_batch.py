@@ -10,8 +10,8 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-APPROVED_WEEKS = [1, 2, 3, 5, 6, 7, 8, 9, 11, 13]
-EXCLUDED_WEEKS = [12]
+APPROVED_WEEKS = [1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12, 13]
+EXCLUDED_WEEKS: list[int] = []
 REL_TOL = 1e-3
 ABS_TOL = 1e-5
 

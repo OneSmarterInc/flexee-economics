@@ -18,15 +18,13 @@ final class AuthoritativeContentPackageManifest
     /**
      * @var list<int>
      */
-    public const REGISTRABLE_WEEKS = [1, 2, 3, 5, 6, 7, 8, 9, 11, 13];
+    public const REGISTRABLE_WEEKS = [1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12, 13];
 
     /**
      * @var array<int, string>
      */
     public const EXCLUDED_WEEKS = [
         4 => 'Week 4 remains the stable golden baseline and is not migrated by the bulk package batch.',
-        10 => 'Week 10 predates the 16A package standard and needs an upgrade before ingestion.',
-        12 => 'Week 12 is quarantined for this batch pending explicit design acceptance of the Helix Rotterdam bucket change.',
         14 => 'Week 14 is a board-defense assessment week with no computational package by design.',
     ];
 

@@ -1,0 +1,6 @@
+project,bucket,cost_musd,npv_base,carbon_sens,demand_sens
+helix_rotterdam,adjacent,1200.0,-180.0,2.2,90.0
+permian_expansion,growth,650.0,220.0,-1.9,-40.0
+biofuel_conversion,adjacent,480.0,-40.0,0.9,25.0
+offshore_wind,renewable,550.0,-90.0,1.5,0.0
+euro_retail_divest,renewable,-550.0,-60.0,0.3,60.0

@@ -1,0 +1,4 @@
+scenario,code
+slow_decline,0.0
+fast_decline,1.0
+collapse,2.0

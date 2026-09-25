@@ -2,6 +2,8 @@
 
 Batch 18D ingests the current authoritative package batch as package content only. It does not implement week-specific economics, runtime resolution, KPI effects, ranking changes, consequences, or UI.
 
+The complete handoff bundle supersedes the earlier Batch 18D source state: Week 10 is now upgraded to the 16A package standard, and Week 12 is now design-accepted with the revised adjacent-transition ceiling and divestment proceeds recorded in the source note.
+
 ## Registered Packages
 
 | Week | Package root                 | Status     | Notes                                                                                         |
@@ -14,19 +16,19 @@ Batch 18D ingests the current authoritative package batch as package content onl
 | 7    | `halden-week7-data-package`  | Registered | Retail competitive response package; no cluster justifies matching under ledger elasticities. |
 | 8    | `halden-week8-data-package`  | Registered | Existing Week 8 OPEC package retained; fixture hashes match the batch copy.                   |
 | 9    | `halden-week9-data-package`  | Registered | Rebranding package; fills per site remains a calibration lever.                               |
+| 10   | `halden-week10-data-package` | Registered | Upgraded convergence package with binding rules encoded as package data.                      |
 | 11   | `halden-week11-data-package` | Registered | Kessana hold-up/fiscal take package.                                                          |
+| 12   | `halden-week12-data-package` | Registered | Revised transition-portfolio package with `$1,200M` adjacent ceiling and `$550M` divestment.  |
 | 13   | `halden-week13-data-package` | Registered | Factor markets and turnaround labor package.                                                  |
 
 All registered packages are represented through the generic `AuthoritativeContentPackageRegistrationService`, which delegates validation to the existing `SimulationContentPackageService` and `ContentPackageValidator`.
 
 ## Excluded Packages
 
-| Week | Status          | Reason                                                                                                                                        |
-| ---- | --------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| 4    | Stable baseline | Week 4 is already the validated vertical-slice reference and is not migrated by this bulk batch.                                              |
-| 10   | Pending upgrade | Week 10 predates the 16A package standard and still needs faculty solution notebook, golden fixtures, provenance, and a validation report.    |
-| 12   | Quarantined     | The user request requires Week 12 to remain excluded from activation pending explicit design acceptance of the Helix Rotterdam bucket change. |
-| 14   | No package      | Week 14 is a board defense and assessment week with no computational package by design.                                                       |
+| Week | Status          | Reason                                                                                           |
+| ---- | --------------- | ------------------------------------------------------------------------------------------------ |
+| 4    | Stable baseline | Week 4 is already the validated vertical-slice reference and is not migrated by this bulk batch. |
+| 14   | No package      | Week 14 is a board defense and assessment week with no computational package by design.          |
 
 ## Validation Summary
 
@@ -35,7 +37,7 @@ The batch validator checks package presence, provenance hashes, parseable CSVs, 
 Latest package validation:
 
 ```text
-Validated 10 packages, 124 artifacts, 58 csvs.
+Validated 12 packages, 149 artifacts, 69 csvs.
 ```
 
 Golden fixture comparison tolerance for 16A-standard packages is:

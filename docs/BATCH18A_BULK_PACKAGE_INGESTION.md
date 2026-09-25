@@ -2,6 +2,8 @@
 
 Batch 18D registers the authoritative multi-week package batch without implementing new economic engines.
 
+The complete handoff bundle supersedes the earlier Batch 18D source state: Week 10 is now upgraded to the 16A package standard, and Week 12 is now design-accepted with the revised transition parameters recorded in the source note.
+
 ## Architecture
 
 ```text
@@ -27,7 +29,7 @@ The generic manifest reads package provenance and constructs artifact records. T
 The approved bulk-registration set is:
 
 ```text
-1, 2, 3, 5, 6, 7, 8, 9, 11, 13
+1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12, 13
 ```
 
 Week 6 and Week 8 were already present and remain the accepted package roots. Their fixture hashes match the newly supplied batch copy.
@@ -35,8 +37,6 @@ Week 6 and Week 8 were already present and remain the accepted package roots. Th
 ## Exclusions
 
 - Week 4 is unchanged as the stable golden vertical slice.
-- Week 10 remains pending a 16A-standard package upgrade.
-- Week 12 is quarantined by explicit task instruction pending design acceptance.
 - Week 14 has no computational package by design.
 
 ## Security and Visibility
@@ -64,15 +64,21 @@ The package validator checks:
 - golden fixture tolerance for 16A-standard packages;
 - golden ordering assertions.
 
+Latest package validation:
+
+```text
+Validated 12 packages, 149 artifacts, 69 csvs.
+```
+
 Focused test coverage verifies:
 
-- all ten approved packages register;
+- all twelve approved packages register;
 - invalid packages cannot activate;
 - hashes are preserved;
 - package versions are immutable;
 - student/faculty artifact visibility;
-- Week 12 cannot register for activation;
-- Week 10 remains unready;
+- Week 10 can register and activate from the upgraded package;
+- Week 12 can register and activate from the revised package;
 - Week 4 remains unchanged.
 
 ## Deferred
@@ -82,7 +88,7 @@ This batch intentionally does not implement:
 - economic engines for newly ingested weeks;
 - Week 8 OPEC engine;
 - Week 6 to Week 8 cohort-response parameters;
-- Week 10 package upgrade;
-- Week 12 ingestion;
+- Week 10 economics;
+- Week 12 economics;
 - KPI/ranking/consequence integration;
 - LLM, what-if, or faculty UI changes.

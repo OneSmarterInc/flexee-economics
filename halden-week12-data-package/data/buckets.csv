@@ -1,0 +1,5 @@
+bucket,floor,ceiling
+sustaining,600.0,1000.0
+growth,0.0,800.0
+adjacent,0.0,1200.0
+renewable,0.0,700.0
