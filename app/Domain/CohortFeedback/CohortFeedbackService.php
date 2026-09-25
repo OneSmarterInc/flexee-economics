@@ -4,6 +4,7 @@ namespace App\Domain\CohortFeedback;
 
 use App\Enums\SectionSimulationWeekStatus;
 use App\Enums\SubmissionStatus;
+use App\Models\CapitalAllocationDecision;
 use App\Models\CohortDecisionAggregate;
 use App\Models\CohortFeedbackEffect;
 use App\Models\CohortResponseFunction;
@@ -186,6 +187,16 @@ final class CohortFeedbackService
     private function decisionSnapshot(CohortResponseFunction $function, SectionSimulationWeek $sourceRuntimeWeek): array
     {
         $inputDefinition = $function->inputDefinition();
+        $source = (string) ($inputDefinition['source'] ?? 'decision_submission');
+
+        if ($source === 'capital_allocation') {
+            return $this->capitalAllocationDecisionSnapshot($function, $sourceRuntimeWeek);
+        }
+
+        if ($source !== 'decision_submission') {
+            throw new InvalidArgumentException("Unsupported cohort feedback input source [{$source}].");
+        }
+
         $field = (string) ($inputDefinition['decision_field'] ?? '');
 
         if ($field === '') {
@@ -216,6 +227,72 @@ final class CohortFeedbackService
                 'field' => $field,
                 'value' => (string) BigDecimal::of((string) $answers[$field]),
                 'submitted_at' => $this->dateIso($submission->getAttribute('submitted_at')),
+            ];
+        }
+
+        return $items;
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    private function capitalAllocationDecisionSnapshot(CohortResponseFunction $function, SectionSimulationWeek $sourceRuntimeWeek): array
+    {
+        $inputDefinition = $function->inputDefinition();
+        $metric = (string) ($inputDefinition['project_metric'] ?? '');
+        $projectKeys = $inputDefinition['project_keys'] ?? [];
+
+        if ($metric === '') {
+            throw new InvalidArgumentException('Capital allocation cohort feedback input definition must declare project_metric.');
+        }
+
+        if (! is_array($projectKeys) || $projectKeys === []) {
+            throw new InvalidArgumentException('Capital allocation cohort feedback input definition must declare project_keys.');
+        }
+
+        $allowedKeys = array_values(array_map('strval', $projectKeys));
+        $items = [];
+
+        foreach (CapitalAllocationDecision::query()
+            ->with('teamSimulation.team')
+            ->where('tenant_id', $sourceRuntimeWeek->tenant_id)
+            ->where('section_simulation_id', $sourceRuntimeWeek->section_simulation_id)
+            ->where('section_simulation_week_id', $sourceRuntimeWeek->id)
+            ->orderBy('team_simulation_id')
+            ->get() as $decision) {
+            $selectedProjects = $decision->selectedProjectSnapshots();
+            $matchingProjects = [];
+            $value = BigDecimal::zero();
+
+            foreach ($selectedProjects as $project) {
+                $projectKey = (string) ($project['key'] ?? '');
+
+                if (! in_array($projectKey, $allowedKeys, true)) {
+                    continue;
+                }
+
+                $metricValue = $this->projectMetricValue($project, $metric);
+                $value = $value->plus($metricValue);
+                $matchingProjects[] = [
+                    'key' => $projectKey,
+                    'name' => (string) ($project['name'] ?? $projectKey),
+                    'metric' => $metric,
+                    'value' => (string) $metricValue->toScale(6, RoundingMode::HalfUp),
+                ];
+            }
+
+            $items[] = [
+                'capital_allocation_decision_id' => $decision->id,
+                'team_simulation_id' => $decision->team_simulation_id,
+                'team_id' => $decision->team_id,
+                'team_name' => $decision->teamSimulation->team->name,
+                'source' => 'capital_allocation',
+                'metric' => $metric,
+                'project_keys' => $allowedKeys,
+                'matching_projects' => $matchingProjects,
+                'selected_project_keys' => collect($selectedProjects)->pluck('key')->values()->all(),
+                'value' => (string) $value->toScale(6, RoundingMode::HalfUp),
+                'submitted_at' => $this->dateIso($decision->getAttribute('submitted_at')),
             ];
         }
 
@@ -270,6 +347,7 @@ final class CohortFeedbackService
             'calculation' => 'linear_response_v1',
             'raw_value' => (string) $raw->toScale(6, RoundingMode::HalfUp),
             'bounded_value' => (string) $bounded->toScale(6, RoundingMode::HalfUp),
+            'parallel_universe_baseline' => $parameters['parallel_universe_baseline'] ?? null,
             'output_definition' => $function->outputDefinition(),
             'bounds' => $function->boundsDefinition(),
             'parameters' => $function->parameterDefinition(),
@@ -329,5 +407,25 @@ final class CohortFeedbackService
         }
 
         return Carbon::parse((string) $value)->toISOString();
+    }
+
+    /**
+     * @param  array<string, mixed>  $project
+     */
+    private function projectMetricValue(array $project, string $metric): BigDecimal
+    {
+        $metadata = $project['metadata'] ?? [];
+
+        if (is_array($metadata) && array_key_exists($metric, $metadata)) {
+            return BigDecimal::of((string) $metadata[$metric]);
+        }
+
+        $requiredInputs = $project['required_inputs'] ?? [];
+
+        if (is_array($requiredInputs) && array_key_exists($metric, $requiredInputs)) {
+            return BigDecimal::of((string) $requiredInputs[$metric]);
+        }
+
+        throw new InvalidArgumentException("Capital allocation project metric [{$metric}] is unavailable.");
     }
 }

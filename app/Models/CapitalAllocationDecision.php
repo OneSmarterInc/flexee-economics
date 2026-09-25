@@ -138,6 +138,14 @@ class CapitalAllocationDecision extends Model
     }
 
     /**
+     * @return BelongsTo<TeamSimulation, $this>
+     */
+    public function teamSimulation(): BelongsTo
+    {
+        return $this->belongsTo(TeamSimulation::class);
+    }
+
+    /**
      * @return HasOne<CapitalAllocationEvaluation, $this>
      */
     public function evaluation(): HasOne
