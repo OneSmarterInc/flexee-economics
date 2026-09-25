@@ -25,44 +25,50 @@ class Week8ReferencePackageDiscoveryTest extends TestCase
         $this->assertSame(Week8ContentPackageManifest::PACKAGE_TYPE, $manifest['package_type']);
         $this->assertSame(8, $manifest['week_number']);
         $this->assertSame('halden-week8-data-package', $manifest['package_root']);
-        $this->assertSame('specification_ready_package_missing', $manifest['status']);
+        $this->assertSame('authoritative_package_available', $manifest['status']);
         $this->assertSame([
-            'opec_compliance_history',
-            'current_cut_characteristics',
-            'price_propagation_reference',
-            'segment_position',
-            'hedge_book_balance_sheet',
+            'baseline_state',
+            'compliance_history',
+            'opec_scenarios',
+            'propagation_coefficients',
             'worked_example_prior',
         ], $manifest['expected_datasets']);
-        $this->assertCount(12, $artifacts);
+        $this->assertCount(11, $artifacts);
         $this->assertSame('student', $artifacts[0]['visibility']);
         $this->assertSame('shared', $artifacts[2]['visibility']);
-        $this->assertSame('solution', $artifacts[9]['visibility']);
+        $this->assertSame('solution', $artifacts[8]['visibility']);
+        $this->assertSame('authoritative_package_available', $artifacts[0]['metadata']['source_status']);
     }
 
-    public function test_week8_package_registration_currently_records_missing_artifacts(): void
+    public function test_week8_package_registration_validates_against_real_artifacts(): void
     {
         $package = app(Week8ContentPackageRegistrationService::class)->register(
             $this->week(8),
-            'week8-discovery-v1',
+            'week8-authoritative-v1',
         );
 
-        $this->assertSame(SimulationContentPackage::STATUS_INVALID, $package->status);
-        $this->assertSame(12, $package->artifacts()->count());
-        $this->assertSame(12, $package->artifacts()->where('is_missing', true)->count());
-        $this->assertStringContainsString('week8_student_workbook', $package->validation_summary['errors'][0]);
+        $this->assertSame(SimulationContentPackage::STATUS_VALIDATED, $package->status);
+        $this->assertSame(11, $package->artifacts()->count());
+        $this->assertSame(0, $package->artifacts()->where('is_missing', true)->count());
+        $this->assertTrue($package->validation_summary['valid']);
+        $this->assertSame([], $package->validation_summary['errors']);
+        $this->assertSame(
+            hash_file('sha256', base_path('halden-week8-data-package/fixtures/week8_golden.json')),
+            $package->artifacts()->where('artifact_key', 'week8_expected_outputs')->firstOrFail()->checksum,
+        );
     }
 
-    public function test_invalid_week8_package_cannot_activate(): void
+    public function test_valid_week8_package_can_activate(): void
     {
         $package = app(Week8ContentPackageRegistrationService::class)->register(
             $this->week(8),
-            'week8-invalid-v1',
+            'week8-active-v1',
         );
 
-        $this->expectException(InvalidArgumentException::class);
+        $activation = app(SimulationContentActivationService::class)->activate($package);
 
-        app(SimulationContentActivationService::class)->activate($package);
+        $this->assertSame($package->id, $activation->simulation_content_package_id);
+        $this->assertSame(Week8ContentPackageManifest::PACKAGE_TYPE, $activation->package_type);
     }
 
     public function test_week8_package_registration_rejects_wrong_week(): void
@@ -72,12 +78,13 @@ class Week8ReferencePackageDiscoveryTest extends TestCase
         app(Week8ContentPackageRegistrationService::class)->register($this->week(7), 'week8-wrong-week-v1');
     }
 
-    public function test_repository_contains_no_week8_reference_package_yet(): void
+    public function test_week8_reference_package_is_present(): void
     {
-        $this->assertFileDoesNotExist(base_path('halden-week8-data-package/MANIFEST.md'));
-        $this->assertFileDoesNotExist(base_path('halden-week8-data-package/fixtures/week8_golden.json'));
-        $this->assertFileDoesNotExist(base_path('halden-week8-data-package/halden_week8.xlsx'));
-        $this->assertFileDoesNotExist(base_path('halden-week8-data-package/halden_week8_analysis.ipynb'));
+        $this->assertFileExists(base_path('halden-week8-data-package/MANIFEST.md'));
+        $this->assertFileExists(base_path('halden-week8-data-package/fixtures/week8_golden.json'));
+        $this->assertFileExists(base_path('halden-week8-data-package/fixtures/provenance.json'));
+        $this->assertFileExists(base_path('halden-week8-data-package/halden_week8.xlsx'));
+        $this->assertFileExists(base_path('halden-week8-data-package/halden_week8_analysis.ipynb'));
     }
 
     private function week(int $weekNumber): SimulationWeek

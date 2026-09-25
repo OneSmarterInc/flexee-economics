@@ -1,0 +1,69 @@
+{
+  "meta": {
+    "week": 8,
+    "name": "OPEC+ and integrated response",
+    "description": "Golden fixtures for Week 8. Pin the propagation coefficients, per-scenario segment impacts, expected WTI, and the integration-conflict ordering (upstream gains while refining loses when the cut holds).",
+    "provenance": "Derived from canonical CSVs; reconciled against constants-ledger.md"
+  },
+  "propagation_coefficients": {
+    "upstream_realization": 1.0,
+    "refining_crack": -0.35,
+    "retail_passthrough": 0.6,
+    "retail_demand_elasticity": -0.05
+  },
+  "expected_wti": 80.7,
+  "expected_wti_expected": 80.7,
+  "per_scenario": {
+    "holds_full": {
+      "delta_wti": 14.0,
+      "sim_probability": 0.35,
+      "upstream_per_bbl": 14.0,
+      "crack": 16.6,
+      "retail_vol_pct": -0.312
+    },
+    "holds_partial": {
+      "delta_wti": 7.0,
+      "sim_probability": 0.4,
+      "upstream_per_bbl": 7.0,
+      "crack": 19.05,
+      "retail_vol_pct": -0.156
+    },
+    "fails": {
+      "delta_wti": -4.0,
+      "sim_probability": 0.25,
+      "upstream_per_bbl": -4.0,
+      "crack": 22.9,
+      "retail_vol_pct": 0.089
+    }
+  },
+  "ordering_assertions": [
+    {
+      "assert": "expected WTI equals 80.70",
+      "holds": true
+    },
+    {
+      "assert": "upstream coefficient is 1:1 (price taker)",
+      "holds": true
+    },
+    {
+      "assert": "refining crack coefficient is -0.35 (short-run compression)",
+      "holds": true
+    },
+    {
+      "assert": "retail short-run elasticity is -0.05 (inelastic)",
+      "holds": true
+    },
+    {
+      "assert": "INTEGRATION CONFLICT: when the cut holds full, upstream GAINS while refining crack FALLS below base",
+      "holds": true
+    },
+    {
+      "assert": "retail is nearly immune (|vol move|<0.5%) even on the +14 shock",
+      "holds": true
+    },
+    {
+      "assert": "crack compresses ~4.90 on the +14 hold-full shock",
+      "holds": true
+    }
+  ]
+}

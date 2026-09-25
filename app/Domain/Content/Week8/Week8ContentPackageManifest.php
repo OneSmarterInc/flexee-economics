@@ -18,8 +18,13 @@ final class Week8ContentPackageManifest
             'version' => $version,
             'week_number' => 8,
             'title' => 'Week 8 OPEC Shock',
-            'status' => 'specification_ready_package_missing',
+            'status' => 'authoritative_package_available',
             'package_root' => self::PACKAGE_ROOT,
+            'source_package' => [
+                'manifest' => self::PACKAGE_ROOT.'/MANIFEST.md',
+                'provenance' => self::PACKAGE_ROOT.'/fixtures/provenance.json',
+                'golden_fixture' => self::PACKAGE_ROOT.'/fixtures/week8_golden.json',
+            ],
             'required_sections' => [
                 'student' => [
                     'workbook',
@@ -35,17 +40,26 @@ final class Week8ContentPackageManifest
                 ],
             ],
             'expected_datasets' => [
-                'opec_compliance_history',
-                'current_cut_characteristics',
-                'price_propagation_reference',
-                'segment_position',
-                'hedge_book_balance_sheet',
+                'baseline_state',
+                'compliance_history',
+                'opec_scenarios',
+                'propagation_coefficients',
                 'worked_example_prior',
+            ],
+            'validated_scope' => [
+                'package_inventory',
+                'provenance_hashes',
+                'csv_schema',
+                'student_workbook_structure',
+                'student_notebook_execution',
+                'faculty_solution_structure',
+                'golden_fixture_parity',
             ],
             'deferred_runtime_capabilities' => [
                 'scenario_probability_estimation',
                 'price_propagation_engine',
                 'integrated_segment_impact',
+                'week6_to_week8_cohort_response',
                 'week8_what_if',
                 'reasoning_versus_luck_faculty_view',
             ],
@@ -58,6 +72,7 @@ final class Week8ContentPackageManifest
      */
     public function artifacts(array $pathOverrides = []): array
     {
+        $provenance = $this->provenanceHashes();
         $artifacts = [
             [
                 'artifact_key' => 'week8_student_workbook',
@@ -81,38 +96,31 @@ final class Week8ContentPackageManifest
                 'version' => 'manifest-v1',
             ],
             [
-                'artifact_key' => 'week8_opec_compliance_history',
+                'artifact_key' => 'week8_baseline_state',
                 'artifact_type' => 'dataset',
                 'visibility' => 'shared',
-                'path_reference' => self::PACKAGE_ROOT.'/data/opec_compliance_history.csv',
+                'path_reference' => self::PACKAGE_ROOT.'/data/baseline_state.csv',
                 'version' => 'data-v1',
             ],
             [
-                'artifact_key' => 'week8_current_cut_characteristics',
+                'artifact_key' => 'week8_compliance_history',
                 'artifact_type' => 'dataset',
                 'visibility' => 'shared',
-                'path_reference' => self::PACKAGE_ROOT.'/data/current_cut_characteristics.csv',
+                'path_reference' => self::PACKAGE_ROOT.'/data/compliance_history.csv',
                 'version' => 'data-v1',
             ],
             [
-                'artifact_key' => 'week8_price_propagation_reference',
+                'artifact_key' => 'week8_opec_scenarios',
                 'artifact_type' => 'dataset',
                 'visibility' => 'shared',
-                'path_reference' => self::PACKAGE_ROOT.'/data/price_propagation_reference.csv',
+                'path_reference' => self::PACKAGE_ROOT.'/data/opec_scenarios.csv',
                 'version' => 'data-v1',
             ],
             [
-                'artifact_key' => 'week8_segment_position',
+                'artifact_key' => 'week8_propagation_coefficients',
                 'artifact_type' => 'dataset',
                 'visibility' => 'shared',
-                'path_reference' => self::PACKAGE_ROOT.'/data/segment_position.csv',
-                'version' => 'data-v1',
-            ],
-            [
-                'artifact_key' => 'week8_hedge_book_balance_sheet',
-                'artifact_type' => 'dataset',
-                'visibility' => 'shared',
-                'path_reference' => self::PACKAGE_ROOT.'/data/hedge_book_balance_sheet.csv',
+                'path_reference' => self::PACKAGE_ROOT.'/data/propagation_coefficients.csv',
                 'version' => 'data-v1',
             ],
             [
@@ -146,11 +154,13 @@ final class Week8ContentPackageManifest
         ];
 
         return array_values(array_map(
-            function (array $artifact) use ($pathOverrides): array {
+            function (array $artifact) use ($pathOverrides, $provenance): array {
                 $pathReference = $pathOverrides[$artifact['artifact_key']] ?? $artifact['path_reference'];
-                $hash = is_file(base_path($pathReference))
-                    ? hash_file('sha256', base_path($pathReference))
-                    : null;
+                $relativePackagePath = str_starts_with($pathReference, self::PACKAGE_ROOT.'/')
+                    ? substr($pathReference, strlen(self::PACKAGE_ROOT) + 1)
+                    : $pathReference;
+                $hash = $provenance[$relativePackagePath]
+                    ?? (is_file(base_path($pathReference)) ? hash_file('sha256', base_path($pathReference)) : null);
 
                 return [
                     ...$artifact,
@@ -158,11 +168,35 @@ final class Week8ContentPackageManifest
                     'checksum' => is_string($hash) ? $hash : null,
                     'metadata' => [
                         'package_root' => self::PACKAGE_ROOT,
-                        'source_status' => 'awaiting_authoritative_package',
+                        'source_status' => 'authoritative_package_available',
+                        'provenance_path' => self::PACKAGE_ROOT.'/fixtures/provenance.json',
                     ],
                 ];
             },
             $artifacts,
         ));
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function provenanceHashes(): array
+    {
+        $path = base_path(self::PACKAGE_ROOT.'/fixtures/provenance.json');
+
+        if (! is_file($path)) {
+            return [];
+        }
+
+        $decoded = json_decode((string) file_get_contents($path), true);
+
+        if (! is_array($decoded) || ! is_array($decoded['artifacts'] ?? null)) {
+            return [];
+        }
+
+        /** @var array<string, string> $artifacts */
+        $artifacts = $decoded['artifacts'];
+
+        return $artifacts;
     }
 }

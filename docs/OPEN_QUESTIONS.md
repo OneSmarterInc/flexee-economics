@@ -1,8 +1,8 @@
 # Open Questions
 
-Updated: 2026-09-22.
+Updated: 2026-09-25.
 
-The authoritative markdown sources and normalized Week 4 package are now present. The standalone Week 4 deterministic oracle is ready with non-blocking questions. Remaining questions are tied to app validation, later consequence rules, faculty/stage behavior, and product/content choices.
+The authoritative markdown sources and normalized Week 4, Week 6, and Week 8 packages are now present. Week 4 and Week 6 have runtime paths; Week 8 is package-validated but does not yet have a Laravel economic engine.
 
 ## Week 4 package questions
 
@@ -43,3 +43,33 @@ Still open:
 - Is the Week 7 role rotation fixed or optional?
 - What institution-level setting governs student-side LLM help for analytical work?
 - Should the memo grading rubric be published to students on day one or discovered through feedback?
+
+## Week 8 package questions
+
+Resolved by the authoritative package:
+
+- Week 8 manifest;
+- canonical CSVs;
+- student workbook and notebook;
+- faculty solution workbook;
+- golden fixture;
+- provenance hashes;
+- package validation script.
+
+Still open:
+
+- Native Excel recalculation was not performed in Batch 18A; openpyxl structure/formula/error scans and cached values were validated instead.
+- What exact persistence model should store Week 8 prediction versus realized outcome?
+- Which Week 8 student probability and posture fields are submitted through the application versus kept in the workbook/notebook package?
+- Which Week 8 outputs, if any, should feed KPI snapshots after runtime economics are implemented?
+
+## Week 6 to Week 8 cohort response questions
+
+Still open:
+
+- What production response function maps Week 6 aggregate Gulf Coast capacity additions to Week 8 refining margin?
+- What artifact contains the Window 2 anchor episode, real elasticity, pedagogical multiplier, bounds, and parallel-universe baseline?
+- What project-to-capacity mapping should production use beyond the Batch 17A fixture?
+- Should Week 7 capacity-response behavior compound the Week 6 Window 2 effect, and if so, where are the authoritative parameters?
+
+Do not use Week 8 OPEC shock propagation coefficients to fill this gap. They are separate mechanics.

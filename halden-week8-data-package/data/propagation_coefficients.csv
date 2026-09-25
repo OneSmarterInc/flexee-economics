@@ -1,0 +1,5 @@
+channel,coefficient,unit,note
+upstream_realization,1.00,per_$1_wti,Price taker - realization moves 1:1 with benchmark
+refining_crack,-0.35,per_$1_wti,Short-run lag - crude up compresses crack; normalizes over full cycle
+retail_passthrough,0.60,fraction,Fraction of crude change reaching the pump
+retail_demand_elasticity,-0.05,elasticity,Short-run gasoline demand elasticity (inelastic)
