@@ -1,0 +1,64 @@
+{
+  "meta": {
+    "week": 5,
+    "name": "Currency \u2014 transaction, translation, economic exposure",
+    "package_version": "1.0.0-draft",
+    "provenance": "Computed from canonical CSVs in data/; reconciled against the constants ledger",
+    "tolerance": {
+      "rel": 0.001,
+      "abs": 1e-05
+    }
+  },
+  "results": {
+    "eur_change": -0.064516,
+    "nok_usd_value_change": -0.076923,
+    "sgd_usd_value_change": -0.007407,
+    "norway_benefit_musd": 84.615385,
+    "norway_lifting_post": 25.846154,
+    "euro_retail_translation_musd": -77.419355,
+    "existing_hedge_gain_musd": 19.354839,
+    "rot_net_eur_musd": 250,
+    "rot_natural_hedge_ratio": 0.9,
+    "rot_net_impact_musd": -16.129032,
+    "rot_overhedge_loss_musd": -145.16129,
+    "sing_impact_musd": -2.222222
+  },
+  "worked_example": {
+    "fx_change": -0.090909,
+    "net_exposure": 200.0,
+    "net_impact": -18.181818,
+    "wrong_hedge_on_gross_costs": -72.727273
+  },
+  "ordering_assertions": [
+    {
+      "assert": "Krone weakness HELPS Halden (Norwegian dollar costs fall)",
+      "holds": true
+    },
+    {
+      "assert": "Norwegian lifting falls from 28.00 to about 25.85 (reconciles with ledger)",
+      "holds": true
+    },
+    {
+      "assert": "European retail takes a translation hit of about -6.45%",
+      "holds": true
+    },
+    {
+      "assert": "Rotterdam is a partial natural hedge: net euro exposure is 10% of gross euro costs or less",
+      "holds": true
+    },
+    {
+      "assert": "Hedging Rotterdam gross euro costs loses 9x more than the true net exposure",
+      "holds": true
+    },
+    {
+      "assert": "Singapore is not a live exposure this week (under 1% of flow)",
+      "holds": true
+    }
+  ],
+  "new_parameters": [
+    "entity_flows.csv: annual flows by entity and currency in $M at pre-shock rates (Norway revenue 3,200 USD / costs 1,100 NOK; European retail 1,200 EUR; Rotterdam revenue 2,500 EUR, EUR costs 2,250, USD spot crude 180; Singapore 300 SGD). The spec described the denominations without amounts.",
+    "existing_hedges.csv: one EUR forward sale, $300M notional, 6 months.",
+    "forwards_options.csv: 1-year forwards and collar premiums."
+  ],
+  "flags": []
+}

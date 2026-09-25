@@ -1,0 +1,32 @@
+{
+  "package": "halden-week13-data-package",
+  "package_version": "1.0.0-draft",
+  "artifacts": {
+    "MANIFEST.md": "9cfdf698081044e8c7b824681ed96c85551cb890899cc04b08f31e4a0dd6b6df",
+    "VALIDATION_16A.md": "bf3d5a72e798d457189abb36f2eade4cefff42866172997093b2eaed45ab34c8",
+    "halden_week13.xlsx": "f9a679ff021a362e22bd7d35d1a7bed5351e8702170b16588727096144d2d046",
+    "halden_week13_analysis.ipynb": "e6009501ac74c20e6208e5f0a1bc76a0193b5dab7f21dfea50d9fef299a49d1b",
+    "data/norway_union.csv": "8b5925e85f4b9097e6d6374c9037f3a42ebc99ef24c8e82f8832a2fc59a6156a",
+    "data/permian_labor.csv": "331975f83c236f757ed9a49ce3fe67c0c5f8978509b5a0d68c6469b1846f55e4",
+    "data/turnaround.csv": "3fa77bc487b913fefd03e33d11cceffa9f683c8f31bcf627110b1884ed4f93db",
+    "data/wage_benchmarks.csv": "6b32724dcbd0261486d22aebca84b185c4b847c06cd0b3a323535c3a0114b9c7",
+    "data/worked_example_labor.csv": "74157590346a925ab19028ee0d11a104c6cb886ce33fe15104eb656e55d9e03d",
+    "faculty/halden_week13_FACULTY_SOLUTION.ipynb": "5aa84ac1b20c2285f0ea4319c8be8c0c857f7f40b79c82d60c906cf41696bee8",
+    "faculty/halden_week13_FACULTY_SOLUTION.xlsx": "d92c083806771f06fb46b6aef8d6cda6a37a7844d7245f9bdb6d32b5805fe55a",
+    "fixtures/week13_golden.json": "42b7e2d6db211be5e03cd0a1757c3120776b14340aba7c10b8145a147cb281c9"
+  },
+  "artifact_versions": {
+    "MANIFEST.md": "1.0.0-draft",
+    "VALIDATION_16A.md": "1.0.0-draft",
+    "halden_week13.xlsx": "1.0.0-draft",
+    "halden_week13_analysis.ipynb": "1.0.0-draft",
+    "data/norway_union.csv": "1.0.0-draft",
+    "data/permian_labor.csv": "1.0.0-draft",
+    "data/turnaround.csv": "1.0.0-draft",
+    "data/wage_benchmarks.csv": "1.0.0-draft",
+    "data/worked_example_labor.csv": "1.0.0-draft",
+    "faculty/halden_week13_FACULTY_SOLUTION.ipynb": "1.0.0-draft",
+    "faculty/halden_week13_FACULTY_SOLUTION.xlsx": "1.0.0-draft",
+    "fixtures/week13_golden.json": "1.0.0-draft"
+  }
+}

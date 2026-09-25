@@ -1,0 +1,8 @@
+parameter,value
+profit_oil,50.0
+take_before,0.6
+take_after,0.7
+annual_mbbl,5.0
+years,8.0
+rate,0.12
+exit_value,20.0

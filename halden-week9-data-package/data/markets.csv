@@ -1,0 +1,4 @@
+market,equity,sites,keep_uplift_per_fill,halden_benefit_per_fill
+LA_MS_core,strong,1850,0.055,0.01
+gulf_secondary,medium,1400,0.015,0.045
+southeast_edge,weak,1050,-0.005,0.075

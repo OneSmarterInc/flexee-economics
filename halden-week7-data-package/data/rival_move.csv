@@ -1,0 +1,7 @@
+parameter,value
+street_cut,0.06
+pump_base,3.2
+fuel_margin,0.11
+nonfuel_per_fill,0.42
+gallons_per_fill,12.0
+rival_build_probability,0.7

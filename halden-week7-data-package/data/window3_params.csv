@@ -1,0 +1,4 @@
+parameter,value
+base_nonfuel,0.42
+slope,0.1
+pivot,0.5

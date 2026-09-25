@@ -1,0 +1,78 @@
+{
+  "meta": {
+    "week": 3,
+    "name": "Run rates and the shutdown point",
+    "package_version": "1.0.0-draft",
+    "provenance": "Computed from canonical CSVs in data/; reconciled against the constants ledger",
+    "tolerance": {
+      "rel": 0.001,
+      "abs": 1e-05
+    }
+  },
+  "results": {
+    "br_contribution": 22.55,
+    "br_net": 20.35,
+    "br_shutdown_crack": -1.05,
+    "rot_contribution": 2.0,
+    "rot_net": -0.3,
+    "rot_shutdown_crack": 2.6,
+    "sing_contribution": 10.8,
+    "sing_net": 8.6,
+    "sing_shutdown_crack": 1.4,
+    "rot_idle_delta": -1.1,
+    "crack_runs_hard": 3.25,
+    "rot_net_runs_hard": -1.65,
+    "rot_contribution_runs_hard": 0.65,
+    "crack_base": 4.6,
+    "rot_net_base": -0.3,
+    "rot_contribution_base": 2.0,
+    "crack_disciplines": 5.95,
+    "rot_net_disciplines": 1.05,
+    "rot_contribution_disciplines": 3.35,
+    "floor": 2.6
+  },
+  "worked_example": {
+    "plant_contribution": 0.5,
+    "plant_net": -1.0,
+    "plant_shutdown_crack": 2.5,
+    "plant_idle_delta": 0.1
+  },
+  "ordering_assertions": [
+    {
+      "assert": "Rotterdam covers variable cost (+2.00) but loses money net (-0.30)",
+      "holds": true
+    },
+    {
+      "assert": "Idling Rotterdam is worse than running it short-run (idle delta < 0)",
+      "holds": true
+    },
+    {
+      "assert": "Baton Rouge and Singapore nets reconcile with Week 1 (20.35 and 8.60)",
+      "holds": true
+    },
+    {
+      "assert": "Window 1 is bounded: every cohort state keeps the NWE crack above the 2.60 shutdown floor",
+      "holds": true
+    },
+    {
+      "assert": "Even when the room runs Europe hard, Rotterdam still covers variable cost",
+      "holds": true
+    },
+    {
+      "assert": "A disciplined room turns Rotterdam net-positive",
+      "holds": true
+    },
+    {
+      "assert": "Ledger points reproduced: 3.25 / 4.60 / 5.95",
+      "holds": true
+    }
+  ],
+  "new_parameters": [
+    "Variable/fixed split for Baton Rouge (3.70 / 2.20) and Singapore (3.40 / 2.20); totals match the ledger opex (5.90 and 5.60).",
+    "Avoidable share of fixed cost: Baton Rouge 0.80, Rotterdam 0.90, Singapore 0.80 $/bbl. The spec called for this split without numbers.",
+    "crack_history.csv: 36-month deterministic crack series, deliberately ambiguous between cyclical trough and structural decline."
+  ],
+  "flags": [
+    "Window 1 response is symmetric as recorded in the ledger (slope 9 either side of 75% utilization: 3.25 / 4.60 / 5.95). The ledger text calls it asymmetric. Numbers encoded as recorded; decide whether to add asymmetry."
+  ]
+}

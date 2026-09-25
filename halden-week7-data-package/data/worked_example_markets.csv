@@ -1,0 +1,7 @@
+parameter,value
+station_elasticity_elastic,-20.0
+station_elasticity_inelastic,-0.03
+cut,0.1
+pump,3.2
+margin,0.2
+volume,1000.0

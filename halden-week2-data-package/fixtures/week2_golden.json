@@ -1,0 +1,67 @@
+{
+  "meta": {
+    "week": 2,
+    "name": "Demand analysis and rack pricing",
+    "package_version": "1.0.0-draft",
+    "provenance": "Computed from canonical CSVs in data/; reconciled against the constants ledger",
+    "tolerance": {
+      "rel": 0.001,
+      "abs": 1e-05
+    }
+  },
+  "results": {
+    "est_urban_high_comp": -0.109382,
+    "design_urban_high_comp": -0.11,
+    "est_suburban_mid_comp": -0.06054,
+    "design_suburban_mid_comp": -0.06,
+    "est_rural_low_comp": -0.019527,
+    "design_rural_low_comp": -0.02,
+    "est_interstate": -0.049419,
+    "design_interstate": -0.05,
+    "est_netherlands_urban": -0.067803,
+    "design_netherlands_urban": -0.07,
+    "est_belgium_mixed": -0.049885,
+    "design_belgium_mixed": -0.05,
+    "est_germany_border": -0.128883,
+    "design_germany_border": -0.13,
+    "cordell_weighted_est": -0.059364,
+    "europe_weighted_est": -0.083805,
+    "cordell_weighted_passthrough": 0.6035,
+    "vol_response_pct_urban_high_comp": 0.140146,
+    "vol_response_pct_rural_low_comp": 0.012814
+  },
+  "worked_example": {
+    "worked_elasticity": -0.079964,
+    "worked_vol_response_pct": 0.074967
+  },
+  "ordering_assertions": [
+    {
+      "assert": "Every cluster estimate lands within 0.01 of its design elasticity",
+      "holds": true
+    },
+    {
+      "assert": "Cordell volume-weighted estimate reconciles with the ledger (about -0.060)",
+      "holds": true
+    },
+    {
+      "assert": "European volume-weighted estimate reconciles with the ledger (about -0.085)",
+      "holds": true
+    },
+    {
+      "assert": "Cordell weighted pass-through is 0.603 (reconciles with Week 8 constant 0.60)",
+      "holds": true
+    },
+    {
+      "assert": "Elasticity spans rural near-zero to German border strongly negative",
+      "holds": true
+    },
+    {
+      "assert": "Urban volume response to a rack cut is at least 5x rural (elasticity x transmission)",
+      "holds": true
+    }
+  ],
+  "new_parameters": [
+    "cluster_price_volume.csv: 156-week synthetic price/volume series per cluster (seed 42), generated from the ledger design elasticities. Stored as data, not generated at runtime."
+  ],
+  "flags": []
+}
