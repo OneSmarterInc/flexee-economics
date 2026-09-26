@@ -87,7 +87,6 @@ This batch intentionally does not implement:
 
 - economic engines for newly ingested weeks;
 - Week 6 to Week 8 cohort-response parameters;
-- Week 8 runtime execution and persistence integration;
 - Week 10 economics;
 - Week 12 economics;
 - KPI/ranking/consequence integration;

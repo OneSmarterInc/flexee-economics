@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Domain\Content\SimulationContentResolver;
 use App\Domain\Content\Week6\Week6ContentPackageManifest;
+use App\Domain\Content\Week8\Week8ContentPackageManifest;
 use App\Domain\Execution\WeekExecutionService;
 use App\Domain\Simulation\SimulationLifecycleService;
 use App\Domain\Submissions\SubmissionCompletenessService;
@@ -258,8 +259,10 @@ class FacultyWeekControl extends Component
 
     private function packageTypeFor(SectionSimulationWeek $runtimeWeek): string
     {
-        return $runtimeWeek->definition->week_number === 6
-            ? Week6ContentPackageManifest::PACKAGE_TYPE
-            : 'reference_package';
+        return match ($runtimeWeek->definition->week_number) {
+            6 => Week6ContentPackageManifest::PACKAGE_TYPE,
+            8 => Week8ContentPackageManifest::PACKAGE_TYPE,
+            default => 'reference_package',
+        };
     }
 }

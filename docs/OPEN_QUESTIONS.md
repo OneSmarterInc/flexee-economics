@@ -2,7 +2,7 @@
 
 Updated: 2026-09-25.
 
-The authoritative markdown sources and package roots for Weeks 1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12, and 13 are now present and registered through the content package framework. Week 4 remains the stable vertical-slice baseline. Week 4 and Week 6 have runtime paths; Week 8 has a package-backed Laravel economic engine but is not yet integrated into runtime execution or persistence.
+The authoritative markdown sources and package roots for Weeks 1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12, and 13 are now present and registered through the content package framework. Week 4 remains the stable vertical-slice baseline. Week 4 and Week 6 have runtime paths; Week 8 has a package-backed Laravel economic engine and runtime evaluation persistence.
 
 ## Week 4 package questions
 
@@ -62,7 +62,7 @@ Resolved by the authoritative package:
 Still open:
 
 - Native Excel recalculation was not performed in Batch 18A; openpyxl structure/formula/error scans and cached values were validated instead.
-- What exact persistence model should store Week 8 prediction versus realized outcome?
+- What production scenario-resolution source should set `realized_scenario_key` when it is not supplied by controlled runtime/test data?
 - Which Week 8 student probability and posture fields are submitted through the application versus kept in the workbook/notebook package?
 - Which Week 8 outputs, if any, should feed KPI snapshots after runtime economics are implemented?
 

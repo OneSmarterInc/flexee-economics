@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Student;
 use App\Domain\Capital\CapitalAllocationService;
 use App\Domain\Content\SimulationContentResolver;
 use App\Domain\Content\Week6\Week6ContentPackageManifest;
+use App\Domain\Content\Week8\Week8ContentPackageManifest;
 use App\Domain\Submissions\SubmissionCompletenessService;
 use App\Domain\Submissions\SubmissionService;
 use App\Enums\SectionSimulationWeekStatus;
@@ -20,6 +21,7 @@ use App\Models\SectionSimulationWeek;
 use App\Models\SimulationContentPackage;
 use App\Models\TeamSimulation;
 use App\Models\User;
+use App\Models\Week8EconomicEvaluation;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -297,6 +299,21 @@ class SubmissionController extends Controller
             ];
         }
 
+        if ($runtimeWeek->definition->week_number === 8) {
+            $evaluation = Week8EconomicEvaluation::query()
+                ->where('tenant_id', $runtimeWeek->tenant_id)
+                ->where('section_simulation_week_id', $runtimeWeek->id)
+                ->where('team_simulation_id', $teamSimulation->id)
+                ->latest('evaluated_at')
+                ->first();
+            $evaluatedAt = $evaluation?->getAttribute('evaluated_at');
+
+            return [
+                'status' => $evaluation instanceof Week8EconomicEvaluation ? 'resolved' : 'unresolved',
+                'resolved_at' => $evaluatedAt instanceof Carbon ? $evaluatedAt->toIso8601String() : null,
+            ];
+        }
+
         $resolution = EconomicResolution::query()
             ->where('tenant_id', $runtimeWeek->tenant_id)
             ->where('section_simulation_week_id', $runtimeWeek->id)
@@ -360,8 +377,10 @@ class SubmissionController extends Controller
 
     private function packageTypeFor(SectionSimulationWeek $runtimeWeek): string
     {
-        return $runtimeWeek->definition->week_number === 6
-            ? Week6ContentPackageManifest::PACKAGE_TYPE
-            : 'reference_package';
+        return match ($runtimeWeek->definition->week_number) {
+            6 => Week6ContentPackageManifest::PACKAGE_TYPE,
+            8 => Week8ContentPackageManifest::PACKAGE_TYPE,
+            default => 'reference_package',
+        };
     }
 }
