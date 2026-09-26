@@ -8,6 +8,8 @@ use App\Domain\Content\Week8\Week8ContentPackageRegistrationService;
 use App\Domain\Economics\Week8\Week8EconomicEngine;
 use App\Domain\Simulation\SimulationLifecycleService;
 use App\Enums\DecisionFieldType;
+use App\Enums\KpiSnapshotStatus;
+use App\Enums\RankingSnapshotStatus;
 use App\Enums\SectionSimulationWeekStatus;
 use App\Livewire\FacultyWeekControl;
 use App\Models\CohortFeedbackEffect;
@@ -92,8 +94,37 @@ class Week8RuntimeIntegrationSmokeTest extends TestCase
         $this->assertSame('0.700000', $evaluation->prediction_snapshot['probability_distribution']['fails']);
         $this->assertSame('1.0.0-draft', $evaluation->package_version);
 
-        $this->assertSame(0, KpiSnapshot::query()->where('section_simulation_week_id', $context['runtimeWeek']->id)->count());
-        $this->assertSame(0, RankingSnapshot::query()->where('section_simulation_week_id', $context['runtimeWeek']->id)->count());
+        $kpiSnapshots = KpiSnapshot::query()
+            ->with('definition')
+            ->where('section_simulation_week_id', $context['runtimeWeek']->id)
+            ->get();
+        $this->assertCount(7, $kpiSnapshots);
+
+        $refiningKpi = $kpiSnapshots->firstOrFail(fn (KpiSnapshot $snapshot): bool => $snapshot->definition->key === 'refining_net_margin_vs_benchmark');
+        $this->assertSame(KpiSnapshotStatus::Available, $refiningKpi->statusEnum());
+        $this->assertSame('-4.9000', $refiningKpi->value);
+        $this->assertSame($evaluation->id, $refiningKpi->input_snapshot['source_snapshot']['week8_economic_evaluation_id']);
+        $this->assertSame('holds_full', $refiningKpi->input_snapshot['source_snapshot']['realization_snapshot']['scenario_key']);
+        $this->assertSame('0.700000', $refiningKpi->input_snapshot['source_snapshot']['prediction_snapshot']['probability_distribution']['fails']);
+
+        $unavailableSnapshots = $kpiSnapshots->reject(fn (KpiSnapshot $snapshot): bool => $snapshot->definition->key === 'refining_net_margin_vs_benchmark');
+        $this->assertCount(6, $unavailableSnapshots);
+        $unavailableSnapshots->each(function (KpiSnapshot $snapshot): void {
+            $this->assertSame(KpiSnapshotStatus::Unavailable, $snapshot->statusEnum());
+            $this->assertNull($snapshot->value);
+            $this->assertNotNull($snapshot->unavailable_reason);
+        });
+
+        $rankingSnapshot = RankingSnapshot::query()
+            ->where('section_simulation_week_id', $context['runtimeWeek']->id)
+            ->where('team_simulation_id', $context['teamSimulation']->id)
+            ->firstOrFail();
+        $this->assertSame(RankingSnapshotStatus::Incomplete, $rankingSnapshot->statusEnum());
+        $this->assertNull($rankingSnapshot->composite_score);
+        $this->assertNull($rankingSnapshot->rank);
+        $this->assertStringContainsString('integrated_margin_per_boe', (string) $rankingSnapshot->incomplete_reason);
+        $this->assertStringContainsString('requires capital base state', (string) $rankingSnapshot->incomplete_reason);
+
         $this->assertSame(0, ConsequenceLink::query()->where('source_section_simulation_week_id', $context['runtimeWeek']->id)->count());
         $this->assertSame(0, CohortFeedbackEffect::query()->count());
 

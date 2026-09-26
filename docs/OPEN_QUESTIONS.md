@@ -1,8 +1,8 @@
 # Open Questions
 
-Updated: 2026-09-25.
+Updated: 2026-09-26.
 
-The authoritative markdown sources and package roots for Weeks 1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12, and 13 are now present and registered through the content package framework. Week 4 remains the stable vertical-slice baseline. Week 4 and Week 6 have runtime paths; Week 8 has a package-backed Laravel economic engine and runtime evaluation persistence.
+The authoritative markdown sources and package roots for Weeks 1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12, and 13 are now present and registered through the content package framework. Week 4 remains the stable vertical-slice baseline. Week 4 and Week 6 have runtime paths; Week 8 has a package-backed Laravel economic engine, runtime evaluation persistence, and KPI/ranking integration for package-supported metrics.
 
 ## Week 4 package questions
 
@@ -58,13 +58,16 @@ Resolved by the authoritative package:
 - package validation script;
 - package-backed Laravel OPEC/scenario economic engine;
 - prediction distribution and realized scenario represented separately in the engine result.
+- KPI snapshots populated from realized Week 8 evaluation where package-supported;
+- `refining_net_margin_vs_benchmark` populated from realized refining crack versus package baseline;
+- unsupported published KPIs remain unavailable with null values;
+- Week 8 ranking snapshots remain incomplete until the full KPI basis exists.
 
 Still open:
 
 - Native Excel recalculation was not performed in Batch 18A; openpyxl structure/formula/error scans and cached values were validated instead.
 - What production scenario-resolution source should set `realized_scenario_key` when it is not supplied by controlled runtime/test data?
 - Which Week 8 student probability and posture fields are submitted through the application versus kept in the workbook/notebook package?
-- Which Week 8 outputs, if any, should feed KPI snapshots after runtime economics are implemented?
 
 ## Week 6 to Week 8 cohort response questions
 

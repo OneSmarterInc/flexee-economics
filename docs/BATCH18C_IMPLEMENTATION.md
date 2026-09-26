@@ -82,7 +82,7 @@ No cohort feedback effects are created by Week 8 runtime evaluation.
 
 ## Deferred
 
-Still deferred:
+Deferred at the end of Batch 18C:
 
 - Week 8 KPI/ranking effects;
 - standing changes;
@@ -91,6 +91,8 @@ Still deferred:
 - Week 8 what-if;
 - LLM interpretation;
 - dedicated Week 8 UI beyond the generic submission workspace.
+
+Batch 18D later connected Week 8 evaluations to KPI/ranking snapshots for package-supported metrics only.
 
 ## Verification
 

@@ -9,6 +9,7 @@ use App\Domain\Economics\Resolution\WeekResolutionService;
 use App\Domain\Economics\Week8\Week8EconomicEvaluationService;
 use App\Domain\Ranking\RankingCalculationService;
 use App\Domain\Scoring\Week4KpiPopulationService;
+use App\Domain\Scoring\Week8KpiPopulationService;
 use App\Enums\SubmissionStatus;
 use App\Models\CapitalAllocationDecision;
 use App\Models\CohortResponseFunction;
@@ -16,6 +17,7 @@ use App\Models\DecisionSubmission;
 use App\Models\EconomicResolution;
 use App\Models\SectionSimulationWeek;
 use App\Models\User;
+use App\Models\Week8EconomicEvaluation;
 use App\Models\WeekExecutionRecord;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -47,6 +49,7 @@ final readonly class WeekExecutionService
         private Week6CapitalEconomicsService $week6CapitalEconomics,
         private Week8EconomicEvaluationService $week8Economics,
         private Week4KpiPopulationService $week4Kpis,
+        private Week8KpiPopulationService $week8Kpis,
         private RankingCalculationService $rankings,
     ) {}
 
@@ -305,10 +308,22 @@ final readonly class WeekExecutionService
      */
     private function applyKpis(SectionSimulationWeek $runtimeWeek): array
     {
-        if ($runtimeWeek->definition->week_number !== 4) {
-            return $this->deferred('KPI population for this week is not implemented yet.');
+        if ($runtimeWeek->definition->week_number === 8) {
+            return $this->applyWeek8Kpis($runtimeWeek);
         }
 
+        if ($runtimeWeek->definition->week_number === 4) {
+            return $this->applyWeek4Kpis($runtimeWeek);
+        }
+
+        return $this->deferred('KPI population for this week is not implemented yet.');
+    }
+
+    /**
+     * @return array{status: string, summary: string, outputs: array<string, mixed>}
+     */
+    private function applyWeek4Kpis(SectionSimulationWeek $runtimeWeek): array
+    {
         $snapshotCount = 0;
         EconomicResolution::query()
             ->where('tenant_id', $runtimeWeek->tenant_id)
@@ -329,9 +344,31 @@ final readonly class WeekExecutionService
     /**
      * @return array{status: string, summary: string, outputs: array<string, mixed>}
      */
+    private function applyWeek8Kpis(SectionSimulationWeek $runtimeWeek): array
+    {
+        $snapshotCount = 0;
+        Week8EconomicEvaluation::query()
+            ->where('tenant_id', $runtimeWeek->tenant_id)
+            ->where('section_simulation_week_id', $runtimeWeek->id)
+            ->orderBy('id')
+            ->get()
+            ->each(function (Week8EconomicEvaluation $evaluation) use (&$snapshotCount): void {
+                $snapshotCount += count($this->week8Kpis->populate($evaluation));
+            });
+
+        return [
+            'status' => 'completed',
+            'summary' => 'Applied KPI calculations for supported week.',
+            'outputs' => ['kpi_snapshot_count' => $snapshotCount],
+        ];
+    }
+
+    /**
+     * @return array{status: string, summary: string, outputs: array<string, mixed>}
+     */
     private function calculateRankings(SectionSimulationWeek $runtimeWeek): array
     {
-        if ($runtimeWeek->definition->week_number !== 4) {
+        if (! in_array($runtimeWeek->definition->week_number, [4, 8], true)) {
             return $this->deferred('Ranking calculation for this week is not implemented yet.');
         }
 
