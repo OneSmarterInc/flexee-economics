@@ -110,7 +110,7 @@ Key targets include:
 
 ## Deferred
 
-Still deferred:
+Deferred at the end of Batch 19A:
 
 - Week 9 runtime integration;
 - Week 9 evaluation persistence;
@@ -121,6 +121,8 @@ Still deferred:
 - consequence links;
 - Week 9 what-if;
 - LLM interpretation.
+
+Batch 19B later connected Week 9 evaluations to week execution and persisted runtime results.
 
 ## Verification
 

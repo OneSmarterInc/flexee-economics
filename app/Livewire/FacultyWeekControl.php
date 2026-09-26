@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Domain\Content\AuthoritativePackages\AuthoritativeContentPackageManifest;
 use App\Domain\Content\SimulationContentResolver;
 use App\Domain\Content\Week6\Week6ContentPackageManifest;
 use App\Domain\Content\Week8\Week8ContentPackageManifest;
@@ -262,6 +263,7 @@ class FacultyWeekControl extends Component
         return match ($runtimeWeek->definition->week_number) {
             6 => Week6ContentPackageManifest::PACKAGE_TYPE,
             8 => Week8ContentPackageManifest::PACKAGE_TYPE,
+            9 => app(AuthoritativeContentPackageManifest::class)->packageType(9),
             default => 'reference_package',
         };
     }
