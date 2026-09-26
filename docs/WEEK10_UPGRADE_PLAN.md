@@ -14,7 +14,8 @@ halden-week10-data-package
 - `AuthoritativeContentPackageRegistrationService` accepts Week 10 registration and activation.
 - The package includes `MANIFEST.md`, canonical CSVs, student workbook/notebook, faculty solution workbook/notebook, golden fixture, provenance, and `VALIDATION_16A.md`.
 - Binding rules are encoded as data in `data/binding_rules.csv`.
-- No Week 10 economics, runtime integration, KPI effects, ranking effects, or consequence mechanics are implemented in this reconciliation.
+- `Week10ConvergenceEconomicEngine` now implements the package-backed demand, refinery-impact, and binding-constraint calculations.
+- Week 10 runtime integration, persistence, KPI effects, ranking effects, and consequence mechanics remain deferred.
 
 ## Package Data
 
@@ -32,6 +33,8 @@ The golden fixture is:
 fixtures/week10_golden.json
 ```
 
-## Implementation Boundary
+## Engine Boundary
 
-The package is ready for a future Week 10 economic implementation batch. That future batch should consume the package data and validate the engine against the golden fixture before connecting Week 10 to runtime execution.
+The Week 10 engine consumes package data and validates against the golden fixture without mutating downstream state.
+
+The next implementation batch should assemble real runtime inherited state from prior platform records and connect the engine to runtime execution without duplicating the package formulas.

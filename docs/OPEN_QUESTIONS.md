@@ -2,7 +2,7 @@
 
 Updated: 2026-09-26.
 
-The authoritative markdown sources and package roots for Weeks 1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12, and 13 are now present and registered through the content package framework. Week 4 remains the stable vertical-slice baseline. Week 4 and Week 6 have runtime paths; Week 8 has a package-backed Laravel economic engine, runtime evaluation persistence, and KPI/ranking integration for package-supported metrics. Week 9 now has a package-backed Laravel economic engine and runtime evaluation persistence.
+The authoritative markdown sources and package roots for Weeks 1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12, and 13 are now present and registered through the content package framework. Week 4 remains the stable vertical-slice baseline. Week 4 and Week 6 have runtime paths; Week 8 has a package-backed Laravel economic engine, runtime evaluation persistence, and KPI/ranking integration for package-supported metrics. Week 9 now has a package-backed Laravel economic engine and runtime evaluation persistence. Week 10 now has a package-backed convergence economic engine, but runtime state assembly and execution integration remain deferred.
 
 ## Week 4 package questions
 
@@ -65,6 +65,32 @@ Still open:
 - What production source supplies the Week 7 to Week 9 cohort non-fuel state for runtime evaluation?
 - Which Week 9 outputs should feed KPI snapshots after runtime economics are integrated?
 - What standing/consequence rules connect Delacroix and dealer cooperation to Week 9 execution?
+
+## Week 10 package questions
+
+Resolved by the authoritative package and Batch 20B engine:
+
+- Week 10 manifest;
+- canonical CSVs;
+- student workbook and notebook;
+- faculty solution workbook and notebook;
+- golden fixture;
+- provenance hashes;
+- package validation report;
+- package-backed Laravel convergence economic engine;
+- demand impacts by product;
+- refinery-specific recession impacts;
+- binding-constraint rules for the two reference fixture teams.
+
+Still open:
+
+- What production runtime assembler should derive `cancellable_capex_musd` from Week 6 capital-allocation history?
+- What production Week 5 mechanic supplies `crude_hedge_coverage`?
+- Which Week 4 consequence record should set `br_reported_margin_strong` for Delacroix cover?
+- Which standing states beyond package-defined `strained` and `hostile`, if any, should block Singapore flexibility in production content?
+- What production Week 8 cash-position model supplies `cash_cushion_musd`?
+- Which Week 10 outputs should feed KPI snapshots after runtime economics are integrated?
+- What consequence links should Week 10 create after the runtime engine exists?
 
 ## Week 8 package questions
 
