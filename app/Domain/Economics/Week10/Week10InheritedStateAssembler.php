@@ -2,6 +2,7 @@
 
 namespace App\Domain\Economics\Week10;
 
+use App\Enums\SubmissionStatus;
 use App\Models\CapitalAllocationEvaluation;
 use App\Models\Counterparty;
 use App\Models\DecisionSubmission;
@@ -11,6 +12,8 @@ use App\Models\StandingState;
 use App\Models\TeamSimulation;
 use App\Models\Week8EconomicEvaluation;
 use Brick\Math\BigDecimal;
+use Carbon\CarbonInterface;
+use Illuminate\Database\Eloquent\Model;
 
 final class Week10InheritedStateAssembler
 {
@@ -63,8 +66,8 @@ final class Week10InheritedStateAssembler
             return Week10HistoricalDependency::unresolved('cancellable_capex_musd', '6', 'capital_allocation_evaluation', 'Week 6 calculated capital allocation evaluation is missing.');
         }
 
-        $value = $this->inheritedValue($evaluation->output_snapshot, 'cancellable_capex_musd')
-            ?? $this->inheritedValue($evaluation->input_snapshot, 'cancellable_capex_musd');
+        $value = $this->inheritedValue($this->arrayAttribute($evaluation, 'output_snapshot'), 'cancellable_capex_musd')
+            ?? $this->inheritedValue($this->arrayAttribute($evaluation, 'input_snapshot'), 'cancellable_capex_musd');
 
         if ($value === null) {
             return Week10HistoricalDependency::unresolved('cancellable_capex_musd', '6', 'capital_allocation_evaluation', 'Week 6 evaluation does not expose cancellable capex for Week 10.');
@@ -92,7 +95,7 @@ final class Week10InheritedStateAssembler
             ->where('tenant_id', $teamSimulation->tenant_id)
             ->where('section_simulation_week_id', $week->id)
             ->where('team_simulation_id', $teamSimulation->id)
-            ->where('status', \App\Enums\SubmissionStatus::Submitted->value)
+            ->where('status', SubmissionStatus::Submitted->value)
             ->latest('submitted_at')
             ->first();
 
@@ -100,10 +103,8 @@ final class Week10InheritedStateAssembler
             return Week10HistoricalDependency::unresolved('crude_hedge_coverage', '5', 'decision_submission', 'Week 5 submitted hedge decision is missing.');
         }
 
-        $answers = $submission->answers;
-        $value = is_array($answers)
-            ? ($this->inheritedValue($answers, 'crude_hedge_coverage') ?? $this->inheritedValue($answers, 'hedge_coverage'))
-            : null;
+        $answers = $this->arrayAttribute($submission, 'answers');
+        $value = $this->inheritedValue($answers, 'crude_hedge_coverage') ?? $this->inheritedValue($answers, 'hedge_coverage');
 
         if ($value === null) {
             return Week10HistoricalDependency::unresolved('crude_hedge_coverage', '5', 'decision_submission', 'Week 5 submission does not expose crude hedge coverage for Week 10.');
@@ -138,8 +139,8 @@ final class Week10InheritedStateAssembler
             return Week10HistoricalDependency::unresolved('br_reported_margin_strong', '4', 'economic_resolution', 'Week 4 economic resolution is missing.');
         }
 
-        $value = $this->inheritedValue($resolution->output_snapshot, 'br_reported_margin_strong')
-            ?? $this->inheritedValue($resolution->input_snapshot, 'br_reported_margin_strong');
+        $value = $this->inheritedValue($this->arrayAttribute($resolution, 'output_snapshot'), 'br_reported_margin_strong')
+            ?? $this->inheritedValue($this->arrayAttribute($resolution, 'input_snapshot'), 'br_reported_margin_strong');
 
         if ($value === null) {
             return Week10HistoricalDependency::unresolved('br_reported_margin_strong', '4', 'economic_resolution', 'Week 4 resolution does not expose Baton Rouge reported-margin condition for Week 10.');
@@ -173,13 +174,15 @@ final class Week10InheritedStateAssembler
             return Week10HistoricalDependency::unresolved('straits_pacific_standing', 'standing_history', 'standing_state', 'Straits Pacific standing state is missing.');
         }
 
+        $changedAt = $standing->getAttribute('state_changed_at');
+
         return Week10HistoricalDependency::available(
             key: 'straits_pacific_standing',
             sourceWeek: 'standing_history',
             sourceEntity: 'standing_state',
             sourceValue: $standing->stateEnum()->value,
             sourceId: (string) $standing->id,
-            sourceVersion: $standing->state_changed_at?->toIso8601String(),
+            sourceVersion: $changedAt instanceof CarbonInterface ? $changedAt->toIso8601String() : null,
         );
     }
 
@@ -203,8 +206,8 @@ final class Week10InheritedStateAssembler
             return Week10HistoricalDependency::unresolved('cash_cushion_musd', '8', 'week8_economic_evaluation', 'Week 8 calculated economic evaluation is missing.');
         }
 
-        $value = $this->inheritedValue($evaluation->output_snapshot, 'cash_cushion_musd')
-            ?? $this->inheritedValue($evaluation->input_snapshot, 'cash_cushion_musd');
+        $value = $this->inheritedValue($this->arrayAttribute($evaluation, 'output_snapshot'), 'cash_cushion_musd')
+            ?? $this->inheritedValue($this->arrayAttribute($evaluation, 'input_snapshot'), 'cash_cushion_musd');
 
         if ($value === null) {
             return Week10HistoricalDependency::unresolved('cash_cushion_musd', '8', 'week8_economic_evaluation', 'Week 8 evaluation does not expose cash cushion for Week 10.');
@@ -247,6 +250,16 @@ final class Week10InheritedStateAssembler
         }
 
         return $snapshot[$key] ?? null;
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private function arrayAttribute(Model $model, string $key): ?array
+    {
+        $value = $model->getAttribute($key);
+
+        return is_array($value) ? $value : null;
     }
 
     private function availableDecimal(Week10HistoricalDependency $dependency): ?BigDecimal

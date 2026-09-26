@@ -65,9 +65,9 @@ final readonly class Week10EconomicEvaluationService
                 'diesel_demand_hit' => $this->decimal($result->demandHit('diesel'), 6),
                 'jet_demand_hit' => $this->decimal($result->demandHit('jet'), 6),
                 'blended_demand_hit' => $this->decimal($result->blendedDemandHit, 6),
-                'baton_rouge_demand_hit' => $this->decimal($result->refineryHit('baton_rouge'), 6),
-                'rotterdam_demand_hit' => $this->decimal($result->refineryHit('rotterdam'), 6),
-                'singapore_demand_hit' => $this->decimal($result->refineryHit('singapore'), 6),
+                'baton_rouge_demand_hit' => $this->decimal($result->refineryHit('Baton Rouge'), 6),
+                'rotterdam_demand_hit' => $this->decimal($result->refineryHit('Rotterdam'), 6),
+                'singapore_demand_hit' => $this->decimal($result->refineryHit('Singapore'), 6),
                 'hardest_hit_refinery' => $result->hardestHitRefinery,
                 'binding_constraint_count' => $result->status === Week10EconomicResult::STATUS_CALCULATED ? $result->bindingCount : null,
                 'unresolved_dependencies' => $result->unresolvedDependencies,
@@ -76,7 +76,7 @@ final readonly class Week10EconomicEvaluationService
                     ...$result->inputSnapshot,
                     'decision_submission' => [
                         'id' => $submission->id,
-                        'answers' => is_array($submission->answers) ? $submission->answers : [],
+                        'answers' => $this->submissionAnswers($submission),
                     ],
                 ],
                 'output_snapshot' => $result->outputSnapshot,
@@ -132,6 +132,16 @@ final readonly class Week10EconomicEvaluationService
     private function decimal(BigDecimal $value, int $scale): string
     {
         return (string) $value->toScale($scale, RoundingMode::HalfUp);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function submissionAnswers(DecisionSubmission $submission): array
+    {
+        $answers = $submission->getAttribute('answers');
+
+        return is_array($answers) ? $answers : [];
     }
 
     private function assertCanEvaluate(User $actor, DecisionSubmission $submission): void
