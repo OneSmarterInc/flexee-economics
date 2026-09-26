@@ -130,4 +130,12 @@ class DecisionSubmission extends Model
     {
         return $this->hasOne(Week9EconomicEvaluation::class);
     }
+
+    /**
+     * @return HasOne<Week10EconomicEvaluation, $this>
+     */
+    public function week10EconomicEvaluation(): HasOne
+    {
+        return $this->hasOne(Week10EconomicEvaluation::class);
+    }
 }

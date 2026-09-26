@@ -8,6 +8,7 @@ use App\Domain\Content\SimulationContentResolver;
 use App\Domain\Economics\Resolution\WeekResolutionService;
 use App\Domain\Economics\Week8\Week8EconomicEvaluationService;
 use App\Domain\Economics\Week9\Week9EconomicEvaluationService;
+use App\Domain\Economics\Week10\Week10EconomicEvaluationService;
 use App\Domain\Ranking\RankingCalculationService;
 use App\Domain\Scoring\Week4KpiPopulationService;
 use App\Domain\Scoring\Week8KpiPopulationService;
@@ -50,6 +51,7 @@ final readonly class WeekExecutionService
         private Week6CapitalEconomicsService $week6CapitalEconomics,
         private Week8EconomicEvaluationService $week8Economics,
         private Week9EconomicEvaluationService $week9Economics,
+        private Week10EconomicEvaluationService $week10Economics,
         private Week4KpiPopulationService $week4Kpis,
         private Week8KpiPopulationService $week8Kpis,
         private RankingCalculationService $rankings,
@@ -219,6 +221,10 @@ final readonly class WeekExecutionService
             return $this->evaluateWeek9SubmittedDecisions($runtimeWeek, $actor);
         }
 
+        if ($runtimeWeek->definition->week_number === 10) {
+            return $this->evaluateWeek10SubmittedDecisions($runtimeWeek, $actor);
+        }
+
         if ($runtimeWeek->definition->week_number === 4) {
             return $this->resolveWeek4SubmittedDecisions($runtimeWeek, $actor);
         }
@@ -305,6 +311,36 @@ final readonly class WeekExecutionService
             'summary' => 'Evaluated Week 9 Cordell rebrand decisions.',
             'outputs' => [
                 'week9_economic_evaluation_count' => $evaluated,
+                'evaluation_status_counts' => $statuses,
+            ],
+        ];
+    }
+
+    /**
+     * @return array{status: string, summary: string, outputs: array<string, mixed>}
+     */
+    private function evaluateWeek10SubmittedDecisions(SectionSimulationWeek $runtimeWeek, User $actor): array
+    {
+        $evaluated = 0;
+        $statuses = [];
+
+        DecisionSubmission::query()
+            ->where('tenant_id', $runtimeWeek->tenant_id)
+            ->where('section_simulation_week_id', $runtimeWeek->id)
+            ->where('status', SubmissionStatus::Submitted->value)
+            ->orderBy('id')
+            ->get()
+            ->each(function (DecisionSubmission $submission) use ($actor, &$evaluated, &$statuses): void {
+                $evaluation = $this->week10Economics->evaluate($submission, $actor, process: 'week_execution_service');
+                $evaluated++;
+                $statuses[$evaluation->status] = ($statuses[$evaluation->status] ?? 0) + 1;
+            });
+
+        return [
+            'status' => 'completed',
+            'summary' => 'Evaluated Week 10 convergence decisions.',
+            'outputs' => [
+                'week10_economic_evaluation_count' => $evaluated,
                 'evaluation_status_counts' => $statuses,
             ],
         ];

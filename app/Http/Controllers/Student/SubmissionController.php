@@ -24,6 +24,7 @@ use App\Models\TeamSimulation;
 use App\Models\User;
 use App\Models\Week8EconomicEvaluation;
 use App\Models\Week9EconomicEvaluation;
+use App\Models\Week10EconomicEvaluation;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -331,6 +332,21 @@ class SubmissionController extends Controller
             ];
         }
 
+        if ($runtimeWeek->definition->week_number === 10) {
+            $evaluation = Week10EconomicEvaluation::query()
+                ->where('tenant_id', $runtimeWeek->tenant_id)
+                ->where('section_simulation_week_id', $runtimeWeek->id)
+                ->where('team_simulation_id', $teamSimulation->id)
+                ->latest('evaluated_at')
+                ->first();
+            $evaluatedAt = $evaluation?->getAttribute('evaluated_at');
+
+            return [
+                'status' => $evaluation instanceof Week10EconomicEvaluation ? 'resolved' : 'unresolved',
+                'resolved_at' => $evaluatedAt instanceof Carbon ? $evaluatedAt->toIso8601String() : null,
+            ];
+        }
+
         $resolution = EconomicResolution::query()
             ->where('tenant_id', $runtimeWeek->tenant_id)
             ->where('section_simulation_week_id', $runtimeWeek->id)
@@ -397,7 +413,7 @@ class SubmissionController extends Controller
         return match ($runtimeWeek->definition->week_number) {
             6 => Week6ContentPackageManifest::PACKAGE_TYPE,
             8 => Week8ContentPackageManifest::PACKAGE_TYPE,
-            9 => app(AuthoritativeContentPackageManifest::class)->packageType(9),
+            9, 10 => app(AuthoritativeContentPackageManifest::class)->packageType($runtimeWeek->definition->week_number),
             default => 'reference_package',
         };
     }
