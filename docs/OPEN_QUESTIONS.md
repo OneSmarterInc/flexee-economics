@@ -2,7 +2,7 @@
 
 Updated: 2026-09-26.
 
-The authoritative markdown sources and package roots for Weeks 1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12, and 13 are now present and registered through the content package framework. Week 4 remains the stable vertical-slice baseline. Week 4 and Week 6 have runtime paths; Week 8 has a package-backed Laravel economic engine, runtime evaluation persistence, and KPI/ranking integration for package-supported metrics.
+The authoritative markdown sources and package roots for Weeks 1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12, and 13 are now present and registered through the content package framework. Week 4 remains the stable vertical-slice baseline. Week 4 and Week 6 have runtime paths; Week 8 has a package-backed Laravel economic engine, runtime evaluation persistence, and KPI/ranking integration for package-supported metrics. Week 9 now has a package-backed Laravel economic engine; runtime integration is still deferred.
 
 ## Week 4 package questions
 
@@ -43,7 +43,28 @@ Still open:
 - Is the Week 7 role rotation fixed or optional?
 - What institution-level setting governs student-side LLM help for analytical work?
 - Should the memo grading rubric be published to students on day one or discovered through feedback?
-- Which newly registered package should receive the next economic engine implementation after Week 8 runtime integration?
+- Which package-backed economic engine should receive runtime integration after Week 9 engine validation?
+
+## Week 9 package questions
+
+Resolved by the authoritative package:
+
+- Week 9 manifest;
+- canonical CSVs;
+- student workbook and notebook;
+- faculty solution workbook and notebook;
+- golden fixture;
+- provenance hashes;
+- package validation report;
+- package-backed Laravel Cordell rebrand economic engine;
+- `fills_per_site_year = 180000` consumed from package data as a calibration lever, not hard-coded engine policy.
+
+Still open:
+
+- Which Week 9 student decision fields are submitted through the application versus kept in workbook/notebook analysis?
+- What production source supplies the Week 7 to Week 9 cohort non-fuel state for runtime evaluation?
+- Which Week 9 outputs should feed KPI snapshots after runtime economics are integrated?
+- What standing/consequence rules connect Delacroix and dealer cooperation to Week 9 execution?
 
 ## Week 8 package questions
 
