@@ -1,6 +1,6 @@
 # Open Questions
 
-Updated: 2026-09-26.
+Updated: 2026-09-28.
 
 The authoritative markdown sources and package roots for Weeks 1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12, and 13 are now present and registered through the content package framework. Week 4 remains the stable vertical-slice baseline. Week 4 and Week 6 have runtime paths; Week 8 has a package-backed Laravel economic engine, runtime evaluation persistence, and KPI/ranking integration for package-supported metrics. Week 9 now has a package-backed Laravel economic engine and runtime evaluation persistence. Week 10 now has a package-backed convergence economic engine, runtime state assembly, execution integration, and KPI/ranking integration with unsupported KPIs preserved as unavailable/null. Week 11 now has a package-backed Kessana hold-up economic engine, golden tests, and runtime evaluation persistence. Week 12 has passed the package-readiness gate, including reconciliation of the earlier Helix Rotterdam bucket conflict.
 
@@ -116,13 +116,14 @@ Resolved by the authoritative package, Batch 24A engine, and Batch 24B runtime i
 - student resolved-status visibility from persisted Week 11 evaluations;
 - Week 11 KPI snapshots created from calculated evaluations, with unsupported KPI values preserved as unavailable/null;
 - Week 11 ranking snapshots created as incomplete while the full KPI basis is unavailable.
+- Batch 27A consequence review completed: no authoritative Week 11 consequence links or standing transitions are currently defined.
 
 Still open:
 
 - What persisted production source supplies Week 11 Tetteh standing at runtime?
 - What persisted production source supplies Week 6 Kessana capital exposure at runtime?
 - What standing transitions should Week 11 create for Tetteh or related counterparties?
-- What consequence links should Week 11 create after runtime evaluation?
+- What consequence links should Week 11 create after runtime evaluation, if a future authoritative consequence-propagation table supplies target state, timing, and future consumer?
 - Which Week 11 outputs, if any, should become available published KPI values beyond the current unavailable/null snapshots?
 
 ## Week 12 package questions
@@ -149,12 +150,13 @@ Resolved by the authoritative package readiness gate:
 - portfolio feasibility enumeration;
 - Helix/divestment interlock behavior;
 - worked-example parity.
+- Batch 27A consequence review completed: no authoritative Week 12 consequence links or standing transitions are currently defined.
 
 Still open:
 
 - Which Week 12 outputs, if any, should become published KPI values after the economic engine exists?
 - What standing transitions should Week 12 create for transition portfolio choices?
-- What consequence links should Week 12 create after runtime evaluation?
+- What consequence links should Week 12 create after runtime evaluation, if a future authoritative consequence-propagation table supplies target state, timing, and future consumer?
 
 ## Week 8 package questions
 
