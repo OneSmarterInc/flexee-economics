@@ -2,7 +2,7 @@
 
 Updated: 2026-09-28.
 
-The authoritative markdown sources and package roots for Weeks 1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12, and 13 are now present and registered through the content package framework. Week 4 remains the stable vertical-slice baseline. Week 4 and Week 6 have runtime paths; Week 8 has a package-backed Laravel economic engine, runtime evaluation persistence, and KPI/ranking integration for package-supported metrics. Week 9 now has a package-backed Laravel economic engine and runtime evaluation persistence. Week 10 now has a package-backed convergence economic engine, runtime state assembly, execution integration, and KPI/ranking integration with unsupported KPIs preserved as unavailable/null. Week 11 now has a package-backed Kessana hold-up economic engine, golden tests, and runtime evaluation persistence. Week 12 has package-backed runtime evaluation. Week 13 now has a package-backed factor-markets economic engine and golden tests.
+The authoritative markdown sources and package roots for Weeks 1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12, and 13 are now present and registered through the content package framework. Week 4 remains the stable vertical-slice baseline. Week 4 and Week 6 have runtime paths; Week 8 has a package-backed Laravel economic engine, runtime evaluation persistence, and KPI/ranking integration for package-supported metrics. Week 9 now has a package-backed Laravel economic engine and runtime evaluation persistence. Week 10 now has a package-backed convergence economic engine, runtime state assembly, execution integration, and KPI/ranking integration with unsupported KPIs preserved as unavailable/null. Week 11 now has a package-backed Kessana hold-up economic engine, golden tests, and runtime evaluation persistence. Week 12 has package-backed runtime evaluation. Week 13 now has a package-backed factor-markets economic engine, golden tests, and runtime evaluation persistence.
 
 ## Week 4 package questions
 
@@ -177,12 +177,15 @@ Resolved by the authoritative package readiness gate and Batch 28B engine:
 - package-backed Laravel factor-markets economic engine;
 - golden fixture parity for Norway tax shield, Permian MRP, turnaround timing tradeoff, and asset-health penalty output;
 - worked-example parity;
-- deterministic decimal-safe calculation snapshots.
+- deterministic decimal-safe calculation snapshots;
+- runtime evaluation persistence through `Week13EconomicEvaluation`;
+- package-backed Week 13 execution through `WeekExecutionService`;
+- student resolved-status visibility from persisted Week 13 evaluations.
 
 Still open:
 
-- What exact Week 13 decision fields should the application collect at runtime?
-- Which Week 13 outputs, if any, should become published KPI values after runtime evaluation and the asset-health mechanic exist?
+- What final Week 13 decision fields should replace or extend the current generic runtime field once authored UI content exists?
+- Which Week 13 outputs, if any, should become published KPI values after the asset-health mechanic exists?
 - What standing transitions should Week 13 create for Norwegian union or labor-market decisions?
 - What consequence links should Week 13 create after runtime evaluation, if a future authoritative consequence-propagation table supplies target state, timing, and future consumer?
 - How should the package-defined `asset_health_penalty_pts` connect to a future asset-health state model?
