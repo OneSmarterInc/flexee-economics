@@ -2,7 +2,6 @@
 
 namespace App\Domain\Economics\Week10;
 
-use App\Enums\SubmissionStatus;
 use App\Models\CapitalAllocationEvaluation;
 use App\Models\Counterparty;
 use App\Models\DecisionSubmission;
@@ -10,6 +9,7 @@ use App\Models\EconomicResolution;
 use App\Models\SectionSimulationWeek;
 use App\Models\StandingState;
 use App\Models\TeamSimulation;
+use App\Models\Week5EconomicEvaluation;
 use App\Models\Week8EconomicEvaluation;
 use Brick\Math\BigDecimal;
 use Carbon\CarbonInterface;
@@ -88,35 +88,37 @@ final class Week10InheritedStateAssembler
         $week = $this->runtimeWeek($teamSimulation, 5);
 
         if (! $week instanceof SectionSimulationWeek) {
-            return Week10HistoricalDependency::unresolved('crude_hedge_coverage', '5', 'decision_submission', 'Week 5 runtime week is unavailable.');
+            return Week10HistoricalDependency::unresolved('crude_hedge_coverage', '5', 'week5_economic_evaluation', 'Week 5 runtime week is unavailable.');
         }
 
-        $submission = DecisionSubmission::query()
+        $evaluation = Week5EconomicEvaluation::query()
             ->where('tenant_id', $teamSimulation->tenant_id)
             ->where('section_simulation_week_id', $week->id)
             ->where('team_simulation_id', $teamSimulation->id)
-            ->where('status', SubmissionStatus::Submitted->value)
-            ->latest('submitted_at')
+            ->where('status', Week5EconomicEvaluation::STATUS_CALCULATED)
+            ->latest('evaluated_at')
             ->first();
 
-        if (! $submission instanceof DecisionSubmission) {
-            return Week10HistoricalDependency::unresolved('crude_hedge_coverage', '5', 'decision_submission', 'Week 5 submitted hedge decision is missing.');
+        if (! $evaluation instanceof Week5EconomicEvaluation) {
+            return Week10HistoricalDependency::unresolved('crude_hedge_coverage', '5', 'week5_economic_evaluation', 'Week 5 calculated currency evaluation is missing.');
         }
 
-        $answers = $this->arrayAttribute($submission, 'answers');
-        $value = $this->inheritedValue($answers, 'crude_hedge_coverage') ?? $this->inheritedValue($answers, 'hedge_coverage');
+        $value = $this->inheritedValue($this->arrayAttribute($evaluation, 'output_snapshot'), 'crude_hedge_coverage')
+            ?? $this->inheritedValue($this->arrayAttribute($evaluation, 'input_snapshot'), 'crude_hedge_coverage')
+            ?? $this->inheritedValue($this->arrayAttribute($evaluation, 'decision_snapshot'), 'crude_hedge_coverage')
+            ?? $this->inheritedValue($this->arrayAttribute($evaluation, 'decision_snapshot'), 'hedge_coverage');
 
         if ($value === null) {
-            return Week10HistoricalDependency::unresolved('crude_hedge_coverage', '5', 'decision_submission', 'Week 5 submission does not expose crude hedge coverage for Week 10.');
+            return Week10HistoricalDependency::unresolved('crude_hedge_coverage', '5', 'week5_economic_evaluation', 'Week 5 evaluation does not expose crude hedge coverage for Week 10.');
         }
 
         return Week10HistoricalDependency::available(
             key: 'crude_hedge_coverage',
             sourceWeek: '5',
-            sourceEntity: 'decision_submission',
+            sourceEntity: 'week5_economic_evaluation',
             sourceValue: (string) $value,
-            sourceId: (string) $submission->id,
-            sourceVersion: (string) $submission->definition()->value('version'),
+            sourceId: (string) $evaluation->id,
+            sourceVersion: (string) $evaluation->engine_version,
         );
     }
 

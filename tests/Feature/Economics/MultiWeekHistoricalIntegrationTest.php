@@ -32,6 +32,7 @@ use App\Models\TeamMember;
 use App\Models\TeamSimulation;
 use App\Models\User;
 use App\Models\Week10EconomicEvaluation;
+use App\Models\Week5EconomicEvaluation;
 use App\Models\Week8EconomicEvaluation;
 use App\Models\Week9EconomicEvaluation;
 use App\Models\WeekExecutionRecord;
@@ -61,7 +62,7 @@ class MultiWeekHistoricalIntegrationTest extends TestCase
         $this->assertSame(5, $evaluation->binding_constraint_count);
         $this->assertSame([], $evaluation->unresolved_dependencies);
         $this->assertSame('capital_allocation_evaluation', $evaluation->inherited_state_snapshot['dependencies']['cancellable_capex_musd']['source_entity']);
-        $this->assertSame('decision_submission', $evaluation->inherited_state_snapshot['dependencies']['crude_hedge_coverage']['source_entity']);
+        $this->assertSame('week5_economic_evaluation', $evaluation->inherited_state_snapshot['dependencies']['crude_hedge_coverage']['source_entity']);
         $this->assertSame('economic_resolution', $evaluation->inherited_state_snapshot['dependencies']['br_reported_margin_strong']['source_entity']);
         $this->assertSame('standing_state', $evaluation->inherited_state_snapshot['dependencies']['straits_pacific_standing']['source_entity']);
         $this->assertSame('week8_economic_evaluation', $evaluation->inherited_state_snapshot['dependencies']['cash_cushion_musd']['source_entity']);
@@ -315,9 +316,7 @@ class MultiWeekHistoricalIntegrationTest extends TestCase
         }
 
         if (! in_array('week5', $omit, true)) {
-            $this->historicalSubmission($context, $context['weeks'][5], $teamSimulation, 'week5_hedge_mandate', [
-                'week10_inherited_state' => ['crude_hedge_coverage' => $state['crude_hedge_coverage']],
-            ]);
+            $this->seedWeek5Evaluation($context, $teamSimulation, (string) $state['crude_hedge_coverage']);
         }
 
         if (! in_array('week6', $omit, true)) {
@@ -364,6 +363,56 @@ class MultiWeekHistoricalIntegrationTest extends TestCase
             'resolved_by_user_id' => $context['graph']['faculty']->id,
             'resolved_by_process' => 'multi_week_regression_fixture',
             'resolved_at' => now(),
+        ]);
+    }
+
+    /**
+     * @param  array<string, mixed>  $context
+     */
+    private function seedWeek5Evaluation(array $context, TeamSimulation $teamSimulation, string $coverage): void
+    {
+        $week = $context['weeks'][5];
+        $submission = $this->historicalSubmission($context, $week, $teamSimulation, 'week5_currency_exposure', [
+            'crude_hedge_coverage' => $coverage,
+        ]);
+
+        Week5EconomicEvaluation::query()->create([
+            'tenant_id' => $week->tenant_id,
+            'section_simulation_id' => $week->section_simulation_id,
+            'section_simulation_week_id' => $week->id,
+            'team_simulation_id' => $teamSimulation->id,
+            'team_id' => $teamSimulation->team_id,
+            'decision_submission_id' => $submission->id,
+            'engine_identifier' => 'week5_currency_exposure',
+            'engine_version' => 'week5_currency_exposure_v1',
+            'package_version' => '1.0.0-draft',
+            'status' => Week5EconomicEvaluation::STATUS_CALCULATED,
+            'eur_change' => '-0.064516',
+            'nok_usd_value_change' => '-0.076923',
+            'sgd_usd_value_change' => '-0.007407',
+            'norway_benefit_musd' => '84.615385',
+            'norway_lifting_post' => '25.846154',
+            'euro_retail_translation_musd' => '-77.419355',
+            'existing_hedge_gain_musd' => '19.354839',
+            'rot_net_eur_musd' => '250.000000',
+            'rot_natural_hedge_ratio' => '0.900000',
+            'rot_net_impact_musd' => '-16.129032',
+            'rot_overhedge_loss_musd' => '-145.161290',
+            'sing_impact_musd' => '-2.222222',
+            'decision_snapshot' => [
+                'id' => $submission->id,
+                'answers' => ['crude_hedge_coverage' => $coverage],
+            ],
+            'input_snapshot' => [
+                'decision_submission' => [
+                    'id' => $submission->id,
+                    'answers' => ['crude_hedge_coverage' => $coverage],
+                ],
+            ],
+            'output_snapshot' => ['week10_inherited_state' => ['crude_hedge_coverage' => $coverage]],
+            'evaluated_by_user_id' => $context['graph']['faculty']->id,
+            'evaluated_by_process' => 'multi_week_regression_fixture',
+            'evaluated_at' => now(),
         ]);
     }
 

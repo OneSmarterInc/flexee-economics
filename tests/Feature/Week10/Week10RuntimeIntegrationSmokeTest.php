@@ -30,6 +30,7 @@ use App\Models\SectionSimulationWeek;
 use App\Models\StandingState;
 use App\Models\TeamSimulation;
 use App\Models\Week10EconomicEvaluation;
+use App\Models\Week5EconomicEvaluation;
 use App\Models\Week8EconomicEvaluation;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -216,9 +217,7 @@ class Week10RuntimeIntegrationSmokeTest extends TestCase
             'resolved_at' => now(),
         ]);
 
-        $this->historicalSubmission($graph, $weeks[5], $teamSimulation, 'week5_hedge_mandate', [
-            'week10_inherited_state' => ['crude_hedge_coverage' => '0.45'],
-        ]);
+        $this->seedWeek5Evaluation($graph, $weeks[5], $teamSimulation, '0.45');
 
         $decision = CapitalAllocationDecision::query()->create([
             'tenant_id' => $weeks[6]->tenant_id,
@@ -299,6 +298,56 @@ class Week10RuntimeIntegrationSmokeTest extends TestCase
             'realization_snapshot' => [],
             'input_snapshot' => [],
             'output_snapshot' => ['week10_inherited_state' => ['cash_cushion_musd' => '85.0']],
+            'evaluated_by_user_id' => $graph['faculty']->id,
+            'evaluated_by_process' => 'test_fixture',
+            'evaluated_at' => now(),
+        ]);
+    }
+
+    /**
+     * @param  array<string, mixed>  $graph
+     */
+    private function seedWeek5Evaluation(array $graph, SectionSimulationWeek $week, TeamSimulation $teamSimulation, string $coverage): void
+    {
+        $submission = $this->historicalSubmission($graph, $week, $teamSimulation, 'week5_currency_exposure', [
+            'crude_hedge_coverage' => $coverage,
+        ]);
+
+        Week5EconomicEvaluation::query()->create([
+            'tenant_id' => $week->tenant_id,
+            'section_simulation_id' => $week->section_simulation_id,
+            'section_simulation_week_id' => $week->id,
+            'team_simulation_id' => $teamSimulation->id,
+            'team_id' => $teamSimulation->team_id,
+            'decision_submission_id' => $submission->id,
+            'engine_identifier' => 'week5_currency_exposure',
+            'engine_version' => 'week5_currency_exposure_v1',
+            'package_version' => '1.0.0-draft',
+            'status' => Week5EconomicEvaluation::STATUS_CALCULATED,
+            'eur_change' => '-0.064516',
+            'nok_usd_value_change' => '-0.076923',
+            'sgd_usd_value_change' => '-0.007407',
+            'norway_benefit_musd' => '84.615385',
+            'norway_lifting_post' => '25.846154',
+            'euro_retail_translation_musd' => '-77.419355',
+            'existing_hedge_gain_musd' => '19.354839',
+            'rot_net_eur_musd' => '250.000000',
+            'rot_natural_hedge_ratio' => '0.900000',
+            'rot_net_impact_musd' => '-16.129032',
+            'rot_overhedge_loss_musd' => '-145.161290',
+            'sing_impact_musd' => '-2.222222',
+            'decision_snapshot' => [
+                'id' => $submission->id,
+                'answers' => ['crude_hedge_coverage' => $coverage],
+            ],
+            'input_snapshot' => [
+                'decision_submission' => [
+                    'id' => $submission->id,
+                    'answers' => ['crude_hedge_coverage' => $coverage],
+                ],
+            ],
+            'output_snapshot' => ['week10_inherited_state' => ['crude_hedge_coverage' => $coverage]],
+            'unavailable_reason' => null,
             'evaluated_by_user_id' => $graph['faculty']->id,
             'evaluated_by_process' => 'test_fixture',
             'evaluated_at' => now(),
