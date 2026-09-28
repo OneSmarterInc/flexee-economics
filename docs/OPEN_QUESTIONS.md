@@ -2,7 +2,7 @@
 
 Updated: 2026-09-26.
 
-The authoritative markdown sources and package roots for Weeks 1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12, and 13 are now present and registered through the content package framework. Week 4 remains the stable vertical-slice baseline. Week 4 and Week 6 have runtime paths; Week 8 has a package-backed Laravel economic engine, runtime evaluation persistence, and KPI/ranking integration for package-supported metrics. Week 9 now has a package-backed Laravel economic engine and runtime evaluation persistence. Week 10 now has a package-backed convergence economic engine, but runtime state assembly and execution integration remain deferred.
+The authoritative markdown sources and package roots for Weeks 1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12, and 13 are now present and registered through the content package framework. Week 4 remains the stable vertical-slice baseline. Week 4 and Week 6 have runtime paths; Week 8 has a package-backed Laravel economic engine, runtime evaluation persistence, and KPI/ranking integration for package-supported metrics. Week 9 now has a package-backed Laravel economic engine and runtime evaluation persistence. Week 10 now has a package-backed convergence economic engine, runtime state assembly, execution integration, and KPI/ranking integration with unsupported KPIs preserved as unavailable/null.
 
 ## Week 4 package questions
 
@@ -68,7 +68,7 @@ Still open:
 
 ## Week 10 package questions
 
-Resolved by the authoritative package and Batch 20B engine:
+Resolved by the authoritative package, Batch 20B engine, and subsequent runtime/scoring integration:
 
 - Week 10 manifest;
 - canonical CSVs;
@@ -80,16 +80,19 @@ Resolved by the authoritative package and Batch 20B engine:
 - package-backed Laravel convergence economic engine;
 - demand impacts by product;
 - refinery-specific recession impacts;
-- binding-constraint rules for the two reference fixture teams.
+- binding-constraint rules for the two reference fixture teams;
+- runtime assembly of `cancellable_capex_musd` from Week 6 capital-allocation evaluation history;
+- runtime assembly of `crude_hedge_coverage` from persisted Week 5 economic evaluation history;
+- runtime assembly of `br_reported_margin_strong` from Week 4 economic resolution history;
+- runtime assembly of `straits_pacific_standing` from standing state;
+- runtime assembly of `cash_cushion_musd` from Week 8 economic evaluation history;
+- Week 10 KPI snapshots created from calculated evaluations, with unsupported KPI values preserved as unavailable/null;
+- Week 10 ranking snapshots created as incomplete while the full KPI basis is unavailable.
 
 Still open:
 
-- What production runtime assembler should derive `cancellable_capex_musd` from Week 6 capital-allocation history?
-- What production Week 5 mechanic supplies `crude_hedge_coverage`?
-- Which Week 4 consequence record should set `br_reported_margin_strong` for Delacroix cover?
 - Which standing states beyond package-defined `strained` and `hostile`, if any, should block Singapore flexibility in production content?
-- What production Week 8 cash-position model supplies `cash_cushion_musd`?
-- Which Week 10 outputs should feed KPI snapshots after runtime economics are integrated?
+- Which Week 10 convergence outputs, if any, should become available published KPI values beyond the current unavailable/null snapshots?
 - What consequence links should Week 10 create after the runtime engine exists?
 
 ## Week 8 package questions

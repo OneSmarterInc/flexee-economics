@@ -11,6 +11,7 @@ use App\Domain\Economics\Week5\Week5EconomicEvaluationService;
 use App\Domain\Economics\Week8\Week8EconomicEvaluationService;
 use App\Domain\Economics\Week9\Week9EconomicEvaluationService;
 use App\Domain\Ranking\RankingCalculationService;
+use App\Domain\Scoring\Week10KpiPopulationService;
 use App\Domain\Scoring\Week4KpiPopulationService;
 use App\Domain\Scoring\Week8KpiPopulationService;
 use App\Enums\SubmissionStatus;
@@ -20,6 +21,7 @@ use App\Models\DecisionSubmission;
 use App\Models\EconomicResolution;
 use App\Models\SectionSimulationWeek;
 use App\Models\User;
+use App\Models\Week10EconomicEvaluation;
 use App\Models\Week8EconomicEvaluation;
 use App\Models\WeekExecutionRecord;
 use Illuminate\Support\Carbon;
@@ -56,6 +58,7 @@ final readonly class WeekExecutionService
         private Week10EconomicEvaluationService $week10Economics,
         private Week4KpiPopulationService $week4Kpis,
         private Week8KpiPopulationService $week8Kpis,
+        private Week10KpiPopulationService $week10Kpis,
         private RankingCalculationService $rankings,
     ) {}
 
@@ -420,6 +423,10 @@ final readonly class WeekExecutionService
             return $this->applyWeek8Kpis($runtimeWeek);
         }
 
+        if ($runtimeWeek->definition->week_number === 10) {
+            return $this->applyWeek10Kpis($runtimeWeek);
+        }
+
         if ($runtimeWeek->definition->week_number === 4) {
             return $this->applyWeek4Kpis($runtimeWeek);
         }
@@ -474,9 +481,32 @@ final readonly class WeekExecutionService
     /**
      * @return array{status: string, summary: string, outputs: array<string, mixed>}
      */
+    private function applyWeek10Kpis(SectionSimulationWeek $runtimeWeek): array
+    {
+        $snapshotCount = 0;
+        Week10EconomicEvaluation::query()
+            ->where('tenant_id', $runtimeWeek->tenant_id)
+            ->where('section_simulation_week_id', $runtimeWeek->id)
+            ->where('status', Week10EconomicEvaluation::STATUS_CALCULATED)
+            ->orderBy('id')
+            ->get()
+            ->each(function (Week10EconomicEvaluation $evaluation) use (&$snapshotCount): void {
+                $snapshotCount += count($this->week10Kpis->populate($evaluation));
+            });
+
+        return [
+            'status' => 'completed',
+            'summary' => 'Applied KPI calculations for supported week.',
+            'outputs' => ['kpi_snapshot_count' => $snapshotCount],
+        ];
+    }
+
+    /**
+     * @return array{status: string, summary: string, outputs: array<string, mixed>}
+     */
     private function calculateRankings(SectionSimulationWeek $runtimeWeek): array
     {
-        if (! in_array($runtimeWeek->definition->week_number, [4, 8], true)) {
+        if (! in_array($runtimeWeek->definition->week_number, [4, 8, 10], true)) {
             return $this->deferred('Ranking calculation for this week is not implemented yet.');
         }
 

@@ -12,6 +12,8 @@ use App\Domain\Economics\Week10\Week10ReferencePackage;
 use App\Domain\Economics\Week8\Week8EconomicEngine;
 use App\Domain\Economics\Week9\Week9EconomicEngine;
 use App\Domain\Execution\WeekExecutionService;
+use App\Enums\KpiSnapshotStatus;
+use App\Enums\RankingSnapshotStatus;
 use App\Enums\StandingValue;
 use App\Enums\SubmissionStatus;
 use App\Models\CapitalAllocationDecision;
@@ -205,8 +207,19 @@ class MultiWeekHistoricalIntegrationTest extends TestCase
         $this->assertSame(1, $record->outputs['resolve_decisions']['week10_economic_evaluation_count']);
         $this->assertSame(1, $record->outputs['resolve_decisions']['evaluation_status_counts'][Week10EconomicEvaluation::STATUS_CALCULATED]);
         $this->assertSame('week_execution_service', $evaluation->evaluated_by_process);
-        $this->assertSame(0, KpiSnapshot::query()->where('section_simulation_week_id', $context['weeks'][10]->id)->count());
-        $this->assertSame(0, RankingSnapshot::query()->where('section_simulation_week_id', $context['weeks'][10]->id)->count());
+        $this->assertSame(7, KpiSnapshot::query()->where('section_simulation_week_id', $context['weeks'][10]->id)->count());
+        $this->assertSame(7, KpiSnapshot::query()
+            ->where('section_simulation_week_id', $context['weeks'][10]->id)
+            ->where('status', KpiSnapshotStatus::Unavailable->value)
+            ->whereNull('value')
+            ->count());
+        $ranking = RankingSnapshot::query()
+            ->where('section_simulation_week_id', $context['weeks'][10]->id)
+            ->where('team_simulation_id', $context['teamSimulation']->id)
+            ->firstOrFail();
+        $this->assertSame(RankingSnapshotStatus::Incomplete, $ranking->statusEnum());
+        $this->assertNull($ranking->composite_score);
+        $this->assertNull($ranking->rank);
         $this->assertSame(0, CohortFeedbackEffect::query()->where('source_section_simulation_week_id', $context['weeks'][10]->id)->count());
     }
 

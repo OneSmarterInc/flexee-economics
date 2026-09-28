@@ -9,6 +9,8 @@ use App\Domain\Economics\Week10\Week10ConvergenceEconomicEngine;
 use App\Domain\Economics\Week8\Week8EconomicEngine;
 use App\Domain\Simulation\SimulationLifecycleService;
 use App\Enums\DecisionFieldType;
+use App\Enums\KpiSnapshotStatus;
+use App\Enums\RankingSnapshotStatus;
 use App\Enums\SectionSimulationWeekStatus;
 use App\Enums\StandingValue;
 use App\Enums\SubmissionStatus;
@@ -97,8 +99,19 @@ class Week10RuntimeIntegrationSmokeTest extends TestCase
         $this->assertSame(5, $evaluation->binding_constraint_count);
         $this->assertSame([], $evaluation->unresolved_dependencies);
 
-        $this->assertSame(0, KpiSnapshot::query()->where('section_simulation_week_id', $context['week10']->id)->count());
-        $this->assertSame(0, RankingSnapshot::query()->where('section_simulation_week_id', $context['week10']->id)->count());
+        $this->assertSame(7, KpiSnapshot::query()->where('section_simulation_week_id', $context['week10']->id)->count());
+        $this->assertSame(7, KpiSnapshot::query()
+            ->where('section_simulation_week_id', $context['week10']->id)
+            ->where('status', KpiSnapshotStatus::Unavailable->value)
+            ->whereNull('value')
+            ->count());
+        $ranking = RankingSnapshot::query()
+            ->where('section_simulation_week_id', $context['week10']->id)
+            ->where('team_simulation_id', $context['teamSimulation']->id)
+            ->firstOrFail();
+        $this->assertSame(RankingSnapshotStatus::Incomplete, $ranking->statusEnum());
+        $this->assertNull($ranking->composite_score);
+        $this->assertNull($ranking->rank);
         $this->assertSame(0, ConsequenceLink::query()->where('source_section_simulation_week_id', $context['week10']->id)->count());
         $this->assertSame(0, CohortFeedbackEffect::query()->where('source_section_simulation_week_id', $context['week10']->id)->count());
 
