@@ -142,6 +142,9 @@ Resolved by the authoritative package readiness gate:
 - feasible portfolio counts and ordering assertions pinned by `fixtures/week12_golden.json`;
 - Week 12 classified as ready for a package-backed transition-portfolio economic engine;
 - package-backed Laravel transition-portfolio economic engine;
+- runtime evaluation persistence through `Week12EconomicEvaluation`;
+- package-backed Week 12 execution through `WeekExecutionService`;
+- student resolved-status visibility from persisted Week 12 evaluations;
 - project scenario NPV calculations;
 - portfolio feasibility enumeration;
 - Helix/divestment interlock behavior;
@@ -149,7 +152,6 @@ Resolved by the authoritative package readiness gate:
 
 Still open:
 
-- What exact application decision-form schema should capture Week 12 portfolio selections?
 - Which Week 12 outputs, if any, should become published KPI values after the economic engine exists?
 - What standing transitions should Week 12 create for transition portfolio choices?
 - What consequence links should Week 12 create after runtime evaluation?
