@@ -140,7 +140,12 @@ Resolved by the authoritative package readiness gate:
 - Euro retail divestment proceeds reconciled at `$550M`;
 - Helix Rotterdam plus offshore wind interlock validated at `$1,750M`;
 - feasible portfolio counts and ordering assertions pinned by `fixtures/week12_golden.json`;
-- Week 12 classified as ready for a future package-backed transition-portfolio economic engine.
+- Week 12 classified as ready for a package-backed transition-portfolio economic engine;
+- package-backed Laravel transition-portfolio economic engine;
+- project scenario NPV calculations;
+- portfolio feasibility enumeration;
+- Helix/divestment interlock behavior;
+- worked-example parity.
 
 Still open:
 
