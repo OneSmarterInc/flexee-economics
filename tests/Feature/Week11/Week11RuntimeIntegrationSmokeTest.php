@@ -8,6 +8,8 @@ use App\Domain\Content\SimulationContentActivationService;
 use App\Domain\Economics\Week11\Week11EconomicEngine;
 use App\Domain\Simulation\SimulationLifecycleService;
 use App\Enums\DecisionFieldType;
+use App\Enums\KpiSnapshotStatus;
+use App\Enums\RankingSnapshotStatus;
 use App\Enums\SectionSimulationWeekStatus;
 use App\Livewire\FacultyWeekControl;
 use App\Models\CohortFeedbackEffect;
@@ -90,8 +92,23 @@ class Week11RuntimeIntegrationSmokeTest extends TestCase
         $this->assertSame('4515.278348', $evaluation->take_results['current']['pv_stay_musd']);
         $this->assertSame('372.572983', $evaluation->worked_example_snapshot['pv_after']);
 
-        $this->assertSame(0, KpiSnapshot::query()->where('section_simulation_week_id', $context['runtimeWeek']->id)->count());
-        $this->assertSame(0, RankingSnapshot::query()->where('section_simulation_week_id', $context['runtimeWeek']->id)->count());
+        $kpiSnapshots = KpiSnapshot::query()
+            ->with('definition')
+            ->where('section_simulation_week_id', $context['runtimeWeek']->id)
+            ->orderBy('id')
+            ->get();
+        $this->assertSame(7, $kpiSnapshots->count());
+        $this->assertSame(7, $kpiSnapshots->where('status', KpiSnapshotStatus::Unavailable->value)->whereNull('value')->count());
+        $this->assertTrue($kpiSnapshots->contains(fn (KpiSnapshot $snapshot): bool => $snapshot->definition->key === 'integrated_margin_per_boe'));
+        $this->assertSame($evaluation->id, $kpiSnapshots->first()->input_snapshot['source_snapshot']['week11_economic_evaluation_id']);
+
+        $ranking = RankingSnapshot::query()
+            ->where('section_simulation_week_id', $context['runtimeWeek']->id)
+            ->where('team_simulation_id', $context['teamSimulation']->id)
+            ->firstOrFail();
+        $this->assertSame(RankingSnapshotStatus::Incomplete, $ranking->statusEnum());
+        $this->assertNull($ranking->composite_score);
+        $this->assertNull($ranking->rank);
         $this->assertSame(0, ConsequenceLink::query()->where('source_section_simulation_week_id', $context['runtimeWeek']->id)->count());
         $this->assertSame(0, CohortFeedbackEffect::query()->count());
         $this->assertSame(0, StandingState::query()->count());

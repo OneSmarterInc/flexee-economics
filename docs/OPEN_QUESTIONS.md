@@ -113,7 +113,9 @@ Resolved by the authoritative package, Batch 24A engine, and Batch 24B runtime i
 - sunk-capital invariance in the forward decision calculation;
 - runtime evaluation persistence through `Week11EconomicEvaluation`;
 - package-backed Week 11 execution through `WeekExecutionService`;
-- student resolved-status visibility from persisted Week 11 evaluations.
+- student resolved-status visibility from persisted Week 11 evaluations;
+- Week 11 KPI snapshots created from calculated evaluations, with unsupported KPI values preserved as unavailable/null;
+- Week 11 ranking snapshots created as incomplete while the full KPI basis is unavailable.
 
 Still open:
 
@@ -121,7 +123,7 @@ Still open:
 - What persisted production source supplies Week 6 Kessana capital exposure at runtime?
 - What standing transitions should Week 11 create for Tetteh or related counterparties?
 - What consequence links should Week 11 create after runtime evaluation?
-- Which Week 11 outputs, if any, should feed KPI snapshots after runtime economics are integrated?
+- Which Week 11 outputs, if any, should become available published KPI values beyond the current unavailable/null snapshots?
 
 ## Week 8 package questions
 
