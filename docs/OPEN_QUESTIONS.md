@@ -2,7 +2,7 @@
 
 Updated: 2026-09-26.
 
-The authoritative markdown sources and package roots for Weeks 1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12, and 13 are now present and registered through the content package framework. Week 4 remains the stable vertical-slice baseline. Week 4 and Week 6 have runtime paths; Week 8 has a package-backed Laravel economic engine, runtime evaluation persistence, and KPI/ranking integration for package-supported metrics. Week 9 now has a package-backed Laravel economic engine and runtime evaluation persistence. Week 10 now has a package-backed convergence economic engine, runtime state assembly, execution integration, and KPI/ranking integration with unsupported KPIs preserved as unavailable/null. Week 11 now has a package-backed Kessana hold-up economic engine, golden tests, and runtime evaluation persistence.
+The authoritative markdown sources and package roots for Weeks 1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12, and 13 are now present and registered through the content package framework. Week 4 remains the stable vertical-slice baseline. Week 4 and Week 6 have runtime paths; Week 8 has a package-backed Laravel economic engine, runtime evaluation persistence, and KPI/ranking integration for package-supported metrics. Week 9 now has a package-backed Laravel economic engine and runtime evaluation persistence. Week 10 now has a package-backed convergence economic engine, runtime state assembly, execution integration, and KPI/ranking integration with unsupported KPIs preserved as unavailable/null. Week 11 now has a package-backed Kessana hold-up economic engine, golden tests, and runtime evaluation persistence. Week 12 has passed the package-readiness gate, including reconciliation of the earlier Helix Rotterdam bucket conflict.
 
 ## Week 4 package questions
 
@@ -124,6 +124,30 @@ Still open:
 - What standing transitions should Week 11 create for Tetteh or related counterparties?
 - What consequence links should Week 11 create after runtime evaluation?
 - Which Week 11 outputs, if any, should become available published KPI values beyond the current unavailable/null snapshots?
+
+## Week 12 package questions
+
+Resolved by the authoritative package readiness gate:
+
+- Week 12 manifest;
+- canonical CSVs;
+- student workbook and notebook;
+- faculty solution workbook and notebook;
+- golden fixture;
+- provenance hashes;
+- package validation report;
+- Helix Rotterdam `$1,200M` cost reconciled with revised adjacent-transition ceiling of `$1,200M`;
+- Euro retail divestment proceeds reconciled at `$550M`;
+- Helix Rotterdam plus offshore wind interlock validated at `$1,750M`;
+- feasible portfolio counts and ordering assertions pinned by `fixtures/week12_golden.json`;
+- Week 12 classified as ready for a future package-backed transition-portfolio economic engine.
+
+Still open:
+
+- What exact application decision-form schema should capture Week 12 portfolio selections?
+- Which Week 12 outputs, if any, should become published KPI values after the economic engine exists?
+- What standing transitions should Week 12 create for transition portfolio choices?
+- What consequence links should Week 12 create after runtime evaluation?
 
 ## Week 8 package questions
 
