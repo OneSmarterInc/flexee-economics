@@ -263,7 +263,7 @@ class FacultyWeekControl extends Component
         return match ($runtimeWeek->definition->week_number) {
             6 => Week6ContentPackageManifest::PACKAGE_TYPE,
             8 => Week8ContentPackageManifest::PACKAGE_TYPE,
-            9, 10 => app(AuthoritativeContentPackageManifest::class)->packageType($runtimeWeek->definition->week_number),
+            5, 9, 10 => app(AuthoritativeContentPackageManifest::class)->packageType($runtimeWeek->definition->week_number),
             default => 'reference_package',
         };
     }
