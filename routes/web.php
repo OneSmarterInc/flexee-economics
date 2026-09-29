@@ -6,6 +6,7 @@ use App\Http\Controllers\Foundation\SectionController;
 use App\Http\Controllers\Foundation\SectionSimulationController;
 use App\Http\Controllers\Foundation\SectionSimulationWeekController;
 use App\Http\Controllers\Foundation\TeamController;
+use App\Http\Controllers\Student\DashboardController as StudentDashboardController;
 use App\Http\Controllers\Student\SubmissionController;
 use Illuminate\Support\Facades\Route;
 
@@ -20,6 +21,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::view('faculty/week-control', 'faculty-week-control')->name('faculty.week-control');
     Route::view('faculty/causal-trace', 'faculty-causal-trace')->name('faculty.causal-trace');
     Route::view('faculty/what-if', 'faculty-what-if-console')->name('faculty.what-if');
+    Route::get('student/dashboard', StudentDashboardController::class)->name('student.dashboard');
     Route::get('foundation/courses/{course}', [CourseController::class, 'show'])->name('foundation.courses.show');
     Route::patch('foundation/courses/{course}', [CourseController::class, 'update'])->name('foundation.courses.update');
     Route::get('foundation/sections/{section}', [SectionController::class, 'show'])->name('foundation.sections.show');
