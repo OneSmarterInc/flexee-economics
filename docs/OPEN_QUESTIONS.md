@@ -190,6 +190,27 @@ Still open:
 - What consequence links should Week 13 create after runtime evaluation, if a future authoritative consequence-propagation table supplies target state, timing, and future consumer?
 - How should the package-defined `asset_health_penalty_pts` connect to a future asset-health state model?
 
+## Week 14 board-defense questions
+
+Resolved by the authoritative Week 14 readiness gate:
+
+- Week 14 has no computational data package by design.
+- Week 14 is a board-defense and assessment workflow, not an economic engine.
+- Student deliverables are a board presentation/defense and final synthesis memo.
+- The faculty assessment dimensions are strategic coherence, decision quality, and self-understanding.
+- The four-tier model separates reasoning quality from leaderboard/KPI outcomes.
+- The workflow consumes the complete simulation history, including decisions, alternatives, memos, KPI/ranking history, standing, causal trace, reasoning-versus-luck records, and counterfactuals where available.
+
+Still open:
+
+- What numeric grading scale should be used for the three Week 14 assessment dimensions?
+- Are strategic coherence, decision quality, and self-understanding equally weighted?
+- What final synthesis memo length, file format, and submission deadline should be enforced?
+- Should presentation artifacts be uploaded, linked, or recorded only as delivered?
+- When should final assessment feedback become visible to students?
+- Should faculty record a single final tier, or separately record reasoning-axis and outcome-axis positions?
+- What prompt version and stored-result policy should govern any future Week 14 LLM synthesis?
+
 ## Week 8 package questions
 
 Resolved by the authoritative package:
