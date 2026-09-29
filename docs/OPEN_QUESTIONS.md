@@ -200,6 +200,10 @@ Resolved by the authoritative Week 14 readiness gate:
 - The faculty assessment dimensions are strategic coherence, decision quality, and self-understanding.
 - The four-tier model separates reasoning quality from leaderboard/KPI outcomes.
 - The workflow consumes the complete simulation history, including decisions, alternatives, memos, KPI/ranking history, standing, causal trace, reasoning-versus-luck records, and counterfactuals where available.
+- Week 14 submission and assessment records exist for board-defense materials, qualitative rubric capture, feedback, and student-visible published assessment.
+- Submitted board-defense records are locked through submission revision history.
+- Assessment feedback publication is explicit; unpublished feedback and faculty private notes remain hidden from students.
+- No automatic score, points, weight, grade, ranking-to-grade conversion, or Week 14 economic runtime exists.
 
 Still open:
 

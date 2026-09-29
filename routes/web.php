@@ -1,11 +1,13 @@
 <?php
 
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\Faculty\BoardDefenseAssessmentController;
 use App\Http\Controllers\Foundation\CourseController;
 use App\Http\Controllers\Foundation\SectionController;
 use App\Http\Controllers\Foundation\SectionSimulationController;
 use App\Http\Controllers\Foundation\SectionSimulationWeekController;
 use App\Http\Controllers\Foundation\TeamController;
+use App\Http\Controllers\Student\BoardDefenseController;
 use App\Http\Controllers\Student\DashboardController as StudentDashboardController;
 use App\Http\Controllers\Student\SubmissionController;
 use Illuminate\Support\Facades\Route;
@@ -22,6 +24,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::view('faculty/causal-trace', 'faculty-causal-trace')->name('faculty.causal-trace');
     Route::view('faculty/what-if', 'faculty-what-if-console')->name('faculty.what-if');
     Route::get('student/dashboard', StudentDashboardController::class)->name('student.dashboard');
+    Route::get('student/week14/weeks/{sectionSimulationWeek}/defense', [BoardDefenseController::class, 'show'])->name('student.week14.defense.show');
+    Route::post('student/week14/weeks/{sectionSimulationWeek}/defense/draft', [BoardDefenseController::class, 'draft'])->name('student.week14.defense.draft');
+    Route::post('student/week14/weeks/{sectionSimulationWeek}/defense/submit', [BoardDefenseController::class, 'submit'])->name('student.week14.defense.submit');
+    Route::get('faculty/week14/weeks/{sectionSimulationWeek}/teams/{teamSimulation}/assessment', [BoardDefenseAssessmentController::class, 'show'])->name('faculty.week14.assessment.show');
+    Route::post('faculty/week14/weeks/{sectionSimulationWeek}/teams/{teamSimulation}/assessment', [BoardDefenseAssessmentController::class, 'save'])->name('faculty.week14.assessment.save');
+    Route::post('faculty/week14/assessments/{boardDefenseAssessment}/publish', [BoardDefenseAssessmentController::class, 'publish'])->name('faculty.week14.assessment.publish');
     Route::get('foundation/courses/{course}', [CourseController::class, 'show'])->name('foundation.courses.show');
     Route::patch('foundation/courses/{course}', [CourseController::class, 'update'])->name('foundation.courses.update');
     Route::get('foundation/sections/{section}', [SectionController::class, 'show'])->name('foundation.sections.show');
