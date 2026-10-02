@@ -1,0 +1,55 @@
+{
+  "meta": {
+    "week": 13,
+    "name": "Factor markets \u2014 three labor structures",
+    "package_version": "1.0.0-draft",
+    "provenance": "Computed from canonical CSVs in data/; reconciled against the constants ledger",
+    "tolerance": {
+      "rel": 0.001,
+      "abs": 1e-05
+    }
+  },
+  "results": {
+    "norway_gross_cost_musd": 33.6,
+    "norway_after_tax_cost_musd": 7.392,
+    "norway_after_tax_share": 0.22,
+    "permian_mrp_k": 507.6,
+    "mrp_to_wage": 3.50069,
+    "turnaround_peak_cost_musd": 81.0,
+    "delay_expected_cost_musd": 78.0,
+    "delay_saving_musd": 3.0,
+    "delay_saving_pct": 0.037037,
+    "asset_health_penalty_pts": 3.0
+  },
+  "worked_example": {
+    "mrp": 50000.0,
+    "mrp_minus_wage": 10000.0,
+    "after_tax_wage_increase": 50.0
+  },
+  "ordering_assertions": [
+    {
+      "assert": "Tax shield: the Norwegian concession costs Halden 22% of its face value",
+      "holds": true
+    },
+    {
+      "assert": "Permian marginal worker MRP covers the market wage (wage-taker, compete on retention)",
+      "holds": true
+    },
+    {
+      "assert": "Contractor peak is 35% above base",
+      "holds": true
+    },
+    {
+      "assert": "Turnaround timing is a genuine tradeoff: expected costs within 5% of each other",
+      "holds": true
+    },
+    {
+      "assert": "Delaying carries an asset-health KPI penalty",
+      "holds": true
+    }
+  ],
+  "new_parameters": [
+    "Norwegian offshore wage bill $420M; Permian marginal worker 9,000 bbl/yr at a $145k loaded wage; turnaround labor base $60M, delayed-outage probability 12%, outage cost $150M, asset-health penalty 3 points. The spec named these inputs without values."
+  ],
+  "flags": []
+}

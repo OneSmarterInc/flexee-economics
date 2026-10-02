@@ -1,0 +1,6 @@
+parameter,value,unit,note
+eurusd_spot,1.0850,rate,EUR/USD spot this week
+eurusd_5y_forward,1.1020,rate,5-year forward
+helix_wtx_denomination,USD,currency,Helix West Texas contract
+helix_rotterdam_denomination,EUR,currency,Prospective Helix Rotterdam receivable
+helix_credit_denomination,USD,currency,Helix credit profile

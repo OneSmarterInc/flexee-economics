@@ -1,0 +1,7 @@
+parameter,value
+p1_base,-50.0
+p1_carbon_sens,1.0
+p2_base,150.0
+p2_carbon_sens,-1.2
+carbon_low,40.0
+carbon_high,180.0

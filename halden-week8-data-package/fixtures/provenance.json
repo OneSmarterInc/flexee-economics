@@ -1,0 +1,16 @@
+{
+  "package": "halden-week8-data-package",
+  "package_version": "1.0.0-draft",
+  "artifacts": {
+    "MANIFEST.md": "5fb699e475f0b4d22d129c2ef7330947aef35c0681cc4733a9c25fb3c6cff681",
+    "halden_week8.xlsx": "fe5341e4f074b42a91d3b28adbf92e45cdd1b83da95e4f1be04cfa5354e5824e",
+    "halden_week8_analysis.ipynb": "701e5ab0bf9fcf7df2376b303b6e55d4ab3c9ce65863b62b91b6e03698302b2d",
+    "data/baseline_state.csv": "4fafe209acabe71766cf09627dcbdcce4f5c3159255004b9e7bded149c5bce04",
+    "data/compliance_history.csv": "6adf5eda7595c26870fbf1934ed6e3be5e9ec33046ffbe1cbf0becbc3162b453",
+    "data/opec_scenarios.csv": "2619e5df08eb007a92b0db1e04c9f0e4d3acf40a3c3d41366e3958b7bba9bb0d",
+    "data/propagation_coefficients.csv": "9bd43603b6a9669e3dcdf689f035587b03b274a43b2ed53fc4c505d0b60a26d3",
+    "data/worked_example_prior.csv": "7b02b08d41648c03479a5747d64bbd02a949bbab737ad018e668c6a452f0b749",
+    "faculty/halden_week8_FACULTY_SOLUTION.xlsx": "da834ff85f3436a55601a195ca6294f14008955501d8ec3e39400294cca2b7bf",
+    "fixtures/week8_golden.json": "838ba5b630f1e5b8e859d9339c31217ea20b9d220767d87fb35785521aa46cc7"
+  }
+}

@@ -1,0 +1,69 @@
+{
+  "meta": {
+    "week": 11,
+    "name": "Kessana \u2014 the hold-up problem",
+    "package_version": "1.0.0-draft",
+    "provenance": "Computed from canonical CSVs in data/; reconciled against the constants ledger",
+    "tolerance": {
+      "rel": 0.001,
+      "abs": 1e-05
+    }
+  },
+  "results": {
+    "profit_oil": 67.0,
+    "annual_mbbl": 34.0,
+    "annuity_factor": 5.216116,
+    "margin_current": 25.46,
+    "pv_stay_current": 4515.278348,
+    "margin_mid": 21.44,
+    "pv_stay_mid": 3802.339662,
+    "margin_demanded": 17.42,
+    "pv_stay_demanded": 3089.400975,
+    "margin_harsh": 13.4,
+    "pv_stay_harsh": 2376.462288,
+    "exit_value": 180.0,
+    "stay_minus_exit_demanded": 2909.400975,
+    "indifference_take": 0.984851,
+    "sunk_invariant": true,
+    "comparables_min": 0.5,
+    "comparables_max": 0.85,
+    "demanded_take": 0.74
+  },
+  "worked_example": {
+    "annuity_factor": 4.96764,
+    "pv_before": 496.763977,
+    "pv_after": 372.572983,
+    "indifference_take": 0.983896
+  },
+  "ordering_assertions": [
+    {
+      "assert": "Staying beats exiting at every take on the grid, including 80%",
+      "holds": true
+    },
+    {
+      "assert": "Value of staying falls as the take rises",
+      "holds": true
+    },
+    {
+      "assert": "Sunk capital does not enter the decision (result unchanged when sunk capital changes)",
+      "holds": true
+    },
+    {
+      "assert": "On raw economics the government could push the take above 95% before Halden walks",
+      "holds": true
+    },
+    {
+      "assert": "The 74% demand sits inside the range of comparable fiscal terms",
+      "holds": true
+    },
+    {
+      "assert": "Ledger reconciliation: company margin 25.46 at 62%, 17.42 at 74%",
+      "holds": true
+    }
+  ],
+  "new_parameters": [
+    "comparable_terms.csv: six comparable fiscal regimes, government take 50%-85%.",
+    "Production profile simplified to level annual output (34 M bbl/yr over 10 years)."
+  ],
+  "flags": []
+}

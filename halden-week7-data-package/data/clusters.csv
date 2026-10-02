@@ -1,0 +1,5 @@
+cluster,elasticity,passthrough,annual_volume_mgal,core
+urban_high_comp,-0.11,0.82,1100,no
+suburban_mid_comp,-0.06,0.62,1900,yes
+rural_low_comp,-0.02,0.42,1250,yes
+interstate,-0.05,0.55,750,no

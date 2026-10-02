@@ -1,0 +1,79 @@
+{
+  "meta": {
+    "week": 7,
+    "name": "Competitive response \u2014 two market structures",
+    "package_version": "1.0.0-draft",
+    "provenance": "Computed from canonical CSVs in data/; reconciled against the constants ledger",
+    "tolerance": {
+      "rel": 0.001,
+      "abs": 1e-05
+    }
+  },
+  "results": {
+    "at_risk_pct_urban_high_comp": -0.20625,
+    "match_cost_musd_urban_high_comp": 66.0,
+    "ignore_cost_musd_urban_high_comp": 0.328969,
+    "retail_decision_urban_high_comp": "ignore",
+    "at_risk_pct_suburban_mid_comp": -0.1125,
+    "match_cost_musd_suburban_mid_comp": 114.0,
+    "ignore_cost_musd_suburban_mid_comp": 0.309937,
+    "retail_decision_suburban_mid_comp": "ignore",
+    "at_risk_pct_rural_low_comp": -0.0375,
+    "match_cost_musd_rural_low_comp": 75.0,
+    "ignore_cost_musd_rural_low_comp": 0.067969,
+    "retail_decision_rural_low_comp": "ignore",
+    "at_risk_pct_interstate": -0.09375,
+    "match_cost_musd_interstate": 45.0,
+    "ignore_cost_musd_interstate": 0.101953,
+    "retail_decision_interstate": "ignore",
+    "ev_hold_musd": -28.0,
+    "ev_match_musd": -80.0,
+    "breakeven_build_probability": 0.375,
+    "capacity_decision": "hold",
+    "nonfuel_price_war": 0.38,
+    "nonfuel_change_pct_price_war": -9.52381,
+    "nonfuel_base": 0.42,
+    "nonfuel_change_pct_base": 0.0,
+    "nonfuel_disciplined": 0.45,
+    "nonfuel_change_pct_disciplined": 7.142857
+  },
+  "worked_example": {
+    "ignore_cost_elastic": 125.0,
+    "ignore_cost_inelastic": 0.1875,
+    "match_cost": 100.0
+  },
+  "ordering_assertions": [
+    {
+      "assert": "Core clusters (suburban, rural): ignoring the cut costs far less than matching it",
+      "holds": true
+    },
+    {
+      "assert": "Capacity game: holding beats matching at the assessed build probability (0.70)",
+      "holds": true
+    },
+    {
+      "assert": "Breakeven build probability is 0.375 \u2014 match only if the rival is likely bluffing",
+      "holds": true
+    },
+    {
+      "assert": "Window 3 reproduces the ledger: 0.380 / 0.420 / 0.450",
+      "holds": true
+    },
+    {
+      "assert": "Window 3 bounded within 15% of base",
+      "holds": true
+    },
+    {
+      "assert": "A price war hurts more than discipline helps",
+      "holds": true
+    }
+  ],
+  "new_parameters": [
+    "clusters.csv annual volumes (M gal): urban 1,100; suburban 1,900; rural 1,250; interstate 750.",
+    "rival_move.csv: gallons per fill 12; rival build probability 0.70 (analyst read of the rival balance sheet).",
+    "capacity_payoffs.csv: Halden payoff matrix ($M/yr): hold/builds -40, hold/bluffs 0, match/builds -140, match/bluffs +60."
+  ],
+  "flags": [
+    "Under the ledger elasticities, matching the price cut is not justified in ANY cluster, including urban. The Week 7 spec implied an elastic cluster might justify a response. That only happens at station-level elasticities (around -20; see the worked example). Decide whether urban should carry a station-level elasticity, or keep the lesson as \"never match in these markets.\""
+  ]
+}

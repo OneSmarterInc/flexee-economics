@@ -1,0 +1,4 @@
+cohort_wk4_behavior,discount_rate,capital_envelope_musd,note
+disciplined,0.065,1520,"Marginal-cost TP cluster - low cost of capital, large envelope"
+base,0.085,1150,"Mixed cohort"
+lax,0.110,950,"Absorbed-cost cluster - high cost of capital, tight envelope; punished harder (asymmetric)"

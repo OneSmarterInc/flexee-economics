@@ -1,0 +1,6 @@
+parameter,value
+labor_cost_base_musd,60.0
+peak_multiplier,1.35
+outage_probability_if_delayed,0.12
+outage_cost_musd,150.0
+asset_health_penalty_pts,3.0

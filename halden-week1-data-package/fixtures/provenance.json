@@ -1,0 +1,36 @@
+{
+  "package": "halden-week1-data-package",
+  "package_version": "1.0.0-draft",
+  "artifacts": {
+    "MANIFEST.md": "b08404ea5ced8063f1c22afefccead68b0dff80f423b71bc2189a8ff4ea32dd6",
+    "VALIDATION_16A.md": "61aeb819dda338a048bf18861a00dad545c9d0e775a31ce1b3a131ec146843aa",
+    "halden_week1.xlsx": "87f011c5b4ecdedaa76483a0784e62a458d31ff5a87ab31f78a6c79e4c5feb2e",
+    "halden_week1_analysis.ipynb": "356b07e98ec413727e354aaacf7960b8e67d1bfdf0097597110cf66168e5b484",
+    "data/benchmarks.csv": "91a5acc5ebd72856d1575d95ea39348608cb25ac0f7fb701398e7fdb2cffa6ff",
+    "data/book_values.csv": "24279cea7280438003c9810975904ad7974faddcac6ac140aab1abd1e6558398",
+    "data/product_yields.csv": "1729dd6083e34d89443b1c5fd72eae4e88c21926dfd3f3ada1317ecc63ed183f",
+    "data/refining_assets.csv": "d3ca7428f85bcdec93d06d88ae634a7af3a0cc821aad7ba5439bc3b422a3e789",
+    "data/rotterdam_cost_split.csv": "d0b8baca43dce94e24a60087243afcd066a83133e75dcc9dab7476adbbb0dab0",
+    "data/upstream_assets.csv": "dcde2bd424b2754529057c642ed43762eeff4d90669f2e2ff122e7e8910bbd8b",
+    "data/worked_example_assets.csv": "11cb4155191c46fdb7a23d95ed787d4eebf872a9c1b4c435b9e6e7c1b2141e95",
+    "faculty/halden_week1_FACULTY_SOLUTION.ipynb": "64dcdaaedb34d1c59d152ebcb6ddd89fa0adae590dc49d1ecfef75c76e7fd820",
+    "faculty/halden_week1_FACULTY_SOLUTION.xlsx": "243d7eb364edaf07e72de0d488520c9f928bf9bfd3700ba113bbe2872822d396",
+    "fixtures/week1_golden.json": "d25a50a02ca32644be8fe529bc8884a712950ccbe0e8203328bb443e4676ce67"
+  },
+  "artifact_versions": {
+    "MANIFEST.md": "1.0.0-draft",
+    "VALIDATION_16A.md": "1.0.0-draft",
+    "halden_week1.xlsx": "1.0.0-draft",
+    "halden_week1_analysis.ipynb": "1.0.0-draft",
+    "data/benchmarks.csv": "1.0.0-draft",
+    "data/book_values.csv": "1.0.0-draft",
+    "data/product_yields.csv": "1.0.0-draft",
+    "data/refining_assets.csv": "1.0.0-draft",
+    "data/rotterdam_cost_split.csv": "1.0.0-draft",
+    "data/upstream_assets.csv": "1.0.0-draft",
+    "data/worked_example_assets.csv": "1.0.0-draft",
+    "faculty/halden_week1_FACULTY_SOLUTION.ipynb": "1.0.0-draft",
+    "faculty/halden_week1_FACULTY_SOLUTION.xlsx": "1.0.0-draft",
+    "fixtures/week1_golden.json": "1.0.0-draft"
+  }
+}

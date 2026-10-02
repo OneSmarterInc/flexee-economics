@@ -1,0 +1,34 @@
+{
+  "package": "halden-week11-data-package",
+  "package_version": "1.0.0-draft",
+  "artifacts": {
+    "MANIFEST.md": "3d198f04cc670301c3781d445fff54767e5ae8c2f061edcee1eefc0d461e0dbc",
+    "VALIDATION_16A.md": "4f37ff72b97c3378d921d009314bd846f5b8d23288259ba248c64e78521577b6",
+    "halden_week11.xlsx": "d4859250b416d89270ba2ef73105539b077507d0baa7de59f450e98adff251df",
+    "halden_week11_analysis.ipynb": "ab01d015b7dd94e89cdb2f6de48bb52a346331b74beb53e02bb5b61336ea80ae",
+    "data/comparable_terms.csv": "1d7eb5b12e72bae5953f0fbfaf79edb6454c71a9f7865d825d357d0c9dfd15db",
+    "data/exit_and_sunk.csv": "bd6c46df0736db7d47603184f4e3d5baa91c2933968ecc0d443ca19859c67d91",
+    "data/psc_terms.csv": "5b4d04e448b17227b4df4f75bf8d6e935f8c0240fa62a2ba542490a2eb3e09bd",
+    "data/reserves.csv": "5178e23ec8e0725ee03b1674234662c08c9bb8f29a1bd6dc305794a75e163a2a",
+    "data/take_grid.csv": "9d4238099c2bd8216e4dc357ad26123f93e2a216b618c561670ad694a0d3b1ab",
+    "data/worked_example_field.csv": "789020f2223fa62832589a7c1610d9fa52f45592b5e82421e995996364c78772",
+    "faculty/halden_week11_FACULTY_SOLUTION.ipynb": "2a8e1371ad55653296bfdac2558f027db98ed89c2d6a2bbbd7973a0712c5677e",
+    "faculty/halden_week11_FACULTY_SOLUTION.xlsx": "2c41bd1686913762c9dc63376838496f4fabb2d13896e57f31fa7974fbf48b59",
+    "fixtures/week11_golden.json": "bc09d927e11bcb498d4cea18e7475b1c692f0ab26911920f3d18a395dfb13df9"
+  },
+  "artifact_versions": {
+    "MANIFEST.md": "1.0.0-draft",
+    "VALIDATION_16A.md": "1.0.0-draft",
+    "halden_week11.xlsx": "1.0.0-draft",
+    "halden_week11_analysis.ipynb": "1.0.0-draft",
+    "data/comparable_terms.csv": "1.0.0-draft",
+    "data/exit_and_sunk.csv": "1.0.0-draft",
+    "data/psc_terms.csv": "1.0.0-draft",
+    "data/reserves.csv": "1.0.0-draft",
+    "data/take_grid.csv": "1.0.0-draft",
+    "data/worked_example_field.csv": "1.0.0-draft",
+    "faculty/halden_week11_FACULTY_SOLUTION.ipynb": "1.0.0-draft",
+    "faculty/halden_week11_FACULTY_SOLUTION.xlsx": "1.0.0-draft",
+    "fixtures/week11_golden.json": "1.0.0-draft"
+  }
+}

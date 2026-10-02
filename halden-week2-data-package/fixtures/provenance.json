@@ -1,0 +1,34 @@
+{
+  "package": "halden-week2-data-package",
+  "package_version": "1.0.0-draft",
+  "artifacts": {
+    "MANIFEST.md": "f6cc4232e7e6ec0655e173a3f19f274ab0f03b3d579d64c7ddef44ddf4a01a64",
+    "VALIDATION_16A.md": "966bb1aae0517323b4095404c26ae062924e34b5df741ba36ab22b83ca7c7973",
+    "halden_week2.xlsx": "442028b776a26e4c161b8422ca6c514dd225c4a0793bfbc73004357e4e5ba716",
+    "halden_week2_analysis.ipynb": "a6cbddd34caddee4fb74d16f5b0332e4307772b6193553df18dbb826313dc83f",
+    "data/cluster_params.csv": "24ebc910c5257b24592b439e2c237250d2b947b2c039e3a400fb05e6ea3de6ab",
+    "data/cluster_price_volume.csv": "b564c31df41a63a41c0f45382a6966b2503f6f41ae07878b8a4c4696b4dd3f58",
+    "data/fuel_nonfuel.csv": "ba86a09d51c3ba0ca91f1f1472553039b2c0dd491cada296c7ab02ee204b83c5",
+    "data/pricing_params.csv": "eb62b9d27c109ac108d1ae4b23400b2bf6622259047c647b06b6e7181b529145",
+    "data/worked_example_cluster.csv": "708906622036b7b8034b8bd997fa434a9b981e8a6b0627efaf5a13e07e29bd52",
+    "data/worked_example_params.csv": "c4a3f40dd8b4d1c53db52f31cebdaa7fe871754a151771a66c35450072c218a8",
+    "faculty/halden_week2_FACULTY_SOLUTION.ipynb": "9fdf26d986bc96707271e64a39bc4cbeb5dee6605c6fa6fb9231be78b579ea0f",
+    "faculty/halden_week2_FACULTY_SOLUTION.xlsx": "547973f655b356517e82b6e7e9950cdb0f06b78f8b52544966d0e24315d261f8",
+    "fixtures/week2_golden.json": "e43b41632c97907f9b04b876ee38b69b91f28a58e132c11f92956ce66bf1231d"
+  },
+  "artifact_versions": {
+    "MANIFEST.md": "1.0.0-draft",
+    "VALIDATION_16A.md": "1.0.0-draft",
+    "halden_week2.xlsx": "1.0.0-draft",
+    "halden_week2_analysis.ipynb": "1.0.0-draft",
+    "data/cluster_params.csv": "1.0.0-draft",
+    "data/cluster_price_volume.csv": "1.0.0-draft",
+    "data/fuel_nonfuel.csv": "1.0.0-draft",
+    "data/pricing_params.csv": "1.0.0-draft",
+    "data/worked_example_cluster.csv": "1.0.0-draft",
+    "data/worked_example_params.csv": "1.0.0-draft",
+    "faculty/halden_week2_FACULTY_SOLUTION.ipynb": "1.0.0-draft",
+    "faculty/halden_week2_FACULTY_SOLUTION.xlsx": "1.0.0-draft",
+    "fixtures/week2_golden.json": "1.0.0-draft"
+  }
+}

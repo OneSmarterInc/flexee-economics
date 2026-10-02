@@ -1,0 +1,81 @@
+{
+  "meta": {
+    "week": 12,
+    "name": "What the company should become \u2014 transition portfolio",
+    "package_version": "1.0.0-draft",
+    "provenance": "Computed from canonical CSVs in data/; reconciled against the constants ledger",
+    "tolerance": {
+      "rel": 0.001,
+      "abs": 1e-05
+    }
+  },
+  "results": {
+    "discretionary": 1200.0,
+    "npv_min_helix_rotterdam": -180.0,
+    "npv_max_helix_rotterdam": 308.0,
+    "npv_lowcarbon_slow_helix_rotterdam": -180.0,
+    "npv_highcarbon_collapse_helix_rotterdam": 308.0,
+    "npv_min_permian_expansion": -126.0,
+    "npv_max_permian_expansion": 220.0,
+    "npv_lowcarbon_slow_permian_expansion": 220.0,
+    "npv_highcarbon_collapse_permian_expansion": -126.0,
+    "npv_min_biofuel_conversion": -40.0,
+    "npv_max_biofuel_conversion": 136.0,
+    "npv_lowcarbon_slow_biofuel_conversion": -40.0,
+    "npv_highcarbon_collapse_biofuel_conversion": 136.0,
+    "npv_min_offshore_wind": -90.0,
+    "npv_max_offshore_wind": 120.0,
+    "npv_lowcarbon_slow_offshore_wind": -90.0,
+    "npv_highcarbon_collapse_offshore_wind": 120.0,
+    "npv_min_euro_retail_divest": -60.0,
+    "npv_max_euro_retail_divest": 102.0,
+    "npv_lowcarbon_slow_euro_retail_divest": -60.0,
+    "npv_highcarbon_collapse_euro_retail_divest": 102.0,
+    "feasible_portfolios": 17,
+    "feasible_with_helix_rotterdam": 3,
+    "portfolios_unlocked_by_divest": 2,
+    "hr_plus_wind_cost": 1750.0,
+    "envelope_with_divest": 1750.0,
+    "hr_plus_wind_needs_divest": true,
+    "helix_rotterdam_cost": 1200.0,
+    "adjacent_ceiling": 1200.0
+  },
+  "worked_example": {
+    "p1_low": -50.0,
+    "p1_high": 90.0,
+    "p2_low": 150.0,
+    "p2_high": -18.0
+  },
+  "ordering_assertions": [
+    {
+      "assert": "Every project swings sign across the scenario matrix (no dominant portfolio)",
+      "holds": true
+    },
+    {
+      "assert": "Sustaining floor leaves $1,200M discretionary",
+      "holds": true
+    },
+    {
+      "assert": "Helix Rotterdam can be funded within the adjacent-transition bucket ceiling",
+      "holds": true
+    },
+    {
+      "assert": "Helix Rotterdam alone fills the discretionary envelope",
+      "holds": true
+    },
+    {
+      "assert": "The divestment unlocks portfolios that are otherwise unaffordable",
+      "holds": true
+    },
+    {
+      "assert": "INTERLOCK: Helix Rotterdam + offshore wind is affordable only with the divestment",
+      "holds": true
+    }
+  ],
+  "new_parameters": [
+    "Project scenario NPV model: NPV = base + carbon sensitivity \u00d7 (carbon \u2212 40) + demand sensitivity \u00d7 demand code. The spec described the sign swings without a model."
+  ],
+  "flags": [
+    "Design decision applied (Option 1): adjacent-transition ceiling raised from $900M to $1,200M; divestment proceeds raised from $320M to $550M. Week 12 spec, 7-week Week 12 spec, and constants ledger updated to match."
+  ]
+}

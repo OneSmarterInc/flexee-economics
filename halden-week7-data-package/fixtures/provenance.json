@@ -1,0 +1,34 @@
+{
+  "package": "halden-week7-data-package",
+  "package_version": "1.0.0-draft",
+  "artifacts": {
+    "MANIFEST.md": "3a6459f487321d9267a9a829ac51aab8834e69762351348b5406549e2127aac7",
+    "VALIDATION_16A.md": "2d4db885966043a08388115e643ecc3b25d153ea55c168ec366b4f5a9ce42f71",
+    "halden_week7.xlsx": "f17b2936a116de12cb5c90e71dfab0aa7c8bbfeeea4e0b431684c43136864d2b",
+    "halden_week7_analysis.ipynb": "3f2a6f85c3a75ba47403e84d9542f3346c07ec2cd35cef89d621a14c24cbb9dd",
+    "data/capacity_payoffs.csv": "471df84d389e4f7e6899f68d99059fe72412c0afe4be1c540813522903975704",
+    "data/clusters.csv": "33eab67eea6ad962e739a5a885c13c9360dd7ea65acafc9a6a73c7ea005fb990",
+    "data/cohort_states.csv": "ba51caff6a233288c6cdfb27494aa2cc2d453fba874f125dcd576c040c009205",
+    "data/rival_move.csv": "d6d8f1d57251ab265b9dc177f50ab6e9d131d993cf11d804ba3b9cb0c46eb5c1",
+    "data/window3_params.csv": "35c239242910b682c219b9e118e0447352892f23692f891de33d8b5f71ca95fb",
+    "data/worked_example_markets.csv": "393527abc049a7d060f794f5f3a8880683e60c9dc125ed03e67dc16e1776df03",
+    "faculty/halden_week7_FACULTY_SOLUTION.ipynb": "b9bd05ea241bcdd933f0e942e0245c31815800c7e8afe08369268a84168eafff",
+    "faculty/halden_week7_FACULTY_SOLUTION.xlsx": "03a13be96838846d64e2f484dc96b3518a43d59cbe4f960585ff91ec54981aca",
+    "fixtures/week7_golden.json": "cadcbb7490c94c010c26994d105ccdcdce5a8f7dde1953d6eb74182f345161b9"
+  },
+  "artifact_versions": {
+    "MANIFEST.md": "1.0.0-draft",
+    "VALIDATION_16A.md": "1.0.0-draft",
+    "halden_week7.xlsx": "1.0.0-draft",
+    "halden_week7_analysis.ipynb": "1.0.0-draft",
+    "data/capacity_payoffs.csv": "1.0.0-draft",
+    "data/clusters.csv": "1.0.0-draft",
+    "data/cohort_states.csv": "1.0.0-draft",
+    "data/rival_move.csv": "1.0.0-draft",
+    "data/window3_params.csv": "1.0.0-draft",
+    "data/worked_example_markets.csv": "1.0.0-draft",
+    "faculty/halden_week7_FACULTY_SOLUTION.ipynb": "1.0.0-draft",
+    "faculty/halden_week7_FACULTY_SOLUTION.xlsx": "1.0.0-draft",
+    "fixtures/week7_golden.json": "1.0.0-draft"
+  }
+}

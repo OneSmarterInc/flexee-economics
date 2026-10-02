@@ -1,0 +1,5 @@
+parameter,value,unit,note
+wti_pre,74.00,usd_bbl,Pre-shock WTI
+brent_pre,78.50,usd_bbl,Pre-shock Brent (WTI + 4.50)
+crack_base,21.50,usd_bbl,Gulf Coast 3-2-1 crack pre-shock
+pump_base,3.20,usd_gal,Pump price base

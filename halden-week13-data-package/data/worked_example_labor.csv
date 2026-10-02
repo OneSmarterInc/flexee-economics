@@ -1,0 +1,6 @@
+parameter,value
+units_per_worker,1000.0
+price_per_unit,50.0
+wage,40000.0
+wage_increase,100.0
+tax_rate,0.5

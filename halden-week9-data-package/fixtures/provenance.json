@@ -1,0 +1,30 @@
+{
+  "package": "halden-week9-data-package",
+  "package_version": "1.0.0-draft",
+  "artifacts": {
+    "MANIFEST.md": "006be1529180b596b8e742521b5cadf5bce0f16ad0325948e112b309be0e5ff9",
+    "VALIDATION_16A.md": "35e2e0452f699193e6e27e229535e261859b0acb2893ee7fddb3bad38fbf7888",
+    "halden_week9.xlsx": "a915c7be8cc1d3ab53585178ee35eafa17aa74b61eaf42ca0ea43da7c2bc044b",
+    "halden_week9_analysis.ipynb": "78c6ec49630cf5f24ff6392d38ce892f0fb036efabaf922d888222a20cf6f27f",
+    "data/markets.csv": "bcd5455d988c3a03171302402edea967c8c58b49ef2abaf0a98308d6ed280cbe",
+    "data/nonfuel_states.csv": "b338fdede01eb4d596fbe6bcd955a1a960c36f9a62d8db8660d1161a643d172d",
+    "data/rebrand_params.csv": "a2ad38ba9ed0d115d7d3214ab0006bb37c721e6fc7d31139929a4f2ca13931d4",
+    "data/worked_example_markets.csv": "bec57a925c335bb39a263326134de33b7cfe19cbf6b63844f489c1a8589c8446",
+    "faculty/halden_week9_FACULTY_SOLUTION.ipynb": "a9d28ff5d7141071621dcead1cfa9031e0a295984dfe8096ea6f326553c3a04b",
+    "faculty/halden_week9_FACULTY_SOLUTION.xlsx": "5cdca0440fb0f349342ace0614c63fecc5f2a578f897aee3addb0861e65522ed",
+    "fixtures/week9_golden.json": "e004dfc7e6d33bc99a2267303df92da8ed5845bdd92c13d7f2dbe9faca34fd0c"
+  },
+  "artifact_versions": {
+    "MANIFEST.md": "1.0.0-draft",
+    "VALIDATION_16A.md": "1.0.0-draft",
+    "halden_week9.xlsx": "1.0.0-draft",
+    "halden_week9_analysis.ipynb": "1.0.0-draft",
+    "data/markets.csv": "1.0.0-draft",
+    "data/nonfuel_states.csv": "1.0.0-draft",
+    "data/rebrand_params.csv": "1.0.0-draft",
+    "data/worked_example_markets.csv": "1.0.0-draft",
+    "faculty/halden_week9_FACULTY_SOLUTION.ipynb": "1.0.0-draft",
+    "faculty/halden_week9_FACULTY_SOLUTION.xlsx": "1.0.0-draft",
+    "fixtures/week9_golden.json": "1.0.0-draft"
+  }
+}

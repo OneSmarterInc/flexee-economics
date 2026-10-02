@@ -1,0 +1,34 @@
+{
+  "package": "halden-week5-data-package",
+  "package_version": "1.0.0-draft",
+  "artifacts": {
+    "MANIFEST.md": "9b9805558064f1c239c7aaad2a876c5e35e4a34927913c8274cea2ac84409dfa",
+    "VALIDATION_16A.md": "be7451f7535ce6d2fbb1d8a8192af90d246127975daec1330099ca44f93c1c1b",
+    "halden_week5.xlsx": "834d72e93b26a74a49598f7bc266024658943c868d56602dfb33b3c441d43920",
+    "halden_week5_analysis.ipynb": "7e09d35320ef8ec8243e1bcfd5f0b0d8fcd454bdbe00ce53d48fa8c1d562a9a5",
+    "data/entity_flows.csv": "33794b71dd882cff59f5ac97fdaa8397c910c28ce05a528a774f8b7e447b004d",
+    "data/existing_hedges.csv": "8b127947b394e0dc81e51f8a619cc79d912b3225f77b8da5486372b80f5ebded",
+    "data/forwards_options.csv": "1d5e661a597b1394009070f38b8bd5635aea3d32e9706ae169fe7237af31704e",
+    "data/fx_shock.csv": "ef6d80ca46132c86a40ecf4e3e255783ea53a05985d7f9858afb6a428b6c04a7",
+    "data/norway_unit_cost.csv": "4360dd91eba1fbb2c8d5609d90726d79c21da020901232006cb4b135b09afcf7",
+    "data/worked_example_entity.csv": "d656a8755383702a6f6279fae17285bbec2ff92acf883eac39c6d8c91e3ed998",
+    "faculty/halden_week5_FACULTY_SOLUTION.ipynb": "e88e0fed2089849ce12a021877c574613c22ab76f5b6305cb5753875e5b2674c",
+    "faculty/halden_week5_FACULTY_SOLUTION.xlsx": "283d9449d2df5b7eb63a3461a5ad7ecf03dcf628a04529bd57db2df43b4dc9e6",
+    "fixtures/week5_golden.json": "ab4364bb09e3ff9abf4d2dce582d946ab4b7978e25aea8114d51fdcefb516511"
+  },
+  "artifact_versions": {
+    "MANIFEST.md": "1.0.0-draft",
+    "VALIDATION_16A.md": "1.0.0-draft",
+    "halden_week5.xlsx": "1.0.0-draft",
+    "halden_week5_analysis.ipynb": "1.0.0-draft",
+    "data/entity_flows.csv": "1.0.0-draft",
+    "data/existing_hedges.csv": "1.0.0-draft",
+    "data/forwards_options.csv": "1.0.0-draft",
+    "data/fx_shock.csv": "1.0.0-draft",
+    "data/norway_unit_cost.csv": "1.0.0-draft",
+    "data/worked_example_entity.csv": "1.0.0-draft",
+    "faculty/halden_week5_FACULTY_SOLUTION.ipynb": "1.0.0-draft",
+    "faculty/halden_week5_FACULTY_SOLUTION.xlsx": "1.0.0-draft",
+    "fixtures/week5_golden.json": "1.0.0-draft"
+  }
+}

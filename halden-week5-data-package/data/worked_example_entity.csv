@@ -1,0 +1,5 @@
+parameter,value
+eur_revenue,1000.0
+eur_costs,800.0
+fx_pre,1.1
+fx_post,1.0

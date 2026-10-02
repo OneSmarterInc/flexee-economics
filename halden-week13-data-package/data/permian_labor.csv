@@ -1,0 +1,4 @@
+parameter,value
+bbl_per_marginal_worker,9000.0
+margin_per_bbl,56.4
+market_wage_k,145.0

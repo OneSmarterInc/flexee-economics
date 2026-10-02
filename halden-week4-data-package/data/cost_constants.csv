@@ -1,0 +1,11 @@
+parameter,value,unit,note
+gathering_cost,2.10,usd_bbl,Permian gathering (company-wide constant)
+transport_permian_to_br,3.20,usd_bbl,Transport Permian to Baton Rouge (constant)
+permian_wellhead_discount,3.50,usd_bbl,Permian realized discount to WTI (constant)
+sr_capital_charge,4.60,usd_bbl,Short-run capital recovery in marginal-cost TP (Wk4-specific)
+gc_crack_321,21.50,usd_bbl,Gulf Coast 3-2-1 crack (this week's live-path value)
+br_complexity_premium,4.75,usd_bbl,Baton Rouge complexity premium (constant)
+br_opex,5.90,usd_bbl,Baton Rouge refining opex (constant)
+wti,74.00,usd_bbl,WTI benchmark (this week's live-path value)
+geneva_capture_rate,0.35,fraction,Geneva arbitrage capture of internal-external gap
+geneva_max_volume,40000,bbl_day,Geneva max arbitrage volume

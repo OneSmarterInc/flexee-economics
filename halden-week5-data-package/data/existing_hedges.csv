@@ -1,0 +1,2 @@
+hedge_id,pair,direction,notional_musd,maturity_months
+eur_forward_sell,EURUSD,sell_EUR,300,6

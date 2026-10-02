@@ -1,0 +1,5 @@
+cell_id,halden_action,rival_outcome,payoff_musd
+hold_builds,hold,builds,-40.0
+hold_bluffs,hold,bluffs,0.0
+match_builds,match,builds,-140.0
+match_bluffs,match,bluffs,60.0

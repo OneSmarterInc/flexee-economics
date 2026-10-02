@@ -1,0 +1,65 @@
+{
+  "meta": {
+    "week": 1,
+    "name": "Inheriting the seat",
+    "package_version": "1.0.0-draft",
+    "provenance": "Computed from canonical CSVs in data/; reconciled against the constants ledger",
+    "tolerance": {
+      "rel": 0.001,
+      "abs": 1e-05
+    }
+  },
+  "results": {
+    "permian_realized": 70.5,
+    "permian_margin": 56.4,
+    "norway_pretax": 47.0,
+    "norway_posttax": 10.34,
+    "norway_2usd_loss_posttax": -0.44,
+    "kessana_company": 25.46,
+    "br_net": 20.35,
+    "rot_contribution": 2.0,
+    "rot_net": -0.3,
+    "rot_shutdown_crack": 2.6,
+    "rot_current_crack": 4.6,
+    "sing_halden_share": 3.44,
+    "economic_rank": "Permian > Kessana > Baton Rouge > Norwegian > Singapore > Rotterdam",
+    "reported_rank": "Permian > Baton Rouge > Kessana > Norwegian > Singapore > Rotterdam",
+    "top_economic_asset": "Permian"
+  },
+  "worked_example": {
+    "x_reported_gross": 40.0,
+    "x_posttax": 12.0,
+    "y_contribution": 1.5,
+    "y_net": -0.5
+  },
+  "ordering_assertions": [
+    {
+      "assert": "Rotterdam loses money net but covers its variable cost (keep running short-run)",
+      "holds": true
+    },
+    {
+      "assert": "Rotterdam current crack sits above its shutdown crack",
+      "holds": true
+    },
+    {
+      "assert": "Norwegian post-tax margin is 22% of pre-tax (78% tax)",
+      "holds": true
+    },
+    {
+      "assert": "Tax shield: a $2 pre-tax Norwegian loss costs Halden only $0.44",
+      "holds": true
+    },
+    {
+      "assert": "Reported-profit ranking differs from economic ranking",
+      "holds": true
+    },
+    {
+      "assert": "Ledger reconciliation: Permian 56.40, Norway 10.34, Kessana 25.46, Baton Rouge 20.35, Rotterdam -0.30",
+      "holds": true
+    }
+  ],
+  "new_parameters": [
+    "book_values.csv (book value, replacement cost, 3-yr reported profit per asset). The Week 1 spec named this dataset without values; these are introduced here."
+  ],
+  "flags": []
+}

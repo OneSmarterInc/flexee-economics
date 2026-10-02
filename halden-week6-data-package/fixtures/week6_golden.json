@@ -1,0 +1,115 @@
+{
+  "meta": {
+    "week": 6,
+    "name": "Capital allocation",
+    "description": "Golden fixtures for the Week 6 capital economics engine. Assert IRRs, per-cohort NPVs, the NPV ranking flip, and the BR/Helix crossover as an ordering property.",
+    "provenance": "Derived from canonical CSVs in data/; reconciled against constants-ledger.md"
+  },
+  "irr": {
+    "baton_rouge": 0.1943,
+    "rotterdam": 0.1504,
+    "helix": 0.124
+  },
+  "irr_expected": {
+    "baton_rouge": 0.194,
+    "rotterdam": 0.15,
+    "helix": 0.124
+  },
+  "npv_by_cohort": {
+    "disciplined": {
+      "rate": 0.065,
+      "envelope_musd": 1520,
+      "npv": {
+        "baton_rouge": 322.43,
+        "rotterdam": 147.41,
+        "helix": 388.43
+      }
+    },
+    "base": {
+      "rate": 0.085,
+      "envelope_musd": 1150,
+      "npv": {
+        "baton_rouge": 256.72,
+        "rotterdam": 106.01,
+        "helix": 236.21
+      }
+    },
+    "lax": {
+      "rate": 0.11,
+      "envelope_musd": 950,
+      "npv": {
+        "baton_rouge": 184.35,
+        "rotterdam": 60.75,
+        "helix": 76.76
+      }
+    }
+  },
+  "ranking_by_cohort": {
+    "disciplined": [
+      "helix",
+      "baton_rouge",
+      "rotterdam"
+    ],
+    "base": [
+      "baton_rouge",
+      "helix",
+      "rotterdam"
+    ],
+    "lax": [
+      "baton_rouge",
+      "helix",
+      "rotterdam"
+    ]
+  },
+  "crossover": {
+    "br_helix_npv_crossover_rate": 0.0799,
+    "expected": 0.0799
+  },
+  "ordering_assertions": [
+    {
+      "assert": "disciplined cohort: Helix is the highest-NPV project",
+      "holds": true
+    },
+    {
+      "assert": "base cohort: Baton Rouge is the highest-NPV project",
+      "holds": true
+    },
+    {
+      "assert": "lax cohort: Baton Rouge is the highest-NPV project",
+      "holds": true
+    },
+    {
+      "assert": "IRR ordering is BR > Rotterdam > Helix at every cohort rate",
+      "holds": true
+    },
+    {
+      "assert": "disciplined rate sits BELOW the BR/Helix crossover",
+      "holds": true
+    },
+    {
+      "assert": "base rate sits ABOVE the BR/Helix crossover",
+      "holds": true
+    },
+    {
+      "assert": "the highest-IRR project (BR) is NOT the highest-NPV project for the disciplined cohort",
+      "holds": true
+    }
+  ],
+  "haircuts": {
+    "baton_rouge": {
+      "raw_npv_disciplined": 322.43,
+      "haircut": 0.88,
+      "adjusted": 283.74
+    },
+    "rotterdam": {
+      "raw_npv_disciplined": 147.41,
+      "haircut": 0.88,
+      "adjusted": 129.72
+    },
+    "helix": {
+      "raw_npv_disciplined": 388.43,
+      "haircut": 0.61,
+      "adjusted": 236.94
+    }
+  }
+}

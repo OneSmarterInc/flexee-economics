@@ -1,0 +1,8 @@
+flow_id,entity,currency,annual_musd_pre
+norway_revenue,Norwegian upstream,USD,3200
+norway_costs,Norwegian upstream,NOK,1100
+euro_retail_receipts,European retail,EUR,1200
+rot_product_revenue,Rotterdam,EUR,2500
+rot_eur_costs,Rotterdam,EUR,2250
+rot_usd_crude,Rotterdam,USD,180
+sing_net_earnings,Singapore JV (40%),SGD,300

@@ -1,0 +1,32 @@
+{
+  "package": "halden-week10-data-package",
+  "package_version": "1.0.0-draft",
+  "artifacts": {
+    "MANIFEST.md": "7a3deef5ba7b61e83de3a472275280879bd9b4878d139507cdd9ebdf6e91ade1",
+    "VALIDATION_16A.md": "0c508b3ab084a88e1e08e6310771e7baa6746e118e3de33b1eaa3d9f470abc7c",
+    "halden_week10.xlsx": "89d4197fecbe5008e65d5d405d1bbb4d93509a63bc5f52eede7cd45477f0a749",
+    "halden_week10_analysis.ipynb": "870af1464ac7a93abcf558cc937eb7765b3fe3f5ebd4c30a18dc9ef328365f94",
+    "data/binding_rules.csv": "ae043747b3b5866b0a0db738efab5de9e087ffd7f652322869c27000449a0236",
+    "data/product_elasticities.csv": "8e4d571c47ae6587bc18f0f0ee047236f15d68d3bb0a8444afec6cc4fd71bd45",
+    "data/recession_params.csv": "b3ab6fc215cc40b5559e2ab7b9692886d1b5e622a151c12de64828119d776d82",
+    "data/refinery_yields.csv": "1729dd6083e34d89443b1c5fd72eae4e88c21926dfd3f3ada1317ecc63ed183f",
+    "data/team_prior_state.csv": "a7042d6284c72f53be160e8f79e03ae75a39db5c6a24246aef505dd4e3bc882c",
+    "faculty/halden_week10_FACULTY_SOLUTION.ipynb": "b66cbd0b39ce78cbd9ad7f5fe37cbe460dda8dfdcebd562f3f818b0681783cd7",
+    "faculty/halden_week10_FACULTY_SOLUTION.xlsx": "192a12aefabf490d8607b3f8acf161f0be3028ff0d98e2ce0e816a4c51b982a9",
+    "fixtures/week10_golden.json": "03827c227bf4fe53bc1ac853ca383f545506a4b629de7c28be46e19ffddcc0f0"
+  },
+  "artifact_versions": {
+    "MANIFEST.md": "1.0.0-draft",
+    "VALIDATION_16A.md": "1.0.0-draft",
+    "halden_week10.xlsx": "1.0.0-draft",
+    "halden_week10_analysis.ipynb": "1.0.0-draft",
+    "data/binding_rules.csv": "1.0.0-draft",
+    "data/product_elasticities.csv": "1.0.0-draft",
+    "data/recession_params.csv": "1.0.0-draft",
+    "data/refinery_yields.csv": "1.0.0-draft",
+    "data/team_prior_state.csv": "1.0.0-draft",
+    "faculty/halden_week10_FACULTY_SOLUTION.ipynb": "1.0.0-draft",
+    "faculty/halden_week10_FACULTY_SOLUTION.xlsx": "1.0.0-draft",
+    "fixtures/week10_golden.json": "1.0.0-draft"
+  }
+}

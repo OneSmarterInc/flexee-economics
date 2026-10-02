@@ -1,0 +1,4 @@
+scenario,probability,wti_resolved,delta_wti
+holds_full,0.35,88.00,14.00
+holds_partial,0.40,81.00,7.00
+fails,0.25,70.00,-4.00

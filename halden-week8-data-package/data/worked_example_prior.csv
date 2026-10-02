@@ -1,0 +1,4 @@
+scenario,probability,delta_wti
+up,0.50,10.00
+flat,0.30,0.00
+down,0.20,-8.00
