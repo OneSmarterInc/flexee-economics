@@ -27,6 +27,7 @@ use App\Models\Week10EconomicEvaluation;
 use App\Models\Week11EconomicEvaluation;
 use App\Models\Week12EconomicEvaluation;
 use App\Models\Week13EconomicEvaluation;
+use App\Models\Week1EconomicEvaluation;
 use App\Models\Week5EconomicEvaluation;
 use App\Models\Week8EconomicEvaluation;
 use App\Models\Week9EconomicEvaluation;
@@ -294,6 +295,21 @@ class SubmissionController extends Controller
      */
     private function resolutionState(SectionSimulationWeek $runtimeWeek, TeamSimulation $teamSimulation): array
     {
+        if ($runtimeWeek->definition->week_number === 1) {
+            $evaluation = Week1EconomicEvaluation::query()
+                ->where('tenant_id', $runtimeWeek->tenant_id)
+                ->where('section_simulation_week_id', $runtimeWeek->id)
+                ->where('team_simulation_id', $teamSimulation->id)
+                ->latest('evaluated_at')
+                ->first();
+            $evaluatedAt = $evaluation?->getAttribute('evaluated_at');
+
+            return [
+                'status' => $evaluation instanceof Week1EconomicEvaluation ? 'resolved' : 'unresolved',
+                'resolved_at' => $evaluatedAt instanceof Carbon ? $evaluatedAt->toIso8601String() : null,
+            ];
+        }
+
         if ($runtimeWeek->definition->week_number === 6) {
             $evaluation = CapitalAllocationEvaluation::query()
                 ->where('tenant_id', $runtimeWeek->tenant_id)
@@ -444,7 +460,7 @@ class SubmissionController extends Controller
 
     private function hasEconomicEvaluation(int $weekNumber): bool
     {
-        return in_array($weekNumber, [4, 5, 6, 8, 9, 10, 11, 12, 13], true);
+        return in_array($weekNumber, [1, 4, 5, 6, 8, 9, 10, 11, 12, 13], true);
     }
 
     private function completedExecution(SectionSimulationWeek $runtimeWeek): ?WeekExecutionRecord

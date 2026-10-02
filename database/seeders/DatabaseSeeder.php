@@ -8,6 +8,7 @@ use App\Domain\Content\AuthoritativePackages\AuthoritativeContentPackageManifest
 use App\Domain\Content\AuthoritativePackages\AuthoritativeContentPackageRegistrationService;
 use App\Domain\Content\SimulationContentActivationService;
 use App\Domain\Content\Week4\Week4ContentPackageRegistrationService;
+use App\Domain\Economics\Week1\Week1EconomicEngine;
 use App\Domain\Economics\Week10\Week10ConvergenceEconomicEngine;
 use App\Domain\Economics\Week11\Week11EconomicEngine;
 use App\Domain\Economics\Week12\Week12EconomicEngine;
@@ -248,55 +249,7 @@ class DatabaseSeeder extends Seeder
             ]);
 
             if ($weekNumber === 1) {
-                $decisionDefinition = DecisionFormDefinition::query()->firstOrCreate([
-                    'simulation_week_id' => $week->id,
-                    'key' => 'development_demo_decisions',
-                    'version' => 'demo-v1',
-                ], [
-                    'simulation_version_id' => $version->id,
-                    'name' => 'Development demo decisions',
-                    'is_required' => true,
-                    'metadata' => ['development_demo_only' => true],
-                ]);
-
-                DecisionFieldDefinition::query()->firstOrCreate([
-                    'decision_form_definition_id' => $decisionDefinition->id,
-                    'field_key' => 'demo_quantity',
-                ], [
-                    'label' => 'Demo quantity',
-                    'field_type' => 'integer',
-                    'is_required' => true,
-                    'display_order' => 1,
-                    'help_text' => 'Development/demo only. Not an authoritative Halden field.',
-                    'validation' => ['min' => 0, 'max' => 100],
-                ]);
-
-                DecisionFieldDefinition::query()->firstOrCreate([
-                    'decision_form_definition_id' => $decisionDefinition->id,
-                    'field_key' => 'demo_percentage',
-                ], [
-                    'label' => 'Demo percentage',
-                    'field_type' => 'percentage',
-                    'is_required' => true,
-                    'display_order' => 2,
-                    'help_text' => 'Development/demo only. Not an authoritative Halden field.',
-                    'unit' => '%',
-                    'validation' => ['min' => 0, 'max' => 100],
-                ]);
-
-                MemoDefinition::query()->firstOrCreate([
-                    'simulation_week_id' => $week->id,
-                    'key' => 'development_demo_memo',
-                    'version' => 'demo-v1',
-                ], [
-                    'simulation_version_id' => $version->id,
-                    'title' => 'Development demo memo',
-                    'instructions' => 'Summarize the reasoning behind your demonstration decisions. Development/demo only.',
-                    'is_required' => true,
-                    'character_limit' => 2000,
-                    'submission_format' => 'text',
-                    'metadata' => ['development_demo_only' => true],
-                ]);
+                $this->ensureWeek1Definitions($version, $week);
             }
 
             if ($weekNumber === 4) {
@@ -427,6 +380,7 @@ class DatabaseSeeder extends Seeder
     private function ensureDemoSubmissionDefinitions(SimulationVersion $version, SimulationWeek $week): void
     {
         match ($week->week_number) {
+            1 => $this->ensureWeek1Definitions($version, $week),
             2 => $this->ensureGenericDecisionWeek(
                 $version,
                 $week,
@@ -466,6 +420,23 @@ class DatabaseSeeder extends Seeder
             13 => $this->ensureWeek13Definitions($version, $week),
             default => null,
         };
+    }
+
+    private function ensureWeek1Definitions(SimulationVersion $version, SimulationWeek $week): void
+    {
+        $decision = $this->decisionDefinition($version, $week, 'week1_asset_register', 'Week 1 asset register decisions', Week1EconomicEngine::ENGINE_VERSION, Week1EconomicEngine::ENGINE_IDENTIFIER);
+        $this->field($decision, 'permian_rig_count', 'Permian rig count', DecisionFieldType::Integer->value, 1, ['min' => 0]);
+        $this->field($decision, 'rotterdam_review_posture', 'Rotterdam review posture', DecisionFieldType::Radio->value, 2, [], true, [
+            ['value' => 'accelerate_review', 'label' => 'Accelerate review'],
+            ['value' => 'hold_review', 'label' => 'Hold current posture'],
+            ['value' => 'slow_review', 'label' => 'Slow review'],
+        ]);
+        $this->field($decision, 'first_meeting_choice', 'First meeting choice', DecisionFieldType::Radio->value, 3, [], true, [
+            ['value' => 'delacroix', 'label' => 'COO Delacroix'],
+            ['value' => 'vestergaard', 'label' => 'CFO Vestergaard'],
+            ['value' => 'other', 'label' => 'Other stakeholder'],
+        ]);
+        $this->memoDefinition($version, $week, 'week1_asset_register_memo', 'Week 1 asset register memo', Week1EconomicEngine::ENGINE_VERSION);
     }
 
     private function ensureGenericDecisionWeek(

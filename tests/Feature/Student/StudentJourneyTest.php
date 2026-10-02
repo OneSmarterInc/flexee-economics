@@ -10,7 +10,6 @@ use App\Enums\DecisionFieldType;
 use App\Enums\SectionSimulationWeekStatus;
 use App\Models\DecisionFieldDefinition;
 use App\Models\DecisionFormDefinition;
-use App\Models\EconomicResolution;
 use App\Models\Enrollment;
 use App\Models\MemoDefinition;
 use App\Models\SectionSimulation;
@@ -21,6 +20,7 @@ use App\Models\Team;
 use App\Models\TeamMember;
 use App\Models\TeamSimulation;
 use App\Models\User;
+use App\Models\Week1EconomicEvaluation;
 use App\Models\WeekExecutionRecord;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -78,15 +78,11 @@ class StudentJourneyTest extends TestCase
     {
         $context = $this->studentJourneyContext('DeferredResolved');
 
-        EconomicResolution::query()
-            ->where('section_simulation_week_id', $context['week1']->id)
-            ->delete();
-
         WeekExecutionRecord::query()->create([
-            'tenant_id' => $context['week1']->tenant_id,
-            'section_simulation_id' => $context['week1']->section_simulation_id,
-            'section_simulation_week_id' => $context['week1']->id,
-            'simulation_week_id' => $context['week1']->simulation_week_id,
+            'tenant_id' => $context['week2']->tenant_id,
+            'section_simulation_id' => $context['week2']->section_simulation_id,
+            'section_simulation_week_id' => $context['week2']->id,
+            'simulation_week_id' => $context['week2']->simulation_week_id,
             'execution_version' => 'week_execution_v1',
             'status' => WeekExecutionRecord::STATUS_COMPLETED,
             'steps' => [
@@ -98,17 +94,20 @@ class StudentJourneyTest extends TestCase
             'started_at' => now(),
             'completed_at' => now(),
         ]);
+        $lifecycle = app(SimulationLifecycleService::class);
+        $week2 = $lifecycle->transitionWeek($context['week2']->refresh(), SectionSimulationWeekStatus::Closed, $context['graph']['faculty']);
+        $context['week2'] = $lifecycle->transitionWeek($week2->refresh(), SectionSimulationWeekStatus::Published, $context['graph']['faculty']);
 
         $this->actingAs($context['graph']['student'])
             ->get(route('student.dashboard'))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->where('journey.simulations.0.history.0.resolution_status', 'resolved')
-                ->where('journey.simulations.0.history.0.result_summary.label', 'Execution completed')
+                ->where('journey.simulations.0.history.1.resolution_status', 'resolved')
+                ->where('journey.simulations.0.history.1.result_summary.label', 'Execution completed')
             );
 
         $this->actingAs($context['graph']['student'])
-            ->get(route('student.submissions.show', $context['week1']))
+            ->get(route('student.submissions.show', $context['week2']))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->where('status.resolution_status', 'resolved')
@@ -208,29 +207,28 @@ class StudentJourneyTest extends TestCase
             'Our team submitted the first week memo.',
         );
 
-        EconomicResolution::query()->create([
+        Week1EconomicEvaluation::query()->create([
             'tenant_id' => $week1->tenant_id,
             'section_simulation_id' => $week1->section_simulation_id,
             'section_simulation_week_id' => $week1->id,
             'team_simulation_id' => $teamSimulation->id,
             'team_id' => $teamSimulation->team_id,
             'decision_submission_id' => $submission->id,
-            'economic_engine' => 'student_journey_fixture',
+            'engine_identifier' => 'student_journey_fixture',
             'engine_version' => 'test_v1',
+            'package_identifier' => 'student_journey_fixture',
+            'package_version' => 'test_v1',
+            'status' => Week1EconomicEvaluation::STATUS_CALCULATED,
+            'permian_margin' => '56.400000',
+            'rot_net' => '-0.300000',
+            'economic_rank' => 'Permian > Kessana > Baton Rouge > Norwegian > Singapore > Rotterdam',
+            'reported_rank' => 'Permian > Baton Rouge > Kessana > Norwegian > Singapore > Rotterdam',
+            'top_economic_asset' => 'Permian',
             'input_snapshot' => ['fixture' => true],
             'output_snapshot' => ['released' => true],
-            'transfer_price' => '10.000',
-            'integrated_margin' => '20.000',
-            'upstream_margin' => '8.000',
-            'refining_margin' => '12.000',
-            'upstream_vs_target' => '0.000',
-            'refining_vs_target' => '0.000',
-            'geneva_gap' => '0.000',
-            'geneva_capture_per_bbl' => '0.000',
-            'geneva_max_volume_bbl_day' => '0.000',
-            'resolved_by_user_id' => $graph['faculty']->id,
-            'resolved_by_process' => 'student_journey_fixture',
-            'resolved_at' => now(),
+            'evaluated_by_user_id' => $graph['faculty']->id,
+            'evaluated_by_process' => 'student_journey_fixture',
+            'evaluated_at' => now(),
         ]);
 
         $week1 = $lifecycle->transitionWeek($week1->refresh(), SectionSimulationWeekStatus::Closed, $graph['faculty']);

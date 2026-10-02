@@ -20,6 +20,7 @@ use App\Models\Week10EconomicEvaluation;
 use App\Models\Week11EconomicEvaluation;
 use App\Models\Week12EconomicEvaluation;
 use App\Models\Week13EconomicEvaluation;
+use App\Models\Week1EconomicEvaluation;
 use App\Models\Week5EconomicEvaluation;
 use App\Models\Week8EconomicEvaluation;
 use App\Models\Week9EconomicEvaluation;
@@ -508,6 +509,7 @@ class FacultyOperationsDashboard extends Component
     private function evaluationModelForWeek(int $weekNumber): ?string
     {
         return match ($weekNumber) {
+            1 => Week1EconomicEvaluation::class,
             4 => EconomicResolution::class,
             5 => Week5EconomicEvaluation::class,
             6 => CapitalAllocationEvaluation::class,
@@ -524,6 +526,7 @@ class FacultyOperationsDashboard extends Component
     private function evaluationLabelForWeek(int $weekNumber): string
     {
         return match ($weekNumber) {
+            1 => 'Week 1 asset-register evaluations',
             4 => 'Week 4 economic resolutions',
             5 => 'Week 5 currency evaluations',
             6 => 'Week 6 capital evaluations',

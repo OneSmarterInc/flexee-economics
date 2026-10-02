@@ -2,7 +2,34 @@
 
 Updated: 2026-09-28.
 
-The authoritative markdown sources and package roots for Weeks 1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12, and 13 are now present and registered through the content package framework. Week 4 remains the stable vertical-slice baseline. Week 4 and Week 6 have runtime paths; Week 8 has a package-backed Laravel economic engine, runtime evaluation persistence, KPI/ranking integration for package-supported metrics, and Window 2 Week 6 -> Week 8 cohort adjustment support from `halden-window2-cohort-addendum/`. Week 9 now has a package-backed Laravel economic engine and runtime evaluation persistence. Week 10 now has a package-backed convergence economic engine, runtime state assembly, execution integration, and KPI/ranking integration with unsupported KPIs preserved as unavailable/null. Week 11 now has a package-backed Kessana hold-up economic engine, golden tests, and runtime evaluation persistence. Week 12 has package-backed runtime evaluation. Week 13 now has a package-backed factor-markets economic engine, golden tests, and runtime evaluation persistence.
+The authoritative markdown sources and package roots for Weeks 1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12, and 13 are now present and registered through the content package framework. Week 4 remains the stable vertical-slice baseline. Week 1 now has a package-backed asset-register economic engine and runtime evaluation persistence. Week 4 and Week 6 have runtime paths; Week 8 has a package-backed Laravel economic engine, runtime evaluation persistence, KPI/ranking integration for package-supported metrics, and Window 2 Week 6 -> Week 8 cohort adjustment support from `halden-window2-cohort-addendum/`. Week 9 now has a package-backed Laravel economic engine and runtime evaluation persistence. Week 10 now has a package-backed convergence economic engine, runtime state assembly, execution integration, and KPI/ranking integration with unsupported KPIs preserved as unavailable/null. Week 11 now has a package-backed Kessana hold-up economic engine, golden tests, and runtime evaluation persistence. Week 12 has package-backed runtime evaluation. Week 13 now has a package-backed factor-markets economic engine, golden tests, and runtime evaluation persistence.
+
+## Week 1 package questions
+
+Resolved by the authoritative package and Week 1 runtime:
+
+- Week 1 manifest;
+- canonical CSVs;
+- student workbook and notebook;
+- faculty solution workbook and notebook;
+- golden fixture;
+- provenance hashes;
+- package validation report;
+- package-backed Laravel asset-register economic engine;
+- economic-versus-reported ranking calculations;
+- Rotterdam contribution/net/shutdown-crack calculation;
+- Norwegian tax-shield calculation;
+- worked-example parity;
+- runtime evaluation persistence through `Week1EconomicEvaluation`;
+- package-backed Week 1 execution through `WeekExecutionService`;
+- student resolved-status visibility from persisted Week 1 evaluations;
+- seven-week variant compatibility using the same Week 1 economics package.
+
+Still open:
+
+- Which Week 1 outputs, if any, should become published KPI values?
+- What standing transitions, if any, should the first-meeting choice create?
+- What consequence links should Week 1 create, if a future authoritative consequence table supplies target state, timing, and future consumer?
 
 ## Week 4 package questions
 

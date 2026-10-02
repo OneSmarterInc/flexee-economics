@@ -24,6 +24,7 @@ use App\Models\Week10EconomicEvaluation;
 use App\Models\Week11EconomicEvaluation;
 use App\Models\Week12EconomicEvaluation;
 use App\Models\Week13EconomicEvaluation;
+use App\Models\Week1EconomicEvaluation;
 use App\Models\Week5EconomicEvaluation;
 use App\Models\Week8EconomicEvaluation;
 use App\Models\Week9EconomicEvaluation;
@@ -349,6 +350,7 @@ class DashboardController extends Controller
     private function resolutionState(SectionSimulationWeek $runtimeWeek, TeamSimulation $teamSimulation): array
     {
         $evaluation = match ($runtimeWeek->definition->week_number) {
+            1 => $this->latestEvaluation(Week1EconomicEvaluation::class, $runtimeWeek, $teamSimulation),
             5 => $this->latestEvaluation(Week5EconomicEvaluation::class, $runtimeWeek, $teamSimulation),
             6 => $this->latestEvaluation(CapitalAllocationEvaluation::class, $runtimeWeek, $teamSimulation),
             8 => $this->latestEvaluation(Week8EconomicEvaluation::class, $runtimeWeek, $teamSimulation),
@@ -398,7 +400,7 @@ class DashboardController extends Controller
 
     private function hasEconomicEvaluation(int $weekNumber): bool
     {
-        return in_array($weekNumber, [4, 5, 6, 8, 9, 10, 11, 12, 13], true);
+        return in_array($weekNumber, [1, 4, 5, 6, 8, 9, 10, 11, 12, 13], true);
     }
 
     private function completedExecution(SectionSimulationWeek $runtimeWeek): ?WeekExecutionRecord
