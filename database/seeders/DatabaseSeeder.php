@@ -3,7 +3,9 @@
 namespace Database\Seeders;
 
 use App\Domain\Capital\Week6\Week6CapitalEconomicsEngine;
+use App\Domain\CohortFeedback\Window1CohortResponseFunctionCatalog;
 use App\Domain\CohortFeedback\Window2CohortResponseFunctionCatalog;
+use App\Domain\CohortFeedback\Window3CohortResponseFunctionCatalog;
 use App\Domain\Content\AuthoritativePackages\AuthoritativeContentPackageManifest;
 use App\Domain\Content\AuthoritativePackages\AuthoritativeContentPackageRegistrationService;
 use App\Domain\Content\SimulationContentActivationService;
@@ -13,8 +15,10 @@ use App\Domain\Economics\Week10\Week10ConvergenceEconomicEngine;
 use App\Domain\Economics\Week11\Week11EconomicEngine;
 use App\Domain\Economics\Week12\Week12EconomicEngine;
 use App\Domain\Economics\Week13\Week13EconomicEngine;
+use App\Domain\Economics\Week3\Week3EconomicEngine;
 use App\Domain\Economics\Week4\Week4EconomicEngine;
 use App\Domain\Economics\Week5\Week5EconomicEngine;
+use App\Domain\Economics\Week7\Week7EconomicEngine;
 use App\Domain\Economics\Week8\Week8EconomicEngine;
 use App\Domain\Economics\Week9\Week9EconomicEngine;
 use App\Domain\Scoring\KpiDefinitionCatalog;
@@ -52,7 +56,9 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         app(KpiDefinitionCatalog::class)->publishHaldenV1();
+        Window1CohortResponseFunctionCatalog::fromRepository()->register();
         Window2CohortResponseFunctionCatalog::fromRepository()->register();
+        Window3CohortResponseFunctionCatalog::fromRepository()->register();
 
         $tenant = Tenant::query()->firstOrCreate(
             ['slug' => 'halden-university-demo'],
@@ -390,28 +396,10 @@ class DatabaseSeeder extends Seeder
                 'Elasticity estimate',
                 'Week 2 elasticity memo',
             ),
-            3 => $this->ensureGenericDecisionWeek(
-                $version,
-                $week,
-                'week3_shutdown_point',
-                'Week 3 shutdown point',
-                'shutdown_recommendation',
-                'Shutdown recommendation',
-                'Week 3 shutdown memo',
-                DecisionFieldType::ShortText->value,
-            ),
+            3 => $this->ensureWeek3Definitions($version, $week),
             5 => $this->ensureWeek5Definitions($version, $week),
             6 => $this->ensureWeek6Definitions($version, $week),
-            7 => $this->ensureGenericDecisionWeek(
-                $version,
-                $week,
-                'week7_competitive_response',
-                'Week 7 competitive response',
-                'competitive_response',
-                'Competitive response',
-                'Week 7 competitive response memo',
-                DecisionFieldType::ShortText->value,
-            ),
+            7 => $this->ensureWeek7Definitions($version, $week),
             8 => $this->ensureWeek8Definitions($version, $week),
             9 => $this->ensureWeek9Definitions($version, $week),
             10 => $this->ensureWeek10Definitions($version, $week),
@@ -471,6 +459,29 @@ class DatabaseSeeder extends Seeder
         $this->field($decision, 'crude_hedge_coverage', 'Crude hedge coverage', DecisionFieldType::Decimal->value, 1, ['min' => 0, 'max' => 1]);
         $this->field($decision, 'hedging_policy', 'Hedging policy', DecisionFieldType::ShortText->value, 2, ['max_length' => 200], false);
         $this->memoDefinition($version, $week, 'week5_currency_exposure_memo', 'Week 5 currency exposure memo', Week5EconomicEngine::ENGINE_VERSION);
+    }
+
+    private function ensureWeek3Definitions(SimulationVersion $version, SimulationWeek $week): void
+    {
+        $decision = $this->decisionDefinition($version, $week, 'week3_shutdown_point', 'Week 3 shutdown point', Week3EconomicEngine::ENGINE_VERSION, Week3EconomicEngine::ENGINE_IDENTIFIER);
+        $this->field($decision, 'european_utilization', 'European run-rate utilization', DecisionFieldType::Decimal->value, 1, ['min' => 0, 'max' => 1]);
+        $this->field($decision, 'rotterdam_posture', 'Rotterdam posture', DecisionFieldType::Radio->value, 2, [], true, [
+            ['value' => 'run', 'label' => 'Run Rotterdam'],
+            ['value' => 'idle', 'label' => 'Idle Rotterdam'],
+            ['value' => 'restart_later', 'label' => 'Restart later'],
+        ]);
+        $this->memoDefinition($version, $week, 'week3_shutdown_point_memo', 'Week 3 shutdown memo', Week3EconomicEngine::ENGINE_VERSION);
+    }
+
+    private function ensureWeek7Definitions(SimulationVersion $version, SimulationWeek $week): void
+    {
+        $decision = $this->decisionDefinition($version, $week, 'week7_competitive_response', 'Week 7 competitive response', Week7EconomicEngine::ENGINE_VERSION, Week7EconomicEngine::ENGINE_IDENTIFIER);
+        $this->field($decision, 'retail_pricing_aggression', 'Retail pricing aggression', DecisionFieldType::Decimal->value, 1, ['min' => 0, 'max' => 1]);
+        $this->field($decision, 'capacity_response', 'Capacity response', DecisionFieldType::Radio->value, 2, [], true, [
+            ['value' => 'hold', 'label' => 'Hold'],
+            ['value' => 'match', 'label' => 'Match'],
+        ]);
+        $this->memoDefinition($version, $week, 'week7_competitive_response_memo', 'Week 7 competitive response memo', Week7EconomicEngine::ENGINE_VERSION);
     }
 
     private function ensureWeek6Definitions(SimulationVersion $version, SimulationWeek $week): void

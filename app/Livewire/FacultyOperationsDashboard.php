@@ -21,7 +21,9 @@ use App\Models\Week11EconomicEvaluation;
 use App\Models\Week12EconomicEvaluation;
 use App\Models\Week13EconomicEvaluation;
 use App\Models\Week1EconomicEvaluation;
+use App\Models\Week3EconomicEvaluation;
 use App\Models\Week5EconomicEvaluation;
+use App\Models\Week7EconomicEvaluation;
 use App\Models\Week8EconomicEvaluation;
 use App\Models\Week9EconomicEvaluation;
 use App\Models\WeekExecutionRecord;
@@ -510,9 +512,11 @@ class FacultyOperationsDashboard extends Component
     {
         return match ($weekNumber) {
             1 => Week1EconomicEvaluation::class,
+            3 => Week3EconomicEvaluation::class,
             4 => EconomicResolution::class,
             5 => Week5EconomicEvaluation::class,
             6 => CapitalAllocationEvaluation::class,
+            7 => Week7EconomicEvaluation::class,
             8 => Week8EconomicEvaluation::class,
             9 => Week9EconomicEvaluation::class,
             10 => Week10EconomicEvaluation::class,
@@ -527,9 +531,11 @@ class FacultyOperationsDashboard extends Component
     {
         return match ($weekNumber) {
             1 => 'Week 1 asset-register evaluations',
+            3 => 'Week 3 shutdown-point evaluations',
             4 => 'Week 4 economic resolutions',
             5 => 'Week 5 currency evaluations',
             6 => 'Week 6 capital evaluations',
+            7 => 'Week 7 competitive-response evaluations',
             8 => 'Week 8 scenario evaluations',
             9 => 'Week 9 retail evaluations',
             10 => 'Week 10 convergence evaluations',

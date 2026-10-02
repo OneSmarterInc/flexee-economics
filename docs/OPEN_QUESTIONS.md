@@ -284,3 +284,20 @@ Still open:
 - Should Week 7 capacity-response behavior compound the Week 6 Window 2 effect, and if so, where are the authoritative parameters?
 
 Do not reuse the Week 8 OPEC `-0.35` coefficient as a capacity-response function. It remains only one term in the Week 8 OPEC shock propagation formula.
+
+## Week 3 and Week 7 runtime questions
+
+Resolved by the authoritative Week 3 and Week 7 package-backed runtime activation:
+
+- Week 3 shutdown-point economic engine and immutable runtime evaluation exist.
+- Week 7 competitive-response economic engine and immutable runtime evaluation exist.
+- Window 1 uses Week 3 average European utilization to produce a Week 5 NWE crack handoff through `CohortFeedbackService`.
+- Window 3 uses Week 7 average retail pricing aggression to produce a Week 9 non-fuel margin handoff through `CohortFeedbackService`.
+- Window 1 and Window 3 remain excluded from seven-week variants.
+- Week 5 and Week 9 evaluations preserve the relevant cohort handoff snapshots when available.
+
+Still open:
+
+- What final authored student decision fields should replace the current minimal Week 3 and Week 7 runtime fields?
+- Which Week 3 or Week 7 economic outputs, if any, should become published KPI values?
+- Which Week 3 or Week 7 decisions should create non-cohort consequence links, if future authoritative mappings define target state and timing?

@@ -2,7 +2,9 @@
 
 namespace App\Domain\Economics\Week9;
 
+use App\Domain\CohortFeedback\Window3CohortResponseFunctionCatalog;
 use App\Enums\SubmissionStatus;
+use App\Models\CohortFeedbackEffect;
 use App\Models\DecisionSubmission;
 use App\Models\User;
 use App\Models\Week9EconomicEvaluation;
@@ -49,6 +51,7 @@ final readonly class Week9EconomicEvaluationService
             $selectedMarkets = $this->selectedRebrandMarkets($submission, $inputs);
             $nonfuelStateKey = $this->nonfuelStateKey($submission);
             $result = $this->engine->calculate($inputs, $nonfuelStateKey, $selectedMarkets);
+            $window3 = $this->window3HandoffSnapshot($submission);
 
             return Week9EconomicEvaluation::query()->create([
                 'tenant_id' => $submission->tenant_id,
@@ -69,8 +72,16 @@ final readonly class Week9EconomicEvaluationService
                 'partial_payback_years' => $this->decimal($result->partialPaybackYears, 6),
                 'full_net_gain_musd' => $this->decimal($result->fullNetGainMusd, 6),
                 'pricewar_partial_payback_years' => $this->decimal($result->priceWarPartialPaybackYears, 6),
-                'input_snapshot' => $result->inputSnapshot,
-                'output_snapshot' => $result->outputSnapshot,
+                'input_snapshot' => [
+                    ...$result->inputSnapshot,
+                    'cohort_feedback' => [
+                        'window3' => $window3,
+                    ],
+                ],
+                'output_snapshot' => [
+                    ...$result->outputSnapshot,
+                    'nonfuel_margin_handoff' => $window3,
+                ],
                 'unavailable_reason' => null,
                 'evaluated_by_user_id' => $actor->id,
                 'evaluated_by_process' => $process,
@@ -173,6 +184,41 @@ final readonly class Week9EconomicEvaluationService
         }
 
         return $marketKeys;
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private function window3HandoffSnapshot(DecisionSubmission $submission): ?array
+    {
+        $effect = CohortFeedbackEffect::query()
+            ->where('tenant_id', $submission->tenant_id)
+            ->where('section_simulation_id', $submission->section_simulation_id)
+            ->where('target_section_simulation_week_id', $submission->section_simulation_week_id)
+            ->where('effect_key', Window3CohortResponseFunctionCatalog::EFFECT_KEY)
+            ->latest('id')
+            ->first();
+
+        if (! $effect instanceof CohortFeedbackEffect) {
+            return null;
+        }
+
+        $snapshot = $effect->getAttribute('effect_snapshot');
+        $response = is_array($snapshot) && is_array($snapshot['response'] ?? null)
+            ? $snapshot['response']
+            : [];
+        $parameters = is_array($response['parameters'] ?? null)
+            ? $response['parameters']
+            : [];
+
+        return [
+            'cohort_feedback_effect_id' => $effect->id,
+            'effect_key' => $effect->effect_key,
+            'effect_version' => $effect->effect_version,
+            'base_nonfuel_margin' => $parameters['base_nonfuel'] ?? $response['parallel_universe_baseline'] ?? null,
+            'final_nonfuel_margin' => $response['bounded_value'] ?? null,
+            'effect_snapshot' => $snapshot,
+        ];
     }
 
     /**

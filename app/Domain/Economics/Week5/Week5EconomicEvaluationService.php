@@ -2,7 +2,9 @@
 
 namespace App\Domain\Economics\Week5;
 
+use App\Domain\CohortFeedback\Window1CohortResponseFunctionCatalog;
 use App\Enums\SubmissionStatus;
+use App\Models\CohortFeedbackEffect;
 use App\Models\DecisionSubmission;
 use App\Models\User;
 use App\Models\Week5EconomicEvaluation;
@@ -48,6 +50,7 @@ final readonly class Week5EconomicEvaluationService
             $inputs = $package->inputs();
             $result = $this->engine->calculate($inputs);
             $decisionSnapshot = $this->decisionSnapshot($submission);
+            $window1 = $this->window1HandoffSnapshot($submission);
 
             return Week5EconomicEvaluation::query()->create([
                 'tenant_id' => $submission->tenant_id,
@@ -76,9 +79,13 @@ final readonly class Week5EconomicEvaluationService
                 'input_snapshot' => [
                     ...$result->inputSnapshot,
                     'decision_submission' => $decisionSnapshot,
+                    'cohort_feedback' => [
+                        'window1' => $window1,
+                    ],
                 ],
                 'output_snapshot' => [
                     ...$result->outputSnapshot,
+                    'nwe_crack_handoff' => $window1,
                     'week10_inherited_state' => $this->week10InheritedState($decisionSnapshot),
                 ],
                 'unavailable_reason' => null,
@@ -160,6 +167,41 @@ final readonly class Week5EconomicEvaluationService
 
         return [
             'crude_hedge_coverage' => $this->decimal(BigDecimal::of((string) $coverage), 6),
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private function window1HandoffSnapshot(DecisionSubmission $submission): ?array
+    {
+        $effect = CohortFeedbackEffect::query()
+            ->where('tenant_id', $submission->tenant_id)
+            ->where('section_simulation_id', $submission->section_simulation_id)
+            ->where('target_section_simulation_week_id', $submission->section_simulation_week_id)
+            ->where('effect_key', Window1CohortResponseFunctionCatalog::EFFECT_KEY)
+            ->latest('id')
+            ->first();
+
+        if (! $effect instanceof CohortFeedbackEffect) {
+            return null;
+        }
+
+        $snapshot = $effect->getAttribute('effect_snapshot');
+        $response = is_array($snapshot) && is_array($snapshot['response'] ?? null)
+            ? $snapshot['response']
+            : [];
+        $parameters = is_array($response['parameters'] ?? null)
+            ? $response['parameters']
+            : [];
+
+        return [
+            'cohort_feedback_effect_id' => $effect->id,
+            'effect_key' => $effect->effect_key,
+            'effect_version' => $effect->effect_version,
+            'base_nwe_crack' => $parameters['base_crack'] ?? $response['parallel_universe_baseline'] ?? null,
+            'final_nwe_crack' => $response['bounded_value'] ?? null,
+            'effect_snapshot' => $snapshot,
         ];
     }
 
