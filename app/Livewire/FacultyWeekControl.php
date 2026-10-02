@@ -13,6 +13,7 @@ use App\Enums\SectionSimulationWeekStatus;
 use App\Models\CapitalAllocationDecision;
 use App\Models\SectionSimulation;
 use App\Models\SectionSimulationWeek;
+use App\Models\SimulationContentActivation;
 use App\Models\WeekExecutionRecord;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection;
@@ -158,6 +159,9 @@ class FacultyWeekControl extends Component
         $selectedWeek = $selectedSection->weeks->firstWhere('id', $this->runtimeWeekId)
             ?? $selectedSection->weeks
                 ->sortBy(fn (SectionSimulationWeek $week): int => $week->definition->week_number)
+                ->first(fn (SectionSimulationWeek $week): bool => $this->hasActivePackage($week))
+            ?? $selectedSection->weeks
+                ->sortBy(fn (SectionSimulationWeek $week): int => $week->definition->week_number)
                 ->first();
 
         $this->runtimeWeekId = $selectedWeek?->id;
@@ -260,11 +264,35 @@ class FacultyWeekControl extends Component
 
     private function packageTypeFor(SectionSimulationWeek $runtimeWeek): string
     {
-        return match ($runtimeWeek->definition->week_number) {
+        $weekNumber = $runtimeWeek->definition->week_number;
+        $authoritativePackages = app(AuthoritativeContentPackageManifest::class);
+
+        if (in_array($weekNumber, $authoritativePackages->registrableWeeks(), true)) {
+            $authoritativeType = $authoritativePackages->packageType($weekNumber);
+
+            if ($this->hasActivePackageType($runtimeWeek, $authoritativeType)) {
+                return $authoritativeType;
+            }
+        }
+
+        return match ($weekNumber) {
             6 => Week6ContentPackageManifest::PACKAGE_TYPE,
             8 => Week8ContentPackageManifest::PACKAGE_TYPE,
-            5, 9, 10, 11, 12, 13 => app(AuthoritativeContentPackageManifest::class)->packageType($runtimeWeek->definition->week_number),
             default => 'reference_package',
         };
+    }
+
+    private function hasActivePackage(SectionSimulationWeek $runtimeWeek): bool
+    {
+        return $this->hasActivePackageType($runtimeWeek, $this->packageTypeFor($runtimeWeek));
+    }
+
+    private function hasActivePackageType(SectionSimulationWeek $runtimeWeek, string $packageType): bool
+    {
+        return SimulationContentActivation::query()
+            ->where('simulation_week_id', $runtimeWeek->simulation_week_id)
+            ->where('package_type', $packageType)
+            ->where('status', SimulationContentActivation::STATUS_ACTIVE)
+            ->exists();
     }
 }

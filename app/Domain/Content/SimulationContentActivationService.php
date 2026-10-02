@@ -25,6 +25,10 @@ final class SimulationContentActivationService
                 ->first();
 
             if ($existing instanceof SimulationContentActivation) {
+                if ($existing->simulation_content_package_id === $package->id) {
+                    return $existing;
+                }
+
                 throw new InvalidArgumentException('An active content package already exists for this simulation week and package type.');
             }
 

@@ -25,10 +25,21 @@ final readonly class AuthoritativeContentPackageRegistrationService
 
         $this->manifest->assertRegistrableWeek($weekNumber);
         $resolvedVersion = $version ?? AuthoritativeContentPackageManifest::PACKAGE_VERSION;
+        $packageType = $this->manifest->packageType($weekNumber);
+
+        $existing = SimulationContentPackage::query()
+            ->where('simulation_week_id', $week->id)
+            ->where('package_type', $packageType)
+            ->where('version', $resolvedVersion)
+            ->first();
+
+        if ($existing instanceof SimulationContentPackage) {
+            return $existing;
+        }
 
         return $this->packages->register(
             $week,
-            $this->manifest->packageType($weekNumber),
+            $packageType,
             $resolvedVersion,
             $this->manifest->manifest($weekNumber, $resolvedVersion),
             $this->manifest->artifacts($weekNumber, $pathOverrides),

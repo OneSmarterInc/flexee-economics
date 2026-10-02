@@ -93,7 +93,11 @@ final readonly class WeekExecutionService
                 ->first();
 
             if ($existing instanceof WeekExecutionRecord) {
-                throw new InvalidArgumentException('This runtime week has already been executed for the requested execution version.');
+                if ($existing->status === WeekExecutionRecord::STATUS_FAILED) {
+                    $executionVersion = $this->retryExecutionVersion($runtimeWeek, $executionVersion);
+                } else {
+                    throw new InvalidArgumentException('This runtime week has already been executed for the requested execution version.');
+                }
             }
 
             $record = WeekExecutionRecord::query()->create([
@@ -728,5 +732,20 @@ final readonly class WeekExecutionService
     private function failedStep(array $steps): string
     {
         return self::STEPS[count($steps)] ?? 'unknown';
+    }
+
+    private function retryExecutionVersion(SectionSimulationWeek $runtimeWeek, string $baseExecutionVersion): string
+    {
+        $attemptCount = WeekExecutionRecord::query()
+            ->where('tenant_id', $runtimeWeek->tenant_id)
+            ->where('section_simulation_week_id', $runtimeWeek->id)
+            ->where(function ($query) use ($baseExecutionVersion): void {
+                $query
+                    ->where('execution_version', $baseExecutionVersion)
+                    ->orWhere('execution_version', 'like', $baseExecutionVersion.'_retry_%');
+            })
+            ->count();
+
+        return $baseExecutionVersion.'_retry_'.($attemptCount + 1);
     }
 }

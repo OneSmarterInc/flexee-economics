@@ -71,6 +71,28 @@ class FacultyWeekControlTest extends TestCase
             ->count());
     }
 
+    public function test_week_control_defaults_to_first_week_with_active_content_package(): void
+    {
+        $graph = $this->tenantGraph('PackagedDefault');
+        $structure = $this->simulationStructure(4);
+        $sectionSimulation = $this->assignSimulation($graph, $structure['version']);
+        /** @var SimulationWeek $week4Definition */
+        $week4Definition = $structure['simulationWeeks']->firstWhere('week_number', 4);
+        /** @var SectionSimulationWeek $week4 */
+        $week4 = $sectionSimulation->weeks()
+            ->where('simulation_week_id', $week4Definition->id)
+            ->firstOrFail();
+
+        $this->activateContent($week4);
+
+        Livewire::actingAs($graph['faculty'])
+            ->test(FacultyWeekControl::class)
+            ->set('sectionSimulationId', $sectionSimulation->id)
+            ->assertSet('runtimeWeekId', $week4->id)
+            ->assertSee('Week 4')
+            ->assertSee('validated');
+    }
+
     public function test_faculty_cannot_view_or_operate_unassigned_sections(): void
     {
         $graph = $this->tenantGraph('A');

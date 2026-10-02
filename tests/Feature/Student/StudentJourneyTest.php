@@ -21,6 +21,7 @@ use App\Models\Team;
 use App\Models\TeamMember;
 use App\Models\TeamSimulation;
 use App\Models\User;
+use App\Models\WeekExecutionRecord;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\CreatesFoundationData;
@@ -71,6 +72,47 @@ class StudentJourneyTest extends TestCase
         $this->actingAs($context['graph']['faculty'])
             ->get(route('student.dashboard'))
             ->assertForbidden();
+    }
+
+    public function test_student_pages_treat_completed_deferred_week_execution_as_resolved(): void
+    {
+        $context = $this->studentJourneyContext('DeferredResolved');
+
+        EconomicResolution::query()
+            ->where('section_simulation_week_id', $context['week1']->id)
+            ->delete();
+
+        WeekExecutionRecord::query()->create([
+            'tenant_id' => $context['week1']->tenant_id,
+            'section_simulation_id' => $context['week1']->section_simulation_id,
+            'section_simulation_week_id' => $context['week1']->id,
+            'simulation_week_id' => $context['week1']->simulation_week_id,
+            'execution_version' => 'week_execution_v1',
+            'status' => WeekExecutionRecord::STATUS_COMPLETED,
+            'steps' => [
+                ['key' => 'validate_content_package', 'status' => 'completed'],
+                ['key' => 'resolve_decisions', 'status' => 'deferred'],
+            ],
+            'outputs' => [],
+            'started_by_user_id' => $context['graph']['faculty']->id,
+            'started_at' => now(),
+            'completed_at' => now(),
+        ]);
+
+        $this->actingAs($context['graph']['student'])
+            ->get(route('student.dashboard'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('journey.simulations.0.history.0.resolution_status', 'resolved')
+                ->where('journey.simulations.0.history.0.result_summary.label', 'Execution completed')
+            );
+
+        $this->actingAs($context['graph']['student'])
+            ->get(route('student.submissions.show', $context['week1']))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('status.resolution_status', 'resolved')
+            );
     }
 
     public function test_student_cannot_access_other_team_or_faculty_tools(): void

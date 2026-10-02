@@ -6,6 +6,7 @@ use App\Domain\Demo\DemoHealthCheckService;
 use App\Enums\SubmissionStatus;
 use App\Models\DecisionSubmission;
 use App\Models\EconomicResolution;
+use App\Models\KpiDefinition;
 use App\Models\SectionSimulationWeek;
 use App\Models\SimulationContentPackage;
 use App\Models\TeamSimulation;
@@ -24,6 +25,12 @@ class DemoOperationsTest extends TestCase
         $this->artisan('halden:demo-health')
             ->expectsOutputToContain('week4_content_activation: ok')
             ->assertExitCode(0);
+
+        $this->assertSame(7, KpiDefinition::query()->count());
+        $this->assertGreaterThan(0, SimulationContentPackage::query()
+            ->where('package_type', 'authoritative_week2_reference_package')
+            ->where('status', SimulationContentPackage::STATUS_VALIDATED)
+            ->count());
     }
 
     public function test_demo_reset_rebuilds_week4_baseline_and_clears_runtime_submissions(): void
@@ -67,9 +74,14 @@ class DemoOperationsTest extends TestCase
 
         $this->assertSame(0, DecisionSubmission::query()->where('tenant_id', $rebuiltTenant->id)->count());
         $this->assertSame(0, EconomicResolution::query()->where('tenant_id', $rebuiltTenant->id)->count());
+        $this->assertSame(7, KpiDefinition::query()->count());
         $this->assertGreaterThan(0, SimulationContentPackage::query()
             ->where('package_type', 'reference_package')
             ->where('version', 'week4_reference_package_v1')
+            ->count());
+        $this->assertGreaterThan(0, SimulationContentPackage::query()
+            ->where('package_type', 'authoritative_week2_reference_package')
+            ->where('status', SimulationContentPackage::STATUS_VALIDATED)
             ->count());
 
         $this->assertTrue(app(DemoHealthCheckService::class)->healthy());

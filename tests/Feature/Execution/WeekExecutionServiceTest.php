@@ -122,6 +122,27 @@ class WeekExecutionServiceTest extends TestCase
         $service->execute($context['runtimeWeek'], $context['graph']['faculty']);
     }
 
+    public function test_failed_week_execution_can_be_retried_with_new_audit_record(): void
+    {
+        $context = $this->week4ContextWithSubmittedDecision();
+        $this->activateContent($context['runtimeWeek']);
+        $service = app(WeekExecutionService::class);
+
+        $failed = $service->execute(
+            $context['runtimeWeek'],
+            $context['graph']['faculty'],
+            forcedFailures: ['validate_content_package' => 'temporary package outage'],
+        );
+        $retry = $service->execute($context['runtimeWeek'], $context['graph']['faculty']);
+
+        $this->assertSame(WeekExecutionRecord::STATUS_FAILED, $failed->status);
+        $this->assertSame(WeekExecutionRecord::STATUS_COMPLETED, $retry->status);
+        $this->assertStringStartsWith(WeekExecutionService::EXECUTION_VERSION.'_retry_', $retry->execution_version);
+        $this->assertSame(2, WeekExecutionRecord::query()
+            ->where('section_simulation_week_id', $context['runtimeWeek']->id)
+            ->count());
+    }
+
     public function test_failed_late_step_preserves_completed_step_history(): void
     {
         $context = $this->week4ContextWithSubmittedDecision();

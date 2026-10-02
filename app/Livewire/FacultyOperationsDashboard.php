@@ -491,7 +491,7 @@ class FacultyOperationsDashboard extends Component
 
     private function packageTypeFor(int $weekNumber, AuthoritativeContentPackageManifest $authoritativePackages): string
     {
-        if (in_array($weekNumber, [5, 9, 10, 11, 12, 13], true)) {
+        if (in_array($weekNumber, $authoritativePackages->registrableWeeks(), true)) {
             return $authoritativePackages->packageType($weekNumber);
         }
 

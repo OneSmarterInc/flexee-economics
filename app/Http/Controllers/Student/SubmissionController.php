@@ -19,6 +19,7 @@ use App\Models\DecisionFormDefinition;
 use App\Models\EconomicResolution;
 use App\Models\MemoDefinition;
 use App\Models\SectionSimulationWeek;
+use App\Models\SimulationContentActivation;
 use App\Models\SimulationContentPackage;
 use App\Models\TeamSimulation;
 use App\Models\User;
@@ -29,6 +30,8 @@ use App\Models\Week13EconomicEvaluation;
 use App\Models\Week5EconomicEvaluation;
 use App\Models\Week8EconomicEvaluation;
 use App\Models\Week9EconomicEvaluation;
+use App\Models\WeekExecutionRecord;
+use DateTimeInterface;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -420,10 +423,38 @@ class SubmissionController extends Controller
 
         $resolvedAt = $resolution?->getAttribute('resolved_at');
 
+        if (! $resolution instanceof EconomicResolution && ! $this->hasEconomicEvaluation($runtimeWeek->definition->week_number)) {
+            $execution = $this->completedExecution($runtimeWeek);
+
+            if ($execution instanceof WeekExecutionRecord) {
+                $completedAt = $execution->completed_at ?? $execution->created_at;
+
+                return [
+                    'status' => 'resolved',
+                    'resolved_at' => $completedAt instanceof DateTimeInterface ? $completedAt->format(DateTimeInterface::ATOM) : null,
+                ];
+            }
+        }
+
         return [
             'status' => $resolution instanceof EconomicResolution ? 'resolved' : 'unresolved',
             'resolved_at' => $resolvedAt instanceof Carbon ? $resolvedAt->toIso8601String() : null,
         ];
+    }
+
+    private function hasEconomicEvaluation(int $weekNumber): bool
+    {
+        return in_array($weekNumber, [4, 5, 6, 8, 9, 10, 11, 12, 13], true);
+    }
+
+    private function completedExecution(SectionSimulationWeek $runtimeWeek): ?WeekExecutionRecord
+    {
+        return WeekExecutionRecord::query()
+            ->where('tenant_id', $runtimeWeek->tenant_id)
+            ->where('section_simulation_week_id', $runtimeWeek->id)
+            ->where('status', WeekExecutionRecord::STATUS_COMPLETED)
+            ->latest('completed_at')
+            ->first();
     }
 
     /**
@@ -474,11 +505,30 @@ class SubmissionController extends Controller
 
     private function packageTypeFor(SectionSimulationWeek $runtimeWeek): string
     {
-        return match ($runtimeWeek->definition->week_number) {
+        $weekNumber = $runtimeWeek->definition->week_number;
+        $authoritativePackages = app(AuthoritativeContentPackageManifest::class);
+
+        if (in_array($weekNumber, $authoritativePackages->registrableWeeks(), true)) {
+            $authoritativeType = $authoritativePackages->packageType($weekNumber);
+
+            if ($this->hasActivePackage($runtimeWeek, $authoritativeType)) {
+                return $authoritativeType;
+            }
+        }
+
+        return match ($weekNumber) {
             6 => Week6ContentPackageManifest::PACKAGE_TYPE,
             8 => Week8ContentPackageManifest::PACKAGE_TYPE,
-            5, 9, 10, 11, 12, 13 => app(AuthoritativeContentPackageManifest::class)->packageType($runtimeWeek->definition->week_number),
             default => 'reference_package',
         };
+    }
+
+    private function hasActivePackage(SectionSimulationWeek $runtimeWeek, string $packageType): bool
+    {
+        return SimulationContentActivation::query()
+            ->where('simulation_week_id', $runtimeWeek->simulation_week_id)
+            ->where('package_type', $packageType)
+            ->where('status', SimulationContentActivation::STATUS_ACTIVE)
+            ->exists();
     }
 }

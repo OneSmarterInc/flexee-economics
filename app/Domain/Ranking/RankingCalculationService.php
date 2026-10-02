@@ -36,12 +36,17 @@ final class RankingCalculationService
             throw new InvalidArgumentException('Cross-section ranking scope is reserved for a future batch.');
         }
 
+        $catalog = app(KpiDefinitionCatalog::class);
+        if ($kpiDefinitionVersion === KpiDefinitionCatalog::HALDEN_KPI_VERSION) {
+            $catalog->publishHaldenV1();
+        }
+
         $definitions = KpiDefinition::query()
             ->where('version', $kpiDefinitionVersion)
             ->orderBy('id')
             ->get();
 
-        app(KpiDefinitionCatalog::class)->assertWeightsSumToOne($definitions);
+        $catalog->assertWeightsSumToOne($definitions);
 
         return DB::transaction(function () use ($runtimeWeek, $scope, $definitions, $kpiDefinitionVersion): array {
             $teamSimulations = TeamSimulation::query()
