@@ -1,0 +1,65 @@
+name: Deploy Production
+
+on:
+  push:
+    branches:
+      - master
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Deploy to Flexee Economics
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to server
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          port: ${{ secrets.DEPLOY_PORT }}
+          script_stop: true
+
+          script: |
+            set -e
+
+            cd ~/public_html/economics.flexee.org
+
+            echo "======================================"
+            echo "Starting Flexee Economics deployment"
+            echo "======================================"
+
+            echo "Pulling latest code..."
+            git fetch origin master
+            git reset --hard origin/master
+
+            echo "Installing Composer dependencies..."
+            composer install \
+              --no-dev \
+              --prefer-dist \
+              --no-interaction \
+              --optimize-autoloader
+
+           
+
+	    echo "Running database migrations..."
+	    php artisan migrate --force
+
+	    echo "Clearing Laravel cache..."
+            php artisan optimize:clear
+
+            echo "Caching Laravel configuration..."
+            php artisan config:cache
+
+            echo "Caching Laravel routes..."
+            php artisan route:cache
+
+            echo "Caching Laravel views..."
+            php artisan view:cache
+
+            echo "======================================"
+            echo "Deployment completed successfully"
+            echo "======================================"
