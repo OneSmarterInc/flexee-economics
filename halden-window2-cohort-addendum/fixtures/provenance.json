@@ -1,0 +1,28 @@
+{
+  "package": "halden-window2-cohort-addendum",
+  "package_version": "1.0.0-draft",
+  "artifacts": {
+    "MANIFEST.md": "c5dcbbd9dba23f52ef12e887c93eb1e00e166e2167ce41ad0cc6a4688334ebe4",
+    "VALIDATION_16A.md": "3a581a919efbcc29e86f2ee5cd2e95eb80e64845d29b107809b222bb5b3fbcc6",
+    "data/baton_rouge_margin.csv": "944a9e493a0e177a2db451d55fe6fbf9ad7a26955ffbbd2a6668bb11c9665409",
+    "data/cohort_states.csv": "43031a6a0788cc692e08c6dda0d2ae41d32ebd97fb17a4165711d1866fed11c6",
+    "data/week8_link.csv": "2bf3934191a7c605b7cfc6c4c1c9cb8a0d77b38a15380b50ba48903cd24f3303",
+    "data/window2_params.csv": "e4c02be6803288d16fe43ed5700c694d058b4fcd7ba1703d0f8b6a015f78d503",
+    "data/worked_example_window.csv": "004801452884bc3ad197c9701b6780884663fe08e284ccd4912d0c64aa9bfe56",
+    "faculty/halden_window2_FACULTY_SOLUTION.ipynb": "f7980bce67f55c629cad770fcf2d803e10ad0f0be4bfcf612d457b15272323ca",
+    "faculty/halden_window2_FACULTY_SOLUTION.xlsx": "2808d7e4a95210fb8f7f2aa30429c016cc61107ea9be291b09573bacd5883c95",
+    "fixtures/window2_golden.json": "f5e9ca94bd6456c7441ca810ebd082307b41a9e0b66bb2cbcc8987e4f4ebcb6c"
+  },
+  "artifact_versions": {
+    "MANIFEST.md": "1.0.0-draft",
+    "VALIDATION_16A.md": "1.0.0-draft",
+    "data/baton_rouge_margin.csv": "1.0.0-draft",
+    "data/cohort_states.csv": "1.0.0-draft",
+    "data/week8_link.csv": "1.0.0-draft",
+    "data/window2_params.csv": "1.0.0-draft",
+    "data/worked_example_window.csv": "1.0.0-draft",
+    "faculty/halden_window2_FACULTY_SOLUTION.ipynb": "1.0.0-draft",
+    "faculty/halden_window2_FACULTY_SOLUTION.xlsx": "1.0.0-draft",
+    "fixtures/window2_golden.json": "1.0.0-draft"
+  }
+}

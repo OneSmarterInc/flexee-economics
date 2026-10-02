@@ -483,7 +483,7 @@ These are expected, documented limitations, not current defects:
 
 - Some weeks have economic outputs but no authoritative seven-KPI mapping.
 - Consequence mappings exist only where evidence-backed.
-- Week 6 to Week 8 cohort response remains unresolved because production parameters are missing.
+- Week 6 to Week 8 cohort response is implemented from `halden-window2-cohort-addendum/`; Week 7 compounding and the future market-data anchor refresh remain deferred.
 - Week 14 does not calculate automatic grades, points, weights, or ranking-derived scores.
 - Real LLM provider integration is deferred. The assistant boundary exists, but LLM output is not a grading authority.
 - Production deployment, backups, monitoring, and support runbooks still need to be finalized.

@@ -1,0 +1,77 @@
+{
+  "meta": {
+    "week": "6\u21928 cohort window 2",
+    "name": "Cohort feedback window 2 \u2014 Gulf Coast capacity additions",
+    "package_version": "1.0.0-draft",
+    "provenance": "Computed from canonical CSVs in data/; reconciled against the constants ledger",
+    "tolerance": {
+      "rel": 0.001,
+      "abs": 1e-05
+    }
+  },
+  "results": {
+    "br_margin_baseline": 20.35,
+    "crack_shift_all_add": -3.0,
+    "br_margin_all_add": 17.35,
+    "br_margin_change_pct_all_add": -0.14742,
+    "crack_shift_most_add": -1.5,
+    "br_margin_most_add": 18.85,
+    "br_margin_change_pct_most_add": -0.07371,
+    "crack_shift_split": 0.0,
+    "br_margin_split": 20.35,
+    "br_margin_change_pct_split": 0.0,
+    "crack_shift_few_add": 0.75,
+    "br_margin_few_add": 21.1,
+    "br_margin_change_pct_few_add": 0.036855,
+    "crack_shift_none_add": 1.5,
+    "br_margin_none_add": 21.85,
+    "br_margin_change_pct_none_add": 0.07371,
+    "max_abs_change_pct": 0.14742,
+    "bound_pct": 0.15,
+    "worst_case_crack_with_opec_holds_full": 13.6,
+    "worst_case_br_margin_with_opec_holds_full": 12.45
+  },
+  "worked_example": {
+    "shift_overbuild": -1.6,
+    "shift_restraint": 0.8,
+    "margin_overbuild": 8.4,
+    "margin_restraint": 10.8
+  },
+  "ordering_assertions": [
+    {
+      "assert": "A split room (50% add capacity) produces no shift",
+      "holds": true
+    },
+    {
+      "assert": "More capacity added by the room always means a lower Week 8 crack",
+      "holds": true
+    },
+    {
+      "assert": "Asymmetric: universal overbuild hurts at least twice what universal restraint helps",
+      "holds": true
+    },
+    {
+      "assert": "Bounded: Baton Rouge margin moves no more than 15% from baseline in any cohort state",
+      "holds": true
+    },
+    {
+      "assert": "Tuned to be visible: the extreme state moves Baton Rouge margin by at least 10%",
+      "holds": true
+    },
+    {
+      "assert": "Worst case stacked on the OPEC holds-full shock still leaves crack and Baton Rouge margin positive",
+      "holds": true
+    }
+  ],
+  "new_parameters": [
+    "Cohort metric: share of a section's teams that fund the Baton Rouge crude flexibility upgrade in Week 6.",
+    "Response: crack shift = \u22126.0 \u00d7 (share \u2212 0.50) above the pivot; +3.0 \u00d7 (0.50 \u2212 share) below it. Range \u22123.00 to +1.50 $/bbl.",
+    "Integration rule: Week 8 Gulf Coast crack = 21.50 + (\u22120.35 \u00d7 \u0394WTI) + window-2 shift. Applies market-wide to every team in the section.",
+    "Timing: aggregate computed at Week 6 lock, hidden through Weeks 6 and 7, revealed in the Week 8 briefing with each team's contribution to the aggregate."
+  ],
+  "flags": [
+    "Calibration: the response is tuned for pedagogical visibility (extreme state moves Baton Rouge margin ~15%). An anchor episode and real-world elasticity have not been attached yet. Add them in the market-data refresh, as the design requires for every cohort window.",
+    "Week 7 compounding deferred: the Week 7 spec says a cohort that also matches the rival expansion compounds the overbuild. That term is not included here, so window 2 can run now on Week 6 data alone. Add it when the Week 7 runtime exists.",
+    "Seven-week variant does not use window 2. Its single cohort window is the Week 4 \u2192 Week 6 discount-rate linkage."
+  ]
+}

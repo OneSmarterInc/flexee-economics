@@ -2,7 +2,7 @@
 
 Updated: 2026-09-28.
 
-The authoritative markdown sources and package roots for Weeks 1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12, and 13 are now present and registered through the content package framework. Week 4 remains the stable vertical-slice baseline. Week 4 and Week 6 have runtime paths; Week 8 has a package-backed Laravel economic engine, runtime evaluation persistence, and KPI/ranking integration for package-supported metrics. Week 9 now has a package-backed Laravel economic engine and runtime evaluation persistence. Week 10 now has a package-backed convergence economic engine, runtime state assembly, execution integration, and KPI/ranking integration with unsupported KPIs preserved as unavailable/null. Week 11 now has a package-backed Kessana hold-up economic engine, golden tests, and runtime evaluation persistence. Week 12 has package-backed runtime evaluation. Week 13 now has a package-backed factor-markets economic engine, golden tests, and runtime evaluation persistence.
+The authoritative markdown sources and package roots for Weeks 1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12, and 13 are now present and registered through the content package framework. Week 4 remains the stable vertical-slice baseline. Week 4 and Week 6 have runtime paths; Week 8 has a package-backed Laravel economic engine, runtime evaluation persistence, KPI/ranking integration for package-supported metrics, and Window 2 Week 6 -> Week 8 cohort adjustment support from `halden-window2-cohort-addendum/`. Week 9 now has a package-backed Laravel economic engine and runtime evaluation persistence. Week 10 now has a package-backed convergence economic engine, runtime state assembly, execution integration, and KPI/ranking integration with unsupported KPIs preserved as unavailable/null. Week 11 now has a package-backed Kessana hold-up economic engine, golden tests, and runtime evaluation persistence. Week 12 has package-backed runtime evaluation. Week 13 now has a package-backed factor-markets economic engine, golden tests, and runtime evaluation persistence.
 
 ## Week 4 package questions
 
@@ -241,11 +241,19 @@ Still open:
 
 ## Week 6 to Week 8 cohort response questions
 
+Resolved by `halden-window2-cohort-addendum/`:
+
+- production response-function registration;
+- share-of-teams Baton Rouge funding metric;
+- pivot share `0.50`;
+- asymmetric slopes `-6.0` and `+3.0`;
+- canonical states `all_add`, `most_add`, `split`, `few_add`, and `none_add`;
+- Week 8 integration rule preserving separate OPEC and cohort contributions;
+- golden outputs and provenance hashes.
+
 Still open:
 
-- What production response function maps Week 6 aggregate Gulf Coast capacity additions to Week 8 refining margin?
-- What artifact contains the Window 2 anchor episode, real elasticity, pedagogical multiplier, bounds, and parallel-universe baseline?
-- What project-to-capacity mapping should production use beyond the Batch 17A fixture?
+- What documented anchor episode and real elasticity should be attached in the future market-data refresh?
 - Should Week 7 capacity-response behavior compound the Week 6 Window 2 effect, and if so, where are the authoritative parameters?
 
-Do not use Week 8 OPEC shock propagation coefficients to fill this gap. They are separate mechanics.
+Do not reuse the Week 8 OPEC `-0.35` coefficient as a capacity-response function. It remains only one term in the Week 8 OPEC shock propagation formula.

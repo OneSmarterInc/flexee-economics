@@ -141,7 +141,7 @@ Batch 32A result: passed.
 
 - KPI and ranking outputs are intentionally incomplete where authoritative package mappings are absent.
 - Consequence links are created only where authoritative consequence mappings exist.
-- Week 6 to Week 8 cohort-response production parameters remain unresolved unless supplied by authoritative source material.
+- Week 6 to Week 8 cohort-response production parameters are supplied by `halden-window2-cohort-addendum/`; Week 7 compounding and the future market-data anchor refresh remain deferred.
 - Week 14 assessment does not calculate automatic grades, points, weights, or ranking-derived scores.
 - LLM interpretation remains behind the existing service/provider boundary and is not a grading authority.
 

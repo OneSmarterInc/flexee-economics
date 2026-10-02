@@ -70,7 +70,7 @@ final readonly class Week8ReferencePackage
     /**
      * @throws JsonException
      */
-    public function inputs(): Week8EconomicInputs
+    public function inputs(?Week8CohortAdjustment $cohortAdjustment = null): Week8EconomicInputs
     {
         if (! $this->available || $this->packageRoot === null || $this->version === null) {
             throw new InvalidArgumentException($this->unavailableReason ?? self::MISSING_REASON);
@@ -86,6 +86,7 @@ final readonly class Week8ReferencePackage
             golden: $this->json('fixtures/week8_golden.json'),
             sourceHashes: is_array($provenance['artifacts'] ?? null) ? $provenance['artifacts'] : [],
             packageVersion: $this->version,
+            cohortAdjustment: $cohortAdjustment,
         );
     }
 

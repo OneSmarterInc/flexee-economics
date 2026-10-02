@@ -118,7 +118,7 @@ It does not implement:
 Week 6 aggregate Gulf Coast capacity additions -> Week 8 refining margin
 ```
 
-The `refining_crack = -0.35` coefficient remains an OPEC shock propagation coefficient and must not be reused as the missing Week 6 to Week 8 cohort-response function.
+The `refining_crack = -0.35` coefficient remains an OPEC shock propagation coefficient and must not be reused as the Week 6 to Week 8 cohort-response function. The later `halden-window2-cohort-addendum/` package supplies that separate Window 2 response.
 
 ## Golden Tests
 

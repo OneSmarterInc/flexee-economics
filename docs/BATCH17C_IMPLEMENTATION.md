@@ -1,6 +1,26 @@
 # Batch 17C - Week 6 to Week 8 Response Function Reconciliation
 
-Batch 17C searched the authoritative source locations for the missing Week 6 -> Week 8 cohort response function. It does not implement a production response function.
+Batch 17C searched the authoritative source locations for the then-missing Week 6 -> Week 8 cohort response function. It did not implement a production response function at that time.
+
+## Superseded Status
+
+The later authoritative package:
+
+```text
+halden-window2-cohort-addendum/
+```
+
+now supplies the executable Window 2 parameters, golden fixture, faculty solution artifacts, and provenance hashes. The production implementation uses this addendum through the existing `CohortResponseFunction` / `CohortFeedbackService` / `CohortFeedbackEffect` path.
+
+The active production mapping is:
+
+```text
+Week 6 Baton Rouge crude-flexibility funding share
+    -> asymmetric pivoted cohort response
+    -> Week 8 Gulf Coast refining-crack shift
+```
+
+The response remains separate from the Week 8 OPEC propagation coefficient `-0.35`.
 
 ## Search Scope
 
@@ -92,8 +112,6 @@ It references Week 6 balance-sheet position as Week 8 context, but it does not d
 
 ## Reconciliation Result
 
-The production Week 6 -> Week 8 response function is still unresolved.
-
 Known:
 
 - Trigger: Week 6 Gulf Coast capacity additions.
@@ -101,68 +119,37 @@ Known:
 - Mechanism type: cross-cohort market feedback, not an individual consequence.
 - Visibility rule: hidden during Week 6, revealed with the Week 8 response.
 - Design standard: documented historical anchor, real elasticity, pedagogical multiplier, bounded magnitude, parallel-universe baseline.
+- Production addendum: `halden-window2-cohort-addendum/`.
+- Cohort metric: share of teams funding Baton Rouge crude flexibility in Week 6.
+- Pivot: `0.50`.
+- Above-pivot response: `-6.0 * (share - 0.50)`.
+- Below-pivot response: `+3.0 * (0.50 - share)`.
+- Response range reached by canonical cohort states: `-3.00` to `+1.50` $/bbl.
+- Integration rule: `Week 8 crack = 21.50 + (-0.35 * ΔWTI) + Window 2 shift`.
 
-Missing:
+Still deferred:
 
-- authoritative production response-function key/version;
-- project-to-capacity mapping beyond the Batch 17A fixture;
-- aggregation thresholds or classification states;
-- baseline Gulf Coast refining-margin value for the response output;
-- curve/table mapping aggregate capacity additions to margin effects;
-- bounds for Window 2;
 - anchor episode;
 - real elasticity;
-- pedagogical multiplier;
-- golden Week 6 -> Week 8 expected outputs;
-- provenance hashes for these response-function artifacts.
+- Week 7 compounding term;
+- seven-week variant use, which remains explicitly excluded.
 
 ## Implementation Decision
 
-Do not implement production Week 6 -> Week 8 market effects yet.
-
-The existing Batch 17A runtime boundary remains correct:
+The existing Batch 17A runtime boundary remains correct and is now populated by the addendum:
 
 ```text
 CapitalAllocationDecision
     -> CohortDecisionAggregate
     -> CohortFeedbackEffect
-    -> future Week 8 runtime context
+    -> Week 8 runtime context
 ```
-
-The existing test fixture remains a framework verification tool only. It must not be promoted into production calibration.
-
-## Required Authoritative Artifact
-
-Before implementation, supply a package or spec section containing at least:
-
-```text
-window_key
-window_version
-source_week = 6
-target_week = 8
-input_metric = aggregate Gulf Coast capacity additions
-aggregation_rule
-parallel_universe_baseline
-response_curve_or_lookup_table
-bounds
-anchor_episode
-real_elasticity
-pedagogical_multiplier
-expected_outputs
-provenance_hashes
-```
-
-Once supplied, the implementation should update the existing `CohortResponseFunction` data path instead of creating a parallel mechanism.
 
 ## Deferred
 
 Still deferred:
 
-- production Window 2 response function;
-- Week 8 margin-effect application;
-- Week 8 package ingestion beyond the Batch 17B boundary;
-- Week 8 OPEC economics;
-- Week 8 KPI/ranking impact;
-- Week 8 consequence links;
-- Week 8 student/faculty runtime;
-- Week 8 what-if.
+- Week 7 compounding of Window 2 overbuild;
+- Window 1 and Window 3 cohort feedback runtime;
+- seven-week variant cohort-window behavior;
+- Week 8 what-if expansion for the cohort adjustment.

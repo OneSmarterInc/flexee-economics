@@ -102,7 +102,7 @@ Still deferred:
 - Week 8-specific UI beyond the existing runtime path;
 - complete Week 8 ranking once additional KPI inputs exist.
 
-The Week 8 OPEC propagation coefficient for refining crack remains separate from the missing Week 6 to Week 8 cohort response.
+The Week 8 OPEC propagation coefficient for refining crack remains separate from the Week 6 to Week 8 cohort response now supplied by `halden-window2-cohort-addendum/`.
 
 ## Verification
 

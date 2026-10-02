@@ -23,6 +23,7 @@ final readonly class Week8EconomicInputs
         public array $golden,
         public array $sourceHashes,
         public string $packageVersion,
+        public ?Week8CohortAdjustment $cohortAdjustment = null,
     ) {}
 
     public function scenario(string $key): Week8Scenario

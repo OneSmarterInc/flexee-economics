@@ -62,8 +62,10 @@ final class Week8EconomicEngine
     public function scenarioResult(Week8EconomicInputs $inputs, Week8Scenario $scenario): Week8ScenarioResult
     {
         $upstreamImpact = $scenario->deltaWti->multipliedBy($inputs->coefficient('upstream_realization'));
-        $refiningCrack = $inputs->baseline('crack_base')
+        $opecRefiningCrack = $inputs->baseline('crack_base')
             ->plus($scenario->deltaWti->multipliedBy($inputs->coefficient('refining_crack')));
+        $cohortShift = ($inputs->cohortAdjustment ?? Week8CohortAdjustment::none())->refiningCrackShift;
+        $refiningCrack = $opecRefiningCrack->plus($cohortShift);
         $retailVolumePercent = $inputs->coefficient('retail_demand_elasticity')
             ->multipliedBy(
                 $inputs->coefficient('retail_passthrough')
@@ -81,6 +83,8 @@ final class Week8EconomicEngine
             upstreamImpactPerBbl: $upstreamImpact,
             refiningCrack: $refiningCrack,
             retailVolumePercent: $retailVolumePercent,
+            opecRefiningCrack: $opecRefiningCrack,
+            cohortRefiningCrackShift: $cohortShift,
         );
     }
 
@@ -250,6 +254,7 @@ final class Week8EconomicEngine
             'scenarios' => array_map(fn (Week8Scenario $scenario): array => $scenario->snapshot(), $inputs->scenarios),
             'baseline' => $this->formatDecimals($inputs->baseline, 6),
             'coefficients' => $this->formatDecimals($inputs->coefficients, 6),
+            'cohort_adjustment' => ($inputs->cohortAdjustment ?? Week8CohortAdjustment::none())->outputSnapshot(),
             'prediction_distribution' => $prediction === null ? null : $this->formatDistribution($prediction),
             'realized_scenario_key' => $realizedScenarioKey,
         ];
@@ -280,6 +285,7 @@ final class Week8EconomicEngine
             ],
             'scenario_results' => array_map(fn (Week8ScenarioResult $result): array => $result->snapshot(), $scenarioResults),
             'probability_distribution' => $this->formatDistribution($probabilities),
+            'cohort_adjustment' => $this->cohortAdjustmentSnapshot($scenarioResults),
             'expected' => [
                 'wti' => (string) $expectedWti->toScale(2, RoundingMode::HalfUp),
                 'upstream_impact_per_bbl' => (string) $expectedUpstream->toScale(2, RoundingMode::HalfUp),
@@ -292,6 +298,23 @@ final class Week8EconomicEngine
                 'expected_refining_crack' => (string) $predictionExpectedCrack?->toScale(2, RoundingMode::HalfUp),
             ],
             'realization' => $realizedScenarioResult?->snapshot(),
+        ];
+    }
+
+    /**
+     * @param  array<string, Week8ScenarioResult>  $scenarioResults
+     * @return array<string, mixed>
+     */
+    private function cohortAdjustmentSnapshot(array $scenarioResults): array
+    {
+        $first = reset($scenarioResults);
+        $shift = $first instanceof Week8ScenarioResult
+            ? ($first->cohortRefiningCrackShift ?? BigDecimal::zero())
+            : BigDecimal::zero();
+
+        return [
+            'refining_crack_shift' => (string) $shift->toScale(2, RoundingMode::HalfUp),
+            'opec_and_cohort_are_separate' => true,
         ];
     }
 

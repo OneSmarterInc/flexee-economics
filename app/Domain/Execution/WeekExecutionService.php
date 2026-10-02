@@ -666,11 +666,13 @@ final readonly class WeekExecutionService
      */
     private function applyCohortEffects(SectionSimulationWeek $runtimeWeek, User $actor): array
     {
-        $function = CohortResponseFunction::query()
+        $functions = CohortResponseFunction::query()
             ->where('source_week_number', $runtimeWeek->definition->week_number)
             ->where('is_active', true)
             ->orderByDesc('id')
-            ->first();
+            ->get();
+
+        $function = $functions->first(fn (CohortResponseFunction $candidate): bool => ! $this->cohortFunctionExcludedForRuntime($candidate, $runtimeWeek));
 
         if (! $function instanceof CohortResponseFunction) {
             return $this->deferred('Cohort effects require configured cohort response functions.');
@@ -688,6 +690,23 @@ final readonly class WeekExecutionService
                 'target_section_simulation_week_id' => $aggregate->target_section_simulation_week_id,
             ],
         ];
+    }
+
+    private function cohortFunctionExcludedForRuntime(CohortResponseFunction $function, SectionSimulationWeek $runtimeWeek): bool
+    {
+        $runtimeWeek->loadMissing('sectionSimulation.version.variant');
+        $parameters = $function->parameterDefinition();
+        $durationWeeks = $runtimeWeek->sectionSimulation->version->variant?->duration_weeks;
+        $excludedDurations = $parameters['excluded_variant_duration_weeks'] ?? [];
+
+        if (is_array($excludedDurations) && $durationWeeks !== null && in_array((int) $durationWeeks, array_map('intval', $excludedDurations), true)) {
+            return true;
+        }
+
+        $variantSlug = $runtimeWeek->sectionSimulation->version->variant?->slug;
+        $excludedSlugs = $parameters['excluded_variant_slugs'] ?? [];
+
+        return is_string($variantSlug) && is_array($excludedSlugs) && in_array($variantSlug, array_map('strval', $excludedSlugs), true);
     }
 
     /**

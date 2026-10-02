@@ -1,0 +1,6 @@
+state,gc_capacity_add_share
+all_add,1.0
+most_add,0.75
+split,0.5
+few_add,0.25
+none_add,0.0

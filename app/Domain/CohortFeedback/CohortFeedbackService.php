@@ -338,6 +338,11 @@ final class CohortFeedbackService
     {
         $aggregateValue = BigDecimal::of((string) $aggregateSnapshot['value']);
         $parameters = $function->parameterDefinition();
+
+        if (($parameters['response'] ?? null) === 'window2_pivoted_share_v1') {
+            return $this->window2PivotedShareResponseSnapshot($function, $aggregateValue);
+        }
+
         $intercept = BigDecimal::of((string) ($parameters['intercept'] ?? '0'));
         $slope = BigDecimal::of((string) ($parameters['slope'] ?? '1'));
         $raw = $intercept->plus($slope->multipliedBy($aggregateValue));
@@ -345,6 +350,34 @@ final class CohortFeedbackService
 
         return [
             'calculation' => 'linear_response_v1',
+            'raw_value' => (string) $raw->toScale(6, RoundingMode::HalfUp),
+            'bounded_value' => (string) $bounded->toScale(6, RoundingMode::HalfUp),
+            'parallel_universe_baseline' => $parameters['parallel_universe_baseline'] ?? null,
+            'output_definition' => $function->outputDefinition(),
+            'bounds' => $function->boundsDefinition(),
+            'parameters' => $function->parameterDefinition(),
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function window2PivotedShareResponseSnapshot(CohortResponseFunction $function, BigDecimal $aggregateValue): array
+    {
+        $parameters = $function->parameterDefinition();
+        $pivot = BigDecimal::of((string) ($parameters['pivot_share'] ?? '0.5'));
+        $overbuildSlope = BigDecimal::of((string) ($parameters['overbuild_slope'] ?? '-6'));
+        $restraintSlope = BigDecimal::of((string) ($parameters['restraint_slope'] ?? '3'));
+        $distance = $aggregateValue->minus($pivot);
+        $raw = $distance->isGreaterThanOrEqualTo(BigDecimal::zero())
+            ? $overbuildSlope->multipliedBy($distance)
+            : $restraintSlope->multipliedBy($distance->abs());
+        $bounded = $this->applyBounds($raw, $function);
+
+        return [
+            'calculation' => 'window2_pivoted_share_v1',
+            'pivot_share' => (string) $pivot->toScale(6, RoundingMode::HalfUp),
+            'cohort_share' => (string) $aggregateValue->toScale(6, RoundingMode::HalfUp),
             'raw_value' => (string) $raw->toScale(6, RoundingMode::HalfUp),
             'bounded_value' => (string) $bounded->toScale(6, RoundingMode::HalfUp),
             'parallel_universe_baseline' => $parameters['parallel_universe_baseline'] ?? null,
@@ -414,6 +447,10 @@ final class CohortFeedbackService
      */
     private function projectMetricValue(array $project, string $metric): BigDecimal
     {
+        if ($metric === 'selected_indicator') {
+            return BigDecimal::of('1');
+        }
+
         $metadata = $project['metadata'] ?? [];
 
         if (is_array($metadata) && array_key_exists($metric, $metadata)) {

@@ -15,6 +15,8 @@ final readonly class Week8ScenarioResult
         public BigDecimal $upstreamImpactPerBbl,
         public BigDecimal $refiningCrack,
         public BigDecimal $retailVolumePercent,
+        public ?BigDecimal $opecRefiningCrack = null,
+        public ?BigDecimal $cohortRefiningCrackShift = null,
     ) {}
 
     /**
@@ -29,6 +31,8 @@ final readonly class Week8ScenarioResult
             'delta_wti' => (string) $this->deltaWti->toScale(2, RoundingMode::HalfUp),
             'upstream_impact_per_bbl' => (string) $this->upstreamImpactPerBbl->toScale(2, RoundingMode::HalfUp),
             'refining_crack' => (string) $this->refiningCrack->toScale(2, RoundingMode::HalfUp),
+            'opec_refining_crack' => (string) ($this->opecRefiningCrack ?? $this->refiningCrack)->toScale(2, RoundingMode::HalfUp),
+            'cohort_refining_crack_shift' => (string) ($this->cohortRefiningCrackShift ?? BigDecimal::zero())->toScale(2, RoundingMode::HalfUp),
             'retail_volume_percent' => (string) $this->retailVolumePercent->toScale(3, RoundingMode::HalfEven),
         ];
     }

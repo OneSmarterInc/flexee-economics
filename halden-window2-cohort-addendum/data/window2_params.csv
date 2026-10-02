@@ -1,0 +1,5 @@
+parameter,value
+pivot_share,0.5
+down_slope,6.0
+up_slope,3.0
+bound_pct,0.15

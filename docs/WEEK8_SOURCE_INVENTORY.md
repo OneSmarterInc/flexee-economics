@@ -39,4 +39,4 @@ The original source zip remains outside the repository at:
 - The canonical CSVs are the package source of truth.
 - The workbook and notebook consume the canonical CSV values.
 - `fixtures/week8_golden.json` is the regression oracle for future Laravel economics.
-- `propagation_coefficients.csv` describes Week 8 OPEC shock propagation only. It does not resolve the Week 6 aggregate Gulf Coast capacity additions -> Week 8 refining margin cohort response function.
+- `propagation_coefficients.csv` describes Week 8 OPEC shock propagation only. The Week 6 aggregate Gulf Coast capacity additions -> Week 8 refining margin response is supplied separately by `halden-window2-cohort-addendum/`.

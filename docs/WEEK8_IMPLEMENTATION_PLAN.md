@@ -1,14 +1,15 @@
 # Week 8 Implementation Plan
 
-This plan maps the validated Week 8 reference package into Laravel runtime economics. Batch 18B implements the standalone package-backed economic engine; runtime submission/resolution integration remains future work.
+This plan maps the validated Week 8 reference package into Laravel runtime economics. Batch 18B implemented the standalone package-backed economic engine; later batches added runtime submission/evaluation, KPI/ranking integration, and the separate Window 2 cohort adjustment from `halden-window2-cohort-addendum/`.
 
 ## Intended Runtime Boundary
 
 ```text
 Week 8 Decision Submission
-    -> Week 8 Resolution Service
+    -> WeekExecutionService
+    -> Week8EconomicEvaluationService
     -> Week 8 OPEC Scenario Engine
-    -> Week 8 Economic Resolution
+    -> Week8EconomicEvaluation
 ```
 
 Controllers and UI should not call the engine directly.
@@ -43,11 +44,11 @@ Future team decision inputs:
 - hedge posture;
 - memo reasoning.
 
-Future prior state inputs:
+Runtime prior state inputs:
 
 - Week 6 balance-sheet/capital-allocation context where available;
 - hedge mandate / standing when implemented;
-- unresolved Week 6 -> Week 8 cohort response, if later supplied.
+- Week 6 -> Week 8 Window 2 cohort response when `CohortFeedbackEffect` exists for the target Week 8 runtime.
 
 ## Implemented Engine Outputs
 
@@ -101,20 +102,19 @@ It does not provide team-specific decision outcomes because those depend on subm
 
 ## Week 6 -> Week 8 Cohort Feedback Separation
 
-The current Week 8 package does not provide the missing production parameters for:
+The Week 8 package itself does not provide the production parameters for:
 
 ```text
 Week 6 aggregate Gulf Coast capacity additions -> Week 8 refining margin
 ```
 
-The Week 8 package's `refining_crack = -0.35` coefficient is an OPEC shock propagation coefficient. It must not be used as the cohort Window 2 response function.
+Those parameters are supplied by `halden-window2-cohort-addendum/`.
+
+The Week 8 package's `refining_crack = -0.35` coefficient remains an OPEC shock propagation coefficient. It must not be used as the cohort Window 2 response function. Week 8 runtime snapshots keep the OPEC-only crack and the Window 2 cohort shift separately observable.
 
 ## Deferred After Batch 18B
 
-- scenario resolver;
-- persistence model;
-- KPI/ranking hooks;
+- Week 7 compounding of Window 2 overbuild;
 - consequence links;
 - what-if console;
-- student/faculty runtime UI;
 - Week 10 consequence propagation.

@@ -2,7 +2,9 @@
 
 namespace App\Domain\Economics\Week8;
 
+use App\Domain\CohortFeedback\Window2CohortResponseFunctionCatalog;
 use App\Enums\SubmissionStatus;
+use App\Models\CohortFeedbackEffect;
 use App\Models\DecisionSubmission;
 use App\Models\User;
 use App\Models\Week8EconomicEvaluation;
@@ -45,7 +47,7 @@ final readonly class Week8EconomicEvaluationService
                 return $this->createUnavailableEvaluation($submission, $actor, $package, $process);
             }
 
-            $inputs = $package->inputs();
+            $inputs = $package->inputs($this->cohortAdjustmentFor($submission));
             $prediction = $this->predictionDistribution($submission);
             $realizedScenarioKey = $this->realizedScenarioKey($submission);
             $result = $this->engine->calculate($inputs, $prediction, $realizedScenarioKey);
@@ -117,6 +119,42 @@ final readonly class Week8EconomicEvaluationService
             'evaluated_by_process' => $process,
             'evaluated_at' => Carbon::now(),
         ]);
+    }
+
+    private function cohortAdjustmentFor(DecisionSubmission $submission): Week8CohortAdjustment
+    {
+        $effect = CohortFeedbackEffect::query()
+            ->where('tenant_id', $submission->tenant_id)
+            ->where('target_section_simulation_week_id', $submission->section_simulation_week_id)
+            ->where('effect_key', Window2CohortResponseFunctionCatalog::EFFECT_KEY)
+            ->orderByDesc('id')
+            ->first();
+
+        if (! $effect instanceof CohortFeedbackEffect) {
+            return Week8CohortAdjustment::none();
+        }
+
+        $snapshotValue = $effect->getAttribute('effect_snapshot');
+        $snapshot = is_array($snapshotValue) ? $snapshotValue : [];
+        $responseValue = $snapshot['response'] ?? null;
+        $response = is_array($responseValue) ? $responseValue : [];
+        $shift = BigDecimal::of((string) ($response['bounded_value'] ?? '0'));
+
+        return new Week8CohortAdjustment(
+            refiningCrackShift: $shift,
+            snapshot: [
+                'status' => 'applied',
+                'cohort_feedback_effect_id' => $effect->id,
+                'cohort_decision_aggregate_id' => $effect->cohort_decision_aggregate_id,
+                'function' => $snapshot['function'] ?? null,
+                'source_week_number' => $snapshot['source_week_number'] ?? 6,
+                'target_week_number' => $snapshot['target_week_number'] ?? 8,
+                'aggregate' => $snapshot['aggregate'] ?? null,
+                'response' => $response,
+                'effect_key' => $effect->effect_key,
+                'effect_version' => $effect->effect_version,
+            ],
+        );
     }
 
     /**

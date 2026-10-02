@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Domain\Capital\Week6\Week6CapitalEconomicsEngine;
+use App\Domain\CohortFeedback\Window2CohortResponseFunctionCatalog;
 use App\Domain\Content\AuthoritativePackages\AuthoritativeContentPackageManifest;
 use App\Domain\Content\AuthoritativePackages\AuthoritativeContentPackageRegistrationService;
 use App\Domain\Content\SimulationContentActivationService;
@@ -50,6 +51,7 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         app(KpiDefinitionCatalog::class)->publishHaldenV1();
+        Window2CohortResponseFunctionCatalog::fromRepository()->register();
 
         $tenant = Tenant::query()->firstOrCreate(
             ['slug' => 'halden-university-demo'],
