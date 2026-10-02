@@ -15,6 +15,7 @@ use App\Domain\Economics\Week10\Week10ConvergenceEconomicEngine;
 use App\Domain\Economics\Week11\Week11EconomicEngine;
 use App\Domain\Economics\Week12\Week12EconomicEngine;
 use App\Domain\Economics\Week13\Week13EconomicEngine;
+use App\Domain\Economics\Week2\Week2EconomicEngine;
 use App\Domain\Economics\Week3\Week3EconomicEngine;
 use App\Domain\Economics\Week4\Week4EconomicEngine;
 use App\Domain\Economics\Week5\Week5EconomicEngine;
@@ -387,15 +388,7 @@ class DatabaseSeeder extends Seeder
     {
         match ($week->week_number) {
             1 => $this->ensureWeek1Definitions($version, $week),
-            2 => $this->ensureGenericDecisionWeek(
-                $version,
-                $week,
-                'week2_elasticity_estimation',
-                'Week 2 elasticity estimation',
-                'elasticity_estimate',
-                'Elasticity estimate',
-                'Week 2 elasticity memo',
-            ),
+            2 => $this->ensureWeek2Definitions($version, $week),
             3 => $this->ensureWeek3Definitions($version, $week),
             5 => $this->ensureWeek5Definitions($version, $week),
             6 => $this->ensureWeek6Definitions($version, $week),
@@ -408,6 +401,22 @@ class DatabaseSeeder extends Seeder
             13 => $this->ensureWeek13Definitions($version, $week),
             default => null,
         };
+    }
+
+    private function ensureWeek2Definitions(SimulationVersion $version, SimulationWeek $week): void
+    {
+        $decision = $this->decisionDefinition($version, $week, 'week2_elasticity_estimation', 'Week 2 elasticity estimation', Week2EconomicEngine::ENGINE_VERSION, Week2EconomicEngine::ENGINE_IDENTIFIER);
+        $this->field($decision, 'est_urban_high_comp', 'Urban high-competition elasticity estimate', DecisionFieldType::Decimal->value, 1, ['min' => -1, 'max' => 0]);
+        $this->field($decision, 'est_suburban_mid_comp', 'Suburban mid-competition elasticity estimate', DecisionFieldType::Decimal->value, 2, ['min' => -1, 'max' => 0]);
+        $this->field($decision, 'est_rural_low_comp', 'Rural low-competition elasticity estimate', DecisionFieldType::Decimal->value, 3, ['min' => -1, 'max' => 0]);
+        $this->field($decision, 'est_interstate', 'Interstate elasticity estimate', DecisionFieldType::Decimal->value, 4, ['min' => -1, 'max' => 0]);
+        $this->field($decision, 'est_netherlands_urban', 'Netherlands urban elasticity estimate', DecisionFieldType::Decimal->value, 5, ['min' => -1, 'max' => 0]);
+        $this->field($decision, 'est_belgium_mixed', 'Belgium mixed elasticity estimate', DecisionFieldType::Decimal->value, 6, ['min' => -1, 'max' => 0]);
+        $this->field($decision, 'est_germany_border', 'Germany border elasticity estimate', DecisionFieldType::Decimal->value, 7, ['min' => -1, 'max' => 0]);
+        $this->field($decision, 'predicted_volume_response_urban_high_comp', 'Predicted urban high-competition volume response', DecisionFieldType::Decimal->value, 8, ['min' => 0, 'max' => 10]);
+        $this->field($decision, 'predicted_volume_response_rural_low_comp', 'Predicted rural low-competition volume response', DecisionFieldType::Decimal->value, 9, ['min' => 0, 'max' => 10]);
+        $this->field($decision, 'pricing_strategy', 'Pricing strategy', DecisionFieldType::ShortText->value, 10, ['max_length' => 255], false);
+        $this->memoDefinition($version, $week, 'week2_elasticity_estimation_memo', 'Week 2 elasticity memo', Week2EconomicEngine::ENGINE_VERSION);
     }
 
     private function ensureWeek1Definitions(SimulationVersion $version, SimulationWeek $week): void
@@ -425,32 +434,6 @@ class DatabaseSeeder extends Seeder
             ['value' => 'other', 'label' => 'Other stakeholder'],
         ]);
         $this->memoDefinition($version, $week, 'week1_asset_register_memo', 'Week 1 asset register memo', Week1EconomicEngine::ENGINE_VERSION);
-    }
-
-    private function ensureGenericDecisionWeek(
-        SimulationVersion $version,
-        SimulationWeek $week,
-        string $key,
-        string $name,
-        string $fieldKey,
-        string $fieldLabel,
-        string $memoTitle,
-        string $fieldType = DecisionFieldType::Decimal->value,
-    ): void {
-        $decision = $this->decisionDefinition($version, $week, $key, $name, 'demo-v1');
-        DecisionFieldDefinition::query()->firstOrCreate([
-            'decision_form_definition_id' => $decision->id,
-            'field_key' => $fieldKey,
-        ], [
-            'label' => $fieldLabel,
-            'field_type' => $fieldType,
-            'is_required' => true,
-            'display_order' => 1,
-            'help_text' => 'Demo submission field; economic execution is deferred for this week.',
-            'validation' => $fieldType === DecisionFieldType::Decimal->value ? ['min' => -10, 'max' => 10] : ['max_length' => 255],
-        ]);
-
-        $this->memoDefinition($version, $week, $key.'_memo', $memoTitle, 'demo-v1');
     }
 
     private function ensureWeek5Definitions(SimulationVersion $version, SimulationWeek $week): void

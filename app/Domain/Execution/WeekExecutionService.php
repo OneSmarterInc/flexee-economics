@@ -11,6 +11,7 @@ use App\Domain\Economics\Week10\Week10EconomicEvaluationService;
 use App\Domain\Economics\Week11\Week11EconomicEvaluationService;
 use App\Domain\Economics\Week12\Week12EconomicEvaluationService;
 use App\Domain\Economics\Week13\Week13EconomicEvaluationService;
+use App\Domain\Economics\Week2\Week2EconomicEvaluationService;
 use App\Domain\Economics\Week3\Week3EconomicEvaluationService;
 use App\Domain\Economics\Week5\Week5EconomicEvaluationService;
 use App\Domain\Economics\Week7\Week7EconomicEvaluationService;
@@ -60,6 +61,7 @@ final readonly class WeekExecutionService
         private CohortFeedbackService $cohortFeedback,
         private WeekResolutionService $weekResolution,
         private Week1EconomicEvaluationService $week1Economics,
+        private Week2EconomicEvaluationService $week2Economics,
         private Week3EconomicEvaluationService $week3Economics,
         private Week6CapitalEconomicsService $week6CapitalEconomics,
         private Week5EconomicEvaluationService $week5Economics,
@@ -237,6 +239,10 @@ final readonly class WeekExecutionService
             return $this->evaluateWeek1SubmittedDecisions($runtimeWeek, $actor);
         }
 
+        if ($runtimeWeek->definition->week_number === 2) {
+            return $this->evaluateWeek2SubmittedDecisions($runtimeWeek, $actor);
+        }
+
         if ($runtimeWeek->definition->week_number === 6) {
             return $this->evaluateWeek6CapitalAllocations($runtimeWeek, $actor);
         }
@@ -309,6 +315,36 @@ final readonly class WeekExecutionService
             'summary' => 'Evaluated Week 1 asset-register decisions.',
             'outputs' => [
                 'week1_economic_evaluation_count' => $evaluated,
+                'evaluation_status_counts' => $statuses,
+            ],
+        ];
+    }
+
+    /**
+     * @return array{status: string, summary: string, outputs: array<string, mixed>}
+     */
+    private function evaluateWeek2SubmittedDecisions(SectionSimulationWeek $runtimeWeek, User $actor): array
+    {
+        $evaluated = 0;
+        $statuses = [];
+
+        DecisionSubmission::query()
+            ->where('tenant_id', $runtimeWeek->tenant_id)
+            ->where('section_simulation_week_id', $runtimeWeek->id)
+            ->where('status', SubmissionStatus::Submitted->value)
+            ->orderBy('id')
+            ->get()
+            ->each(function (DecisionSubmission $submission) use ($actor, &$evaluated, &$statuses): void {
+                $evaluation = $this->week2Economics->evaluate($submission, $actor, process: 'week_execution_service');
+                $evaluated++;
+                $statuses[$evaluation->status] = ($statuses[$evaluation->status] ?? 0) + 1;
+            });
+
+        return [
+            'status' => 'completed',
+            'summary' => 'Evaluated Week 2 elasticity-estimation decisions.',
+            'outputs' => [
+                'week2_economic_evaluation_count' => $evaluated,
                 'evaluation_status_counts' => $statuses,
             ],
         ];

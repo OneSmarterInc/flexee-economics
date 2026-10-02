@@ -21,6 +21,7 @@ use App\Models\Week11EconomicEvaluation;
 use App\Models\Week12EconomicEvaluation;
 use App\Models\Week13EconomicEvaluation;
 use App\Models\Week1EconomicEvaluation;
+use App\Models\Week2EconomicEvaluation;
 use App\Models\Week3EconomicEvaluation;
 use App\Models\Week5EconomicEvaluation;
 use App\Models\Week7EconomicEvaluation;
@@ -512,6 +513,7 @@ class FacultyOperationsDashboard extends Component
     {
         return match ($weekNumber) {
             1 => Week1EconomicEvaluation::class,
+            2 => Week2EconomicEvaluation::class,
             3 => Week3EconomicEvaluation::class,
             4 => EconomicResolution::class,
             5 => Week5EconomicEvaluation::class,
@@ -531,6 +533,7 @@ class FacultyOperationsDashboard extends Component
     {
         return match ($weekNumber) {
             1 => 'Week 1 asset-register evaluations',
+            2 => 'Week 2 elasticity evaluations',
             3 => 'Week 3 shutdown-point evaluations',
             4 => 'Week 4 economic resolutions',
             5 => 'Week 5 currency evaluations',

@@ -25,6 +25,7 @@ use App\Models\Week11EconomicEvaluation;
 use App\Models\Week12EconomicEvaluation;
 use App\Models\Week13EconomicEvaluation;
 use App\Models\Week1EconomicEvaluation;
+use App\Models\Week2EconomicEvaluation;
 use App\Models\Week3EconomicEvaluation;
 use App\Models\Week5EconomicEvaluation;
 use App\Models\Week7EconomicEvaluation;
@@ -353,6 +354,7 @@ class DashboardController extends Controller
     {
         $evaluation = match ($runtimeWeek->definition->week_number) {
             1 => $this->latestEvaluation(Week1EconomicEvaluation::class, $runtimeWeek, $teamSimulation),
+            2 => $this->latestEvaluation(Week2EconomicEvaluation::class, $runtimeWeek, $teamSimulation),
             3 => $this->latestEvaluation(Week3EconomicEvaluation::class, $runtimeWeek, $teamSimulation),
             5 => $this->latestEvaluation(Week5EconomicEvaluation::class, $runtimeWeek, $teamSimulation),
             6 => $this->latestEvaluation(CapitalAllocationEvaluation::class, $runtimeWeek, $teamSimulation),
@@ -404,7 +406,7 @@ class DashboardController extends Controller
 
     private function hasEconomicEvaluation(int $weekNumber): bool
     {
-        return in_array($weekNumber, [1, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13], true);
+        return in_array($weekNumber, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13], true);
     }
 
     private function completedExecution(SectionSimulationWeek $runtimeWeek): ?WeekExecutionRecord
@@ -450,6 +452,7 @@ class DashboardController extends Controller
     private function resultLabel(int $weekNumber): string
     {
         return match ($weekNumber) {
+            2 => 'Elasticity evaluation',
             4 => 'Economic resolution',
             5 => 'Currency evaluation',
             6 => 'Capital allocation evaluation',

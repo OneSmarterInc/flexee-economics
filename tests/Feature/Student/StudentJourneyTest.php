@@ -79,10 +79,10 @@ class StudentJourneyTest extends TestCase
         $context = $this->studentJourneyContext('DeferredResolved');
 
         WeekExecutionRecord::query()->create([
-            'tenant_id' => $context['week2']->tenant_id,
-            'section_simulation_id' => $context['week2']->section_simulation_id,
-            'section_simulation_week_id' => $context['week2']->id,
-            'simulation_week_id' => $context['week2']->simulation_week_id,
+            'tenant_id' => $context['week14']->tenant_id,
+            'section_simulation_id' => $context['week14']->section_simulation_id,
+            'section_simulation_week_id' => $context['week14']->id,
+            'simulation_week_id' => $context['week14']->simulation_week_id,
             'execution_version' => 'week_execution_v1',
             'status' => WeekExecutionRecord::STATUS_COMPLETED,
             'steps' => [
@@ -95,19 +95,21 @@ class StudentJourneyTest extends TestCase
             'completed_at' => now(),
         ]);
         $lifecycle = app(SimulationLifecycleService::class);
-        $week2 = $lifecycle->transitionWeek($context['week2']->refresh(), SectionSimulationWeekStatus::Closed, $context['graph']['faculty']);
-        $context['week2'] = $lifecycle->transitionWeek($week2->refresh(), SectionSimulationWeekStatus::Published, $context['graph']['faculty']);
+        $week14 = $lifecycle->transitionWeek($context['week14']->refresh(), SectionSimulationWeekStatus::Released, $context['graph']['faculty']);
+        $week14 = $lifecycle->transitionWeek($week14->refresh(), SectionSimulationWeekStatus::Open, $context['graph']['faculty'], now()->addDay());
+        $week14 = $lifecycle->transitionWeek($week14->refresh(), SectionSimulationWeekStatus::Closed, $context['graph']['faculty']);
+        $context['week14'] = $lifecycle->transitionWeek($week14->refresh(), SectionSimulationWeekStatus::Published, $context['graph']['faculty']);
 
         $this->actingAs($context['graph']['student'])
             ->get(route('student.dashboard'))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->where('journey.simulations.0.history.1.resolution_status', 'resolved')
-                ->where('journey.simulations.0.history.1.result_summary.label', 'Execution completed')
+                ->where('journey.simulations.0.history.2.resolution_status', 'resolved')
+                ->where('journey.simulations.0.history.2.result_summary.label', 'Execution completed')
             );
 
         $this->actingAs($context['graph']['student'])
-            ->get(route('student.submissions.show', $context['week2']))
+            ->get(route('student.submissions.show', $context['week14']))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->where('status.resolution_status', 'resolved')
@@ -142,13 +144,14 @@ class StudentJourneyTest extends TestCase
      *     sectionSimulation: SectionSimulation,
      *     week1: SectionSimulationWeek,
      *     week2: SectionSimulationWeek,
+     *     week14: SectionSimulationWeek,
      *     teamSimulation: TeamSimulation
      * }
      */
     private function studentJourneyContext(string $suffix = 'Journey'): array
     {
         $graph = $this->tenantGraph($suffix);
-        $structure = $this->simulationStructure(4);
+        $structure = $this->simulationStructure(14);
         $sectionSimulation = $this->assignSimulation($graph, $structure['version']);
         $this->addPeerTeam($graph, $sectionSimulation->id);
 
@@ -158,6 +161,8 @@ class StudentJourneyTest extends TestCase
         $week2Definition = $structure['simulationWeeks']->firstWhere('week_number', 2);
         /** @var SimulationWeek $week3Definition */
         $week3Definition = $structure['simulationWeeks']->firstWhere('week_number', 3);
+        /** @var SimulationWeek $week14Definition */
+        $week14Definition = $structure['simulationWeeks']->firstWhere('week_number', 14);
 
         /** @var SectionSimulationWeek $week1 */
         $week1 = $sectionSimulation->weeks()
@@ -170,6 +175,10 @@ class StudentJourneyTest extends TestCase
         /** @var SectionSimulationWeek $week3 */
         $week3 = $sectionSimulation->weeks()
             ->where('simulation_week_id', $week3Definition->id)
+            ->firstOrFail();
+        /** @var SectionSimulationWeek $week14 */
+        $week14 = $sectionSimulation->weeks()
+            ->where('simulation_week_id', $week14Definition->id)
             ->firstOrFail();
 
         $this->activateStudentPackage($week2Definition);
@@ -234,7 +243,7 @@ class StudentJourneyTest extends TestCase
         $week1 = $lifecycle->transitionWeek($week1->refresh(), SectionSimulationWeekStatus::Closed, $graph['faculty']);
         $lifecycle->transitionWeek($week1->refresh(), SectionSimulationWeekStatus::Published, $graph['faculty']);
 
-        return compact('graph', 'sectionSimulation', 'week1', 'week2', 'teamSimulation');
+        return compact('graph', 'sectionSimulation', 'week1', 'week2', 'week14', 'teamSimulation');
     }
 
     private function activateStudentPackage(SimulationWeek $week, string $studentKey = 'student-brief'): SimulationContentPackage
