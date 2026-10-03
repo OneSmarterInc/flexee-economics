@@ -10,6 +10,7 @@ use App\Domain\CausalTrace\Nodes\EconomicNode;
 use App\Domain\CausalTrace\Nodes\KpiNode;
 use App\Domain\CausalTrace\Nodes\RankingNode;
 use App\Domain\CausalTrace\Nodes\StandingNode;
+use App\Domain\Submissions\DecisionDefinitionSnapshotter;
 use App\Models\AdvisorConsultationSession;
 use App\Models\ConsequenceLink;
 use App\Models\DecisionSubmission;
@@ -24,6 +25,10 @@ use InvalidArgumentException;
 
 final class CausalTraceService
 {
+    public function __construct(
+        private readonly DecisionDefinitionSnapshotter $snapshotter,
+    ) {}
+
     public function forwardFromDecision(User $actor, DecisionSubmission $decision): CausalTrace
     {
         $this->assertFacultyCanTrace($actor, $decision->tenant_id, $decision->section_simulation_id);
@@ -130,15 +135,29 @@ final class CausalTraceService
 
     private function decisionNode(DecisionSubmission $decision, int $sortOrder): DecisionNode
     {
+        $snapshot = $decision->historicalDefinitionSnapshot();
+        $answers = $decision->historicalAnswers();
+
+        if ($snapshot === []) {
+            $decision->loadMissing('definition.fields');
+            $snapshot = $this->snapshotter->snapshotForSubmission($decision->definition, $answers);
+        }
+
+        $definition = is_array($snapshot['definition'] ?? null) ? $snapshot['definition'] : [];
+
         return new DecisionNode(
             id: $decision->id,
             teamSimulationId: $decision->team_simulation_id,
             runtimeWeekId: $decision->section_simulation_week_id,
-            label: $decision->definition->name,
+            label: (string) ($definition['name'] ?? $decision->definition->name),
             sortOrder: $sortOrder,
             payload: [
                 'status' => $decision->statusValue(),
                 'answers' => $decision->answers,
+                'definition' => $definition,
+                'definition_version' => $definition['version'] ?? null,
+                'definition_snapshot' => $snapshot,
+                'available_alternatives' => $snapshot['available_alternatives'] ?? $this->snapshotter->alternativesFromSnapshot($snapshot, $answers),
                 'submitted_at' => $this->dateIso($decision->getAttribute('submitted_at')),
             ],
         );

@@ -23,6 +23,7 @@ class SubmissionService
 {
     public function __construct(
         private readonly DefinitionInputValidator $validator,
+        private readonly DecisionDefinitionSnapshotter $snapshotter,
     ) {}
 
     /**
@@ -137,9 +138,11 @@ class SubmissionService
             ]);
 
             $now = Carbon::now();
+            $definitionSnapshot = $this->snapshotter->snapshotForSubmission($definition, $answers);
             $submission->fill([
                 'status' => $status->value,
                 'answers' => $answers,
+                'definition_snapshot' => $definitionSnapshot,
                 'lock_version' => ((int) $submission->lock_version) + 1,
                 'updated_by_user_id' => $actor->id,
                 'draft_saved_at' => $now,
@@ -154,6 +157,7 @@ class SubmissionService
                 'revision_number' => $submission->revisions()->count() + 1,
                 'status' => $status->value,
                 'answers' => $answers,
+                'definition_snapshot' => $definitionSnapshot,
                 'actor_user_id' => $actor->id,
                 'submitted_at' => $status === SubmissionStatus::Submitted ? $submission->submitted_at : null,
             ]);

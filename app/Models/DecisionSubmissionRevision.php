@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['ulid', 'tenant_id', 'decision_submission_id', 'decision_form_definition_id', 'revision_number', 'status', 'answers', 'actor_user_id', 'submitted_at'])]
+#[Fillable(['ulid', 'tenant_id', 'decision_submission_id', 'decision_form_definition_id', 'revision_number', 'status', 'answers', 'definition_snapshot', 'actor_user_id', 'submitted_at'])]
 class DecisionSubmissionRevision extends Model
 {
     /** @use HasFactory<DecisionSubmissionRevisionFactory> */
@@ -21,6 +21,7 @@ class DecisionSubmissionRevision extends Model
     {
         return [
             'answers' => 'array',
+            'definition_snapshot' => 'array',
             'submitted_at' => 'datetime',
             'status' => SubmissionStatus::class,
         ];

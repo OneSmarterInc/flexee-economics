@@ -14,7 +14,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use InvalidArgumentException;
 
-#[Fillable(['ulid', 'tenant_id', 'section_simulation_id', 'section_simulation_week_id', 'team_simulation_id', 'team_id', 'decision_form_definition_id', 'status', 'answers', 'lock_version', 'updated_by_user_id', 'submitted_by_user_id', 'draft_saved_at', 'submitted_at'])]
+#[Fillable(['ulid', 'tenant_id', 'section_simulation_id', 'section_simulation_week_id', 'team_simulation_id', 'team_id', 'decision_form_definition_id', 'status', 'answers', 'definition_snapshot', 'lock_version', 'updated_by_user_id', 'submitted_by_user_id', 'draft_saved_at', 'submitted_at'])]
 class DecisionSubmission extends Model
 {
     /** @use HasFactory<DecisionSubmissionFactory> */
@@ -41,7 +41,7 @@ class DecisionSubmission extends Model
         });
 
         static::updating(function (DecisionSubmission $submission): void {
-            $materialFields = ['status', 'answers', 'updated_by_user_id', 'submitted_by_user_id', 'draft_saved_at', 'submitted_at'];
+            $materialFields = ['status', 'answers', 'definition_snapshot', 'updated_by_user_id', 'submitted_by_user_id', 'draft_saved_at', 'submitted_at'];
 
             if ($submission->getRawOriginal('status') === SubmissionStatus::Submitted->value && $submission->isDirty($materialFields)) {
                 throw new InvalidArgumentException('Submitted decision submissions cannot be modified.');
@@ -53,10 +53,31 @@ class DecisionSubmission extends Model
     {
         return [
             'answers' => 'array',
+            'definition_snapshot' => 'array',
             'draft_saved_at' => 'datetime',
             'submitted_at' => 'datetime',
             'status' => SubmissionStatus::class,
         ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function historicalDefinitionSnapshot(): array
+    {
+        $snapshot = $this->getAttribute('definition_snapshot');
+
+        return is_array($snapshot) ? $snapshot : [];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function historicalAnswers(): array
+    {
+        $answers = $this->getAttribute('answers');
+
+        return is_array($answers) ? $answers : [];
     }
 
     public function statusEnum(): SubmissionStatus
