@@ -190,9 +190,47 @@ class FacultyOperationsDashboard extends Component
             'section' => $sectionSimulation->section->name,
             'variant' => $sectionSimulation->variant->name,
             'version' => $sectionSimulation->version->version,
+            'is_seven_week_variant' => (int) $sectionSimulation->variant->duration_weeks === 7,
+            'sequence' => $this->variantSequence($sectionSimulation),
             'teams' => $teamCount,
             'students' => $studentCount,
         ];
+    }
+
+    /**
+     * @return list<int>
+     */
+    private function variantSequence(SectionSimulation $sectionSimulation): array
+    {
+        $configuration = $this->configurationPayload($sectionSimulation->version->getAttribute('configuration'));
+        $sequence = $configuration['authoritative_week_sequence'] ?? null;
+
+        if (is_array($sequence)) {
+            return array_values(array_map('intval', $sequence));
+        }
+
+        return array_values($this->orderedWeeks($sectionSimulation)
+            ->map(fn (SectionSimulationWeek $week): int => $week->definition->week_number)
+            ->values()
+            ->all());
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function configurationPayload(mixed $configuration): array
+    {
+        if (is_array($configuration)) {
+            return $configuration;
+        }
+
+        if (is_string($configuration)) {
+            $decoded = json_decode($configuration, true);
+
+            return is_array($decoded) ? $decoded : [];
+        }
+
+        return [];
     }
 
     /**

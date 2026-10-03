@@ -261,7 +261,7 @@ class SubmissionController extends Controller
     /**
      * @return array{
      *     package: array{status: string, version: string|null, package_type: string, validation_status: string|null, message: string|null},
-     *     artifacts: list<array{key: string, type: string, visibility: string|null, version: string|null, reference: string}>
+     *     artifacts: list<array{key: string, label: string, type: string, visibility: string|null, version: string|null, reference: string}>
      * }
      */
     private function contentState(SimulationContentResolver $content, User $user, SectionSimulationWeek $runtimeWeek): array
@@ -274,6 +274,7 @@ class SubmissionController extends Controller
             foreach ($content->authorizedArtifactsFor($user, $runtimeWeek, $packageType) as $artifact) {
                 $artifacts[] = [
                     'key' => $artifact->artifact_key,
+                    'label' => $this->artifactLabel($artifact->artifact_key, $artifact->artifact_type),
                     'type' => $artifact->artifact_type,
                     'visibility' => $artifact->visibility,
                     'version' => $artifact->version,
@@ -297,6 +298,23 @@ class SubmissionController extends Controller
                 'artifacts' => [],
             ];
         }
+    }
+
+    private function artifactLabel(string $key, string $type): string
+    {
+        return match ($type) {
+            'workbook' => 'Student workbook',
+            'notebook' => 'Student analysis notebook',
+            'manifest' => 'Package guide',
+            'dataset' => str($key)
+                ->after('_data_')
+                ->replace('_csv', '')
+                ->replace(['_', '-'], ' ')
+                ->title()
+                ->append(' dataset')
+                ->toString(),
+            default => str($key)->replace(['_', '-'], ' ')->title()->toString(),
+        };
     }
 
     /**

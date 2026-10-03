@@ -59,6 +59,7 @@ type ContentPackage = {
 
 type ContentArtifact = {
     key: string;
+    label: string;
     type: string;
     visibility?: string | null;
     version?: string | null;
@@ -309,7 +310,7 @@ function postCapitalAllocation() {
                 >
                     <div class="flex items-start justify-between gap-3">
                         <div>
-                            <h3 class="font-medium">{{ artifact.key }}</h3>
+                            <h3 class="font-medium">{{ artifact.label }}</h3>
                             <p class="text-muted-foreground mt-1">
                                 {{ artifact.type }}
                             </p>

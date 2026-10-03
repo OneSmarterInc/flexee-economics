@@ -42,6 +42,12 @@
                         {{ $selectedSectionSimulation->section->name }} -
                         {{ $selectedSectionSimulation->version->version }}
                     </p>
+                    <p class="text-muted-foreground mt-1 text-sm">
+                        {{ $selectedSectionSimulation->variant->name }}
+                        @if ((int) $selectedSectionSimulation->variant->duration_weeks === 7)
+                            · Pilot sequence: Week 1 → Week 4 → Week 6 → Week 8 → Week 10 → Week 12 → Week 14
+                        @endif
+                    </p>
                 </div>
                 <div class="flex flex-wrap gap-2">
                     @foreach ($validTransitions as $nextStatus)

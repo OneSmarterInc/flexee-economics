@@ -43,6 +43,11 @@ final class SimulationContentResolver
 
         return $package->artifacts()
             ->whereIn('visibility', $this->visibleArtifactScopes($actor))
+            ->when($actor->isStudent(), fn ($query) => $query->whereNotIn('artifact_type', [
+                'expected_outputs',
+                'provenance',
+                'validation_report',
+            ]))
             ->where('is_missing', false)
             ->orderBy('artifact_type')
             ->orderBy('artifact_key')

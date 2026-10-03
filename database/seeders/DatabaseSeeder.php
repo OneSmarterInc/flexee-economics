@@ -98,6 +98,14 @@ class DatabaseSeeder extends Seeder
             'status' => 'active',
         ]);
 
+        $sevenWeekPilotSection = Section::query()->firstOrCreate([
+            'tenant_id' => $tenant->id,
+            'course_id' => $course->id,
+            'name' => 'Seven-Week Pilot',
+        ], [
+            'status' => 'active',
+        ]);
+
         $seats = collect([
             ['code' => 'evp', 'name' => 'EVP', 'sort_order' => 1],
             ['code' => 'upstream-head', 'name' => 'Upstream Segment Head', 'sort_order' => 2],
@@ -128,7 +136,7 @@ class DatabaseSeeder extends Seeder
             'email_verified_at' => now(),
         ]);
 
-        foreach ([$sectionA, $sectionB] as $section) {
+        foreach ([$sectionA, $sectionB, $sevenWeekPilotSection] as $section) {
             SectionFaculty::query()->firstOrCreate([
                 'tenant_id' => $tenant->id,
                 'section_id' => $section->id,
@@ -159,6 +167,8 @@ class DatabaseSeeder extends Seeder
                 ]);
             }
         }
+
+        $this->ensureSevenWeekPilotTeams($tenant, $sevenWeekPilotSection, $seats, $password);
 
         foreach ([[$sectionA, 'Alpha'], [$sectionB, 'Bravo']] as [$section, $teamName]) {
             $team = Team::query()->firstOrCreate([
@@ -261,49 +271,7 @@ class DatabaseSeeder extends Seeder
 
             if ($weekNumber === 4) {
                 app(Week4ContentPackageRegistrationService::class)->ensureActivated($week);
-
-                $decisionDefinition = DecisionFormDefinition::query()->firstOrCreate([
-                    'simulation_week_id' => $week->id,
-                    'key' => 'week4_transfer_pricing',
-                    'version' => Week4EconomicEngine::ENGINE_VERSION,
-                ], [
-                    'simulation_version_id' => $version->id,
-                    'name' => 'Week 4 transfer pricing',
-                    'is_required' => true,
-                    'metadata' => [
-                        'economic_engine' => Week4EconomicEngine::ENGINE_IDENTIFIER,
-                        'development_demo_only' => true,
-                    ],
-                ]);
-
-                DecisionFieldDefinition::query()->firstOrCreate([
-                    'decision_form_definition_id' => $decisionDefinition->id,
-                    'field_key' => 'transfer_price',
-                ], [
-                    'label' => 'Transfer price',
-                    'field_type' => 'currency',
-                    'is_required' => true,
-                    'display_order' => 1,
-                    'unit' => '$/bbl',
-                    'validation' => ['min' => 0, 'max' => 250],
-                ]);
-
-                MemoDefinition::query()->firstOrCreate([
-                    'simulation_week_id' => $week->id,
-                    'key' => 'week4_transfer_pricing_memo',
-                    'version' => Week4EconomicEngine::ENGINE_VERSION,
-                ], [
-                    'simulation_version_id' => $version->id,
-                    'title' => 'Week 4 transfer pricing memo',
-                    'instructions' => 'Explain the transfer-pricing decision, segment tradeoffs, and expected operational consequences.',
-                    'is_required' => true,
-                    'character_limit' => 4000,
-                    'submission_format' => 'text',
-                    'metadata' => [
-                        'economic_engine' => Week4EconomicEngine::ENGINE_IDENTIFIER,
-                        'development_demo_only' => true,
-                    ],
-                ]);
+                $this->ensureWeek4Definitions($version, $week);
             }
 
             if (in_array($weekNumber, app(AuthoritativeContentPackageManifest::class)->registrableWeeks(), true)) {
@@ -313,6 +281,95 @@ class DatabaseSeeder extends Seeder
             }
 
             $this->ensureDemoSubmissionDefinitions($version, $week);
+        }
+
+        $sevenWeekVariant = SimulationVariant::query()->firstOrCreate([
+            'simulation_id' => $simulation->id,
+            'slug' => 'seven-week',
+        ], [
+            'name' => 'Seven-Week Variant',
+            'duration_weeks' => 7,
+            'metadata' => [
+                'cadence' => 'weekly',
+                'authoritative_sequence' => [1, 4, 6, 8, 10, 12, 14],
+                'role_rotation' => [
+                    'first_seat_weeks' => [1, 4, 6, 8],
+                    'second_seat_weeks' => [10, 12, 14],
+                ],
+            ],
+        ]);
+
+        $sevenWeekVersion = SimulationVersion::query()->firstOrCreate([
+            'simulation_variant_id' => $sevenWeekVariant->id,
+            'version' => '2026-seven-week-pilot',
+        ], [
+            'simulation_id' => $simulation->id,
+            'status' => SimulationVersionStatus::Published,
+            'config_hash' => 'halden-seven-week-pilot-v1',
+            'configuration' => [
+                'source' => 'halden-energy-seven-week-variant',
+                'authoritative_week_sequence' => [1, 4, 6, 8, 10, 12, 14],
+                'cohort_windows' => ['week4_to_week6_discount_rate'],
+                'excluded_windows' => ['window1', 'window2', 'window3'],
+                'role_rotation' => [
+                    'first_seat_weeks' => [1, 4, 6, 8],
+                    'second_seat_weeks' => [10, 12, 14],
+                    'rotation_before_week' => 10,
+                ],
+                'pilot_configuration' => true,
+            ],
+            'notes' => 'Seven-week pilot configuration using the authoritative compressed sequence.',
+            'published_at' => now(),
+        ]);
+
+        $sevenWeekTitles = [
+            1 => 'Asset register and cost structure',
+            4 => 'Transfer pricing',
+            6 => 'Capital allocation and folded currency',
+            8 => 'OPEC scenario',
+            10 => 'Recession convergence and folded factor markets',
+            12 => 'Transition portfolio',
+            14 => 'Board defense',
+        ];
+
+        foreach ($sevenWeekTitles as $weekNumber => $title) {
+            $week = SimulationWeek::query()->firstOrCreate([
+                'simulation_version_id' => $sevenWeekVersion->id,
+                'week_number' => $weekNumber,
+            ], [
+                'simulation_id' => $simulation->id,
+                'simulation_variant_id' => $sevenWeekVariant->id,
+                'slug' => 'seven-week-'.$weekNumber,
+                'title' => $title,
+                'pattern' => $weekNumber === 14 ? 'board-defense' : 'weekly-briefing',
+                'status' => 'active',
+                'content_metadata' => [
+                    'seven_week_variant' => true,
+                    'authoritative_sequence' => [1, 4, 6, 8, 10, 12, 14],
+                ],
+            ]);
+
+            WeekContentVersion::query()->firstOrCreate([
+                'simulation_week_id' => $week->id,
+                'version' => 'seven-week-pilot-v1',
+            ], [
+                'simulation_version_id' => $sevenWeekVersion->id,
+                'status' => 'active',
+                'metadata' => ['seven_week_variant' => true],
+            ]);
+
+            if ($weekNumber === 4) {
+                app(Week4ContentPackageRegistrationService::class)->ensureActivated($week);
+                $this->ensureWeek4Definitions($sevenWeekVersion, $week);
+            }
+
+            if (in_array($weekNumber, app(AuthoritativeContentPackageManifest::class)->registrableWeeks(), true)) {
+                app(SimulationContentActivationService::class)->activate(
+                    app(AuthoritativeContentPackageRegistrationService::class)->register($week, 'seven-week-pilot-v1'),
+                );
+            }
+
+            $this->ensureDemoSubmissionDefinitions($sevenWeekVersion, $week);
         }
 
         $this->ensureDemoCapitalProjects();
@@ -326,6 +383,31 @@ class DatabaseSeeder extends Seeder
         if (! $sectionSimulation) {
             $sectionSimulation = app(SimulationLifecycleService::class)
                 ->assignToSection($sectionA, $version, $faculty, 'Section A Demo Halden Energy');
+        }
+
+        $sevenWeekSectionSimulation = SectionSimulation::query()
+            ->where('tenant_id', $tenant->id)
+            ->where('section_id', $sevenWeekPilotSection->id)
+            ->where('simulation_version_id', $sevenWeekVersion->id)
+            ->first();
+
+        if (! $sevenWeekSectionSimulation) {
+            $sevenWeekSectionSimulation = app(SimulationLifecycleService::class)
+                ->assignToSection($sevenWeekPilotSection, $sevenWeekVersion, $faculty, 'Seven-Week Pilot Halden Energy');
+        }
+
+        $sevenWeekOne = $sevenWeekSectionSimulation->weeks()
+            ->whereHas('definition', fn ($query) => $query->where('week_number', 1))
+            ->first();
+
+        if ($sevenWeekOne && $sevenWeekOne->statusEnum() === SectionSimulationWeekStatus::Draft) {
+            app(SimulationLifecycleService::class)
+                ->transitionWeek($sevenWeekOne, SectionSimulationWeekStatus::Released, $faculty);
+        }
+
+        if ($sevenWeekOne && $sevenWeekOne->refresh()->statusEnum() === SectionSimulationWeekStatus::Released) {
+            app(SimulationLifecycleService::class)
+                ->transitionWeek($sevenWeekOne, SectionSimulationWeekStatus::Open, $faculty, now()->addWeek());
         }
 
         $weekOne = $sectionSimulation->weeks()
@@ -384,6 +466,50 @@ class DatabaseSeeder extends Seeder
             });
     }
 
+    private function ensureSevenWeekPilotTeams(Tenant $tenant, Section $section, mixed $seats, string $password): void
+    {
+        foreach ([
+            'Alpha' => 'pilot-alpha',
+            'Beta' => 'pilot-beta',
+        ] as $teamName => $emailPrefix) {
+            $team = Team::query()->firstOrCreate([
+                'tenant_id' => $tenant->id,
+                'section_id' => $section->id,
+                'slug' => strtolower($teamName),
+            ], [
+                'name' => 'Team '.$teamName,
+            ]);
+
+            foreach (range(1, 5) as $studentIndex) {
+                $student = User::query()->firstOrCreate([
+                    'tenant_id' => $tenant->id,
+                    'email' => $emailPrefix.$studentIndex.'@example.test',
+                ], [
+                    'name' => 'Pilot '.ucfirst($emailPrefix).' Student '.$studentIndex,
+                    'password' => $password,
+                    'global_role' => PlatformRole::Student,
+                    'email_verified_at' => now(),
+                ]);
+
+                Enrollment::query()->firstOrCreate([
+                    'tenant_id' => $tenant->id,
+                    'section_id' => $section->id,
+                    'user_id' => $student->id,
+                ], [
+                    'status' => 'active',
+                ]);
+
+                TeamMember::query()->firstOrCreate([
+                    'tenant_id' => $tenant->id,
+                    'team_id' => $team->id,
+                    'user_id' => $student->id,
+                ], [
+                    'seat_id' => $seats->values()->get($studentIndex - 1)?->id,
+                ]);
+            }
+        }
+    }
+
     private function ensureDemoSubmissionDefinitions(SimulationVersion $version, SimulationWeek $week): void
     {
         match ($week->week_number) {
@@ -434,6 +560,52 @@ class DatabaseSeeder extends Seeder
             ['value' => 'other', 'label' => 'Other stakeholder'],
         ]);
         $this->memoDefinition($version, $week, 'week1_asset_register_memo', 'Week 1 asset register memo', Week1EconomicEngine::ENGINE_VERSION);
+    }
+
+    private function ensureWeek4Definitions(SimulationVersion $version, SimulationWeek $week): void
+    {
+        $decisionDefinition = DecisionFormDefinition::query()->firstOrCreate([
+            'simulation_week_id' => $week->id,
+            'key' => 'week4_transfer_pricing',
+            'version' => Week4EconomicEngine::ENGINE_VERSION,
+        ], [
+            'simulation_version_id' => $version->id,
+            'name' => 'Week 4 transfer pricing',
+            'is_required' => true,
+            'metadata' => [
+                'economic_engine' => Week4EconomicEngine::ENGINE_IDENTIFIER,
+                'development_demo_only' => true,
+            ],
+        ]);
+
+        DecisionFieldDefinition::query()->firstOrCreate([
+            'decision_form_definition_id' => $decisionDefinition->id,
+            'field_key' => 'transfer_price',
+        ], [
+            'label' => 'Transfer price',
+            'field_type' => 'currency',
+            'is_required' => true,
+            'display_order' => 1,
+            'unit' => '$/bbl',
+            'validation' => ['min' => 0, 'max' => 250],
+        ]);
+
+        MemoDefinition::query()->firstOrCreate([
+            'simulation_week_id' => $week->id,
+            'key' => 'week4_transfer_pricing_memo',
+            'version' => Week4EconomicEngine::ENGINE_VERSION,
+        ], [
+            'simulation_version_id' => $version->id,
+            'title' => 'Week 4 transfer pricing memo',
+            'instructions' => 'Explain the transfer-pricing decision, segment tradeoffs, and expected operational consequences.',
+            'is_required' => true,
+            'character_limit' => 4000,
+            'submission_format' => 'text',
+            'metadata' => [
+                'economic_engine' => Week4EconomicEngine::ENGINE_IDENTIFIER,
+                'development_demo_only' => true,
+            ],
+        ]);
     }
 
     private function ensureWeek5Definitions(SimulationVersion $version, SimulationWeek $week): void

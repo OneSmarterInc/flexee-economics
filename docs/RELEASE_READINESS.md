@@ -1,6 +1,6 @@
 # Release Readiness
 
-Current release-readiness checkpoint: Batch 33B local teaching pilot rehearsal.
+Current release-readiness checkpoint: Batch 33C seven-week pilot configuration and UI exposure.
 
 Current baseline command results:
 
@@ -12,10 +12,13 @@ Current baseline command results:
 - Clean rebuild: passed with `36` migrations applied
 - Demo health/reset: passed
 - Targeted post-integration regression: `49 tests / 1,033 assertions`, passed
-- Full Laravel suite: `451 tests / 3,138 assertions`, passed
+- Focused seven-week/student/faculty regression: `26 tests / 408 assertions`, passed
+- Core runtime/cohort regression: `23 tests / 424 assertions`, passed
+- Full Laravel suite: `457 tests / 3,228 assertions`, passed
 - PHPStan: `0 errors`
 - Frontend check/types/build: passed
 - Local teaching pilot rehearsal: ready with UX friction
+- Seven-week pilot rehearsal: seeded and exposed in faculty/student UI
 
 ## Supported Platform Capabilities
 
@@ -205,7 +208,7 @@ Confirmed:
 - student access to `/faculty/dashboard` is denied with `403 Forbidden`;
 - representative student workspaces for Weeks 4, 6, 8, 10, 12, and 13 render with student-safe content.
 
-Classification:
+Classification after Batch 33B:
 
 - Full local platform rehearsal: `READY WITH UX FRICTION`.
 - True seven-week pilot rehearsal: `BLOCKED UNTIL SEVEN-WEEK VARIANT IS SEEDED/EXPOSED`.
@@ -222,3 +225,51 @@ See:
 
 - `docs/BATCH33B_IMPLEMENTATION.md`
 - `docs/BATCH33B_UX_DEFECT_REGISTER.md`
+
+## Batch 33C Seven-Week Pilot Exposure
+
+Batch 33C resolves the Batch 33B blocker for a true seven-week pilot rehearsal.
+
+Seeded pilot:
+
+- section simulation: `Seven-Week Pilot Halden Energy`
+- variant: `Seven-Week Variant`
+- version: `2026-seven-week-pilot`
+- sequence: `1 -> 4 -> 6 -> 8 -> 10 -> 12 -> 14`
+- teams: `Team Alpha`, `Team Beta`
+- students: five per team
+- initial lifecycle: Week 1 open, later pilot weeks draft/upcoming
+
+Faculty UI:
+
+- operations dashboard identifies the seven-week variant and version;
+- week control lists only the seven pilot weeks for the pilot section;
+- the pilot path is shown directly in the week-control surface.
+
+Student UI:
+
+- dashboard shows the seven-week sequence;
+- role rotation is explained as first seat through Week 8 and second seat from Week 10 through Week 14;
+- Week 14 is labeled as the Board Defense endpoint;
+- package materials use course-friendly artifact labels in both dashboard and workspace;
+- validation/provenance/expected-output artifacts are hidden from student views.
+
+The seven-week variant continues to exclude Window 1, Window 2, and Window 3 cohort effects and retains only the Week 4 -> Week 6 discount-rate/capital-capacity path.
+
+Batch 33C browser rehearsal confirmed:
+
+- Team Alpha and Team Beta can submit Week 1 decisions/memos in the seven-week pilot section;
+- faculty sees `2 / 2 complete`;
+- faculty execution completes Week 1;
+- student resolved-state visibility updates after execution.
+
+Batch 33C verification:
+
+- focused seven-week/student/faculty regression: `26 tests / 408 assertions`;
+- core runtime/cohort regression: `23 tests / 424 assertions`;
+- full Laravel suite: `457 tests / 3,228 assertions`;
+- Composer validate, Pint, PHPStan, frontend check/types/build, and `git diff --check`: passed.
+
+See:
+
+- `docs/BATCH33C_IMPLEMENTATION.md`

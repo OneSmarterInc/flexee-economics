@@ -51,6 +51,20 @@
                                 <dd class="font-medium">{{ $sectionSummary['teams'] }} teams / {{ $sectionSummary['students'] }} students</dd>
                             </div>
                         </dl>
+                        <div class="mt-3 rounded-md border p-3 text-sm">
+                            <p class="font-medium">{{ $sectionSummary['variant'] }} {{ $sectionSummary['version'] }}</p>
+                            @if ($sectionSummary['is_seven_week_variant'])
+                                <p class="mt-1 text-muted-foreground">
+                                    Seven-week pilot path:
+                                    @foreach ($sectionSummary['sequence'] as $index => $weekNumber)
+                                        @if ($index > 0) <span aria-hidden="true">→</span> @endif
+                                        Week {{ $weekNumber }}
+                                    @endforeach
+                                </p>
+                            @else
+                                <p class="mt-1 text-muted-foreground">Flagship classroom sequence.</p>
+                            @endif
+                        </div>
                     @endif
                 </div>
 

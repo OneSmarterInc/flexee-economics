@@ -18,6 +18,7 @@ use App\Models\MemoDefinition;
 use App\Models\MemoSubmission;
 use App\Models\SectionSimulationWeek;
 use App\Models\SimulationContentActivation;
+use App\Models\SimulationSeatAssignment;
 use App\Models\TeamSimulation;
 use App\Models\User;
 use App\Models\Week10EconomicEvaluation;
@@ -80,6 +81,7 @@ class DashboardController extends Controller
                 'sectionSimulation.version',
                 'sectionSimulation.weeks.definition.decisionFormDefinitions',
                 'sectionSimulation.weeks.definition.memoDefinitions',
+                'seatAssignments.seat',
             ])
             ->orderBy('id')
             ->get();
@@ -105,6 +107,8 @@ class DashboardController extends Controller
             'simulation' => $sectionSimulation->simulation->name,
             'variant' => $sectionSimulation->variant->name,
             'version' => $sectionSimulation->version->version,
+            'variant_summary' => $this->variantSummary($teamSimulation),
+            'role_rotation' => $this->roleRotationPayload($teamSimulation, $currentWeek, $student),
             'current_week' => $currentWeek instanceof SectionSimulationWeek
                 ? $this->weekPayload($currentWeek, $teamSimulation, $student, $completeness)
                 : null,
@@ -192,6 +196,7 @@ class DashboardController extends Controller
             $artifacts = $content->authorizedArtifactsFor($student, $runtimeWeek, $packageType)
                 ->map(fn ($artifact): array => [
                     'key' => $artifact->artifact_key,
+                    'label' => $this->artifactLabel($artifact->artifact_type, $artifact->path_reference, $artifact->metadata),
                     'type' => $artifact->artifact_type,
                     'visibility' => $artifact->visibility,
                     'version' => $artifact->version,
@@ -256,6 +261,57 @@ class DashboardController extends Controller
             'state' => $state,
             'status' => $runtimeWeek->statusValue(),
             'url' => $this->isStudentVisible($runtimeWeek) ? route('student.submissions.show', $runtimeWeek) : null,
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function variantSummary(TeamSimulation $teamSimulation): array
+    {
+        $version = $teamSimulation->sectionSimulation->version;
+        $configuration = $this->configurationPayload($version->getAttribute('configuration'));
+        $sequence = $configuration['authoritative_week_sequence'] ?? null;
+        $weekSequence = is_array($sequence)
+            ? array_values(array_map('intval', $sequence))
+            : $teamSimulation->sectionSimulation->weeks
+                ->sortBy(fn (SectionSimulationWeek $week): int => $week->definition->week_number)
+                ->pluck('definition.week_number')
+                ->map(fn (int $weekNumber): int => $weekNumber)
+                ->values()
+                ->all();
+
+        return [
+            'duration_weeks' => $teamSimulation->sectionSimulation->variant->duration_weeks,
+            'sequence' => $weekSequence,
+            'is_seven_week_variant' => (int) $teamSimulation->sectionSimulation->variant->duration_weeks === 7,
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private function roleRotationPayload(TeamSimulation $teamSimulation, ?SectionSimulationWeek $currentWeek, User $student): ?array
+    {
+        if ((int) $teamSimulation->sectionSimulation->variant->duration_weeks !== 7) {
+            return null;
+        }
+
+        $weekNumber = $currentWeek?->definition->week_number ?? 1;
+        $phase = $weekNumber <= 8 ? 'first_seat' : 'second_seat';
+        $phaseWeeks = $phase === 'first_seat' ? [1, 4, 6, 8] : [10, 12, 14];
+        $assignment = $teamSimulation->seatAssignments
+            ->first(fn (SimulationSeatAssignment $assignment): bool => $assignment->user_id === $student->id);
+
+        return [
+            'phase' => $phase,
+            'label' => $phase === 'first_seat' ? 'First seat' : 'Second seat',
+            'phase_weeks' => $phaseWeeks,
+            'description' => $phase === 'first_seat'
+                ? 'You hold your first seat for Weeks 1, 4, 6, and 8. Roles rotate before Week 10.'
+                : 'You are now in your second seat for Weeks 10, 12, and 14.',
+            'seat_name' => $assignment?->seat?->name,
+            'rotation_note' => 'Seven-week pilot role rotation: first seat through Week 8, second seat from Week 10 through Board Defense.',
         ];
     }
 
@@ -486,5 +542,50 @@ class DashboardController extends Controller
             ->where('package_type', $packageType)
             ->where('status', SimulationContentActivation::STATUS_ACTIVE)
             ->exists();
+    }
+
+    private function artifactLabel(string $artifactType, string $pathReference, mixed $metadata): string
+    {
+        $metadata = is_array($metadata) ? $metadata : [];
+        $relativePath = $metadata['relative_path'] ?? $pathReference;
+
+        if ($artifactType === 'workbook') {
+            return 'Student workbook';
+        }
+
+        if ($artifactType === 'notebook') {
+            return 'Student analysis notebook';
+        }
+
+        if ($artifactType === 'manifest') {
+            return 'Package guide';
+        }
+
+        if ($artifactType === 'dataset') {
+            $name = pathinfo((string) $relativePath, PATHINFO_FILENAME);
+            $label = str_replace(['_', '-'], ' ', $name);
+
+            return ucwords($label).' dataset';
+        }
+
+        return ucwords(str_replace(['_', '-'], ' ', pathinfo($pathReference, PATHINFO_FILENAME)));
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function configurationPayload(mixed $configuration): array
+    {
+        if (is_array($configuration)) {
+            return $configuration;
+        }
+
+        if (is_string($configuration)) {
+            $decoded = json_decode($configuration, true);
+
+            return is_array($decoded) ? $decoded : [];
+        }
+
+        return [];
     }
 }

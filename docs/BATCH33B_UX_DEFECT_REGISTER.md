@@ -13,7 +13,7 @@ Baseline before rehearsal:
 
 `READY WITH UX FRICTION` for a local full-arc rehearsal.
 
-`BLOCKED FOR TRUE SEVEN-WEEK PILOT REHEARSAL` until the demo environment exposes a seven-week pilot section or variant as a first-class selectable experience.
+`RESOLVED FOR TRUE SEVEN-WEEK PILOT REHEARSAL` by Batch 33C. The demo seed now exposes a seven-week pilot section/variant as a first-class selectable experience.
 
 The core platform works through the actual UI for:
 
@@ -48,7 +48,7 @@ Recommendation:
 - Display the variant label prominently.
 - Limit the visible runtime sequence to `1 -> 4 -> 6 -> 8 -> 10 -> 12 -> 14` for that variant.
 
-Status: Open.
+Status: Resolved in Batch 33C.
 
 ### B33B-002: All Computational Weeks Are Open Simultaneously
 
@@ -69,7 +69,7 @@ Recommendation:
 - Add a faculty-controlled pacing mode for pilot/demo sections.
 - Alternatively seed only the current week as open and keep later weeks published/upcoming until faculty opens them.
 
-Status: Open.
+Status: Resolved for the seven-week pilot in Batch 33C. The seven-week section opens Week 1 and keeps later pilot weeks draft/upcoming. The flagship developer section remains separately available.
 
 ### B33B-003: No Seeded Multi-Team Pilot by Default
 
@@ -90,7 +90,7 @@ Recommendation:
 - Add a non-production pilot seeder or command that creates multiple teams and students.
 - Keep `halden:demo-reset` deterministic.
 
-Status: Open.
+Status: Resolved in Batch 33C. The demo seed now creates two seven-week pilot teams with five students each.
 
 ### B33B-004: Content Artifact Labels Are Technical
 
@@ -108,7 +108,7 @@ Recommendation:
 
 - Add display names to content artifacts or derive readable labels from package metadata.
 
-Status: Open.
+Status: Resolved in Batch 33C for the student dashboard and submission workspace. Artifact keys remain available in payloads for auditability, but the UI displays course-friendly labels.
 
 ### B33B-005: Week 14 Is Not Rehearsable From the Seeded Student Journey Without Additional Faculty Setup
 
@@ -128,7 +128,7 @@ Recommendation:
 - Add Week 14 to the pilot runbook as an explicit faculty setup step.
 - Consider exposing a faculty action to prepare/open the board-defense week from the operations dashboard.
 
-Status: Open.
+Status: Improved in Batch 33C. The seven-week student dashboard now identifies Week 14 as the Board Defense endpoint. A faculty-specific Week 14 rehearsal runbook remains useful before a live pilot.
 
 ### B33B-006: Mobile Browser Rehearsal Not Fully Verified
 
@@ -147,7 +147,7 @@ Recommendation:
 
 - Perform a manual phone-size browser pass before a real student pilot.
 
-Status: Open.
+Status: Deferred. Existing pages use responsive cards/grids, but a manual phone-size browser pass is still recommended before a real student pilot.
 
 ## Non-Issues Confirmed
 
@@ -155,3 +155,19 @@ Status: Open.
 - Student materials did not expose faculty solution artifacts or golden fixtures during the inspected flows.
 - Faculty Week 1 execution succeeded once both local teams submitted decisions and memos.
 - Student resolved-state visibility matched faculty execution after Week 1 execution completed.
+
+## Batch 33C Follow-Up
+
+Batch 33C added:
+
+- a seeded `Seven-Week Pilot Halden Energy` section simulation;
+- authoritative seven-week sequence exposure: `1 -> 4 -> 6 -> 8 -> 10 -> 12 -> 14`;
+- two seeded pilot teams and ten seeded pilot students;
+- faculty dashboard/week-control variant labeling;
+- student dashboard sequence and role-rotation explanations;
+- friendly student artifact labels in dashboard and workspace;
+- student-side filtering of validation/provenance/expected-output artifacts.
+
+See:
+
+- `docs/BATCH33C_IMPLEMENTATION.md`

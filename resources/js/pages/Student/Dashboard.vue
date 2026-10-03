@@ -3,6 +3,7 @@ import { Head, Link } from '@inertiajs/vue3';
 
 type Artifact = {
     key: string;
+    label: string;
     type: string;
     visibility?: string | null;
     version?: string | null;
@@ -69,6 +70,19 @@ type SimulationJourney = {
     simulation: string;
     variant: string;
     version: string;
+    variant_summary: {
+        duration_weeks: number;
+        sequence: number[];
+        is_seven_week_variant: boolean;
+    };
+    role_rotation?: {
+        phase: string;
+        label: string;
+        phase_weeks: number[];
+        description: string;
+        seat_name?: string | null;
+        rotation_note: string;
+    } | null;
     current_week: WeekSummary | null;
     current_content: CurrentContent | null;
     progress: {
@@ -144,6 +158,20 @@ function statusLabel(status?: string | null) {
                             <p class="text-muted-foreground mt-1 text-sm">
                                 {{ simulation.team }} / {{ simulation.variant }}
                                 {{ simulation.version }}
+                            </p>
+                            <p
+                                v-if="
+                                    simulation.variant_summary
+                                        .is_seven_week_variant
+                                "
+                                class="text-muted-foreground mt-2 text-sm"
+                            >
+                                Pilot sequence:
+                                {{
+                                    simulation.variant_summary.sequence
+                                        .map((week) => `Week ${week}`)
+                                        .join(' → ')
+                                }}
                             </p>
                         </div>
                         <div
@@ -250,6 +278,46 @@ function statusLabel(status?: string | null) {
                 </div>
             </section>
 
+            <section
+                v-if="simulation.role_rotation"
+                class="rounded-lg border p-5"
+            >
+                <div
+                    class="flex flex-col gap-3 md:flex-row md:items-start md:justify-between"
+                >
+                    <div>
+                        <p class="text-muted-foreground text-sm">
+                            Seven-week role rotation
+                        </p>
+                        <h2 class="mt-1 font-medium">
+                            {{ simulation.role_rotation.label }}
+                        </h2>
+                        <p class="text-muted-foreground mt-2 text-sm">
+                            {{ simulation.role_rotation.description }}
+                        </p>
+                    </div>
+                    <div class="rounded-md border p-3 text-sm md:min-w-60">
+                        <p class="text-muted-foreground text-xs">
+                            Current assigned seat
+                        </p>
+                        <p class="mt-1 font-medium">
+                            {{
+                                simulation.role_rotation.seat_name ??
+                                'Assigned team role'
+                            }}
+                        </p>
+                        <p class="text-muted-foreground mt-2 text-xs">
+                            Covers
+                            {{
+                                simulation.role_rotation.phase_weeks
+                                    .map((week) => `Week ${week}`)
+                                    .join(', ')
+                            }}
+                        </p>
+                    </div>
+                </div>
+            </section>
+
             <section class="rounded-lg border p-5">
                 <h2 class="font-medium">Week timeline</h2>
                 <div class="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
@@ -281,6 +349,14 @@ function statusLabel(status?: string | null) {
                         </div>
                     </component>
                 </div>
+                <p
+                    v-if="simulation.variant_summary.is_seven_week_variant"
+                    class="text-muted-foreground mt-4 text-sm"
+                >
+                    The pilot ends with Week 14 Board Defense, where your team
+                    defends the full decision history rather than running a new
+                    economic engine.
+                </p>
             </section>
 
             <section
@@ -308,7 +384,7 @@ function statusLabel(status?: string | null) {
                                 :key="artifact.key"
                                 class="rounded-md border p-3 text-sm"
                             >
-                                <p class="font-medium">{{ artifact.key }}</p>
+                                <p class="font-medium">{{ artifact.label }}</p>
                                 <p class="text-muted-foreground mt-1">
                                     {{ artifact.type }}
                                 </p>
