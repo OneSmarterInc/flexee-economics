@@ -1,6 +1,6 @@
 # Release Readiness
 
-Current release-readiness checkpoint: Step 7 final post-integration clean regression.
+Current release-readiness checkpoint: Batch 33B local teaching pilot rehearsal.
 
 Current baseline command results:
 
@@ -15,6 +15,7 @@ Current baseline command results:
 - Full Laravel suite: `451 tests / 3,138 assertions`, passed
 - PHPStan: `0 errors`
 - Frontend check/types/build: passed
+- Local teaching pilot rehearsal: ready with UX friction
 
 ## Supported Platform Capabilities
 
@@ -189,3 +190,35 @@ The platform is ready for a local faculty/student pilot when:
 - full test suite passes;
 - quality checks pass;
 - working tree is clean.
+
+## Batch 33B Teaching Pilot Rehearsal
+
+Batch 33B exercised the actual browser UI at `http://127.0.0.1:8000` with one faculty account and two student/team accounts.
+
+Confirmed:
+
+- faculty dashboard and week control load;
+- Week 1 readiness updates when two teams submit;
+- faculty can execute Week 1;
+- student decision and memo submission works through the UI;
+- student resolved state updates after faculty execution;
+- student access to `/faculty/dashboard` is denied with `403 Forbidden`;
+- representative student workspaces for Weeks 4, 6, 8, 10, 12, and 13 render with student-safe content.
+
+Classification:
+
+- Full local platform rehearsal: `READY WITH UX FRICTION`.
+- True seven-week pilot rehearsal: `BLOCKED UNTIL SEVEN-WEEK VARIANT IS SEEDED/EXPOSED`.
+
+Primary UX findings:
+
+- the local seeded UI defaults to the fourteen-week flagship simulation;
+- Weeks 1 through 13 are open simultaneously;
+- the default demo seed does not provide multiple teams without manual setup;
+- some student artifact labels are technical rather than course-friendly;
+- Week 14 needs a clearer faculty operational path for a real board-defense rehearsal.
+
+See:
+
+- `docs/BATCH33B_IMPLEMENTATION.md`
+- `docs/BATCH33B_UX_DEFECT_REGISTER.md`
