@@ -97,6 +97,26 @@ class WeekExecutionServiceTest extends TestCase
         $this->assertSame(0, RankingSnapshot::query()->where('section_simulation_week_id', $context['week6']->id)->count());
     }
 
+    public function test_week4_execution_creates_configured_discount_rate_consequences_for_week6_context(): void
+    {
+        $context = $this->week4ToWeek6ContextWithSubmittedDecision();
+        $this->activateContent($context['week4']);
+        $this->discountRateSchedule();
+
+        $record = app(WeekExecutionService::class)->execute($context['week4'], $context['graph']['faculty']);
+
+        $consequence = DiscountRateConsequence::query()
+            ->where('source_section_simulation_week_id', $context['week4']->id)
+            ->firstOrFail();
+
+        $this->assertSame(WeekExecutionRecord::STATUS_COMPLETED, $record->status);
+        $this->assertSame(['resolved' => 1], $record->outputs['resolve_decisions']['discount_rate_consequence_counts']);
+        $this->assertSame(DiscountRateConsequence::STATUS_RESOLVED, $consequence->status);
+        $this->assertSame($context['week6']->id, $consequence->target_section_simulation_week_id);
+        $this->assertSame('8.500', $consequence->discount_rate_percent);
+        $this->assertSame('1150.000', $consequence->capital_envelope_musd);
+    }
+
     public function test_week_execution_requires_active_content_package_before_resolution(): void
     {
         $context = $this->week4ContextWithSubmittedDecision();
@@ -325,6 +345,66 @@ class WeekExecutionServiceTest extends TestCase
         );
 
         return compact('graph', 'sectionSimulation', 'week4', 'week6', 'teamSimulation', 'discountRateConsequence');
+    }
+
+    /**
+     * @return array{
+     *     graph: array<string, mixed>,
+     *     sectionSimulation: SectionSimulation,
+     *     week4: SectionSimulationWeek,
+     *     week6: SectionSimulationWeek,
+     *     teamSimulation: TeamSimulation
+     * }
+     */
+    private function week4ToWeek6ContextWithSubmittedDecision(): array
+    {
+        $graph = $this->tenantGraph('A');
+        $structure = $this->simulationStructure(6);
+        $sectionSimulation = $this->assignSimulation($graph, $structure['version']);
+        /** @var SimulationWeek $week4Definition */
+        $week4Definition = $structure['simulationWeeks']->firstWhere('week_number', 4);
+        /** @var SimulationWeek $week6Definition */
+        $week6Definition = $structure['simulationWeeks']->firstWhere('week_number', 6);
+        /** @var SectionSimulationWeek $week4 */
+        $week4 = $sectionSimulation->weeks()->where('simulation_week_id', $week4Definition->id)->firstOrFail();
+        /** @var SectionSimulationWeek $week6 */
+        $week6 = $sectionSimulation->weeks()->where('simulation_week_id', $week6Definition->id)->firstOrFail();
+        $lifecycle = app(SimulationLifecycleService::class);
+        $week4 = $lifecycle->transitionWeek($week4, SectionSimulationWeekStatus::Released, $graph['faculty']);
+        $week4 = $lifecycle->transitionWeek($week4->refresh(), SectionSimulationWeekStatus::Open, $graph['faculty'], now()->addDay());
+
+        $decisionDefinition = DecisionFormDefinition::factory()->create([
+            'simulation_version_id' => $week4->simulation_version_id,
+            'simulation_week_id' => $week4->simulation_week_id,
+            'key' => 'week4_transfer_pricing',
+            'name' => 'Week 4 transfer pricing',
+            'version' => Week4EconomicEngine::ENGINE_VERSION,
+            'metadata' => ['economic_engine' => Week4EconomicEngine::ENGINE_IDENTIFIER],
+        ]);
+
+        DecisionFieldDefinition::factory()->create([
+            'decision_form_definition_id' => $decisionDefinition->id,
+            'field_key' => 'transfer_price',
+            'label' => 'Transfer price',
+            'field_type' => DecisionFieldType::Currency,
+            'is_required' => true,
+            'display_order' => 1,
+            'validation' => ['min' => 0, 'max' => 250],
+        ]);
+
+        /** @var TeamSimulation $teamSimulation */
+        $teamSimulation = $sectionSimulation->teamSimulations()
+            ->where('team_id', $graph['team']->id)
+            ->firstOrFail();
+        app(SubmissionService::class)->submitDecision(
+            $graph['student'],
+            $week4,
+            $teamSimulation,
+            $decisionDefinition,
+            ['transfer_price' => '46.20'],
+        );
+
+        return compact('graph', 'sectionSimulation', 'week4', 'week6', 'teamSimulation');
     }
 
     private function seedWeek6PackageProjects(): void

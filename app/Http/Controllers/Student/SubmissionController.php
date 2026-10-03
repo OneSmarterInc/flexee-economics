@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Student;
 
+use App\Domain\Assessment\Week14BoardDefenseService;
 use App\Domain\Capital\CapitalAllocationService;
 use App\Domain\Content\AuthoritativePackages\AuthoritativeContentPackageManifest;
 use App\Domain\Content\SimulationContentResolver;
@@ -51,6 +52,7 @@ class SubmissionController extends Controller
         SubmissionService $submissions,
         SubmissionCompletenessService $completeness,
         SimulationContentResolver $content,
+        Week14BoardDefenseService $boardDefense,
     ): Response {
         $this->authorize('view', $sectionSimulationWeek);
 
@@ -86,6 +88,27 @@ class SubmissionController extends Controller
         $contentState = $this->contentState($content, $user, $sectionSimulationWeek);
         $resolutionState = $this->resolutionState($sectionSimulationWeek, $teamSimulation);
         $capitalAllocationState = $this->capitalAllocationState($sectionSimulationWeek, $teamSimulation);
+        $boardDefenseState = $sectionSimulationWeek->definition->week_number === 14
+            ? $boardDefense->studentView($user, $sectionSimulationWeek)
+            : null;
+        $statusState = [
+            ...$completeness->statusFor($sectionSimulationWeek, $teamSimulation),
+            'resolution_status' => $resolutionState['status'],
+            'resolved_at' => $resolutionState['resolved_at'],
+        ];
+
+        if ($boardDefenseState !== null) {
+            $boardDefenseStatus = $boardDefenseState['submission']['status'] ?? 'not_started';
+            $boardDefenseComplete = $boardDefenseStatus === 'submitted';
+            $statusState = [
+                ...$statusState,
+                'decision_status' => 'not_applicable',
+                'memo_status' => 'not_applicable',
+                'board_defense_status' => $boardDefenseStatus,
+                'complete' => $boardDefenseComplete,
+                'ready_for_evaluation' => $boardDefenseComplete,
+            ];
+        }
 
         return Inertia::render('Submissions/Show', [
             'week' => [
@@ -130,17 +153,18 @@ class SubmissionController extends Controller
                 'status' => $memoSubmission?->statusValue() ?? 'not_started',
             ] : null,
             'status' => [
-                ...$completeness->statusFor($sectionSimulationWeek, $teamSimulation),
-                'resolution_status' => $resolutionState['status'],
-                'resolved_at' => $resolutionState['resolved_at'],
+                ...$statusState,
             ],
             'capitalAllocation' => $capitalAllocationState,
+            'boardDefense' => $boardDefenseState,
             'routes' => [
                 'decisionDraft' => route('student.submissions.decisions.draft', $sectionSimulationWeek),
                 'decisionSubmit' => route('student.submissions.decisions.submit', $sectionSimulationWeek),
                 'capitalAllocationSubmit' => route('student.submissions.capital-allocation.submit', $sectionSimulationWeek),
                 'memoDraft' => route('student.submissions.memo.draft', $sectionSimulationWeek),
                 'memoSubmit' => route('student.submissions.memo.submit', $sectionSimulationWeek),
+                'boardDefenseDraft' => route('student.week14.defense.draft', $sectionSimulationWeek),
+                'boardDefenseSubmit' => route('student.week14.defense.submit', $sectionSimulationWeek),
             ],
         ]);
     }

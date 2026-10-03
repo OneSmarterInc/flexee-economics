@@ -1,6 +1,6 @@
 # Release Readiness
 
-Current release-readiness checkpoint: Batch 33C seven-week pilot configuration and UI exposure.
+Current release-readiness checkpoint: Batch 33D final seven-week browser pilot rehearsal.
 
 Current baseline command results:
 
@@ -18,7 +18,7 @@ Current baseline command results:
 - PHPStan: `0 errors`
 - Frontend check/types/build: passed
 - Local teaching pilot rehearsal: ready with UX friction
-- Seven-week pilot rehearsal: seeded and exposed in faculty/student UI
+- Seven-week pilot rehearsal: completed through browser UI from Week 1 through Week 14
 
 ## Supported Platform Capabilities
 
@@ -106,6 +106,8 @@ php artisan migrate:fresh --seed
 Expected: pass.
 
 Step 7 result: passed.
+
+Batch 33D browser result: passed through the seeded seven-week pilot sequence.
 
 `php artisan migrate:status` confirmed all `36` migrations ran.
 
@@ -220,6 +222,28 @@ Primary UX findings:
 - the default demo seed does not provide multiple teams without manual setup;
 - some student artifact labels are technical rather than course-friendly;
 - Week 14 needs a clearer faculty operational path for a real board-defense rehearsal.
+
+## Batch 33D Seven-Week Browser Pilot
+
+Batch 33D rehearsed the seeded seven-week pilot through the browser UI:
+
+```text
+1 -> 4 -> 6 -> 8 -> 10 -> 12 -> 14
+```
+
+Confirmed:
+
+- both Team Alpha and Team Beta can submit the active student workspaces;
+- faculty can execute Weeks 1, 4, 6, 8, 10, and 12 in sequence;
+- Week 4 execution creates the configured Week 6 discount-rate consequence;
+- Week 6 shows classification, discount rate, and capital envelope;
+- Week 10 calculates from persisted Week 4, Week 6, Week 8, and standing history;
+- Week 14 now has a student board-defense form in the submission workspace;
+- Week 14 now has a faculty assessment page with feedback publication;
+- published feedback is visible to the student;
+- private faculty notes are not visible to the student.
+
+Batch 33D fixed the browser blockers documented in `docs/BATCH33D_IMPLEMENTATION.md`.
 
 See:
 

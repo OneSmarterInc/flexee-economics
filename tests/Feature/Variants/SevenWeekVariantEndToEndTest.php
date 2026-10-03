@@ -2,7 +2,6 @@
 
 namespace Tests\Feature\Variants;
 
-use App\Domain\Capital\DiscountRateConsequenceService;
 use App\Domain\CausalTrace\CausalTraceService;
 use App\Domain\CohortFeedback\Window1CohortResponseFunctionCatalog;
 use App\Domain\CohortFeedback\Window2CohortResponseFunctionCatalog;
@@ -119,15 +118,14 @@ class SevenWeekVariantEndToEndTest extends TestCase
             ],
             'Week 4 transfer-price memo for the single seven-week lag.',
         );
+        $this->discountRateSchedule();
         $this->executeThroughFacultyControl($context, $context['weeks'][4]);
         $resolution = EconomicResolution::query()
             ->where('decision_submission_id', $week4Submission->id)
             ->firstOrFail();
-        $discountConsequence = app(DiscountRateConsequenceService::class)->resolve(
-            $resolution,
-            $this->discountRateSchedule(),
-            $context['graph']['faculty'],
-        );
+        $discountConsequence = DiscountRateConsequence::query()
+            ->where('economic_resolution_id', $resolution->id)
+            ->firstOrFail();
         $this->assertSame(DiscountRateConsequence::STATUS_RESOLVED, $discountConsequence->status);
         $this->assertSame('8.500', $discountConsequence->discount_rate_percent);
         $this->assertSame(1, DiscountRateConsequence::query()->count());
@@ -685,15 +683,8 @@ class SevenWeekVariantEndToEndTest extends TestCase
             ['transfer_price' => '46.20', 'br_reported_margin_strong' => true],
             'Week 4 prior state memo.',
         );
+        $this->discountRateSchedule();
         $this->executeThroughFacultyControl($context, $context['weeks'][4]);
-        app(DiscountRateConsequenceService::class)->resolve(
-            EconomicResolution::query()
-                ->where('team_simulation_id', $context['teamSimulation']->id)
-                ->where('section_simulation_week_id', $context['weeks'][4]->id)
-                ->firstOrFail(),
-            $this->discountRateSchedule(),
-            $context['graph']['faculty'],
-        );
 
         $this->openWeek($context, $context['weeks'][6]);
         $payload = [

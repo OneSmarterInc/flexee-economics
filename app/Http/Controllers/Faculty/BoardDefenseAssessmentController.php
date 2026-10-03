@@ -9,6 +9,8 @@ use App\Models\SectionSimulationWeek;
 use App\Models\TeamSimulation;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class BoardDefenseAssessmentController extends Controller
 {
@@ -17,8 +19,34 @@ class BoardDefenseAssessmentController extends Controller
         SectionSimulationWeek $sectionSimulationWeek,
         TeamSimulation $teamSimulation,
         Week14BoardDefenseService $service,
-    ): JsonResponse {
-        return response()->json($service->facultyView($request->user(), $sectionSimulationWeek, $teamSimulation));
+    ): JsonResponse|Response {
+        $view = $service->facultyView($request->user(), $sectionSimulationWeek, $teamSimulation);
+
+        if ($request->expectsJson()) {
+            return response()->json($view);
+        }
+
+        $assessment = isset($view['assessment']['ulid'])
+            ? BoardDefenseAssessment::query()->where('ulid', $view['assessment']['ulid'])->first()
+            : null;
+
+        return Inertia::render('Faculty/Week14Assessment', [
+            ...$view,
+            'week' => [
+                'title' => $sectionSimulationWeek->definition->title,
+                'number' => $sectionSimulationWeek->definition->week_number,
+                'status' => $sectionSimulationWeek->statusValue(),
+            ],
+            'team' => [
+                'name' => $teamSimulation->team->name,
+            ],
+            'routes' => [
+                'save' => route('faculty.week14.assessment.save', [$sectionSimulationWeek, $teamSimulation]),
+                'publish' => $assessment instanceof BoardDefenseAssessment
+                    ? route('faculty.week14.assessment.publish', $assessment)
+                    : null,
+            ],
+        ]);
     }
 
     public function save(

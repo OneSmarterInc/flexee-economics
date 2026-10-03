@@ -171,3 +171,91 @@ Batch 33C added:
 See:
 
 - `docs/BATCH33C_IMPLEMENTATION.md`
+
+## Batch 33D Follow-Up
+
+Batch 33D completed the true seven-week browser pilot rehearsal and resolved the blockers found during that walkthrough.
+
+### B33D-001: Week 6 Blocked by Missing Week 4 -> Week 6 Discount-Rate Consequence
+
+Severity: High.
+
+Observed:
+
+- After Week 4 execution, Week 6 capital allocation showed `missing_discount_rate_consequence`.
+- The student could not submit Week 6 capital allocation through the browser.
+
+Impact:
+
+- The authoritative seven-week sequence could not proceed from Week 4 to Week 6 without developer intervention.
+
+Status: Resolved in Batch 33D.
+
+Resolution:
+
+- Week 4 execution now creates configured discount-rate consequences for target Week 6.
+- The demo seed creates the pilot discount-rate schedule.
+
+### B33D-002: Folded Week 10 Dependencies Were Not Available Through Browser Submissions
+
+Severity: High.
+
+Observed:
+
+- Week 10 required persisted historical state, but the browser forms did not expose every folded input required by the seven-week variant.
+
+Impact:
+
+- Week 10 could fail with unresolved dependencies even when students completed the visible pilot path.
+
+Status: Resolved in Batch 33D.
+
+Resolution:
+
+- Week 4 exposes Baton Rouge reported-margin condition.
+- Week 6 exposes cancellable capex and crude hedge coverage.
+- Week 8 exposes cash cushion.
+- The seeded seven-week pilot includes Straits Pacific standing for both teams.
+
+### B33D-003: Week 14 Was JSON-Only From the Browser User Journey
+
+Severity: High.
+
+Observed:
+
+- Week 14 had backend board-defense endpoints but no normal student/faculty browser workflow.
+- The student Week 14 workspace appeared complete before board-defense submission.
+
+Impact:
+
+- A real student/faculty pilot could not complete the final assessment workflow from the UI.
+
+Status: Resolved in Batch 33D.
+
+Resolution:
+
+- Student Week 14 workspace now includes board-defense submission.
+- Student Week 14 status reflects board-defense state.
+- Faculty Week 14 assessment page now supports rubric capture, assessment completion, and feedback publication.
+
+### B33D-004: Week 6 Allocation Status Label Is Still Confusing
+
+Severity: Low.
+
+Observed:
+
+- Week 6 allocation submissions show `Decisions: not_started` while the overall submission status correctly shows `Complete`.
+
+Impact:
+
+- The workflow is functional, but the label is confusing because allocation decisions use a separate submission model.
+
+Status: Deferred UX polish.
+
+Recommendation:
+
+- Teach `SubmissionStatus` or the underlying status payload to render `Capital allocation: submitted` for capital-allocation weeks.
+
+See:
+
+- `docs/BATCH33D_IMPLEMENTATION.md`

@@ -3,11 +3,15 @@
 namespace Tests\Feature\Variants;
 
 use App\Enums\SectionSimulationWeekStatus;
+use App\Enums\StandingValue;
 use App\Livewire\FacultyOperationsDashboard;
 use App\Livewire\FacultyWeekControl;
 use App\Models\CohortDecisionAggregate;
 use App\Models\CohortFeedbackEffect;
+use App\Models\Counterparty;
+use App\Models\DecisionFieldDefinition;
 use App\Models\SectionSimulation;
+use App\Models\StandingState;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -178,6 +182,37 @@ class SevenWeekPilotExposureTest extends TestCase
         $this->assertSame(['week4_to_week6_discount_rate'], $pilot->version->configuration['cohort_windows']);
         $this->assertSame(0, CohortDecisionAggregate::query()->count());
         $this->assertSame(0, CohortFeedbackEffect::query()->count());
+    }
+
+    public function test_seven_week_pilot_seeds_week10_dependencies_for_browser_rehearsal(): void
+    {
+        $this->seed();
+
+        $pilot = $this->pilotSectionSimulation();
+        $counterparty = Counterparty::query()->where('key', 'straits_pacific')->firstOrFail();
+
+        $this->assertSame(
+            $pilot->teamSimulations()->count(),
+            StandingState::query()
+                ->where('section_simulation_id', $pilot->id)
+                ->where('counterparty_id', $counterparty->id)
+                ->where('state', StandingValue::Strained->value)
+                ->count(),
+        );
+
+        $week4 = $pilot->weeks()->whereHas('definition', fn ($query) => $query->where('week_number', 4))->firstOrFail();
+        $week8 = $pilot->weeks()->whereHas('definition', fn ($query) => $query->where('week_number', 8))->firstOrFail();
+
+        $this->assertTrue($this->fieldExists($week4->simulation_week_id, 'br_reported_margin_strong'));
+        $this->assertTrue($this->fieldExists($week8->simulation_week_id, 'cash_cushion_musd'));
+    }
+
+    private function fieldExists(int $simulationWeekId, string $fieldKey): bool
+    {
+        return DecisionFieldDefinition::query()
+            ->whereHas('formDefinition', fn ($query) => $query->where('simulation_week_id', $simulationWeekId))
+            ->where('field_key', $fieldKey)
+            ->exists();
     }
 
     private function pilotSectionSimulation(): SectionSimulation

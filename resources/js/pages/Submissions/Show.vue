@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { Head, router, useForm } from '@inertiajs/vue3';
 import DecisionField from '@/components/submissions/DecisionField.vue';
 import SubmissionStatus from '@/components/submissions/SubmissionStatus.vue';
@@ -36,6 +36,10 @@ type MemoFormPayload = {
 type CapitalAllocationFormPayload = {
     selected_project_keys: string[];
     capital_allocation?: string;
+    week10_inherited_state: {
+        cancellable_capex_musd: string;
+        crude_hedge_coverage: string;
+    };
 };
 
 type MemoDefinition = {
@@ -88,6 +92,28 @@ type CapitalAllocationWorkspace = {
     projects: CapitalAllocationProject[];
 };
 
+type BoardDefenseState = {
+    submission: {
+        ulid: string;
+        status: string;
+        final_synthesis_memo: string;
+        artifact_references: Array<{
+            type: string;
+            label?: string | null;
+            reference: string;
+        }>;
+        submitted_at?: string | null;
+    } | null;
+    assessment: {
+        status: string;
+        reasoning_outcome_tier?: string | null;
+        feedback?: {
+            body?: string | null;
+            published_at?: string | null;
+        };
+    } | null;
+};
+
 const props = defineProps<{
     week: {
         title: string;
@@ -115,12 +141,15 @@ const props = defineProps<{
         resolved_at?: string | null;
     };
     capitalAllocation: CapitalAllocationWorkspace | null;
+    boardDefense: BoardDefenseState | null;
     routes: {
         decisionDraft: string;
         decisionSubmit: string;
         capitalAllocationSubmit: string;
         memoDraft: string;
         memoSubmit: string;
+        boardDefenseDraft: string;
+        boardDefenseSubmit: string;
     };
 }>();
 
@@ -138,9 +167,28 @@ const capitalForm = useForm<CapitalAllocationFormPayload>({
     selected_project_keys: [
         ...(props.capitalAllocation?.selected_project_keys ?? []),
     ],
+    week10_inherited_state: {
+        cancellable_capex_musd: '',
+        crude_hedge_coverage: '',
+    },
 });
 
+const boardDefenseMemo = ref(
+    props.boardDefense?.submission?.final_synthesis_memo ?? '',
+);
+const boardDefenseArtifactLabel = ref(
+    props.boardDefense?.submission?.artifact_references?.[0]?.label ?? '',
+);
+const boardDefenseArtifactReference = ref(
+    props.boardDefense?.submission?.artifact_references?.[0]?.reference ?? '',
+);
+const boardDefenseProcessing = ref(false);
+const boardDefenseError = ref<string | null>(null);
+
 const disabled = computed(() => !props.week.can_write);
+const boardDefenseSubmitted = computed(
+    () => props.boardDefense?.submission?.status === 'submitted',
+);
 const submitted = computed(
     () =>
         (props.decisionDefinition?.status === 'submitted' ||
@@ -148,7 +196,8 @@ const submitted = computed(
         (props.memoDefinition?.status === 'submitted' ||
             props.memoDefinition === null) &&
         (props.capitalAllocation === null ||
-            props.capitalAllocation.status === 'submitted'),
+            props.capitalAllocation.status === 'submitted') &&
+        (props.boardDefense === null || boardDefenseSubmitted.value),
 );
 const capitalSubmitted = computed(
     () => props.capitalAllocation?.status === 'submitted',
@@ -240,6 +289,52 @@ function postCapitalAllocation() {
                 ],
             }),
     });
+}
+
+async function postBoardDefense(url: string) {
+    boardDefenseProcessing.value = true;
+    boardDefenseError.value = null;
+
+    const token = document
+        .querySelector('meta[name="csrf-token"]')
+        ?.getAttribute('content');
+    const artifactReferences = boardDefenseArtifactReference.value.trim()
+        ? [
+              {
+                  type: 'board_presentation',
+                  label:
+                      boardDefenseArtifactLabel.value.trim() ||
+                      'Board defense artifact',
+                  reference: boardDefenseArtifactReference.value.trim(),
+              },
+          ]
+        : [];
+
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+                ...(token ? { 'X-CSRF-TOKEN': token } : {}),
+            },
+            body: JSON.stringify({
+                final_synthesis_memo: boardDefenseMemo.value,
+                artifact_references: artifactReferences,
+            }),
+        });
+
+        if (!response.ok) {
+            boardDefenseError.value = 'Board defense could not be saved.';
+            return;
+        }
+
+        router.reload({
+            only: ['boardDefense', 'status', 'week'],
+        });
+    } finally {
+        boardDefenseProcessing.value = false;
+    }
 }
 </script>
 
@@ -479,6 +574,42 @@ function postCapitalAllocation() {
                 </button>
             </div>
 
+            <div class="mt-4 grid gap-3 md:grid-cols-2">
+                <label class="grid gap-1 text-sm">
+                    <span class="font-medium">
+                        Cancellable capex for Week 10
+                    </span>
+                    <input
+                        v-model="
+                            capitalForm.week10_inherited_state
+                                .cancellable_capex_musd
+                        "
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        class="bg-background rounded-md border p-2"
+                        :disabled="disabled || capitalSubmitted"
+                    />
+                </label>
+                <label class="grid gap-1 text-sm">
+                    <span class="font-medium">
+                        Crude hedge coverage for Week 10
+                    </span>
+                    <input
+                        v-model="
+                            capitalForm.week10_inherited_state
+                                .crude_hedge_coverage
+                        "
+                        type="number"
+                        min="0"
+                        max="1"
+                        step="0.000001"
+                        class="bg-background rounded-md border p-2"
+                        :disabled="disabled || capitalSubmitted"
+                    />
+                </label>
+            </div>
+
             <p
                 v-if="capitalForm.errors.selected_project_keys"
                 class="text-destructive mt-3 text-sm"
@@ -505,6 +636,94 @@ function postCapitalAllocation() {
                 >
                     Submit Allocation
                 </button>
+            </div>
+        </section>
+
+        <section v-if="boardDefense" class="rounded-lg border p-5">
+            <div
+                class="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between"
+            >
+                <div>
+                    <h2 class="font-medium">Board defense</h2>
+                    <p class="text-muted-foreground text-sm">
+                        {{ boardDefense.submission?.status ?? 'not_started' }}
+                    </p>
+                </div>
+                <p
+                    v-if="boardDefense.submission?.submitted_at"
+                    class="text-muted-foreground text-sm"
+                >
+                    Submitted {{ boardDefense.submission.submitted_at }}
+                </p>
+            </div>
+
+            <div class="mt-4 grid gap-3">
+                <label class="grid gap-1 text-sm">
+                    <span class="font-medium">Final synthesis memo</span>
+                    <textarea
+                        v-model="boardDefenseMemo"
+                        class="bg-background min-h-40 w-full rounded-md border p-3 text-sm"
+                        :disabled="disabled || boardDefenseSubmitted"
+                    />
+                </label>
+                <div class="grid gap-3 md:grid-cols-2">
+                    <label class="grid gap-1 text-sm">
+                        <span class="font-medium">Artifact label</span>
+                        <input
+                            v-model="boardDefenseArtifactLabel"
+                            class="bg-background rounded-md border p-2"
+                            :disabled="disabled || boardDefenseSubmitted"
+                        />
+                    </label>
+                    <label class="grid gap-1 text-sm">
+                        <span class="font-medium">Artifact reference</span>
+                        <input
+                            v-model="boardDefenseArtifactReference"
+                            class="bg-background rounded-md border p-2"
+                            :disabled="disabled || boardDefenseSubmitted"
+                        />
+                    </label>
+                </div>
+            </div>
+
+            <p v-if="boardDefenseError" class="text-destructive mt-3 text-sm">
+                {{ boardDefenseError }}
+            </p>
+
+            <div class="mt-4 flex flex-wrap gap-2">
+                <button
+                    class="rounded-md border px-3 py-2 text-sm disabled:opacity-50"
+                    :disabled="
+                        disabled ||
+                        boardDefenseSubmitted ||
+                        boardDefenseProcessing
+                    "
+                    @click="postBoardDefense(routes.boardDefenseDraft)"
+                >
+                    Save Defense Draft
+                </button>
+                <button
+                    class="bg-primary text-primary-foreground rounded-md border px-3 py-2 text-sm disabled:opacity-50"
+                    :disabled="
+                        disabled ||
+                        boardDefenseSubmitted ||
+                        boardDefenseProcessing ||
+                        boardDefenseMemo.trim().length === 0
+                    "
+                    @click="postBoardDefense(routes.boardDefenseSubmit)"
+                >
+                    Submit Board Defense
+                </button>
+            </div>
+
+            <div
+                v-if="boardDefense.assessment?.feedback?.body"
+                class="bg-muted/30 mt-5 rounded-md border p-4 text-sm"
+            >
+                <h3 class="font-medium">Published faculty feedback</h3>
+                <p class="text-muted-foreground mt-2">
+                    {{ boardDefense.assessment.feedback.body }}
+                </p>
             </div>
         </section>
 

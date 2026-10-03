@@ -116,6 +116,27 @@ class StudentJourneyTest extends TestCase
             );
     }
 
+    public function test_week14_student_workspace_exposes_board_defense_submission_state(): void
+    {
+        $context = $this->studentJourneyContext('Week14BoardDefenseWorkspace');
+        $lifecycle = app(SimulationLifecycleService::class);
+        $week14 = $lifecycle->transitionWeek($context['week14']->refresh(), SectionSimulationWeekStatus::Released, $context['graph']['faculty']);
+        $context['week14'] = $lifecycle->transitionWeek($week14->refresh(), SectionSimulationWeekStatus::Open, $context['graph']['faculty'], now()->addDay());
+
+        $this->actingAs($context['graph']['student'])
+            ->get(route('student.submissions.show', $context['week14']))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Submissions/Show')
+                ->where('week.number', 14)
+                ->where('status.board_defense_status', 'not_started')
+                ->where('status.complete', false)
+                ->where('boardDefense.submission', null)
+                ->where('boardDefense.assessment', null)
+                ->where('routes.boardDefenseSubmit', route('student.week14.defense.submit', $context['week14']))
+            );
+    }
+
     public function test_student_cannot_access_other_team_or_faculty_tools(): void
     {
         $context = $this->studentJourneyContext('SecureA');

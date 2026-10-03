@@ -28,10 +28,13 @@ use App\Enums\DecisionFieldType;
 use App\Enums\PlatformRole;
 use App\Enums\SectionSimulationWeekStatus;
 use App\Enums\SimulationVersionStatus;
+use App\Enums\StandingValue;
 use App\Models\CapitalProject;
+use App\Models\Counterparty;
 use App\Models\Course;
 use App\Models\DecisionFieldDefinition;
 use App\Models\DecisionFormDefinition;
+use App\Models\DiscountRateSchedule;
 use App\Models\Enrollment;
 use App\Models\Institution;
 use App\Models\MemoDefinition;
@@ -44,8 +47,10 @@ use App\Models\Simulation;
 use App\Models\SimulationVariant;
 use App\Models\SimulationVersion;
 use App\Models\SimulationWeek;
+use App\Models\StandingState;
 use App\Models\Team;
 use App\Models\TeamMember;
+use App\Models\TeamSimulation;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Models\WeekContentVersion;
@@ -373,6 +378,7 @@ class DatabaseSeeder extends Seeder
         }
 
         $this->ensureDemoCapitalProjects();
+        $this->ensureDemoDiscountRateSchedule();
 
         $sectionSimulation = SectionSimulation::query()
             ->where('tenant_id', $tenant->id)
@@ -395,6 +401,8 @@ class DatabaseSeeder extends Seeder
             $sevenWeekSectionSimulation = app(SimulationLifecycleService::class)
                 ->assignToSection($sevenWeekPilotSection, $sevenWeekVersion, $faculty, 'Seven-Week Pilot Halden Energy');
         }
+
+        $this->ensureSevenWeekPilotStanding($sevenWeekSectionSimulation);
 
         $sevenWeekOne = $sevenWeekSectionSimulation->weeks()
             ->whereHas('definition', fn ($query) => $query->where('week_number', 1))
@@ -510,6 +518,40 @@ class DatabaseSeeder extends Seeder
         }
     }
 
+    private function ensureSevenWeekPilotStanding(SectionSimulation $sectionSimulation): void
+    {
+        $counterparty = Counterparty::query()->firstOrCreate(
+            ['key' => 'straits_pacific'],
+            [
+                'name' => 'Straits Pacific',
+                'description' => 'Singapore JV partner',
+                'sort_order' => 50,
+                'is_active' => true,
+                'metadata' => [],
+            ],
+        );
+
+        $sectionSimulation->teamSimulations()
+            ->with('team')
+            ->get()
+            ->each(function (TeamSimulation $teamSimulation) use ($counterparty): void {
+                StandingState::query()->updateOrCreate(
+                    [
+                        'tenant_id' => $teamSimulation->tenant_id,
+                        'section_simulation_id' => $teamSimulation->section_simulation_id,
+                        'team_simulation_id' => $teamSimulation->id,
+                        'counterparty_id' => $counterparty->id,
+                    ],
+                    [
+                        'team_id' => $teamSimulation->team_id,
+                        'state' => StandingValue::Strained->value,
+                        'reason' => 'Seven-week pilot baseline required for Week 10 historical-state assembly.',
+                        'state_changed_at' => now(),
+                    ],
+                );
+            });
+    }
+
     private function ensureDemoSubmissionDefinitions(SimulationVersion $version, SimulationWeek $week): void
     {
         match ($week->week_number) {
@@ -590,6 +632,17 @@ class DatabaseSeeder extends Seeder
             'validation' => ['min' => 0, 'max' => 250],
         ]);
 
+        DecisionFieldDefinition::query()->firstOrCreate([
+            'decision_form_definition_id' => $decisionDefinition->id,
+            'field_key' => 'br_reported_margin_strong',
+        ], [
+            'label' => 'Baton Rouge reported margin strong',
+            'field_type' => DecisionFieldType::Boolean->value,
+            'is_required' => true,
+            'display_order' => 2,
+            'validation' => [],
+        ]);
+
         MemoDefinition::query()->firstOrCreate([
             'simulation_week_id' => $week->id,
             'key' => 'week4_transfer_pricing_memo',
@@ -655,6 +708,7 @@ class DatabaseSeeder extends Seeder
             ['value' => 'holds_partial', 'label' => 'Partial hold'],
             ['value' => 'fails', 'label' => 'Fails'],
         ]);
+        $this->field($decision, 'cash_cushion_musd', 'Cash cushion for Week 10', DecisionFieldType::Decimal->value, 5, ['min' => 0, 'max' => 1000]);
         $this->memoDefinition($version, $week, 'week8_opec_scenario_memo', 'Week 8 OPEC scenario memo', Week8EconomicEngine::ENGINE_VERSION);
     }
 
@@ -791,5 +845,28 @@ class DatabaseSeeder extends Seeder
                 'is_active' => true,
             ]);
         }
+    }
+
+    private function ensureDemoDiscountRateSchedule(): void
+    {
+        DiscountRateSchedule::query()->updateOrCreate(
+            [
+                'key' => 'week4_to_week6_discount_rate',
+                'version' => 'demo_week4_to_week6_v1',
+            ],
+            [
+                'name' => 'Demo Week 4 to Week 6 discount-rate consequence',
+                'description' => 'Configured local-pilot bridge from Week 4 economic resolution into Week 6 capital allocation context.',
+                'source_week_number' => 4,
+                'target_week_number' => 6,
+                'classification_rules' => [
+                    ['field' => 'geneva_capture_per_bbl', 'operator' => '<=', 'value' => '9.625', 'classification' => 'base'],
+                ],
+                'classification_outcomes' => [
+                    'base' => ['discount_rate_percent' => '8.5', 'capital_envelope_musd' => '1150'],
+                ],
+                'is_active' => true,
+            ],
+        );
     }
 }

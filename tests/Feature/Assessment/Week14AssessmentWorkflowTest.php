@@ -16,6 +16,7 @@ use App\Models\TeamMember;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Schema;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\CreatesFoundationData;
 use Tests\TestCase;
 
@@ -69,6 +70,15 @@ class Week14AssessmentWorkflowTest extends TestCase
         $context = $this->week14Context('PublishFeedback');
 
         $this->submitDefense($context);
+
+        $this->actingAs($context['graph']['faculty'])
+            ->get(route('faculty.week14.assessment.show', [$context['runtimeWeek'], $context['teamSimulation']]))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Faculty/Week14Assessment')
+                ->where('submission.status', BoardDefenseSubmission::STATUS_SUBMITTED)
+                ->where('routes.save', route('faculty.week14.assessment.save', [$context['runtimeWeek'], $context['teamSimulation']]))
+            );
 
         $this->actingAs($context['graph']['faculty'])
             ->postJson(route('faculty.week14.assessment.save', [$context['runtimeWeek'], $context['teamSimulation']]), [

@@ -2,6 +2,7 @@
 
 namespace App\Domain\Execution;
 
+use App\Domain\Capital\DiscountRateConsequenceService;
 use App\Domain\Capital\Week6\Week6CapitalEconomicsService;
 use App\Domain\CohortFeedback\CohortFeedbackService;
 use App\Domain\Content\SimulationContentResolver;
@@ -26,6 +27,7 @@ use App\Enums\SubmissionStatus;
 use App\Models\CapitalAllocationDecision;
 use App\Models\CohortResponseFunction;
 use App\Models\DecisionSubmission;
+use App\Models\DiscountRateSchedule;
 use App\Models\EconomicResolution;
 use App\Models\SectionSimulationWeek;
 use App\Models\User;
@@ -34,6 +36,7 @@ use App\Models\Week11EconomicEvaluation;
 use App\Models\Week8EconomicEvaluation;
 use App\Models\WeekExecutionRecord;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 use Throwable;
@@ -72,6 +75,7 @@ final readonly class WeekExecutionService
         private Week11EconomicEvaluationService $week11Economics,
         private Week12EconomicEvaluationService $week12Economics,
         private Week13EconomicEvaluationService $week13Economics,
+        private DiscountRateConsequenceService $discountRateConsequences,
         private Week4KpiPopulationService $week4Kpis,
         private Week8KpiPopulationService $week8Kpis,
         private Week10KpiPopulationService $week10Kpis,
@@ -356,22 +360,70 @@ final readonly class WeekExecutionService
     private function resolveWeek4SubmittedDecisions(SectionSimulationWeek $runtimeWeek, User $actor): array
     {
         $resolved = 0;
+        $resolutions = collect();
+
         DecisionSubmission::query()
             ->where('tenant_id', $runtimeWeek->tenant_id)
             ->where('section_simulation_week_id', $runtimeWeek->id)
             ->where('status', SubmissionStatus::Submitted->value)
             ->orderBy('id')
             ->get()
-            ->each(function (DecisionSubmission $submission) use ($actor, &$resolved): void {
-                $this->weekResolution->resolveSubmittedDecision($submission, $actor, 'week_execution_service');
+            ->each(function (DecisionSubmission $submission) use ($actor, &$resolved, $resolutions): void {
+                $resolutions->push($this->weekResolution->resolveSubmittedDecision($submission, $actor, 'week_execution_service'));
                 $resolved++;
             });
+
+        $discountRateConsequenceCounts = $this->resolveConfiguredDiscountRateConsequences($runtimeWeek, $actor, $resolutions);
 
         return [
             'status' => 'completed',
             'summary' => 'Resolved submitted decisions for supported week.',
-            'outputs' => ['resolved_decision_count' => $resolved],
+            'outputs' => [
+                'resolved_decision_count' => $resolved,
+                'discount_rate_consequence_counts' => $discountRateConsequenceCounts,
+            ],
         ];
+    }
+
+    /**
+     * @param  Collection<int, EconomicResolution>  $resolutions
+     * @return array<string, int>
+     */
+    private function resolveConfiguredDiscountRateConsequences(SectionSimulationWeek $runtimeWeek, User $actor, Collection $resolutions): array
+    {
+        if ($runtimeWeek->definition->week_number !== 4 || $resolutions->isEmpty()) {
+            return [];
+        }
+
+        $targetWeekNumbers = $runtimeWeek->sectionSimulation->weeks()
+            ->whereHas('definition')
+            ->with('definition')
+            ->get()
+            ->pluck('definition.week_number')
+            ->map(fn (int|string $weekNumber): int => (int) $weekNumber)
+            ->all();
+
+        $schedules = DiscountRateSchedule::query()
+            ->where('source_week_number', 4)
+            ->where('is_active', true)
+            ->whereIn('target_week_number', $targetWeekNumbers)
+            ->orderBy('id')
+            ->get();
+
+        if ($schedules->isEmpty()) {
+            return [];
+        }
+
+        $counts = [];
+
+        $resolutions->each(function (EconomicResolution $resolution) use ($schedules, $actor, &$counts): void {
+            $schedules->each(function (DiscountRateSchedule $schedule) use ($resolution, $actor, &$counts): void {
+                $consequence = $this->discountRateConsequences->resolve($resolution, $schedule, $actor);
+                $counts[$consequence->status] = ($counts[$consequence->status] ?? 0) + 1;
+            });
+        });
+
+        return $counts;
     }
 
     /**

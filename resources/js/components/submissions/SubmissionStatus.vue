@@ -3,6 +3,7 @@ defineProps<{
     status: {
         decision_status: string;
         memo_status: string;
+        board_defense_status?: string;
         complete: boolean;
         ready_for_evaluation: boolean;
         resolution_status?: string;
@@ -15,8 +16,14 @@ defineProps<{
     <section class="rounded-lg border p-4">
         <h2 class="font-medium">Submission status</h2>
         <div class="mt-3 grid gap-2 text-sm sm:grid-cols-4">
-            <p>Decisions: {{ status.decision_status }}</p>
-            <p>Memo: {{ status.memo_status }}</p>
+            <template v-if="status.board_defense_status">
+                <p>Board defense: {{ status.board_defense_status }}</p>
+                <p>Assessment workflow</p>
+            </template>
+            <template v-else>
+                <p>Decisions: {{ status.decision_status }}</p>
+                <p>Memo: {{ status.memo_status }}</p>
+            </template>
             <p>{{ status.complete ? 'Complete' : 'Incomplete' }}</p>
             <p>
                 {{
