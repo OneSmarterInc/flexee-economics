@@ -66,7 +66,7 @@ final class WeekResolutionService
                 'economic_engine' => Week4EconomicEngine::ENGINE_IDENTIFIER,
                 'engine_version' => Week4EconomicEngine::ENGINE_VERSION,
                 'input_snapshot' => $this->inputSnapshot($mapped),
-                'output_snapshot' => $this->outputSnapshot($result, $geneva),
+                'output_snapshot' => $this->outputSnapshot($result, $geneva, $mapped),
                 'transfer_price' => $this->databaseDecimal($result->transferPrice),
                 'integrated_margin' => $this->databaseDecimal($result->integratedMargin),
                 'upstream_margin' => $this->databaseDecimal($result->upstreamMargin),
@@ -174,15 +174,25 @@ final class WeekResolutionService
     /**
      * @return array<string, mixed>
      */
-    private function outputSnapshot(Week4EconomicResult $result, Week4GenevaArbitrageResult $geneva): array
+    private function outputSnapshot(Week4EconomicResult $result, Week4GenevaArbitrageResult $geneva, Week4MappedDecision $mapped): array
     {
-        return [
+        $snapshot = [
             'segment_result' => $result->toPackageSegmentArray(),
             'geneva_arbitrage' => $geneva->toPackageArray(),
             'transfer_price' => $this->exactDecimal($result->transferPrice),
             'integrated_margin' => $result->money($result->integratedMargin),
             'delivered_marginal_cost' => $result->money($result->deliveredMarginalCost),
         ];
+
+        $answers = $mapped->submissionSnapshot['answers'] ?? [];
+
+        if (is_array($answers) && array_key_exists('br_reported_margin_strong', $answers)) {
+            $snapshot['week10_inherited_state'] = [
+                'br_reported_margin_strong' => filter_var($answers['br_reported_margin_strong'], FILTER_VALIDATE_BOOLEAN),
+            ];
+        }
+
+        return $snapshot;
     }
 
     private function databaseDecimal(BigDecimal $value): string

@@ -86,6 +86,21 @@ Still open:
 - Does the classification use mean transfer price, median, share near marginal-cost anchor, dispersion, custom-price penalty, or another measure?
 - How are outliers or non-anchor custom prices treated?
 
+## Seven-week variant questions
+
+Resolved by Step 6 validation:
+
+- The authoritative runtime sequence is Week 1, Week 4, Week 6, Week 8, Week 10, Week 12, and Week 14.
+- Window 1, Window 2, and Window 3 are excluded from seven-week variants.
+- The seven-week Week 10 hedge dependency resolves from persisted Week 6 folded currency state, not Week 5.
+- Missing folded Week 6 hedge state leaves Week 10 in `unresolved_dependency` rather than using a default.
+- Role rotation between Week 8 and Week 10 is represented in decision-definition snapshots while preserving team identity.
+
+Still open:
+
+- What authoritative aggregate classification rule maps Week 4 cohort transfer-pricing behavior into the Week 6 disciplined/base/lax schedule?
+- Should the current seat assignment model become effective-dated so historical role rotation can be queried independently of decision-definition snapshots?
+
 ## Faculty/stage questions
 
 - What exact standing-state transitions does Week 4 create for Delacroix, upstream leadership, Kuhn/Geneva, and related counterparties?

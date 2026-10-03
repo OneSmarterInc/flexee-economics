@@ -170,6 +170,9 @@ class SubmissionController extends Controller
         $payload = $request->validate([
             'selected_project_keys' => ['required', 'array', 'min:1'],
             'selected_project_keys.*' => ['required', 'string'],
+            'week10_inherited_state' => ['sometimes', 'array'],
+            'week10_inherited_state.cancellable_capex_musd' => ['sometimes', 'numeric', 'min:0'],
+            'week10_inherited_state.crude_hedge_coverage' => ['sometimes', 'numeric', 'min:0', 'max:1'],
         ]);
 
         $teamSimulation = $submissions->resolveTeamSimulationForActor($request->user(), $sectionSimulationWeek);
@@ -184,6 +187,9 @@ class SubmissionController extends Controller
                 $sectionSimulationWeek,
                 $selected,
                 $rejected,
+                contextExtensions: [
+                    'week10_inherited_state' => $payload['week10_inherited_state'] ?? [],
+                ],
             );
         } catch (InvalidArgumentException $exception) {
             return back()->withErrors(['capital_allocation' => $exception->getMessage()]);

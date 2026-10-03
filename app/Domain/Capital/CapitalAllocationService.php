@@ -93,6 +93,7 @@ final class CapitalAllocationService
      * @param  list<string>  $selectedProjectKeys
      * @param  list<string>  $rejectedProjectKeys
      * @param  array<string, mixed>  $memoReferences
+     * @param  array<string, mixed>  $contextExtensions
      */
     public function submitAllocation(
         User $actor,
@@ -101,14 +102,16 @@ final class CapitalAllocationService
         array $selectedProjectKeys,
         array $rejectedProjectKeys,
         array $memoReferences = [],
+        array $contextExtensions = [],
     ): CapitalAllocationDecision {
         $this->assertCanSubmit($actor, $teamSimulation, $runtimeWeek);
         $context = $this->contextFor($teamSimulation, $runtimeWeek);
+        $contextSnapshot = $this->contextSnapshotWithExtensions($context->snapshot, $contextExtensions);
         $selected = $this->projectSnapshots($selectedProjectKeys);
         $rejected = $this->projectSnapshots($rejectedProjectKeys);
         $this->assertNoProjectOverlap($selected, $rejected);
 
-        return DB::transaction(function () use ($actor, $teamSimulation, $runtimeWeek, $context, $selected, $rejected, $memoReferences): CapitalAllocationDecision {
+        return DB::transaction(function () use ($actor, $teamSimulation, $runtimeWeek, $context, $contextSnapshot, $selected, $rejected, $memoReferences): CapitalAllocationDecision {
             $existing = CapitalAllocationDecision::query()
                 ->where('tenant_id', $teamSimulation->tenant_id)
                 ->where('section_simulation_week_id', $runtimeWeek->id)
@@ -130,7 +133,7 @@ final class CapitalAllocationService
                 'submitted_by_user_id' => $actor->id,
                 'selected_projects' => $selected,
                 'rejected_projects' => $rejected,
-                'context_snapshot' => $context->snapshot,
+                'context_snapshot' => $contextSnapshot,
                 'memo_references' => $memoReferences,
                 'submitted_at' => Carbon::now(),
             ]);
@@ -214,5 +217,24 @@ final class CapitalAllocationService
         if (array_intersect($selectedKeys, $rejectedKeys) !== []) {
             throw new InvalidArgumentException('Capital allocation selected and rejected project lists must not overlap.');
         }
+    }
+
+    /**
+     * @param  array<string, mixed>  $snapshot
+     * @param  array<string, mixed>  $extensions
+     * @return array<string, mixed>
+     */
+    private function contextSnapshotWithExtensions(array $snapshot, array $extensions): array
+    {
+        foreach (['week10_inherited_state', 'seven_week_variant'] as $key) {
+            if (array_key_exists($key, $extensions) && is_array($extensions[$key])) {
+                $snapshot[$key] = [
+                    ...(is_array($snapshot[$key] ?? null) ? $snapshot[$key] : []),
+                    ...$extensions[$key],
+                ];
+            }
+        }
+
+        return $snapshot;
     }
 }

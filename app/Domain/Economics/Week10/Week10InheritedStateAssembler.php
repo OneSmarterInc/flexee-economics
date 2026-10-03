@@ -85,6 +85,10 @@ final class Week10InheritedStateAssembler
 
     private function crudeHedgeCoverage(TeamSimulation $teamSimulation): Week10HistoricalDependency
     {
+        if ($this->isSevenWeekVariant($teamSimulation)) {
+            return $this->week6FoldedCrudeHedgeCoverage($teamSimulation);
+        }
+
         $week = $this->runtimeWeek($teamSimulation, 5);
 
         if (! $week instanceof SectionSimulationWeek) {
@@ -116,6 +120,43 @@ final class Week10InheritedStateAssembler
             key: 'crude_hedge_coverage',
             sourceWeek: '5',
             sourceEntity: 'week5_economic_evaluation',
+            sourceValue: (string) $value,
+            sourceId: (string) $evaluation->id,
+            sourceVersion: (string) $evaluation->engine_version,
+        );
+    }
+
+    private function week6FoldedCrudeHedgeCoverage(TeamSimulation $teamSimulation): Week10HistoricalDependency
+    {
+        $week = $this->runtimeWeek($teamSimulation, 6);
+
+        if (! $week instanceof SectionSimulationWeek) {
+            return Week10HistoricalDependency::unresolved('crude_hedge_coverage', '6', 'capital_allocation_evaluation', 'Week 6 runtime week is unavailable.');
+        }
+
+        $evaluation = CapitalAllocationEvaluation::query()
+            ->where('tenant_id', $teamSimulation->tenant_id)
+            ->where('section_simulation_week_id', $week->id)
+            ->where('team_simulation_id', $teamSimulation->id)
+            ->where('status', CapitalAllocationEvaluation::STATUS_CALCULATED)
+            ->latest('evaluated_at')
+            ->first();
+
+        if (! $evaluation instanceof CapitalAllocationEvaluation) {
+            return Week10HistoricalDependency::unresolved('crude_hedge_coverage', '6', 'capital_allocation_evaluation', 'Week 6 calculated capital allocation evaluation is missing.');
+        }
+
+        $value = $this->inheritedValue($this->arrayAttribute($evaluation, 'output_snapshot'), 'crude_hedge_coverage')
+            ?? $this->inheritedValue($this->arrayAttribute($evaluation, 'input_snapshot'), 'crude_hedge_coverage');
+
+        if ($value === null) {
+            return Week10HistoricalDependency::unresolved('crude_hedge_coverage', '6', 'capital_allocation_evaluation', 'Week 6 evaluation does not expose folded crude hedge coverage for Week 10.');
+        }
+
+        return Week10HistoricalDependency::available(
+            key: 'crude_hedge_coverage',
+            sourceWeek: '6',
+            sourceEntity: 'capital_allocation_evaluation',
             sourceValue: (string) $value,
             sourceId: (string) $evaluation->id,
             sourceVersion: (string) $evaluation->engine_version,
@@ -232,6 +273,13 @@ final class Week10InheritedStateAssembler
             ->where('section_simulation_id', $teamSimulation->section_simulation_id)
             ->whereHas('definition', fn ($query) => $query->where('week_number', $weekNumber))
             ->first();
+    }
+
+    private function isSevenWeekVariant(TeamSimulation $teamSimulation): bool
+    {
+        $teamSimulation->loadMissing('sectionSimulation.version.variant');
+
+        return (int) $teamSimulation->sectionSimulation->version->variant->duration_weeks === 7;
     }
 
     /**

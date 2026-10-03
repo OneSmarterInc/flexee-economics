@@ -52,6 +52,10 @@ final readonly class Week8EconomicEvaluationService
             $realizedScenarioKey = $this->realizedScenarioKey($submission);
             $result = $this->engine->calculate($inputs, $prediction, $realizedScenarioKey);
             $realized = $result->realizedScenarioResult;
+            $outputSnapshot = [
+                ...$result->outputSnapshot,
+                ...$this->week10InheritedState($submission),
+            ];
 
             return Week8EconomicEvaluation::query()->create([
                 'tenant_id' => $submission->tenant_id,
@@ -78,7 +82,7 @@ final readonly class Week8EconomicEvaluationService
                 'prediction_snapshot' => $result->outputSnapshot['prediction'] ?? null,
                 'realization_snapshot' => $result->outputSnapshot['realization'] ?? null,
                 'input_snapshot' => $result->inputSnapshot,
-                'output_snapshot' => $result->outputSnapshot,
+                'output_snapshot' => $outputSnapshot,
                 'unavailable_reason' => null,
                 'evaluated_by_user_id' => $actor->id,
                 'evaluated_by_process' => $process,
@@ -190,6 +194,24 @@ final readonly class Week8EconomicEvaluationService
         }
 
         return (string) $value;
+    }
+
+    /**
+     * @return array<string, array<string, string>>
+     */
+    private function week10InheritedState(DecisionSubmission $submission): array
+    {
+        $answers = $this->answers($submission);
+
+        if (! array_key_exists('cash_cushion_musd', $answers)) {
+            return [];
+        }
+
+        return [
+            'week10_inherited_state' => [
+                'cash_cushion_musd' => $this->money(BigDecimal::of((string) $answers['cash_cushion_musd'])),
+            ],
+        ];
     }
 
     /**
