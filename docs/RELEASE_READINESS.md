@@ -1,17 +1,18 @@
 # Release Readiness
 
-Current release-readiness checkpoint: Batch 32A.
+Current release-readiness checkpoint: Step 7 final post-integration clean regression.
 
 Current baseline command results:
 
 - PHP: `8.4.0`
 - Composer: `2.8.12`
-- Node: `v20.19.5`
+- Node: `v18.20.8`
 - npm: `10.8.2`
-- Clean rebuild: passed
+- Migration files: `36`
+- Clean rebuild: passed with `36` migrations applied
 - Demo health/reset: passed
-- Focused acceptance: `25 tests / 682 assertions`, passed
-- Full Laravel suite: `416 tests / 2,681 assertions`, passed
+- Targeted post-integration regression: `49 tests / 1,033 assertions`, passed
+- Full Laravel suite: `451 tests / 3,138 assertions`, passed
 - PHPStan: `0 errors`
 - Frontend check/types/build: passed
 
@@ -28,9 +29,13 @@ Current baseline command results:
 
 Implemented runtime paths:
 
+- Week 1: asset register.
+- Week 2: elasticity estimation.
+- Week 3: shutdown point.
 - Week 4: transfer pricing.
 - Week 5: currency, FX, and hedging.
 - Week 6: capital allocation, NPV, and IRR.
+- Week 7: competitive response.
 - Week 8: OPEC/scenario economics.
 - Week 9: market and retail economics.
 - Week 10: convergence economics from persisted historical state.
@@ -39,6 +44,29 @@ Implemented runtime paths:
 - Week 13: factor markets.
 
 Week 14 is intentionally non-computational and is implemented as a board-defense assessment workflow.
+
+### Cohort Windows
+
+- Window 1: Week 3 European utilization produces the Week 5 NWE crack handoff.
+- Window 2: Week 6 Baton Rouge capacity share produces the Week 8 Gulf Coast crack handoff and remains separate from the Week 8 OPEC propagation component.
+- Window 3: Week 7 retail-pricing aggression produces the Week 9 non-fuel margin handoff.
+
+All three full-arc cohort windows are excluded from the seven-week compressed variant. The seven-week variant retains the Week 4 -> Week 6 discount-rate/capital-capacity path only.
+
+### Seven-Week Variant
+
+The validated compressed sequence is:
+
+```text
+1 -> 4 -> 6 -> 8 -> 10 -> 12 -> 14
+```
+
+The variant preserves folded concepts through versioned decision/evaluation snapshots:
+
+- Week 1 folds heavier cost-structure reading.
+- Week 6 folds currency exposure/natural-hedge context for Week 10.
+- Week 10 folds Norwegian union/factor-market context.
+- Role rotation occurs between Week 8 and Week 10.
 
 ### Student Experience
 
@@ -73,7 +101,9 @@ php artisan migrate:fresh --seed
 
 Expected: pass.
 
-Batch 32A result: passed.
+Step 7 result: passed.
+
+`php artisan migrate:status` confirmed all `36` migrations ran.
 
 ### Demo Baseline
 
@@ -85,17 +115,12 @@ php artisan halden:demo-health
 
 Expected: pass.
 
-Batch 32A result: passed.
+Step 7 result: passed before and after `halden:demo-reset`.
 
-### Focused Acceptance
+### Targeted Post-Integration Regression
 
 ```bash
 php artisan test \
-  tests/Feature/Demo/DemoOperationsTest.php \
-  tests/Feature/Student/StudentJourneyTest.php \
-  tests/Feature/Faculty/FacultyOperationsDashboardTest.php \
-  tests/Feature/Assessment/Week14AssessmentWorkflowTest.php \
-  tests/Feature/Release/FinalProductReadinessTest.php \
   tests/Feature/Week4/Week4RuntimeActivationSmokeTest.php \
   tests/Feature/Week5/Week5RuntimeIntegrationSmokeTest.php \
   tests/Feature/Week6/Week6RuntimeActivationSmokeTest.php \
@@ -104,12 +129,19 @@ php artisan test \
   tests/Feature/Week10/Week10RuntimeIntegrationSmokeTest.php \
   tests/Feature/Week11/Week11RuntimeIntegrationSmokeTest.php \
   tests/Feature/Week12/Week12RuntimeIntegrationSmokeTest.php \
-  tests/Feature/Week13/Week13RuntimeIntegrationSmokeTest.php
+  tests/Feature/Week13/Week13RuntimeIntegrationSmokeTest.php \
+  tests/Feature/Assessment/Week14AssessmentWorkflowTest.php \
+  tests/Feature/CohortFeedback/Window1Window3RuntimeTest.php \
+  tests/Feature/CohortFeedback/Window2CohortFeedbackTest.php \
+  tests/Feature/Variants/SevenWeekVariantEndToEndTest.php \
+  tests/Feature/Submissions/StudentAndFacultySubmissionUiTest.php \
+  tests/Feature/CausalTrace/CausalTraceServiceTest.php \
+  tests/Feature/Release/FinalProductReadinessTest.php
 ```
 
 Expected: pass.
 
-Batch 32A result: `25 tests / 682 assertions`, passed.
+Step 7 result: `49 tests / 1,033 assertions`, passed.
 
 ### Full Suite
 
@@ -119,7 +151,7 @@ php artisan test
 
 Expected: pass.
 
-Batch 32A result: `416 tests / 2,681 assertions`, passed.
+Step 7 result: `451 tests / 3,138 assertions`, passed.
 
 ### Quality Checks
 
@@ -135,13 +167,15 @@ git diff --check
 
 Expected: pass.
 
-Batch 32A result: passed.
+Step 7 result: passed.
 
 ## Known Limitations
 
 - KPI and ranking outputs are intentionally incomplete where authoritative package mappings are absent.
 - Consequence links are created only where authoritative consequence mappings exist.
 - Week 6 to Week 8 cohort-response production parameters are supplied by `halden-window2-cohort-addendum/`; Week 7 compounding and the future market-data anchor refresh remain deferred.
+- The seven-week Week 4 -> Week 6 capital-capacity path remains implemented through the evidence-backed discount-rate consequence. The separate authoritative aggregate classification rule for disciplined/base/lax remains unresolved.
+- Seat assignment is currently stored as current state with role-phase metadata preserved in decision snapshots; an effective-dated seat assignment model remains unresolved.
 - Week 14 assessment does not calculate automatic grades, points, weights, or ranking-derived scores.
 - LLM interpretation remains behind the existing service/provider boundary and is not a grading authority.
 
