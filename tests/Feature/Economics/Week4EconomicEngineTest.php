@@ -68,6 +68,29 @@ class Week4EconomicEngineTest extends TestCase
         );
     }
 
+    public function test_runtime_geneva_arbitrage_uses_transfer_price_bands(): void
+    {
+        $engine = new Week4EconomicEngine;
+        $inputs = $this->currentInputs();
+
+        foreach ([
+            '16.83' => '0',
+            '18.70' => '0',
+            '20.57' => '0',
+            '46.20' => '9.625',
+            '66.33' => '0',
+            '73.70' => '0',
+            '81.07' => '0',
+            '90.00' => '0',
+        ] as $transferPrice => $capture) {
+            $this->assertSame(
+                $capture,
+                $engine->genevaArbitrageForTransferPrice($inputs, $transferPrice)->toPackageArray()['capture_per_bbl'],
+                "Unexpected Geneva capture for transfer price {$transferPrice}.",
+            );
+        }
+    }
+
     public function test_current_outputs_match_week4_reference_json(): void
     {
         $engine = new Week4EconomicEngine;

@@ -19,6 +19,7 @@ use App\Models\Week7EconomicEvaluation;
 use App\Models\Week8EconomicEvaluation;
 use App\Models\Week9EconomicEvaluation;
 use Brick\Math\BigDecimal;
+use Brick\Math\RoundingMode;
 
 final readonly class KpiFinancialStateService
 {
@@ -130,7 +131,9 @@ final readonly class KpiFinancialStateService
         if ($throughWeek >= 4) {
             $resolution = $this->latestEvaluation(EconomicResolution::class, $teamSimulation);
             if ($resolution instanceof EconomicResolution) {
-                $inputs['i4_geneva_leak_per_chain_bbl'] = (string) ($resolution->geneva_capture_per_bbl ?? '0');
+                $inputs['i4_geneva_leak_per_chain_bbl'] = (string) BigDecimal::of((string) ($resolution->geneva_capture_per_bbl ?? '0'))
+                    ->multipliedBy('40')
+                    ->dividedBy('250', 6, RoundingMode::HalfUp);
             }
         }
 

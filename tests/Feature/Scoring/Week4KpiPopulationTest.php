@@ -48,7 +48,7 @@ class Week4KpiPopulationTest extends TestCase
         $this->assertCount(7, $snapshots);
         $this->assertSame($resolution->id, $integrated->economic_resolution_id);
         $this->assertSame(KpiSnapshotStatus::Available, $integrated->statusEnum());
-        $this->assertSame('67.1250', $integrated->value);
+        $this->assertSame('75.2100', $integrated->value);
         $this->assertSame('usd_boe', $integrated->unit);
         $this->assertSame(KpiCalculationService::CALCULATION_VERSION, $integrated->calculation_version);
         $this->assertSame($resolution->id, $integrated->input_snapshot['source_id']);
@@ -112,7 +112,7 @@ class Week4KpiPopulationTest extends TestCase
 
         $this->assertSame(KpiDefinitionCatalog::HALDEN_KPI_VERSION, $snapshot->definition->version);
         $this->assertSame('0.300000', $snapshot->input_snapshot['kpi_definition']['weight']);
-        $this->assertSame('67.1250', $snapshot->refresh()->value);
+        $this->assertSame('75.2100', $snapshot->refresh()->value);
     }
 
     public function test_student_cannot_view_another_team_population_snapshots(): void

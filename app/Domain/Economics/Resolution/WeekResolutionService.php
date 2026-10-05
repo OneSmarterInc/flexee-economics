@@ -42,9 +42,10 @@ final class WeekResolutionService
         $this->assertResolvable($submission);
         $mapped = $this->week4Mapper->map($submission);
         $result = $this->week4Engine->calculate($mapped->inputs, $mapped->transferPrice);
-        $geneva = $this->week4Engine->genevaArbitrageAtMidpoint($mapped->inputs);
+        $geneva = $this->week4Engine->genevaArbitrageForTransferPrice($mapped->inputs, $mapped->transferPrice);
+        $workedExampleGeneva = $this->week4Engine->genevaArbitrageAtMidpoint($mapped->inputs);
 
-        $resolution = DB::transaction(function () use ($submission, $actor, $process, $mapped, $result, $geneva): EconomicResolution {
+        $resolution = DB::transaction(function () use ($submission, $actor, $process, $mapped, $result, $geneva, $workedExampleGeneva): EconomicResolution {
             $existing = EconomicResolution::query()
                 ->where('tenant_id', $submission->tenant_id)
                 ->where('section_simulation_week_id', $submission->section_simulation_week_id)
@@ -66,7 +67,7 @@ final class WeekResolutionService
                 'economic_engine' => Week4EconomicEngine::ENGINE_IDENTIFIER,
                 'engine_version' => Week4EconomicEngine::ENGINE_VERSION,
                 'input_snapshot' => $this->inputSnapshot($mapped),
-                'output_snapshot' => $this->outputSnapshot($result, $geneva, $mapped),
+                'output_snapshot' => $this->outputSnapshot($result, $geneva, $workedExampleGeneva, $mapped),
                 'transfer_price' => $this->databaseDecimal($result->transferPrice),
                 'integrated_margin' => $this->databaseDecimal($result->integratedMargin),
                 'upstream_margin' => $this->databaseDecimal($result->upstreamMargin),
@@ -174,11 +175,16 @@ final class WeekResolutionService
     /**
      * @return array<string, mixed>
      */
-    private function outputSnapshot(Week4EconomicResult $result, Week4GenevaArbitrageResult $geneva, Week4MappedDecision $mapped): array
-    {
+    private function outputSnapshot(
+        Week4EconomicResult $result,
+        Week4GenevaArbitrageResult $geneva,
+        Week4GenevaArbitrageResult $workedExampleGeneva,
+        Week4MappedDecision $mapped,
+    ): array {
         $snapshot = [
             'segment_result' => $result->toPackageSegmentArray(),
             'geneva_arbitrage' => $geneva->toPackageArray(),
+            'worked_example_geneva_arbitrage' => $workedExampleGeneva->toPackageArray(),
             'transfer_price' => $this->exactDecimal($result->transferPrice),
             'integrated_margin' => $result->money($result->integratedMargin),
             'delivered_marginal_cost' => $result->money($result->deliveredMarginalCost),

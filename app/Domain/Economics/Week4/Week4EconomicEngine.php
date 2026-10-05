@@ -114,4 +114,37 @@ final class Week4EconomicEngine
 
         return $this->genevaArbitrage($inputs, $prices->market, $prices->lazyMidpoint);
     }
+
+    public function genevaArbitrageForTransferPrice(
+        Week4EconomicInputs $inputs,
+        BigDecimal|int|string $transferPrice,
+    ): Week4GenevaArbitrageResult {
+        $prices = $this->transferPrices($inputs);
+        $transferPrice = BigDecimal::of((string) $transferPrice);
+
+        if (
+            $this->withinTenPercentBand($transferPrice, $prices->marginalCost)
+            || $this->withinTenPercentBand($transferPrice, $prices->market)
+            || $transferPrice->isGreaterThanOrEqualTo($prices->market)
+        ) {
+            return new Week4GenevaArbitrageResult(
+                gap: BigDecimal::zero(),
+                captureRate: $inputs->genevaCaptureRate,
+                capturePerBbl: BigDecimal::zero(),
+                maxVolumeBblDay: $inputs->genevaMaxVolumeBblDay,
+                dailyCaptureAtVolumeCap: BigDecimal::zero(),
+            );
+        }
+
+        return $this->genevaArbitrage($inputs, $prices->market, $transferPrice);
+    }
+
+    private function withinTenPercentBand(BigDecimal $value, BigDecimal $anchor): bool
+    {
+        $lower = $anchor->multipliedBy('0.90');
+        $upper = $anchor->multipliedBy('1.10');
+
+        return $value->isGreaterThanOrEqualTo($lower)
+            && $value->isLessThanOrEqualTo($upper);
+    }
 }
