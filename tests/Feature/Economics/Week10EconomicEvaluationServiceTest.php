@@ -2,6 +2,9 @@
 
 namespace Tests\Feature\Economics;
 
+use App\Domain\Consequences\ConsequenceService;
+use App\Domain\Consequences\DerivedWeek10ConstraintService;
+use App\Domain\Consequences\KpiConsequenceDefinitionCatalog;
 use App\Domain\Economics\Week10\Week10ConvergenceEconomicEngine;
 use App\Domain\Economics\Week10\Week10EconomicEvaluationService;
 use App\Domain\Economics\Week10\Week10EconomicResult;
@@ -10,6 +13,7 @@ use App\Enums\StandingValue;
 use App\Enums\SubmissionStatus;
 use App\Models\CapitalAllocationDecision;
 use App\Models\CapitalAllocationEvaluation;
+use App\Models\ConsequenceDefinition;
 use App\Models\Counterparty;
 use App\Models\DecisionFormDefinition;
 use App\Models\DecisionSubmission;
@@ -21,7 +25,9 @@ use App\Models\TeamSimulation;
 use App\Models\Week10EconomicEvaluation;
 use App\Models\Week5EconomicEvaluation;
 use App\Models\Week8EconomicEvaluation;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Tests\CreatesFoundationData;
 use Tests\TestCase;
 
@@ -40,14 +46,14 @@ class Week10EconomicEvaluationServiceTest extends TestCase
         $this->assertSame(Week10EconomicEvaluation::STATUS_CALCULATED, $evaluation->status);
         $this->assertSame(Week10ConvergenceEconomicEngine::ENGINE_IDENTIFIER, $evaluation->engine_identifier);
         $this->assertSame(Week10ConvergenceEconomicEngine::ENGINE_VERSION, $evaluation->engine_version);
-        $this->assertSame('1.0.0-draft', $evaluation->package_version);
+        $this->assertSame('1.0.1', $evaluation->package_version);
         $this->assertSame('-0.023700', $evaluation->blendedDemandHitValue());
         $this->assertSame('-0.026220', $evaluation->singaporeDemandHitValue());
         $this->assertSame('Singapore', $evaluation->hardest_hit_refinery);
         $this->assertSame(5, $evaluation->binding_constraint_count);
         $this->assertSame([], $evaluation->unresolved_dependencies);
         $this->assertSame('120.0', $evaluation->inherited_state_snapshot['values']['cancellable_capex_musd']);
-        $this->assertSame('0.45', $evaluation->inherited_state_snapshot['values']['crude_hedge_coverage']);
+        $this->assertSame('0.450000', $evaluation->inherited_state_snapshot['values']['crude_hedge_coverage']);
         $this->assertTrue($evaluation->inherited_state_snapshot['values']['br_reported_margin_strong']);
         $this->assertSame('strained', $evaluation->inherited_state_snapshot['values']['straits_pacific_standing']);
         $this->assertSame('85.0', $evaluation->inherited_state_snapshot['values']['cash_cushion_musd']);
@@ -83,7 +89,7 @@ class Week10EconomicEvaluationServiceTest extends TestCase
     public function test_week5_submission_without_runtime_evaluation_does_not_satisfy_hedge_dependency(): void
     {
         $context = $this->week10HistoricalContext();
-        Week5EconomicEvaluation::query()->delete();
+        DB::table('consequence_links')->where('definition_key', 'week5_hedge_coverage')->delete();
         $submission = $this->week10Submission($context);
 
         $evaluation = app(Week10EconomicEvaluationService::class)->evaluate($submission, $context['graph']['faculty']);
@@ -91,7 +97,7 @@ class Week10EconomicEvaluationServiceTest extends TestCase
         $this->assertSame(Week10EconomicResult::STATUS_UNRESOLVED_DEPENDENCY, $evaluation->status);
         $this->assertSame(['crude_hedge_coverage'], $evaluation->unresolved_dependencies);
         $this->assertNull($evaluation->inherited_state_snapshot['values']['crude_hedge_coverage']);
-        $this->assertSame('week5_economic_evaluation', $evaluation->inherited_state_snapshot['dependencies']['crude_hedge_coverage']['source_entity']);
+        $this->assertSame('consequence_link.week5_hedge_coverage', $evaluation->inherited_state_snapshot['dependencies']['crude_hedge_coverage']['source_entity']);
     }
 
     public function test_draft_submission_is_rejected(): void
@@ -186,7 +192,7 @@ class Week10EconomicEvaluationServiceTest extends TestCase
     {
         $submission = $this->historicalSubmission($graph, $week, $teamSimulation, 'week4_transfer_pricing', ['transfer_price' => '73.70']);
 
-        EconomicResolution::query()->create([
+        $resolution = EconomicResolution::query()->create([
             'tenant_id' => $week->tenant_id,
             'section_simulation_id' => $week->section_simulation_id,
             'section_simulation_week_id' => $week->id,
@@ -196,20 +202,22 @@ class Week10EconomicEvaluationServiceTest extends TestCase
             'economic_engine' => 'week4_transfer_pricing',
             'engine_version' => 'week4_transfer_pricing_v1',
             'input_snapshot' => ['transfer_price' => '73.70'],
-            'output_snapshot' => ['week10_inherited_state' => ['br_reported_margin_strong' => $strong]],
+            'output_snapshot' => [],
             'transfer_price' => '73.700',
             'integrated_margin' => '76.750',
             'upstream_margin' => '58.050',
             'refining_margin' => '18.700',
             'upstream_vs_target' => '0.000',
-            'refining_vs_target' => '0.000',
+            'refining_vs_target' => $strong ? '14.650' : '-12.850',
             'geneva_gap' => '0.000',
-            'geneva_capture_per_bbl' => '0.000',
+            'geneva_capture_per_bbl' => '9.625',
             'geneva_max_volume_bbl_day' => '0.000',
             'resolved_by_user_id' => $graph['faculty']->id,
             'resolved_by_process' => 'test_fixture',
             'resolved_at' => now(),
         ]);
+
+        app(DerivedWeek10ConstraintService::class)->resolveWeek4Consequences($resolution, $graph['faculty']);
     }
 
     /**
@@ -297,12 +305,23 @@ class Week10EconomicEvaluationServiceTest extends TestCase
             'capital_required_musd' => '1200.000',
             'capital_envelope_feasible' => false,
             'input_snapshot' => ['selected_project_keys' => ['helix']],
-            'output_snapshot' => ['week10_inherited_state' => ['cancellable_capex_musd' => $cancellableCapex]],
+            'output_snapshot' => [],
             'unavailable_reason' => null,
             'evaluated_by_user_id' => $graph['faculty']->id,
             'evaluated_by_process' => 'test_fixture',
             'evaluated_at' => now(),
         ]);
+
+        $evaluation = CapitalAllocationEvaluation::query()->latest('id')->firstOrFail();
+        $this->linkConsequence(
+            teamSimulation: $teamSimulation,
+            definition: app(KpiConsequenceDefinitionCatalog::class)->cancellableCapex(),
+            source: $evaluation,
+            target: $evaluation,
+            sourceWeek: $week,
+            targetWeek: $this->runtimeWeekForTeam($teamSimulation, 10),
+            value: $cancellableCapex,
+        );
     }
 
     private function seedStraitsPacificStanding(TeamSimulation $teamSimulation, StandingValue $state): void
@@ -359,12 +378,23 @@ class Week10EconomicEvaluationServiceTest extends TestCase
             'prediction_snapshot' => [],
             'realization_snapshot' => [],
             'input_snapshot' => [],
-            'output_snapshot' => ['week10_inherited_state' => ['cash_cushion_musd' => $cashCushion]],
+            'output_snapshot' => [],
             'unavailable_reason' => null,
             'evaluated_by_user_id' => $graph['faculty']->id,
             'evaluated_by_process' => 'test_fixture',
             'evaluated_at' => now(),
         ]);
+
+        $evaluation = Week8EconomicEvaluation::query()->latest('id')->firstOrFail();
+        $this->linkConsequence(
+            teamSimulation: $teamSimulation,
+            definition: app(KpiConsequenceDefinitionCatalog::class)->cashCushion(),
+            source: $evaluation,
+            target: $evaluation,
+            sourceWeek: $week,
+            targetWeek: $this->runtimeWeekForTeam($teamSimulation, 10),
+            value: $cashCushion,
+        );
     }
 
     /**
@@ -395,5 +425,47 @@ class Week10EconomicEvaluationServiceTest extends TestCase
             'draft_saved_at' => now(),
             'submitted_at' => now(),
         ]);
+    }
+
+    /**
+     * @param  array<string, mixed>  $context
+     */
+    private function runtimeWeek(array $context, int $weekNumber): SectionSimulationWeek
+    {
+        return $context['weeks'][$weekNumber];
+    }
+
+    private function runtimeWeekForTeam(TeamSimulation $teamSimulation, int $weekNumber): SectionSimulationWeek
+    {
+        return SectionSimulationWeek::query()
+            ->where('tenant_id', $teamSimulation->tenant_id)
+            ->where('section_simulation_id', $teamSimulation->section_simulation_id)
+            ->whereHas('definition', fn ($query) => $query->where('week_number', $weekNumber))
+            ->firstOrFail();
+    }
+
+    private function linkConsequence(
+        TeamSimulation $teamSimulation,
+        ConsequenceDefinition $definition,
+        Model $source,
+        Model $target,
+        SectionSimulationWeek $sourceWeek,
+        SectionSimulationWeek $targetWeek,
+        string $value,
+    ): void {
+        app(ConsequenceService::class)->createLink(
+            teamSimulation: $teamSimulation,
+            definition: $definition,
+            source: $source,
+            target: $target,
+            explanation: 'Test fixture consequence link.',
+            sourceWeek: $sourceWeek,
+            targetWeek: $targetWeek,
+            actor: null,
+            metadata: [
+                'target_value' => $value,
+                'package_version' => '1.0.1',
+            ],
+        );
     }
 }

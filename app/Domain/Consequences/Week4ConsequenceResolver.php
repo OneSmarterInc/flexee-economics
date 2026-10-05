@@ -14,6 +14,7 @@ final class Week4ConsequenceResolver
     public function __construct(
         private readonly ConsequenceService $consequences,
         private readonly Week4ConsequenceDefinitionCatalog $definitions,
+        private readonly DerivedWeek10ConstraintService $derivedConstraints,
     ) {}
 
     /**
@@ -57,6 +58,8 @@ final class Week4ConsequenceResolver
                 ],
                 actor: $actor,
             );
+
+            $this->derivedConstraints->resolveWeek4Consequences($resolution, $actor);
 
             return $links;
         });

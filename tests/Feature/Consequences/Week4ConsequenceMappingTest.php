@@ -41,15 +41,24 @@ class Week4ConsequenceMappingTest extends TestCase
             ->orderBy('id')
             ->get();
 
-        $this->assertCount(2, $links);
-        $this->assertSame([
+        $this->assertCount(5, $links);
+        $this->assertEqualsCanonicalizing([
             Week4ConsequenceDefinitionCatalog::SEGMENT_MARGIN_IMPACT,
             Week4ConsequenceDefinitionCatalog::GENEVA_ARBITRAGE_RECORD,
+            'week4_tp_delacroix_cover',
+            'week4_whitaker_standing',
+            'week5_hedge_coverage',
         ], $links->pluck('definition_key')->all());
-        $this->assertSame(['segment_margin_impact', 'geneva_arbitrage_record'], $links->pluck('effect_type')->all());
-        $this->assertSame('46.200', $links[0]->metadata['transfer_price']);
-        $this->assertSame('76.750', $links[0]->metadata['integrated_margin']);
-        $this->assertSame('9.625', $links[1]->metadata['geneva_capture_per_bbl']);
+        $segment = $links->firstWhere('definition_key', Week4ConsequenceDefinitionCatalog::SEGMENT_MARGIN_IMPACT);
+        $arbitrage = $links->firstWhere('definition_key', Week4ConsequenceDefinitionCatalog::GENEVA_ARBITRAGE_RECORD);
+        $delacroix = $links->firstWhere('definition_key', 'week4_tp_delacroix_cover');
+        $whitaker = $links->firstWhere('definition_key', 'week4_whitaker_standing');
+
+        $this->assertSame('46.200', $segment->metadata['transfer_price']);
+        $this->assertSame('76.750', $segment->metadata['integrated_margin']);
+        $this->assertSame('9.625', $arbitrage->metadata['geneva_capture_per_bbl']);
+        $this->assertSame('1', $delacroix->metadata['target_value']);
+        $this->assertSame('guarded', $whitaker->metadata['target_value']);
     }
 
     public function test_week4_consequence_population_is_idempotent(): void
@@ -59,7 +68,7 @@ class Week4ConsequenceMappingTest extends TestCase
         app(WeekResolutionService::class)->resolveSubmittedDecision($context['submission'], $context['graph']['student']);
 
         $this->assertSame(1, EconomicResolution::query()->count());
-        $this->assertSame(2, ConsequenceLink::query()->count());
+        $this->assertSame(5, ConsequenceLink::query()->count());
     }
 
     public function test_week4_consequence_links_are_immutable(): void
@@ -72,11 +81,12 @@ class Week4ConsequenceMappingTest extends TestCase
         $link->update(['explanation' => 'changed']);
     }
 
-    public function test_week4_consequence_mapping_does_not_create_standing_changes(): void
+    public function test_week4_consequence_mapping_creates_whitaker_standing_change(): void
     {
         $this->resolvedWeek4Decision();
 
-        $this->assertSame(0, StandingState::query()->count());
+        $this->assertSame(1, StandingState::query()->count());
+        $this->assertSame('guarded', StandingState::query()->firstOrFail()->stateEnum()->value);
     }
 
     public function test_backward_retrieval_returns_week4_origin(): void
@@ -85,7 +95,7 @@ class Week4ConsequenceMappingTest extends TestCase
 
         $links = app(ConsequenceService::class)->backwardTo($context['resolution'], $context['teamSimulation']);
 
-        $this->assertCount(2, $links);
+        $this->assertCount(3, $links);
         $this->assertTrue($links->every(fn (ConsequenceLink $link): bool => $link->source_id === $context['resolution']->id));
         $this->assertTrue($links->every(fn (ConsequenceLink $link): bool => $link->source_section_simulation_week_id === $context['runtimeWeek']->id));
     }
@@ -110,7 +120,7 @@ class Week4ConsequenceMappingTest extends TestCase
         $this->assertFalse(ConsequenceDefinition::query()
             ->where('key', 'week4_transfer_price_week6_cost_of_capital_input')
             ->exists());
-        $this->assertSame(2, ConsequenceLink::query()->count());
+        $this->assertSame(5, ConsequenceLink::query()->count());
     }
 
     /**

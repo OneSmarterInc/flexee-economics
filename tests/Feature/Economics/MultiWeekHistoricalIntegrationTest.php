@@ -2,6 +2,9 @@
 
 namespace Tests\Feature\Economics;
 
+use App\Domain\Consequences\ConsequenceService;
+use App\Domain\Consequences\DerivedWeek10ConstraintService;
+use App\Domain\Consequences\KpiConsequenceDefinitionCatalog;
 use App\Domain\Content\AuthoritativePackages\AuthoritativeContentPackageManifest;
 use App\Domain\Content\AuthoritativePackages\AuthoritativeContentPackageRegistrationService;
 use App\Domain\Content\SimulationContentActivationService;
@@ -19,6 +22,7 @@ use App\Enums\SubmissionStatus;
 use App\Models\CapitalAllocationDecision;
 use App\Models\CapitalAllocationEvaluation;
 use App\Models\CohortFeedbackEffect;
+use App\Models\ConsequenceDefinition;
 use App\Models\Counterparty;
 use App\Models\DecisionFormDefinition;
 use App\Models\DecisionSubmission;
@@ -38,6 +42,7 @@ use App\Models\Week5EconomicEvaluation;
 use App\Models\Week8EconomicEvaluation;
 use App\Models\Week9EconomicEvaluation;
 use App\Models\WeekExecutionRecord;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\CreatesFoundationData;
 use Tests\TestCase;
@@ -63,11 +68,11 @@ class MultiWeekHistoricalIntegrationTest extends TestCase
         $this->assertGoldenOutputs($evaluation);
         $this->assertSame(5, $evaluation->binding_constraint_count);
         $this->assertSame([], $evaluation->unresolved_dependencies);
-        $this->assertSame('capital_allocation_evaluation', $evaluation->inherited_state_snapshot['dependencies']['cancellable_capex_musd']['source_entity']);
-        $this->assertSame('week5_economic_evaluation', $evaluation->inherited_state_snapshot['dependencies']['crude_hedge_coverage']['source_entity']);
-        $this->assertSame('economic_resolution', $evaluation->inherited_state_snapshot['dependencies']['br_reported_margin_strong']['source_entity']);
+        $this->assertSame('consequence_link.week6_cancellable_capex_musd', $evaluation->inherited_state_snapshot['dependencies']['cancellable_capex_musd']['source_entity']);
+        $this->assertSame('consequence_link.week5_hedge_coverage', $evaluation->inherited_state_snapshot['dependencies']['crude_hedge_coverage']['source_entity']);
+        $this->assertSame('consequence_link.week4_tp_delacroix_cover', $evaluation->inherited_state_snapshot['dependencies']['br_reported_margin_strong']['source_entity']);
         $this->assertSame('standing_state', $evaluation->inherited_state_snapshot['dependencies']['straits_pacific_standing']['source_entity']);
-        $this->assertSame('week8_economic_evaluation', $evaluation->inherited_state_snapshot['dependencies']['cash_cushion_musd']['source_entity']);
+        $this->assertSame('consequence_link.week8_cash_cushion_musd', $evaluation->inherited_state_snapshot['dependencies']['cash_cushion_musd']['source_entity']);
     }
 
     public function test_disciplined_reference_history_produces_zero_binding_constraints(): void
@@ -82,7 +87,7 @@ class MultiWeekHistoricalIntegrationTest extends TestCase
         $this->assertGoldenOutputs($evaluation);
         $this->assertSame(0, $evaluation->binding_constraint_count);
         $this->assertSame('310.0', $evaluation->inherited_state_snapshot['values']['cancellable_capex_musd']);
-        $this->assertSame('0.7', $evaluation->inherited_state_snapshot['values']['crude_hedge_coverage']);
+        $this->assertSame('0.700000', $evaluation->inherited_state_snapshot['values']['crude_hedge_coverage']);
         $this->assertFalse($evaluation->inherited_state_snapshot['values']['br_reported_margin_strong']);
         $this->assertSame('cooperative', $evaluation->inherited_state_snapshot['values']['straits_pacific_standing']);
         $this->assertSame('240.0', $evaluation->inherited_state_snapshot['values']['cash_cushion_musd']);
@@ -108,8 +113,8 @@ class MultiWeekHistoricalIntegrationTest extends TestCase
         $this->assertSame(5, $constrainedEvaluation->binding_constraint_count);
         $this->assertSame('310.0', $disciplinedEvaluation->inherited_state_snapshot['values']['cancellable_capex_musd']);
         $this->assertSame('120.0', $constrainedEvaluation->inherited_state_snapshot['values']['cancellable_capex_musd']);
-        $this->assertSame('0.7', $disciplinedEvaluation->inherited_state_snapshot['values']['crude_hedge_coverage']);
-        $this->assertSame('0.45', $constrainedEvaluation->inherited_state_snapshot['values']['crude_hedge_coverage']);
+        $this->assertSame('0.700000', $disciplinedEvaluation->inherited_state_snapshot['values']['crude_hedge_coverage']);
+        $this->assertSame('0.450000', $constrainedEvaluation->inherited_state_snapshot['values']['crude_hedge_coverage']);
     }
 
     public function test_missing_dependency_returns_unresolved_dependency_without_defaulting(): void
@@ -182,7 +187,7 @@ class MultiWeekHistoricalIntegrationTest extends TestCase
         $this->assertSame('strained', $fresh->inherited_state_snapshot['values']['straits_pacific_standing']);
         $this->assertSame(5, $fresh->binding_constraint_count);
         $this->assertSame(Week10ConvergenceEconomicEngine::ENGINE_VERSION, $fresh->engine_version);
-        $this->assertSame('1.0.0-draft', $fresh->package_version);
+        $this->assertSame('1.0.1', $fresh->package_version);
     }
 
     public function test_week_execution_service_runs_week10_using_assembled_history(): void
@@ -353,7 +358,7 @@ class MultiWeekHistoricalIntegrationTest extends TestCase
         $week = $context['weeks'][4];
         $submission = $this->historicalSubmission($context, $week, $teamSimulation, 'week4_transfer_pricing', ['transfer_price' => '73.70']);
 
-        EconomicResolution::query()->create([
+        $resolution = EconomicResolution::query()->create([
             'tenant_id' => $week->tenant_id,
             'section_simulation_id' => $week->section_simulation_id,
             'section_simulation_week_id' => $week->id,
@@ -363,20 +368,22 @@ class MultiWeekHistoricalIntegrationTest extends TestCase
             'economic_engine' => 'week4_transfer_pricing',
             'engine_version' => 'week4_transfer_pricing_v1',
             'input_snapshot' => ['transfer_price' => '73.70'],
-            'output_snapshot' => ['week10_inherited_state' => ['br_reported_margin_strong' => $strong]],
+            'output_snapshot' => [],
             'transfer_price' => '73.700',
             'integrated_margin' => '76.750',
             'upstream_margin' => '58.050',
             'refining_margin' => '18.700',
             'upstream_vs_target' => '0.000',
-            'refining_vs_target' => '0.000',
+            'refining_vs_target' => $strong ? '14.650' : '-12.850',
             'geneva_gap' => '0.000',
-            'geneva_capture_per_bbl' => '0.000',
+            'geneva_capture_per_bbl' => $strong ? '9.625' : '0.000',
             'geneva_max_volume_bbl_day' => '0.000',
             'resolved_by_user_id' => $context['graph']['faculty']->id,
             'resolved_by_process' => 'multi_week_regression_fixture',
             'resolved_at' => now(),
         ]);
+
+        app(DerivedWeek10ConstraintService::class)->resolveWeek4Consequences($resolution, $context['graph']['faculty']);
     }
 
     /**
@@ -464,11 +471,22 @@ class MultiWeekHistoricalIntegrationTest extends TestCase
             'capital_required_musd' => '1200.000',
             'capital_envelope_feasible' => false,
             'input_snapshot' => ['selected_project_keys' => ['helix']],
-            'output_snapshot' => ['week10_inherited_state' => ['cancellable_capex_musd' => $cancellableCapex]],
+            'output_snapshot' => [],
             'evaluated_by_user_id' => $context['graph']['faculty']->id,
             'evaluated_by_process' => 'multi_week_regression_fixture',
             'evaluated_at' => now(),
         ]);
+
+        $evaluation = CapitalAllocationEvaluation::query()->latest('id')->firstOrFail();
+        $this->linkConsequence(
+            teamSimulation: $teamSimulation,
+            definition: app(KpiConsequenceDefinitionCatalog::class)->cancellableCapex(),
+            source: $evaluation,
+            target: $evaluation,
+            sourceWeek: $week,
+            targetWeek: $context['weeks'][10],
+            value: $cancellableCapex,
+        );
     }
 
     private function seedStanding(TeamSimulation $teamSimulation, string $state): void
@@ -526,11 +544,22 @@ class MultiWeekHistoricalIntegrationTest extends TestCase
             'prediction_snapshot' => [],
             'realization_snapshot' => [],
             'input_snapshot' => [],
-            'output_snapshot' => ['week10_inherited_state' => ['cash_cushion_musd' => $cashCushion]],
+            'output_snapshot' => [],
             'evaluated_by_user_id' => $context['graph']['faculty']->id,
             'evaluated_by_process' => 'multi_week_regression_fixture',
             'evaluated_at' => now(),
         ]);
+
+        $evaluation = Week8EconomicEvaluation::query()->latest('id')->firstOrFail();
+        $this->linkConsequence(
+            teamSimulation: $teamSimulation,
+            definition: app(KpiConsequenceDefinitionCatalog::class)->cashCushion(),
+            source: $evaluation,
+            target: $evaluation,
+            sourceWeek: $week,
+            targetWeek: $context['weeks'][10],
+            value: $cashCushion,
+        );
     }
 
     /**
@@ -657,5 +686,30 @@ class MultiWeekHistoricalIntegrationTest extends TestCase
         $delta = max(self::GOLDEN_ABSOLUTE_TOLERANCE, abs($expected) * self::GOLDEN_RELATIVE_TOLERANCE);
 
         $this->assertEqualsWithDelta($expected, $actualFloat, $delta);
+    }
+
+    private function linkConsequence(
+        TeamSimulation $teamSimulation,
+        ConsequenceDefinition $definition,
+        Model $source,
+        Model $target,
+        SectionSimulationWeek $sourceWeek,
+        SectionSimulationWeek $targetWeek,
+        string $value,
+    ): void {
+        app(ConsequenceService::class)->createLink(
+            teamSimulation: $teamSimulation,
+            definition: $definition,
+            source: $source,
+            target: $target,
+            explanation: 'Multi-week regression fixture consequence link.',
+            sourceWeek: $sourceWeek,
+            targetWeek: $targetWeek,
+            actor: null,
+            metadata: [
+                'target_value' => $value,
+                'package_version' => '1.0.1',
+            ],
+        );
     }
 }

@@ -28,6 +28,7 @@ use App\Models\CapitalAllocationEvaluation;
 use App\Models\CapitalProject;
 use App\Models\CohortDecisionAggregate;
 use App\Models\CohortFeedbackEffect;
+use App\Models\ConsequenceLink;
 use App\Models\Counterparty;
 use App\Models\DecisionFieldDefinition;
 use App\Models\DecisionFormDefinition;
@@ -114,7 +115,6 @@ class SevenWeekVariantEndToEndTest extends TestCase
             $definitions[4]['memo'],
             [
                 'transfer_price' => '46.20',
-                'br_reported_margin_strong' => true,
             ],
             'Week 4 transfer-price memo for the single seven-week lag.',
         );
@@ -134,17 +134,13 @@ class SevenWeekVariantEndToEndTest extends TestCase
         $this->actingAs($context['graph']['student'])
             ->post(route('student.submissions.capital-allocation.submit', $context['weeks'][6]), [
                 'selected_project_keys' => ['baton_rouge', 'helix'],
-                'week10_inherited_state' => [
-                    'cancellable_capex_musd' => '120.0',
-                    'crude_hedge_coverage' => '0.45',
-                ],
             ])
             ->assertRedirect();
         $this->submitMemo($context, $context['weeks'][6], $definitions[6]['memo'], 'Week 6 memo with capital allocation and folded currency coverage.');
         $this->executeThroughFacultyControl($context, $context['weeks'][6]);
-        $week6Evaluation = CapitalAllocationEvaluation::query()->firstOrFail();
-        $this->assertSame('120.00', $week6Evaluation->output_snapshot['week10_inherited_state']['cancellable_capex_musd']);
-        $this->assertSame('0.450000', $week6Evaluation->output_snapshot['week10_inherited_state']['crude_hedge_coverage']);
+        $this->assertNotNull(CapitalAllocationEvaluation::query()->first());
+        $this->assertSame('81.000', $this->consequenceTargetValue($context['teamSimulation'], 'week6_cancellable_capex_musd'));
+        $this->assertSame('0.450000', $this->consequenceTargetValue($context['teamSimulation'], 'week5_hedge_coverage'));
 
         $week8Submission = $this->submitDecisionWeek(
             $context,
@@ -156,13 +152,12 @@ class SevenWeekVariantEndToEndTest extends TestCase
                 'probability_holds_partial' => '0.20',
                 'probability_fails' => '0.70',
                 'realized_scenario_key' => 'fails',
-                'cash_cushion_musd' => '85.0',
             ],
             'Week 8 memo distinguishes prediction from realized OPEC scenario.',
         );
         $this->executeThroughFacultyControl($context, $context['weeks'][8]);
-        $week8Evaluation = Week8EconomicEvaluation::query()->firstOrFail();
-        $this->assertSame('85.00', $week8Evaluation->output_snapshot['week10_inherited_state']['cash_cushion_musd']);
+        $this->assertNotNull(Week8EconomicEvaluation::query()->first());
+        $this->assertNull($this->consequenceTargetValue($context['teamSimulation'], 'week8_cash_cushion_musd'));
 
         $this->rotateSeatForWeek10($context);
         $this->seedStraitsPacificStanding($context['teamSimulation']);
@@ -179,8 +174,13 @@ class SevenWeekVariantEndToEndTest extends TestCase
         $week10Evaluation = Week10EconomicEvaluation::query()->firstOrFail();
         $this->assertSame(Week10EconomicEvaluation::STATUS_CALCULATED, $week10Evaluation->status);
         $this->assertSame([], $week10Evaluation->unresolved_dependencies);
-        $this->assertSame('6', $week10Evaluation->inherited_state_snapshot['dependencies']['crude_hedge_coverage']['source_week']);
-        $this->assertSame('capital_allocation_evaluation', $week10Evaluation->inherited_state_snapshot['dependencies']['crude_hedge_coverage']['source_entity']);
+        $this->assertSame('4', $week10Evaluation->inherited_state_snapshot['dependencies']['crude_hedge_coverage']['source_week']);
+        $this->assertSame('consequence_link.week5_hedge_coverage', $week10Evaluation->inherited_state_snapshot['dependencies']['crude_hedge_coverage']['source_entity']);
+        $this->assertSame('consequence_link.week8_cash_cushion_musd', $week10Evaluation->inherited_state_snapshot['dependencies']['cash_cushion_musd']['source_entity']);
+        $cashLink = ConsequenceLink::query()->where('definition_key', 'week8_cash_cushion_musd')->sole();
+        $this->assertSame('0.000', $cashLink->metadata['week7_capacity_match']);
+        $this->assertSame('0.000', $cashLink->metadata['week9_rebrand_cost_musd']);
+        $this->assertTrue($cashLink->metadata['seven_week_absent_terms_zero']);
 
         $week12Submission = $this->submitDecisionWeek(
             $context,
@@ -248,7 +248,7 @@ class SevenWeekVariantEndToEndTest extends TestCase
         );
     }
 
-    public function test_seven_week_week10_fails_safely_without_folded_week6_hedge_and_recovers_for_a_fresh_submission(): void
+    public function test_seven_week_week10_ignores_client_folded_hedge_and_uses_derived_history(): void
     {
         $context = $this->sevenWeekContext('MissingDependency');
         $this->activateVariantPackages($context['weeks']);
@@ -272,8 +272,10 @@ class SevenWeekVariantEndToEndTest extends TestCase
         );
         $this->assertSame(WeekExecutionRecord::STATUS_COMPLETED, $record->status);
         $evaluation = Week10EconomicEvaluation::query()->where('decision_submission_id', $submission->id)->firstOrFail();
-        $this->assertSame('unresolved_dependency', $evaluation->status);
-        $this->assertSame(['crude_hedge_coverage'], $evaluation->unresolved_dependencies);
+        $this->assertSame(Week10EconomicEvaluation::STATUS_CALCULATED, $evaluation->status);
+        $this->assertSame([], $evaluation->unresolved_dependencies);
+        $this->assertSame('0.450000', $evaluation->inherited_state_snapshot['values']['crude_hedge_coverage']);
+        $this->assertSame('consequence_link.week5_hedge_coverage', $evaluation->inherited_state_snapshot['dependencies']['crude_hedge_coverage']['source_entity']);
 
         $recovered = $this->sevenWeekContext('RecoveredDependency');
         $this->activateVariantPackages($recovered['weeks']);
@@ -429,7 +431,6 @@ class SevenWeekVariantEndToEndTest extends TestCase
         ]);
         $definitions[4] = $this->definitionsFor($weeks[4], 'week4_transfer_pricing', 'week4_transfer_pricing_v1', 'week4_transfer_pricing', [
             ['transfer_price', 'Transfer price', DecisionFieldType::Currency, true, ['min' => 0, 'max' => 250], []],
-            ['br_reported_margin_strong', 'Baton Rouge reported margin strong', DecisionFieldType::Boolean, true, [], []],
         ]);
         $definitions[6]['memo'] = MemoDefinition::factory()->create([
             'simulation_version_id' => $weeks[6]->simulation_version_id,
@@ -449,7 +450,6 @@ class SevenWeekVariantEndToEndTest extends TestCase
                 ['value' => 'holds_partial', 'label' => 'Partial hold'],
                 ['value' => 'fails', 'label' => 'Fail'],
             ]],
-            ['cash_cushion_musd', 'Cash cushion', DecisionFieldType::Decimal, true, ['min' => 0, 'max' => 1000], []],
         ], ['seven_week_role_phase' => 'first_seat', 'seat_code' => 'commercial_operations']);
         $definitions[10] = $this->definitionsFor($weeks[10], 'week10_convergence_plan', Week10ConvergenceEconomicEngine::ENGINE_VERSION, Week10ConvergenceEconomicEngine::ENGINE_IDENTIFIER, [
             ['operating_posture', 'Operating posture', DecisionFieldType::ShortText, true, ['max_length' => 200], []],
@@ -599,16 +599,22 @@ class SevenWeekVariantEndToEndTest extends TestCase
     private function discountRateSchedule(): DiscountRateSchedule
     {
         return DiscountRateSchedule::query()->create([
-            'key' => 'seven_week_week4_to_week6_discount_rate',
+            'key' => 'week4_to_week6_discount_rate',
             'name' => 'Seven-week Week 4 to Week 6 discount-rate consequence',
-            'version' => 'discount_rate_v1_'.uniqid(),
+            'version' => 'kpi_consequence_v1_0_1_'.uniqid(),
             'source_week_number' => 4,
             'target_week_number' => 6,
             'classification_rules' => [
-                ['field' => 'geneva_capture_per_bbl', 'operator' => '<=', 'value' => '9.625', 'classification' => 'base'],
+                'marginal_cost_anchor' => '18.70',
+                'market_based_anchor' => '73.70',
+                'tolerance_percent' => '10.0',
+                'section_threshold_percent' => '70.0',
+                'scope' => 'section',
             ],
             'classification_outcomes' => [
+                'disciplined' => ['discount_rate_percent' => '6.5', 'capital_envelope_musd' => '1520'],
                 'base' => ['discount_rate_percent' => '8.5', 'capital_envelope_musd' => '1150'],
+                'lax' => ['discount_rate_percent' => '11.0', 'capital_envelope_musd' => '950'],
             ],
             'is_active' => true,
         ]);
@@ -680,7 +686,7 @@ class SevenWeekVariantEndToEndTest extends TestCase
             $context['weeks'][4],
             $definitions[4]['decision'],
             $definitions[4]['memo'],
-            ['transfer_price' => '46.20', 'br_reported_margin_strong' => true],
+            ['transfer_price' => '46.20'],
             'Week 4 prior state memo.',
         );
         $this->discountRateSchedule();
@@ -689,11 +695,7 @@ class SevenWeekVariantEndToEndTest extends TestCase
         $this->openWeek($context, $context['weeks'][6]);
         $payload = [
             'selected_project_keys' => ['baton_rouge', 'helix'],
-            'week10_inherited_state' => ['cancellable_capex_musd' => '120.0'],
         ];
-        if ($includeFoldedHedge) {
-            $payload['week10_inherited_state']['crude_hedge_coverage'] = '0.45';
-        }
         $this->actingAs($context['graph']['student'])
             ->post(route('student.submissions.capital-allocation.submit', $context['weeks'][6]), $payload)
             ->assertRedirect();
@@ -710,11 +712,21 @@ class SevenWeekVariantEndToEndTest extends TestCase
                 'probability_holds_partial' => '0.20',
                 'probability_fails' => '0.70',
                 'realized_scenario_key' => 'fails',
-                'cash_cushion_musd' => '85.0',
             ],
             'Week 8 prior state memo.',
         );
         $this->executeThroughFacultyControl($context, $context['weeks'][8]);
         $this->seedStraitsPacificStanding($context['teamSimulation']);
+    }
+
+    private function consequenceTargetValue(TeamSimulation $teamSimulation, string $definitionKey): ?string
+    {
+        $link = ConsequenceLink::query()
+            ->where('team_simulation_id', $teamSimulation->id)
+            ->where('definition_key', $definitionKey)
+            ->latest('id')
+            ->first();
+
+        return is_array($link?->metadata) ? ($link->metadata['target_value'] ?? null) : null;
     }
 }

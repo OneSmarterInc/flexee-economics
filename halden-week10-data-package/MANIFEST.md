@@ -35,6 +35,10 @@ Built to the Week 6 / Week 8 standard. Economics computed from the canonical CSV
 - Disciplined reference team: no constraint binds
 - Constrained reference team: all five constraints bind (inherited, not new)
 
+## Changelog
+
+- 1.0.1: corrected the reference-team origin notes to match the Week 4 numbers. Above-target refining (from a marginal-cost or lazy transfer price) is what gives Delacroix cover. No numeric value or golden fixture changed.
+
 ## New week-specific parameters introduced by this package (add to ledger)
 
 - binding_rules.csv: a constraint binds when cancellable capex < $200M, crude hedge coverage < 50%, the Week 4 transfer price left Baton Rouge reporting strong (Delacroix has cover), Straits Pacific standing is strained or hostile, or the cash cushion < $150M. The spec described the five threads without thresholds.

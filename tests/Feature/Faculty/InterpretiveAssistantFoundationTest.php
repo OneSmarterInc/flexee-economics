@@ -60,7 +60,7 @@ class InterpretiveAssistantFoundationTest extends TestCase
         $this->assertCount(1, $payload['ranking_snapshots']);
         $this->assertCount(8, $payload['standing_states']);
         $this->assertGreaterThanOrEqual(9, count($payload['standing_events']));
-        $this->assertCount(2, $payload['consequence_links']);
+        $this->assertCount(5, $payload['consequence_links']);
         $this->assertCount(1, $payload['advisor_consultations']);
         $this->assertCount(1, $payload['alternatives']);
         $this->assertSame('week4_transfer_pricing', $payload['decisions'][0]['definition_key']);

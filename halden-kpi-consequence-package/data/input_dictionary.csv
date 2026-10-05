@@ -1,0 +1,28 @@
+week,input_key,definition
+2,i2_retail_volume_change_pct,Volume-share-weighted % change in Cordell volume from the team's Week 2 rack decisions (Week 2 engine)
+3,i3_rotterdam_idled,"1 if the team idled Rotterdam in Week 3, else 0"
+4,i4_geneva_leak_per_chain_bbl,0.35 x (market TP - team TP) x 40/250 if TP below market and above marginal-cost band; else 0
+5,i5_fx_ebitda_effect_musd,Week 5 engine: Norwegian benefit + Rotterdam net impact + team hedge result + European translation
+5,i5_nwe_crack_shift,consequence week3_window1_nwe_crack_shift
+5,i5_rotterdam_window1_ebitda_musd,i5_nwe_crack_shift x 120.45 x (1 - i3_rotterdam_idled)
+6,i6_br_upgrade_funded,1 if Baton Rouge upgrade funded
+6,i6_outlay_musd,Sum of funded Week 6 outlays
+6,i6_year1_cashflow_musd,Sum of year-1 cash flows of funded Week 6 projects
+7,i7_capacity_matched,1 if the team matched the rival expansion
+7,i7_retail_match_cost_musd,Sum of match costs over clusters where the team matched
+8,i8_dwti,Resolved Week 8 delta WTI
+8,i8_ebitda_effect_musd,"Week 8 engine EBITDA effect including hedges and positioning, excluding window 2"
+8,i8_window2_shift,consequence week6_window2_crack_shift
+9,i9_rebrand_cost_musd,Week 9 rebrand capital for the markets the team rebranded
+9,i9_rebrand_gain_musd,Week 9 annual gain for those markets
+9,i9_window3_nonfuel_shift,consequence week7_window3_nonfuel_shift
+10,i10_binding_count,consequence week10_binding_count
+10,i10_blended_demand_hit,Week 10 engine blended demand hit (fraction)
+10,i10_capex_cancelled_musd,Capex the team cancelled in Week 10 (cannot exceed cancellable capex)
+11,i11_exited,1 if the team exited Kessana
+11,i11_kessana_margin_change,Negotiated Kessana margin minus 25.46
+12,i12_divested,1 if European retail divested
+12,i12_outlay_musd,Sum of funded Week 12 project costs (excluding divestment)
+12,i12_year1_cashflow_musd,Year-1 cash flow of funded Week 12 projects
+13,i13_turnaround_delayed,1 if turnaround delayed to off-peak
+13,i13_union_concession_musd,Gross wage concession granted

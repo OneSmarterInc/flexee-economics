@@ -184,14 +184,6 @@ final class WeekResolutionService
             'delivered_marginal_cost' => $result->money($result->deliveredMarginalCost),
         ];
 
-        $answers = $mapped->submissionSnapshot['answers'] ?? [];
-
-        if (is_array($answers) && array_key_exists('br_reported_margin_strong', $answers)) {
-            $snapshot['week10_inherited_state'] = [
-                'br_reported_margin_strong' => filter_var($answers['br_reported_margin_strong'], FILTER_VALIDATE_BOOLEAN),
-            ];
-        }
-
         return $snapshot;
     }
 

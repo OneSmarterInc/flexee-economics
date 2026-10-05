@@ -1,0 +1,11 @@
+parameter,value,unit
+ebitda,15000.0,usd_m_run_rate
+capital_employed,62000.0,usd_m
+net_debt,19500.0,usd_m
+sustaining_capex,4500.0,usd_m_run_rate
+integrated_margin_per_boe,76.75,usd_boe
+refining_vs_benchmark,0.0,usd_bbl
+nonfuel_per_site_k,75.6,usd_k_per_site_yr
+asset_health,70.0,index_0_100
+tax_rate,0.3,fraction
+da_rate,0.06,fraction_of_capital

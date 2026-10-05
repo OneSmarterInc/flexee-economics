@@ -50,7 +50,6 @@ class Week5EconomicEvaluationServiceTest extends TestCase
         $this->assertSame('1.0.0-draft', $first->package_version);
         $this->assertSame('25.846154', $first->norwayLiftingPostValue());
         $this->assertSame('-145.161290', $first->rotOverhedgeLossValue());
-        $this->assertSame('0.450000', $first->output_snapshot['week10_inherited_state']['crude_hedge_coverage']);
         $this->assertSame('maintain existing EUR forward and avoid gross Rotterdam hedge', $first->decision_snapshot['answers']['hedging_policy']);
     }
 

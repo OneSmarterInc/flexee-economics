@@ -53,6 +53,8 @@ class CausalTraceServiceTest extends TestCase
             'economic',
             'consequence',
             'consequence',
+            'consequence',
+            'consequence',
             'kpi',
             'kpi',
             'kpi',
@@ -136,8 +138,8 @@ class CausalTraceServiceTest extends TestCase
         $this->assertSame(1, EconomicResolution::query()->where('decision_submission_id', $context['decision']->id)->count());
         $this->assertSame(7, KpiSnapshot::query()->where('economic_resolution_id', $context['resolution']->id)->count());
         $this->assertSame(1, RankingSnapshot::query()->where('team_simulation_id', $context['teamSimulation']->id)->count());
-        $this->assertSame(1, StandingEvent::query()->where('trigger_id', $context['decision']->id)->count());
-        $this->assertCount(14, $trace->nodes);
+        $this->assertSame(2, StandingEvent::query()->where('trigger_id', $context['decision']->id)->count());
+        $this->assertCount(16, $trace->nodes);
     }
 
     /**

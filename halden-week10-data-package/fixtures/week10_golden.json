@@ -2,7 +2,7 @@
   "meta": {
     "week": 10,
     "name": "The cycle turns \u2014 where the consequences converge",
-    "package_version": "1.0.0-draft",
+    "package_version": "1.0.1",
     "provenance": "Computed from canonical CSVs in data/; reconciled against the constants ledger",
     "tolerance": {
       "rel": 0.001,

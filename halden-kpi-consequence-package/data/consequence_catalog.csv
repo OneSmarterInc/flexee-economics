@@ -1,0 +1,21 @@
+key,version,source_week,source,target_week,target,effect_type,rule,status,variant
+week1_first_meeting_delacroix_standing,v1,1,decision.first_meeting,4,standing.delacroix,standing_transition,met Delacroix first -> cooperative; otherwise guarded,active,both
+week3_window1_nwe_crack_shift,v1,3,"cohort mean utilization (run=0.80, idle=0.40)",5,input.i5_nwe_crack_shift,cohort_market_effect,shift = -9.0 x (util - 0.75); bounded above the 2.60 shutdown floor,active,14wk
+week4_cohort_state,v1,4,cohort transfer-price distribution,6,cohort_discount_state,cohort_company_effect,disciplined if >=70% marginal-cost; lax if >=70% market-based; else base,active,both
+week4_capital_envelope_musd,v1,4,week4_cohort_state,6,capital_envelope,cohort_company_effect,disciplined 1520 / base 1150 / lax 950; discount 6.5% / 8.5% / 11.0%,active,both
+week4_tp_delacroix_cover,v1,4,Week 4 refining segment margin vs target,10,constraint.delacroix_cover,constraint_flag,"cover = 1 if refining reports above target (marginal +42.15, lazy +14.65); 0 if market (-12.85)",active,both
+week4_whitaker_standing,v1,4,decision.transfer_price_basis,5,standing.whitaker,standing_transition,lazy (Geneva leak) -> guarded; otherwise cooperative,active,both
+week5_hedge_coverage,v1,5,standing.whitaker,10,constraint.crude_hedge_coverage,constraint_value,cooperative/obliged 0.70; watchful/guarded 0.45; strained/hostile 0.25,active,14wk
+week6_cancellable_capex_musd,v1,6,capital_envelope and Helix commitment,10,constraint.cancellable_capex,constraint_value,(envelope - Helix 880 if funded) x 0.30; Helix is contractual and non-cancellable,active,both
+week6_window2_crack_shift,v1,6,share of teams funding Baton Rouge upgrade,8,input.i8_window2_shift,cohort_market_effect,"window-2 addendum: -6.0 x (share-0.50) above pivot, +3.0 x (0.50-share) below",active,14wk
+week7_window3_nonfuel_shift,v1,7,share of teams matching the retail price cut,9,input.i9_window3_nonfuel_shift,cohort_market_effect,nonfuel shift = -0.10 x (aggression - 0.50) $/fill,active,14wk
+week8_cash_cushion_musd,v1,8,W8 EBITDA effect and W6/W7/W9 spend,10,constraint.cash_cushion,constraint_value,250 + 0.25 x W8 EBITDA effect - 0.10 x (W6 outlay + 600 x W7 capacity match + W9 rebrand),active,both
+week10_binding_count,v1,10,five constraint values,10,input.i10_binding_count,constraint_aggregate,binding_rules.csv from the Week 10 package,active,both
+week1_delacroix_initial_standing,v1,1,decision.first_meeting,4,standing.delacroix,standing_transition,same as week1_first_meeting rule; reported for resolution fixtures,active,both
+week10_straits_pacific_flex,v1,3,standing.straits_pacific,10,constraint.straits_pacific,constraint_flag,binding if strained or hostile,active,both
+week13_turnaround_asset_health,v1,13,decision.turnaround_delayed,13,state.asset_health,kpi_state_effect,see kpi_rules.csv,active,14wk
+week7_capacity_window2_compounding,v1,7,share matching rival expansion,8,input.i8_window2_shift,cohort_market_effect,deferred until the Week 7 runtime exists,deferred,14wk
+week6_kessana_capital_to_week11,v1,6,Kessana capital committed in Week 6,11,negotiating position,position_modifier,DROPPED by design decision: Week 6 offers no Kessana project; Week 11 differentiates on Tetteh standing and reserve estimate quality only,dropped,both
+week3_rotterdam_call_to_week12,v1,3,Rotterdam run/idle and structural view,12,Helix Rotterdam framing,narrative,debrief only; no economic effect,narrative,both
+week6_helix_to_week12,v1,6,fund_helix,12,Helix Rotterdam foundation,narrative,debrief only; no economic effect,narrative,both
+week1_meeting_to_week12_board,v1,1,decision.first_meeting,12,board reception,narrative,seven-week long-lag standing thread; debrief only,narrative,7wk

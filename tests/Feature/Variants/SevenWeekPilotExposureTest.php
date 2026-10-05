@@ -184,7 +184,7 @@ class SevenWeekPilotExposureTest extends TestCase
         $this->assertSame(0, CohortFeedbackEffect::query()->count());
     }
 
-    public function test_seven_week_pilot_seeds_week10_dependencies_for_browser_rehearsal(): void
+    public function test_seven_week_pilot_excludes_student_entered_week10_dependencies(): void
     {
         $this->seed();
 
@@ -196,15 +196,15 @@ class SevenWeekPilotExposureTest extends TestCase
             StandingState::query()
                 ->where('section_simulation_id', $pilot->id)
                 ->where('counterparty_id', $counterparty->id)
-                ->where('state', StandingValue::Strained->value)
+                ->where('state', StandingValue::Cooperative->value)
                 ->count(),
         );
 
         $week4 = $pilot->weeks()->whereHas('definition', fn ($query) => $query->where('week_number', 4))->firstOrFail();
         $week8 = $pilot->weeks()->whereHas('definition', fn ($query) => $query->where('week_number', 8))->firstOrFail();
 
-        $this->assertTrue($this->fieldExists($week4->simulation_week_id, 'br_reported_margin_strong'));
-        $this->assertTrue($this->fieldExists($week8->simulation_week_id, 'cash_cushion_musd'));
+        $this->assertFalse($this->fieldExists($week4->simulation_week_id, 'br_reported_margin_strong'));
+        $this->assertFalse($this->fieldExists($week8->simulation_week_id, 'cash_cushion_musd'));
     }
 
     private function fieldExists(int $simulationWeekId, string $fieldKey): bool

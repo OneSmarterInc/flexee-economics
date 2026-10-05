@@ -36,10 +36,6 @@ type MemoFormPayload = {
 type CapitalAllocationFormPayload = {
     selected_project_keys: string[];
     capital_allocation?: string;
-    week10_inherited_state: {
-        cancellable_capex_musd: string;
-        crude_hedge_coverage: string;
-    };
 };
 
 type MemoDefinition = {
@@ -167,10 +163,6 @@ const capitalForm = useForm<CapitalAllocationFormPayload>({
     selected_project_keys: [
         ...(props.capitalAllocation?.selected_project_keys ?? []),
     ],
-    week10_inherited_state: {
-        cancellable_capex_musd: '',
-        crude_hedge_coverage: '',
-    },
 });
 
 const boardDefenseMemo = ref(
@@ -572,42 +564,6 @@ async function postBoardDefense(url: string) {
                         </div>
                     </div>
                 </button>
-            </div>
-
-            <div class="mt-4 grid gap-3 md:grid-cols-2">
-                <label class="grid gap-1 text-sm">
-                    <span class="font-medium">
-                        Cancellable capex for Week 10
-                    </span>
-                    <input
-                        v-model="
-                            capitalForm.week10_inherited_state
-                                .cancellable_capex_musd
-                        "
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        class="bg-background rounded-md border p-2"
-                        :disabled="disabled || capitalSubmitted"
-                    />
-                </label>
-                <label class="grid gap-1 text-sm">
-                    <span class="font-medium">
-                        Crude hedge coverage for Week 10
-                    </span>
-                    <input
-                        v-model="
-                            capitalForm.week10_inherited_state
-                                .crude_hedge_coverage
-                        "
-                        type="number"
-                        min="0"
-                        max="1"
-                        step="0.000001"
-                        class="bg-background rounded-md border p-2"
-                        :disabled="disabled || capitalSubmitted"
-                    />
-                </label>
             </div>
 
             <p

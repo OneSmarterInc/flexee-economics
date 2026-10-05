@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Domain\Consequences\KpiConsequenceReferencePackage;
 use App\Domain\Interpretation\InterpretiveAssistantProvider;
 use App\Domain\Interpretation\StructuredPlaceholderInterpretiveAssistantProvider;
 use Carbon\CarbonImmutable;
@@ -18,6 +19,7 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->bind(InterpretiveAssistantProvider::class, StructuredPlaceholderInterpretiveAssistantProvider::class);
+        $this->app->singleton(KpiConsequenceReferencePackage::class, fn (): KpiConsequenceReferencePackage => KpiConsequenceReferencePackage::fromRepository());
     }
 
     /**

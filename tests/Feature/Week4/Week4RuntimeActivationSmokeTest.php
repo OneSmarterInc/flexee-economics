@@ -82,7 +82,7 @@ class Week4RuntimeActivationSmokeTest extends TestCase
         $this->assertSame(1, EconomicResolution::query()->where('section_simulation_week_id', $context['runtimeWeek']->id)->count());
         $this->assertGreaterThan(0, KpiSnapshot::query()->where('section_simulation_week_id', $context['runtimeWeek']->id)->count());
         $this->assertGreaterThan(0, RankingSnapshot::query()->where('section_simulation_week_id', $context['runtimeWeek']->id)->count());
-        $this->assertSame(2, ConsequenceLink::query()->where('source_section_simulation_week_id', $context['runtimeWeek']->id)->count());
+        $this->assertSame(5, ConsequenceLink::query()->where('source_section_simulation_week_id', $context['runtimeWeek']->id)->count());
 
         $this->actingAs($context['graph']['student'])
             ->get(route('student.submissions.show', $context['runtimeWeek']))

@@ -19,7 +19,7 @@ class Week10PackageValidationGateTest extends TestCase
     {
         $inputs = Week10ReferencePackage::fromRepository()->inputs();
 
-        $this->assertSame('1.0.0-draft', $inputs->packageVersion);
+        $this->assertSame('1.0.1', $inputs->packageVersion);
         $this->assertSame(['gasoline', 'diesel', 'jet'], array_keys($inputs->productElasticities));
         $this->assertSame(['Baton Rouge', 'Rotterdam', 'Singapore'], array_keys($inputs->refineryYields));
         $this->assertSame(['reference_disciplined', 'reference_constrained'], array_keys($inputs->teamPriorStates));
@@ -43,7 +43,7 @@ class Week10PackageValidationGateTest extends TestCase
         $results = $golden['results'];
 
         $this->assertSame(10, $golden['meta']['week']);
-        $this->assertSame('1.0.0-draft', $golden['meta']['package_version']);
+        $this->assertSame('1.0.1', $golden['meta']['package_version']);
         $this->assertSame(0.001, $golden['meta']['tolerance']['rel']);
         $this->assertSame(1e-5, $golden['meta']['tolerance']['abs']);
         $this->assertSame(-0.0105, $results['demand_hit_gasoline']);

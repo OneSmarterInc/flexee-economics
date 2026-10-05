@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Week10;
 
+use App\Domain\Consequences\DerivedWeek10ConstraintService;
 use App\Domain\Content\AuthoritativePackages\AuthoritativeContentPackageManifest;
 use App\Domain\Content\AuthoritativePackages\AuthoritativeContentPackageRegistrationService;
 use App\Domain\Content\SimulationContentActivationService;
@@ -23,6 +24,8 @@ use App\Models\Counterparty;
 use App\Models\DecisionFieldDefinition;
 use App\Models\DecisionFormDefinition;
 use App\Models\DecisionSubmission;
+use App\Models\DiscountRateConsequence;
+use App\Models\DiscountRateSchedule;
 use App\Models\EconomicResolution;
 use App\Models\KpiSnapshot;
 use App\Models\MemoDefinition;
@@ -205,7 +208,7 @@ class Week10RuntimeIntegrationSmokeTest extends TestCase
     {
         $week4Submission = $this->historicalSubmission($graph, $weeks[4], $teamSimulation, 'week4_transfer_pricing', ['transfer_price' => '73.70']);
 
-        EconomicResolution::query()->create([
+        $resolution = EconomicResolution::query()->create([
             'tenant_id' => $weeks[4]->tenant_id,
             'section_simulation_id' => $weeks[4]->section_simulation_id,
             'section_simulation_week_id' => $weeks[4]->id,
@@ -215,20 +218,21 @@ class Week10RuntimeIntegrationSmokeTest extends TestCase
             'economic_engine' => 'week4_transfer_pricing',
             'engine_version' => 'week4_transfer_pricing_v1',
             'input_snapshot' => ['transfer_price' => '73.70'],
-            'output_snapshot' => ['week10_inherited_state' => ['br_reported_margin_strong' => true]],
+            'output_snapshot' => [],
             'transfer_price' => '73.700',
             'integrated_margin' => '76.750',
             'upstream_margin' => '58.050',
             'refining_margin' => '18.700',
             'upstream_vs_target' => '0.000',
-            'refining_vs_target' => '0.000',
+            'refining_vs_target' => '1.000',
             'geneva_gap' => '0.000',
-            'geneva_capture_per_bbl' => '0.000',
+            'geneva_capture_per_bbl' => '1.000',
             'geneva_max_volume_bbl_day' => '0.000',
             'resolved_by_user_id' => $graph['faculty']->id,
             'resolved_by_process' => 'test_fixture',
             'resolved_at' => now(),
         ]);
+        app(DerivedWeek10ConstraintService::class)->resolveWeek4Consequences($resolution, $graph['faculty']);
 
         $this->seedWeek5Evaluation($graph, $weeks[5], $teamSimulation, '0.45');
 
@@ -261,10 +265,40 @@ class Week10RuntimeIntegrationSmokeTest extends TestCase
             'capital_required_musd' => '1200.000',
             'capital_envelope_feasible' => false,
             'input_snapshot' => ['selected_project_keys' => ['helix']],
-            'output_snapshot' => ['week10_inherited_state' => ['cancellable_capex_musd' => '120.0']],
+            'output_snapshot' => ['selected_project_keys' => ['helix']],
             'evaluated_by_user_id' => $graph['faculty']->id,
             'evaluated_by_process' => 'test_fixture',
             'evaluated_at' => now(),
+        ]);
+        $schedule = DiscountRateSchedule::query()->create([
+            'key' => 'week4_to_week6_discount_rate',
+            'name' => 'Week 4 to Week 6 discount rate',
+            'version' => 'kpi_consequence_v1_0_1',
+            'source_week_number' => 4,
+            'target_week_number' => 6,
+            'classification_rules' => [],
+            'classification_outcomes' => [],
+            'is_active' => true,
+        ]);
+        DiscountRateConsequence::query()->create([
+            'tenant_id' => $weeks[6]->tenant_id,
+            'section_simulation_id' => $weeks[6]->section_simulation_id,
+            'source_section_simulation_week_id' => $weeks[4]->id,
+            'target_section_simulation_week_id' => $weeks[6]->id,
+            'team_simulation_id' => $teamSimulation->id,
+            'team_id' => $teamSimulation->team_id,
+            'economic_resolution_id' => $resolution->id,
+            'discount_rate_schedule_id' => $schedule->id,
+            'schedule_key' => 'week4_to_week6_discount_rate',
+            'schedule_version' => 'kpi_consequence_v1_0_1',
+            'status' => DiscountRateConsequence::STATUS_RESOLVED,
+            'classification' => 'base',
+            'discount_rate_percent' => '8.500',
+            'capital_envelope_musd' => '1150.000',
+            'input_snapshot' => [],
+            'result_snapshot' => [],
+            'resolved_by_user_id' => $graph['faculty']->id,
+            'resolved_at' => now(),
         ]);
 
         $counterparty = Counterparty::query()->create([
@@ -310,7 +344,7 @@ class Week10RuntimeIntegrationSmokeTest extends TestCase
             'prediction_snapshot' => [],
             'realization_snapshot' => [],
             'input_snapshot' => [],
-            'output_snapshot' => ['week10_inherited_state' => ['cash_cushion_musd' => '85.0']],
+            'output_snapshot' => [],
             'evaluated_by_user_id' => $graph['faculty']->id,
             'evaluated_by_process' => 'test_fixture',
             'evaluated_at' => now(),

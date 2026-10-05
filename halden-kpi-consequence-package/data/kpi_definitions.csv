@@ -1,0 +1,8 @@
+key,weight,direction,formula
+integrated_margin_per_boe,0.3,higher,state.integrated_margin_per_boe
+roace,0.15,higher,(ebitda - da_rate*capital_employed)*(1-tax_rate)/capital_employed
+free_cash_flow,0.15,higher,ebitda - tax_rate*(ebitda - da_rate*capital_employed) - sustaining_capex
+refining_net_margin_vs_benchmark,0.1,higher,state.refining_vs_benchmark
+retail_non_fuel_margin_per_site,0.1,higher,state.nonfuel_per_site_k
+net_debt_to_ebitda,0.1,lower,net_debt/ebitda
+asset_health_index,0.1,higher,state.asset_health (clamped 0-100)

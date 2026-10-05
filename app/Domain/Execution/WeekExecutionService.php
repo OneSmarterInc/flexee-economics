@@ -5,6 +5,7 @@ namespace App\Domain\Execution;
 use App\Domain\Capital\DiscountRateConsequenceService;
 use App\Domain\Capital\Week6\Week6CapitalEconomicsService;
 use App\Domain\CohortFeedback\CohortFeedbackService;
+use App\Domain\Consequences\DerivedWeek10ConstraintService;
 use App\Domain\Content\SimulationContentResolver;
 use App\Domain\Economics\Resolution\WeekResolutionService;
 use App\Domain\Economics\Week1\Week1EconomicEvaluationService;
@@ -76,6 +77,7 @@ final readonly class WeekExecutionService
         private Week12EconomicEvaluationService $week12Economics,
         private Week13EconomicEvaluationService $week13Economics,
         private DiscountRateConsequenceService $discountRateConsequences,
+        private DerivedWeek10ConstraintService $derivedWeek10Constraints,
         private Week4KpiPopulationService $week4Kpis,
         private Week8KpiPopulationService $week8Kpis,
         private Week10KpiPopulationService $week10Kpis,
@@ -416,11 +418,10 @@ final readonly class WeekExecutionService
 
         $counts = [];
 
-        $resolutions->each(function (EconomicResolution $resolution) use ($schedules, $actor, &$counts): void {
-            $schedules->each(function (DiscountRateSchedule $schedule) use ($resolution, $actor, &$counts): void {
-                $consequence = $this->discountRateConsequences->resolve($resolution, $schedule, $actor);
-                $counts[$consequence->status] = ($counts[$consequence->status] ?? 0) + 1;
-            });
+        $schedules->each(function (DiscountRateSchedule $schedule) use ($runtimeWeek, $actor, &$counts): void {
+            foreach ($this->discountRateConsequences->resolveSectionCohort($runtimeWeek, $schedule, $actor) as $status => $count) {
+                $counts[$status] = ($counts[$status] ?? 0) + $count;
+            }
         });
 
         return $counts;
@@ -441,6 +442,7 @@ final readonly class WeekExecutionService
             ->orderBy('id')
             ->get()
             ->each(function (DecisionSubmission $submission) use ($actor, &$evaluated, &$statuses): void {
+                $this->derivedWeek10Constraints->resolveHedgeCoverage($submission->teamSimulation, $actor);
                 $evaluation = $this->week5Economics->evaluate($submission, $actor, process: 'week_execution_service');
                 $evaluated++;
                 $statuses[$evaluation->status] = ($statuses[$evaluation->status] ?? 0) + 1;
@@ -591,6 +593,7 @@ final readonly class WeekExecutionService
             ->orderBy('id')
             ->get()
             ->each(function (DecisionSubmission $submission) use ($actor, &$evaluated, &$statuses): void {
+                $this->derivedWeek10Constraints->resolveAllForWeek10($submission->teamSimulation, $actor);
                 $evaluation = $this->week10Economics->evaluate($submission, $actor, process: 'week_execution_service');
                 $evaluated++;
                 $statuses[$evaluation->status] = ($statuses[$evaluation->status] ?? 0) + 1;
@@ -711,6 +714,7 @@ final readonly class WeekExecutionService
             ->get()
             ->each(function (CapitalAllocationDecision $decision) use ($actor, &$evaluated, &$statuses): void {
                 $evaluation = $this->week6CapitalEconomics->evaluate($decision, $actor, process: 'week_execution_service');
+                $this->derivedWeek10Constraints->resolveCancellableCapex($evaluation, $actor);
                 $evaluated++;
                 $statuses[$evaluation->status] = ($statuses[$evaluation->status] ?? 0) + 1;
             });

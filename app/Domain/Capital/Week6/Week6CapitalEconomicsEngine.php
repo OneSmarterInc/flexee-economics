@@ -80,7 +80,6 @@ final class Week6CapitalEconomicsEngine
         $portfolioIrr = $this->irrForFlows($portfolioFlows);
         $capitalRequired = $this->capitalRequired($selectedProjects);
         $capitalEnvelopeFeasible = $capitalRequired->isLessThanOrEqualTo($capitalEnvelope);
-        $week10InheritedState = $this->week10InheritedState($context);
 
         return new Week6CapitalEconomicsResult(
             status: CapitalAllocationEvaluation::STATUS_CALCULATED,
@@ -101,7 +100,6 @@ final class Week6CapitalEconomicsEngine
                     'source' => 'halden-week6-data-package/fixtures/week6_golden.json',
                     'fixture_keys' => array_keys($inputs->golden),
                 ],
-                'week10_inherited_state' => $week10InheritedState,
             ],
             portfolioNpvMusd: $this->databaseMoney($portfolioNpv),
             portfolioIrrPercent: $this->databasePercent($portfolioIrr),
@@ -168,31 +166,6 @@ final class Week6CapitalEconomicsEngine
         }
 
         return $results;
-    }
-
-    /**
-     * @param  array<string, mixed>  $context
-     * @return array<string, string>
-     */
-    private function week10InheritedState(array $context): array
-    {
-        $state = $context['week10_inherited_state'] ?? [];
-
-        if (! is_array($state)) {
-            return [];
-        }
-
-        $snapshot = [];
-
-        if (array_key_exists('cancellable_capex_musd', $state)) {
-            $snapshot['cancellable_capex_musd'] = $this->money(BigDecimal::of((string) $state['cancellable_capex_musd']));
-        }
-
-        if (array_key_exists('crude_hedge_coverage', $state)) {
-            $snapshot['crude_hedge_coverage'] = $this->rate(BigDecimal::of((string) $state['crude_hedge_coverage']));
-        }
-
-        return $snapshot;
     }
 
     /**

@@ -89,7 +89,6 @@ class Week5RuntimeIntegrationSmokeTest extends TestCase
         $this->assertSame('84.615385', $evaluation->norway_benefit_musd);
         $this->assertSame('25.846154', $evaluation->norwayLiftingPostValue());
         $this->assertSame('-145.161290', $evaluation->rotOverhedgeLossValue());
-        $this->assertSame('0.450000', $evaluation->output_snapshot['week10_inherited_state']['crude_hedge_coverage']);
         $this->assertSame('Keep entity net exposures visible and avoid hedging Rotterdam gross EUR costs.', $evaluation->decision_snapshot['answers']['hedging_policy']);
 
         $record = WeekExecutionRecord::query()

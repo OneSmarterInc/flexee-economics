@@ -9,4 +9,5 @@ enum StandingValue: string
     case Strained = 'strained';
     case Watchful = 'watchful';
     case Obliged = 'obliged';
+    case Hostile = 'hostile';
 }

@@ -544,8 +544,8 @@ class DatabaseSeeder extends Seeder
                     ],
                     [
                         'team_id' => $teamSimulation->team_id,
-                        'state' => StandingValue::Strained->value,
-                        'reason' => 'Seven-week pilot baseline required for Week 10 historical-state assembly.',
+                        'state' => StandingValue::Cooperative->value,
+                        'reason' => 'Seven-week pilot standing baseline; Week 10 flex binding is derived from current standing state.',
                         'state_changed_at' => now(),
                     ],
                 );
@@ -632,17 +632,6 @@ class DatabaseSeeder extends Seeder
             'validation' => ['min' => 0, 'max' => 250],
         ]);
 
-        DecisionFieldDefinition::query()->firstOrCreate([
-            'decision_form_definition_id' => $decisionDefinition->id,
-            'field_key' => 'br_reported_margin_strong',
-        ], [
-            'label' => 'Baton Rouge reported margin strong',
-            'field_type' => DecisionFieldType::Boolean->value,
-            'is_required' => true,
-            'display_order' => 2,
-            'validation' => [],
-        ]);
-
         MemoDefinition::query()->firstOrCreate([
             'simulation_week_id' => $week->id,
             'key' => 'week4_transfer_pricing_memo',
@@ -664,8 +653,7 @@ class DatabaseSeeder extends Seeder
     private function ensureWeek5Definitions(SimulationVersion $version, SimulationWeek $week): void
     {
         $decision = $this->decisionDefinition($version, $week, 'week5_currency_exposure', 'Week 5 currency exposure decision', Week5EconomicEngine::ENGINE_VERSION, Week5EconomicEngine::ENGINE_IDENTIFIER);
-        $this->field($decision, 'crude_hedge_coverage', 'Crude hedge coverage', DecisionFieldType::Decimal->value, 1, ['min' => 0, 'max' => 1]);
-        $this->field($decision, 'hedging_policy', 'Hedging policy', DecisionFieldType::ShortText->value, 2, ['max_length' => 200], false);
+        $this->field($decision, 'hedging_policy', 'Hedging policy', DecisionFieldType::ShortText->value, 1, ['max_length' => 200], false);
         $this->memoDefinition($version, $week, 'week5_currency_exposure_memo', 'Week 5 currency exposure memo', Week5EconomicEngine::ENGINE_VERSION);
     }
 
@@ -708,7 +696,6 @@ class DatabaseSeeder extends Seeder
             ['value' => 'holds_partial', 'label' => 'Partial hold'],
             ['value' => 'fails', 'label' => 'Fails'],
         ]);
-        $this->field($decision, 'cash_cushion_musd', 'Cash cushion for Week 10', DecisionFieldType::Decimal->value, 5, ['min' => 0, 'max' => 1000]);
         $this->memoDefinition($version, $week, 'week8_opec_scenario_memo', 'Week 8 OPEC scenario memo', Week8EconomicEngine::ENGINE_VERSION);
     }
 
@@ -849,21 +836,33 @@ class DatabaseSeeder extends Seeder
 
     private function ensureDemoDiscountRateSchedule(): void
     {
+        DiscountRateSchedule::query()
+            ->where('key', 'week4_to_week6_discount_rate')
+            ->where('version', 'demo_week4_to_week6_v1')
+            ->update(['is_active' => false]);
+
         DiscountRateSchedule::query()->updateOrCreate(
             [
                 'key' => 'week4_to_week6_discount_rate',
-                'version' => 'demo_week4_to_week6_v1',
+                'version' => 'kpi_consequence_v1_0_1',
             ],
             [
-                'name' => 'Demo Week 4 to Week 6 discount-rate consequence',
-                'description' => 'Configured local-pilot bridge from Week 4 economic resolution into Week 6 capital allocation context.',
+                'name' => 'Week 4 cohort discount-rate consequence',
+                'description' => 'Authoritative section-level Week 4 transfer-price cohort classification into Week 6 capital context.',
                 'source_week_number' => 4,
                 'target_week_number' => 6,
                 'classification_rules' => [
-                    ['field' => 'geneva_capture_per_bbl', 'operator' => '<=', 'value' => '9.625', 'classification' => 'base'],
+                    'classification_source' => 'SAKSHI-AUDIT-NOTE-2026-10-04',
+                    'marginal_cost_anchor' => '18.70',
+                    'market_based_anchor' => '73.70',
+                    'tolerance' => '0.10',
+                    'section_threshold' => '0.70',
+                    'visibility' => 'hidden_until_week4_lock_week6_reveal',
                 ],
                 'classification_outcomes' => [
+                    'disciplined' => ['discount_rate_percent' => '6.5', 'capital_envelope_musd' => '1520'],
                     'base' => ['discount_rate_percent' => '8.5', 'capital_envelope_musd' => '1150'],
+                    'lax' => ['discount_rate_percent' => '11.0', 'capital_envelope_musd' => '950'],
                 ],
                 'is_active' => true,
             ],

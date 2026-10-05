@@ -86,7 +86,6 @@ final readonly class Week5EconomicEvaluationService
                 'output_snapshot' => [
                     ...$result->outputSnapshot,
                     'nwe_crack_handoff' => $window1,
-                    'week10_inherited_state' => $this->week10InheritedState($decisionSnapshot),
                 ],
                 'unavailable_reason' => null,
                 'evaluated_by_user_id' => $actor->id,
@@ -140,33 +139,6 @@ final readonly class Week5EconomicEvaluationService
         return [
             'id' => $submission->id,
             'answers' => $this->answers($submission),
-        ];
-    }
-
-    /**
-     * @param  array<string, mixed>  $decisionSnapshot
-     * @return array<string, mixed>
-     */
-    private function week10InheritedState(array $decisionSnapshot): array
-    {
-        $answers = $decisionSnapshot['answers'] ?? [];
-
-        if (! is_array($answers)) {
-            return [];
-        }
-
-        $nested = $answers['week10_inherited_state'] ?? [];
-        $coverage = is_array($nested)
-            ? ($nested['crude_hedge_coverage'] ?? null)
-            : null;
-        $coverage ??= $answers['crude_hedge_coverage'] ?? $answers['hedge_coverage'] ?? null;
-
-        if ($coverage === null || $coverage === '') {
-            return [];
-        }
-
-        return [
-            'crude_hedge_coverage' => $this->decimal(BigDecimal::of((string) $coverage), 6),
         ];
     }
 

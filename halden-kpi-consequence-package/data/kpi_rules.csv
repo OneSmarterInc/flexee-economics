@@ -1,0 +1,44 @@
+week,input_key,state_var,operation,coefficient,rationale
+2,i2_retail_volume_change_pct,nonfuel_per_site_k,add,0.756,Each 1% of Cordell traffic moves non-fuel margin 1% of 75.6k/site
+3,i3_rotterdam_idled,ebitda,add,-132.5,"Idling forfeits 2.00 contribution, saves 0.90 avoidable fixed, on 120.45 M bbl/yr"
+3,i3_rotterdam_idled,asset_health,add,-1.0,Idle/restart cycle wears the plant
+4,i4_geneva_leak_per_chain_bbl,integrated_margin_per_boe,add,-1.0,Lazy transfer price leaks value to the trading desk
+4,i4_geneva_leak_per_chain_bbl,ebitda,add,-91.25,Leak on 91.25 M bbl/yr chain volume
+5,i5_fx_ebitda_effect_musd,ebitda,add,1.0,Krone benefit + Rotterdam net + hedge result + European translation
+5,i5_nwe_crack_shift,refining_vs_benchmark,add,0.3143,"Window 1 shift, weighted by Rotterdam share of throughput (330/1050)"
+5,i5_rotterdam_window1_ebitda_musd,ebitda,add,1.0,Window 1 shift x 120.45 M bbl x running
+6,i6_outlay_musd,capital_employed,add,1.0,Funded projects enter capital employed
+6,i6_outlay_musd,net_debt,add,1.0,Funded by debt
+6,i6_year1_cashflow_musd,ebitda,add,1.0,"Year-1 cash flow of funded projects (BR 180, Rotterdam 70, Helix 5)"
+6,i6_br_upgrade_funded,asset_health,add,2.0,Crude flexibility improves reliability
+7,i7_retail_match_cost_musd,ebitda,add,-1.0,Matching the rival price cut gives up fuel margin
+7,i7_capacity_matched,capital_employed,add,600.0,Matching the rival expansion
+7,i7_capacity_matched,net_debt,add,600.0,Debt-funded
+8,i8_dwti,integrated_margin_per_boe,add,0.65,"Upstream +1.00 per $1 WTI, crack -0.35"
+8,i8_ebitda_effect_musd,ebitda,add,1.0,"Engine-computed OPEC effect incl. hedges and positioning, excluding window 2"
+8,i8_window2_shift,integrated_margin_per_boe,add,1.0,Window 2 crack shift
+8,i8_window2_shift,refining_vs_benchmark,add,0.4952,Weighted by Baton Rouge share of throughput (520/1050)
+8,i8_window2_shift,ebitda,add,189.8,Shift x 189.8 M bbl/yr Baton Rouge throughput
+9,i9_rebrand_cost_musd,capital_employed,add,1.0,Rebrand capital
+9,i9_rebrand_cost_musd,net_debt,add,1.0,Debt-funded
+9,i9_rebrand_gain_musd,ebitda,add,1.0,Annual rebrand gain
+9,i9_rebrand_gain_musd,nonfuel_per_site_k,add,0.2326,"$1M spread over 4,300 sites = 0.2326k/site"
+9,i9_window3_nonfuel_shift,nonfuel_per_site_k,add,180.0,$/fill shift x 180k fills/site = $k/site
+10,i10_blended_demand_hit,ebitda,add,15000.0,Demand hit applied to opening EBITDA
+10,i10_blended_demand_hit,integrated_margin_per_boe,add,76.75,Demand hit applied to opening integrated margin
+10,i10_capex_cancelled_musd,capital_employed,add,-1.0,Cancelled capex leaves capital employed
+10,i10_capex_cancelled_musd,net_debt,add,-1.0,and reduces debt
+10,i10_binding_count,asset_health,add,-1.0,Forced actions under binding constraints
+11,i11_kessana_margin_change,ebitda,add,34.0,34 M bbl/yr Kessana volume
+11,i11_exited,ebitda,add,-865.64,Exit forfeits 25.46 x 34
+11,i11_exited,capital_employed,add,-2300.0,Kessana book value leaves
+11,i11_exited,net_debt,add,-180.0,Exit proceeds
+12,i12_outlay_musd,capital_employed,add,1.0,Funded transition projects
+12,i12_outlay_musd,net_debt,add,1.0,Debt-funded
+12,i12_year1_cashflow_musd,ebitda,add,1.0,Year-1 cash flow of funded projects
+12,i12_divested,net_debt,add,-550.0,European retail sale proceeds
+12,i12_divested,capital_employed,add,-900.0,European retail book leaves
+12,i12_divested,ebitda,add,-120.0,European retail EBITDA leaves
+13,i13_union_concession_musd,ebitda,add,-1.0,Gross wage concession (pre-tax)
+13,i13_turnaround_delayed,asset_health,add,-3.0,Deferred maintenance (Week 13 package penalty)
+13,i13_turnaround_delayed,net_debt,add,-3.0,Expected saving from delay

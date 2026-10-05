@@ -1,6 +1,6 @@
 # Open Questions
 
-Updated: 2026-09-28.
+Updated: 2026-10-05.
 
 The authoritative markdown sources and package roots for Weeks 1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12, and 13 are now present and registered through the content package framework. Week 4 remains the stable vertical-slice baseline. Week 1 now has a package-backed asset-register economic engine and runtime evaluation persistence. Week 2 now has a package-backed elasticity-estimation economic engine and runtime evaluation persistence. Week 4 and Week 6 have runtime paths; Week 8 has a package-backed Laravel economic engine, runtime evaluation persistence, KPI/ranking integration for package-supported metrics, and Window 2 Week 6 -> Week 8 cohort adjustment support from `halden-window2-cohort-addendum/`. Week 9 now has a package-backed Laravel economic engine and runtime evaluation persistence. Week 10 now has a package-backed convergence economic engine, runtime state assembly, execution integration, and KPI/ranking integration with unsupported KPIs preserved as unavailable/null. Week 11 now has a package-backed Kessana hold-up economic engine, golden tests, and runtime evaluation persistence. Week 12 has package-backed runtime evaluation. Week 13 now has a package-backed factor-markets economic engine, golden tests, and runtime evaluation persistence.
 
@@ -81,24 +81,33 @@ Still open:
 
 ## Week 4 to Week 6 consequence questions
 
-- What aggregation rule maps the cohort transfer-price distribution to disciplined/base/lax?
-- What thresholds separate disciplined, base, and lax cohorts?
-- Does the classification use mean transfer price, median, share near marginal-cost anchor, dispersion, custom-price penalty, or another measure?
-- How are outliers or non-anchor custom prices treated?
+Resolved by the KPI/consequence package v1.0.1 audit implementation:
+
+- Week 4 to Week 6 discount rate/capital envelope is section-level, not team-level.
+- Section state is disciplined when at least 70% of finalized transfer-price decisions are within +/-10% of the `$18.70` marginal-cost anchor.
+- Section state is lax when at least 70% of finalized transfer-price decisions are within +/-10% of the `$73.70` market-based anchor.
+- Otherwise, the section state is base.
+- Intermediate prices outside both anchor bands classify as neither.
+- Every participating team in the section receives the same discount rate and capital envelope.
+
+Still open:
+
+- The +/-10% band is audit-approved for implementation but awaits formal publication in package v1.0.2.
 
 ## Seven-week variant questions
 
-Resolved by Step 6 validation:
+Resolved by Step 6 validation and the Batch 34A KPI/consequence integrity fix:
 
 - The authoritative runtime sequence is Week 1, Week 4, Week 6, Week 8, Week 10, Week 12, and Week 14.
 - Window 1, Window 2, and Window 3 are excluded from seven-week variants.
-- The seven-week Week 10 hedge dependency resolves from persisted Week 6 folded currency state, not Week 5.
-- Missing folded Week 6 hedge state leaves Week 10 in `unresolved_dependency` rather than using a default.
+- The seven-week Week 10 hedge dependency resolves from the persisted Whitaker-standing-derived hedge consequence.
+- Week 4 to Week 6 section cohort classification is the only retained cohort path.
+- Window 1, Window 2, and Window 3 remain excluded.
+- Weeks 7 and 9 are absent from the seven-week cash-cushion calculation and contribute zero rather than synthetic evaluations.
 - Role rotation between Week 8 and Week 10 is represented in decision-definition snapshots while preserving team identity.
 
 Still open:
 
-- What authoritative aggregate classification rule maps Week 4 cohort transfer-pricing behavior into the Week 6 disciplined/base/lax schedule?
 - Should the current seat assignment model become effective-dated so historical role rotation can be queried independently of decision-definition snapshots?
 
 ## Faculty/stage questions
@@ -139,7 +148,7 @@ Still open:
 
 ## Week 10 package questions
 
-Resolved by the authoritative package, Batch 20B engine, and subsequent runtime/scoring integration:
+Resolved by the authoritative package, Batch 20B engine, subsequent runtime/scoring integration, and the Batch 34A consequence-derived inherited-state fix:
 
 - Week 10 manifest;
 - canonical CSVs;
@@ -152,11 +161,12 @@ Resolved by the authoritative package, Batch 20B engine, and subsequent runtime/
 - demand impacts by product;
 - refinery-specific recession impacts;
 - binding-constraint rules for the two reference fixture teams;
-- runtime assembly of `cancellable_capex_musd` from Week 6 capital-allocation evaluation history;
-- runtime assembly of `crude_hedge_coverage` from persisted Week 5 economic evaluation history;
-- runtime assembly of `br_reported_margin_strong` from Week 4 economic resolution history;
+- runtime assembly of `cancellable_capex_musd` from the `week6_cancellable_capex_musd` consequence;
+- runtime assembly of `crude_hedge_coverage` from the Whitaker-standing-derived `week5_hedge_coverage` consequence;
+- runtime assembly of `br_reported_margin_strong` from the `week4_tp_delacroix_cover` consequence;
 - runtime assembly of `straits_pacific_standing` from standing state;
-- runtime assembly of `cash_cushion_musd` from Week 8 economic evaluation history;
+- runtime assembly of `cash_cushion_musd` from the `week8_cash_cushion_musd` consequence;
+- rejection of student-entered Week 10 inherited-state values as authoritative runtime inputs;
 - Week 10 KPI snapshots created from calculated evaluations, with unsupported KPI values preserved as unavailable/null;
 - Week 10 ranking snapshots created as incomplete while the full KPI basis is unavailable.
 

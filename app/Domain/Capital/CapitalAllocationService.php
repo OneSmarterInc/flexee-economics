@@ -226,7 +226,7 @@ final class CapitalAllocationService
      */
     private function contextSnapshotWithExtensions(array $snapshot, array $extensions): array
     {
-        foreach (['week10_inherited_state', 'seven_week_variant'] as $key) {
+        foreach (['seven_week_variant'] as $key) {
             if (array_key_exists($key, $extensions) && is_array($extensions[$key])) {
                 $snapshot[$key] = [
                     ...(is_array($snapshot[$key] ?? null) ? $snapshot[$key] : []),

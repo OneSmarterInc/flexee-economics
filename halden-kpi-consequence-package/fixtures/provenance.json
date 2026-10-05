@@ -1,0 +1,36 @@
+{
+  "package": "halden-kpi-consequence-package",
+  "package_version": "1.0.1",
+  "artifacts": {
+    "MANIFEST.md": "587728f2df78852adfbf0e2f1570b3b0f2ad9a1228926335b159b49ddff8e620",
+    "VALIDATION_16A.md": "4aff324d545fc443fd704525ec8563da84404b596c739307104204cd00686f39",
+    "data/consequence_catalog.csv": "633832905cafcb416c974b8b8bd8d9d8f13a838d94494572b6f62f6cf53e59cb",
+    "data/consequence_resolution.csv": "4c365dd1a27e18bc6246528e0765667af99ef427f61d1f177dcea85f52d210f1",
+    "data/input_dictionary.csv": "4615cfe561c84b01d2ea7def73814439819c57a86d64a58b996a721d615c6016",
+    "data/kpi_definitions.csv": "a0ea61ade6a418342bc48f21f4bf222a09e2ecec00b3d1be6c23d355af2bc5f4",
+    "data/kpi_rules.csv": "6868acbce882a4342b1637169a539e5f21a51202b9a86c964a3217d3d5a7473f",
+    "data/reference_team_decisions.csv": "ff30ad84501095e0fb808269a1536f9dcdd0e69d195dbb0efb0734f0dd50227e",
+    "data/reference_team_inputs.csv": "ec5c41aa7b856d10a3238e98a285910f50c9c1bb27c9117ef3e204c0f31b38dc",
+    "data/state_opening.csv": "56c22eb870f010c00637f20fd6967557dbe74c2f3f0dc21db7ff4035dfc79880",
+    "data/worked_example_normalization.csv": "b3434351d8bbdd847f5c466cf6272b55eb1425e58ce9e21044641a684789cd1d",
+    "faculty/halden_kpi_consequence_FACULTY_SOLUTION.ipynb": "3d57bc2bdf2949eac76269674c98c83d02b1ae8ff4d7aac77801f9077829122f",
+    "faculty/halden_kpi_consequence_FACULTY_SOLUTION.xlsx": "ecdee85d148032229bc13b51affc04009fb204f5c8c5e0e619f5ec0f1c8b5877",
+    "fixtures/kpi_consequence_golden.json": "f219759b7b4be5f87347b731bfd55a8e57bed788f73be4e60801a3b68144b8bd"
+  },
+  "artifact_versions": {
+    "MANIFEST.md": "1.0.1",
+    "VALIDATION_16A.md": "1.0.1",
+    "data/consequence_catalog.csv": "1.0.1",
+    "data/consequence_resolution.csv": "1.0.1",
+    "data/input_dictionary.csv": "1.0.1",
+    "data/kpi_definitions.csv": "1.0.1",
+    "data/kpi_rules.csv": "1.0.1",
+    "data/reference_team_decisions.csv": "1.0.1",
+    "data/reference_team_inputs.csv": "1.0.1",
+    "data/state_opening.csv": "1.0.1",
+    "data/worked_example_normalization.csv": "1.0.1",
+    "faculty/halden_kpi_consequence_FACULTY_SOLUTION.ipynb": "1.0.1",
+    "faculty/halden_kpi_consequence_FACULTY_SOLUTION.xlsx": "1.0.1",
+    "fixtures/kpi_consequence_golden.json": "1.0.1"
+  }
+}
