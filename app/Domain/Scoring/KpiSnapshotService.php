@@ -86,6 +86,6 @@ final class KpiSnapshotService
 
     private function databaseDecimal(BigDecimal $value): string
     {
-        return (string) $value->toScale(4, RoundingMode::Unnecessary);
+        return (string) $value->toScale(4, RoundingMode::HalfUp);
     }
 }

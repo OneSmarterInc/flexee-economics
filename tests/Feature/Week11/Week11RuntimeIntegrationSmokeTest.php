@@ -98,17 +98,19 @@ class Week11RuntimeIntegrationSmokeTest extends TestCase
             ->orderBy('id')
             ->get();
         $this->assertSame(7, $kpiSnapshots->count());
-        $this->assertSame(7, $kpiSnapshots->where('status', KpiSnapshotStatus::Unavailable->value)->whereNull('value')->count());
+        $this->assertSame(7, $kpiSnapshots->where('status', KpiSnapshotStatus::Available->value)->whereNotNull('value')->count());
         $this->assertTrue($kpiSnapshots->contains(fn (KpiSnapshot $snapshot): bool => $snapshot->definition->key === 'integrated_margin_per_boe'));
-        $this->assertSame($evaluation->id, $kpiSnapshots->first()->input_snapshot['source_snapshot']['week11_economic_evaluation_id']);
+        $this->assertSame($evaluation->id, $kpiSnapshots->first()->input_snapshot['source_id']);
+        $this->assertTrue($kpiSnapshots->first()->input_snapshot['source_snapshot']['package_backed_kpi_state']);
+        $this->assertArrayHasKey('i11_kessana_margin_change', $kpiSnapshots->first()->input_snapshot['source_snapshot']['inputs']);
 
         $ranking = RankingSnapshot::query()
             ->where('section_simulation_week_id', $context['runtimeWeek']->id)
             ->where('team_simulation_id', $context['teamSimulation']->id)
             ->firstOrFail();
-        $this->assertSame(RankingSnapshotStatus::Incomplete, $ranking->statusEnum());
-        $this->assertNull($ranking->composite_score);
-        $this->assertNull($ranking->rank);
+        $this->assertSame(RankingSnapshotStatus::Complete, $ranking->statusEnum());
+        $this->assertSame('50.000000', $ranking->composite_score);
+        $this->assertSame(1, $ranking->rank);
         $this->assertSame(0, ConsequenceLink::query()->where('source_section_simulation_week_id', $context['runtimeWeek']->id)->count());
         $this->assertSame(0, CohortFeedbackEffect::query()->count());
         $this->assertSame(0, StandingState::query()->count());

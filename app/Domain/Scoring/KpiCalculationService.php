@@ -6,10 +6,11 @@ use App\Enums\KpiDefinitionStatus;
 use App\Enums\KpiSnapshotStatus;
 use App\Models\KpiDefinition;
 use Brick\Math\BigDecimal;
+use Brick\Math\RoundingMode;
 
 final class KpiCalculationService
 {
-    public const CALCULATION_VERSION = 'kpi_framework_v1';
+    public const CALCULATION_VERSION = 'kpi_consequence_v1_0_1';
 
     /**
      * @param  iterable<KpiDefinition>  $definitions
@@ -32,52 +33,143 @@ final class KpiCalculationService
 
     private function calculateDefinition(KpiCalculationContext $context, KpiDefinition $definition): KpiCalculationResult
     {
-        return match ($definition->calculation_source) {
-            'economic_resolution.integrated_margin_per_boe' => $this->availableFromInput(
-                context: $context,
-                definition: $definition,
-                inputKey: 'integrated_margin_per_boe',
-                unit: 'usd_boe',
-                precision: 2,
-            ),
-            'economic_resolution.refining_net_margin_vs_benchmark' => $this->availableFromInput(
-                context: $context,
-                definition: $definition,
-                inputKey: 'refining_net_margin_vs_benchmark',
-                unit: 'usd_bbl',
-                precision: 2,
-                unavailableReason: 'requires refining benchmark state',
-            ),
-            'standing.roace' => $this->unavailable($context, $definition, 'requires capital base state'),
-            'cash_flow.free_cash_flow' => $this->unavailable($context, $definition, 'requires cash flow state'),
-            'retail.non_fuel_margin_per_site' => $this->unavailable($context, $definition, 'requires retail site margin state'),
-            'debt.net_debt_to_ebitda' => $this->unavailable($context, $definition, 'requires debt and EBITDA state'),
-            'asset_health.index' => $this->unavailable($context, $definition, 'requires asset health model'),
+        return match ($definition->key) {
+            'integrated_margin_per_boe' => $this->availableStateValue($context, $definition, 'integrated_margin_per_boe', 'usd_boe', 4),
+            'roace' => $this->roace($context, $definition),
+            'free_cash_flow' => $this->freeCashFlow($context, $definition),
+            'refining_net_margin_vs_benchmark' => $this->availableStateValue($context, $definition, 'refining_vs_benchmark', 'usd_bbl', 4),
+            'retail_non_fuel_margin_per_site' => $this->availableStateValue($context, $definition, 'nonfuel_per_site_k', 'usd_k_per_site_year', 4),
+            'net_debt_to_ebitda' => $this->netDebtToEbitda($context, $definition),
+            'asset_health_index' => $this->assetHealth($context, $definition),
             default => $this->unavailable($context, $definition, 'calculation source is not supported by this KPI engine version'),
         };
     }
 
-    private function availableFromInput(
+    private function availableStateValue(
         KpiCalculationContext $context,
         KpiDefinition $definition,
-        string $inputKey,
+        string $stateKey,
         string $unit,
         int $precision,
-        ?string $unavailableReason = null,
     ): KpiCalculationResult {
-        if (! array_key_exists($inputKey, $context->availableInputs) || $context->availableInputs[$inputKey] === null || $context->availableInputs[$inputKey] === '') {
-            return $this->unavailable($context, $definition, $unavailableReason ?? "requires {$inputKey} input");
+        if (! array_key_exists($stateKey, $context->availableInputs) || $context->availableInputs[$stateKey] === null || $context->availableInputs[$stateKey] === '') {
+            if ($definition->key === 'integrated_margin_per_boe' && array_key_exists('integrated_margin_per_boe', $context->availableInputs)) {
+                return $this->available($context, $definition, BigDecimal::of((string) $context->availableInputs['integrated_margin_per_boe']), $unit, $precision);
+            }
+
+            return $this->unavailable($context, $definition, "requires {$stateKey} state");
         }
 
         return new KpiCalculationResult(
             definition: $definition,
             status: KpiSnapshotStatus::Available,
-            value: BigDecimal::of((string) $context->availableInputs[$inputKey]),
+            value: BigDecimal::of((string) $context->availableInputs[$stateKey]),
             unit: $unit,
             precision: $precision,
             calculationVersion: self::CALCULATION_VERSION,
             inputSnapshot: $this->resultInputSnapshot($context, $definition),
         );
+    }
+
+    private function roace(KpiCalculationContext $context, KpiDefinition $definition): KpiCalculationResult
+    {
+        foreach (['ebitda', 'da_rate', 'capital_employed', 'tax_rate'] as $key) {
+            if (! $this->hasState($context, $key)) {
+                return $this->unavailable($context, $definition, "requires {$key} state");
+            }
+        }
+
+        $capitalEmployed = BigDecimal::of((string) $context->availableInputs['capital_employed']);
+        if ($capitalEmployed->isEqualTo('0')) {
+            return $this->unavailable($context, $definition, 'capital employed is zero');
+        }
+
+        $ebitda = BigDecimal::of((string) $context->availableInputs['ebitda']);
+        $da = BigDecimal::of((string) $context->availableInputs['da_rate'])->multipliedBy($capitalEmployed);
+        $taxFactor = BigDecimal::one()->minus((string) $context->availableInputs['tax_rate']);
+        $value = $ebitda->minus($da)->multipliedBy($taxFactor)->dividedBy($capitalEmployed, 8, RoundingMode::HalfUp);
+
+        return $this->available($context, $definition, $value, 'ratio', 6);
+    }
+
+    private function freeCashFlow(KpiCalculationContext $context, KpiDefinition $definition): KpiCalculationResult
+    {
+        foreach (['ebitda', 'da_rate', 'capital_employed', 'tax_rate', 'sustaining_capex'] as $key) {
+            if (! $this->hasState($context, $key)) {
+                return $this->unavailable($context, $definition, "requires {$key} state");
+            }
+        }
+
+        $ebitda = BigDecimal::of((string) $context->availableInputs['ebitda']);
+        $da = BigDecimal::of((string) $context->availableInputs['da_rate'])->multipliedBy((string) $context->availableInputs['capital_employed']);
+        $tax = BigDecimal::of((string) $context->availableInputs['tax_rate'])->multipliedBy($ebitda->minus($da));
+        $value = $ebitda->minus($tax)->minus((string) $context->availableInputs['sustaining_capex']);
+
+        return $this->available($context, $definition, $value, 'usd_m', 4);
+    }
+
+    private function netDebtToEbitda(KpiCalculationContext $context, KpiDefinition $definition): KpiCalculationResult
+    {
+        foreach (['net_debt', 'ebitda'] as $key) {
+            if (! $this->hasState($context, $key)) {
+                return $this->unavailable($context, $definition, "requires {$key} state");
+            }
+        }
+
+        $ebitda = BigDecimal::of((string) $context->availableInputs['ebitda']);
+        if ($ebitda->isEqualTo('0')) {
+            return $this->unavailable($context, $definition, 'EBITDA is zero');
+        }
+
+        return $this->available(
+            $context,
+            $definition,
+            BigDecimal::of((string) $context->availableInputs['net_debt'])->dividedBy($ebitda, 8, RoundingMode::HalfUp),
+            'ratio',
+            6,
+        );
+    }
+
+    private function assetHealth(KpiCalculationContext $context, KpiDefinition $definition): KpiCalculationResult
+    {
+        if (! $this->hasState($context, 'asset_health')) {
+            return $this->unavailable($context, $definition, 'requires asset_health state');
+        }
+
+        $value = BigDecimal::of((string) $context->availableInputs['asset_health']);
+        if ($value->isLessThan('0')) {
+            $value = BigDecimal::zero();
+        }
+        if ($value->isGreaterThan('100')) {
+            $value = BigDecimal::of('100');
+        }
+
+        return $this->available($context, $definition, $value, 'index_0_100', 4);
+    }
+
+    private function available(
+        KpiCalculationContext $context,
+        KpiDefinition $definition,
+        BigDecimal $value,
+        string $unit,
+        int $precision,
+    ): KpiCalculationResult {
+        return new KpiCalculationResult(
+            definition: $definition,
+            status: KpiSnapshotStatus::Available,
+            value: $value,
+            unit: $unit,
+            precision: $precision,
+            calculationVersion: self::CALCULATION_VERSION,
+            inputSnapshot: $this->resultInputSnapshot($context, $definition),
+        );
+    }
+
+    private function hasState(KpiCalculationContext $context, string $key): bool
+    {
+        return array_key_exists($key, $context->availableInputs)
+            && $context->availableInputs[$key] !== null
+            && $context->availableInputs[$key] !== '';
     }
 
     private function unavailable(KpiCalculationContext $context, KpiDefinition $definition, string $reason): KpiCalculationResult

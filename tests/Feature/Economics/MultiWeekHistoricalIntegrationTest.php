@@ -215,16 +215,16 @@ class MultiWeekHistoricalIntegrationTest extends TestCase
         $this->assertSame(7, KpiSnapshot::query()->where('section_simulation_week_id', $context['weeks'][10]->id)->count());
         $this->assertSame(7, KpiSnapshot::query()
             ->where('section_simulation_week_id', $context['weeks'][10]->id)
-            ->where('status', KpiSnapshotStatus::Unavailable->value)
-            ->whereNull('value')
+            ->where('status', KpiSnapshotStatus::Available->value)
+            ->whereNotNull('value')
             ->count());
         $ranking = RankingSnapshot::query()
             ->where('section_simulation_week_id', $context['weeks'][10]->id)
             ->where('team_simulation_id', $context['teamSimulation']->id)
             ->firstOrFail();
-        $this->assertSame(RankingSnapshotStatus::Incomplete, $ranking->statusEnum());
-        $this->assertNull($ranking->composite_score);
-        $this->assertNull($ranking->rank);
+        $this->assertSame(RankingSnapshotStatus::Complete, $ranking->statusEnum());
+        $this->assertSame('50.000000', $ranking->composite_score);
+        $this->assertSame(1, $ranking->rank);
         $this->assertSame(0, CohortFeedbackEffect::query()->where('source_section_simulation_week_id', $context['weeks'][10]->id)->count());
     }
 

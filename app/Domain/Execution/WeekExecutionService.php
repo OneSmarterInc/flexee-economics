@@ -20,6 +20,7 @@ use App\Domain\Economics\Week7\Week7EconomicEvaluationService;
 use App\Domain\Economics\Week8\Week8EconomicEvaluationService;
 use App\Domain\Economics\Week9\Week9EconomicEvaluationService;
 use App\Domain\Ranking\RankingCalculationService;
+use App\Domain\Scoring\PackageBackedKpiPopulationService;
 use App\Domain\Scoring\Week10KpiPopulationService;
 use App\Domain\Scoring\Week11KpiPopulationService;
 use App\Domain\Scoring\Week4KpiPopulationService;
@@ -31,6 +32,7 @@ use App\Models\DecisionSubmission;
 use App\Models\DiscountRateSchedule;
 use App\Models\EconomicResolution;
 use App\Models\SectionSimulationWeek;
+use App\Models\TeamSimulation;
 use App\Models\User;
 use App\Models\Week10EconomicEvaluation;
 use App\Models\Week11EconomicEvaluation;
@@ -82,6 +84,7 @@ final readonly class WeekExecutionService
         private Week8KpiPopulationService $week8Kpis,
         private Week10KpiPopulationService $week10Kpis,
         private Week11KpiPopulationService $week11Kpis,
+        private PackageBackedKpiPopulationService $packageBackedKpis,
         private RankingCalculationService $rankings,
     ) {}
 
@@ -734,6 +737,10 @@ final readonly class WeekExecutionService
      */
     private function applyKpis(SectionSimulationWeek $runtimeWeek): array
     {
+        if (! in_array($runtimeWeek->definition->week_number, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13], true)) {
+            return $this->deferred('KPI population for this week is not implemented yet.');
+        }
+
         if ($runtimeWeek->definition->week_number === 8) {
             return $this->applyWeek8Kpis($runtimeWeek);
         }
@@ -750,7 +757,7 @@ final readonly class WeekExecutionService
             return $this->applyWeek4Kpis($runtimeWeek);
         }
 
-        return $this->deferred('KPI population for this week is not implemented yet.');
+        return $this->applyPackageBackedKpis($runtimeWeek);
     }
 
     /**
@@ -846,9 +853,32 @@ final readonly class WeekExecutionService
     /**
      * @return array{status: string, summary: string, outputs: array<string, mixed>}
      */
+    private function applyPackageBackedKpis(SectionSimulationWeek $runtimeWeek): array
+    {
+        $snapshotCount = 0;
+
+        TeamSimulation::query()
+            ->where('tenant_id', $runtimeWeek->tenant_id)
+            ->where('section_simulation_id', $runtimeWeek->section_simulation_id)
+            ->orderBy('id')
+            ->get()
+            ->each(function (TeamSimulation $teamSimulation) use ($runtimeWeek, &$snapshotCount): void {
+                $snapshotCount += count($this->packageBackedKpis->populateForTeamWeek($teamSimulation, $runtimeWeek));
+            });
+
+        return [
+            'status' => 'completed',
+            'summary' => 'Applied package-backed KPI calculations.',
+            'outputs' => ['kpi_snapshot_count' => $snapshotCount],
+        ];
+    }
+
+    /**
+     * @return array{status: string, summary: string, outputs: array<string, mixed>}
+     */
     private function calculateRankings(SectionSimulationWeek $runtimeWeek): array
     {
-        if (! in_array($runtimeWeek->definition->week_number, [4, 8, 10, 11], true)) {
+        if (! in_array($runtimeWeek->definition->week_number, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13], true)) {
             return $this->deferred('Ranking calculation for this week is not implemented yet.');
         }
 

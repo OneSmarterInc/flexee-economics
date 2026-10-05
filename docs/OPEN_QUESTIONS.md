@@ -2,7 +2,7 @@
 
 Updated: 2026-10-05.
 
-The authoritative markdown sources and package roots for Weeks 1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12, and 13 are now present and registered through the content package framework. Week 4 remains the stable vertical-slice baseline. Week 1 now has a package-backed asset-register economic engine and runtime evaluation persistence. Week 2 now has a package-backed elasticity-estimation economic engine and runtime evaluation persistence. Week 4 and Week 6 have runtime paths; Week 8 has a package-backed Laravel economic engine, runtime evaluation persistence, KPI/ranking integration for package-supported metrics, and Window 2 Week 6 -> Week 8 cohort adjustment support from `halden-window2-cohort-addendum/`. Week 9 now has a package-backed Laravel economic engine and runtime evaluation persistence. Week 10 now has a package-backed convergence economic engine, runtime state assembly, execution integration, and KPI/ranking integration with unsupported KPIs preserved as unavailable/null. Week 11 now has a package-backed Kessana hold-up economic engine, golden tests, and runtime evaluation persistence. Week 12 has package-backed runtime evaluation. Week 13 now has a package-backed factor-markets economic engine, golden tests, and runtime evaluation persistence.
+The authoritative markdown sources and package roots for Weeks 1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12, and 13 are now present and registered through the content package framework. Week 4 remains the stable vertical-slice baseline. Week 1 now has a package-backed asset-register economic engine and runtime evaluation persistence. Week 2 now has a package-backed elasticity-estimation economic engine and runtime evaluation persistence. Week 4 and Week 6 have runtime paths; Week 8 has a package-backed Laravel economic engine, runtime evaluation persistence, KPI/ranking integration, and Window 2 Week 6 -> Week 8 cohort adjustment support from `halden-window2-cohort-addendum/`. Week 9 now has a package-backed Laravel economic engine and runtime evaluation persistence. Week 10 now has a package-backed convergence economic engine, runtime state assembly, execution integration, and KPI/ranking integration from the authoritative KPI/consequence package. Week 11 now has a package-backed Kessana hold-up economic engine, golden tests, runtime evaluation persistence, and package-backed KPI/ranking integration. Week 12 has package-backed runtime evaluation. Week 13 now has a package-backed factor-markets economic engine, golden tests, and runtime evaluation persistence.
 
 ## Week 1 package questions
 
@@ -167,13 +167,12 @@ Resolved by the authoritative package, Batch 20B engine, subsequent runtime/scor
 - runtime assembly of `straits_pacific_standing` from standing state;
 - runtime assembly of `cash_cushion_musd` from the `week8_cash_cushion_musd` consequence;
 - rejection of student-entered Week 10 inherited-state values as authoritative runtime inputs;
-- Week 10 KPI snapshots created from calculated evaluations, with unsupported KPI values preserved as unavailable/null;
-- Week 10 ranking snapshots created as incomplete while the full KPI basis is unavailable.
+- Week 10 KPI snapshots created from the authoritative KPI/consequence package financial-state rules;
+- Week 10 ranking snapshots created from package-backed seven-KPI normalization when required KPI snapshots are available.
 
 Still open:
 
 - Which standing states beyond package-defined `strained` and `hostile`, if any, should block Singapore flexibility in production content?
-- Which Week 10 convergence outputs, if any, should become available published KPI values beyond the current unavailable/null snapshots?
 - What consequence links should Week 10 create after the runtime engine exists?
 
 ## Week 11 package questions
@@ -195,8 +194,8 @@ Resolved by the authoritative package, Batch 24A engine, and Batch 24B runtime i
 - runtime evaluation persistence through `Week11EconomicEvaluation`;
 - package-backed Week 11 execution through `WeekExecutionService`;
 - student resolved-status visibility from persisted Week 11 evaluations;
-- Week 11 KPI snapshots created from calculated evaluations, with unsupported KPI values preserved as unavailable/null;
-- Week 11 ranking snapshots created as incomplete while the full KPI basis is unavailable.
+- Week 11 KPI snapshots created from the authoritative KPI/consequence package financial-state rules;
+- Week 11 ranking snapshots created from package-backed seven-KPI normalization when required KPI snapshots are available.
 - Batch 27A consequence review completed: no authoritative Week 11 consequence links or standing transitions are currently defined.
 
 Still open:
@@ -205,7 +204,6 @@ Still open:
 - What persisted production source supplies Week 6 Kessana capital exposure at runtime?
 - What standing transitions should Week 11 create for Tetteh or related counterparties?
 - What consequence links should Week 11 create after runtime evaluation, if a future authoritative consequence-propagation table supplies target state, timing, and future consumer?
-- Which Week 11 outputs, if any, should become available published KPI values beyond the current unavailable/null snapshots?
 
 ## Week 12 package questions
 

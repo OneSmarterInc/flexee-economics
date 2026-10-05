@@ -98,8 +98,8 @@ class Week12RuntimeIntegrationSmokeTest extends TestCase
         $this->assertSame('1750.000000', $evaluation->output_snapshot['selected_portfolio']['capital_required_musd']);
         $this->assertSame('90.000000', $evaluation->worked_example_snapshot['p1_high']);
 
-        $this->assertSame(0, KpiSnapshot::query()->count());
-        $this->assertSame(0, RankingSnapshot::query()->count());
+        $this->assertSame(7, KpiSnapshot::query()->count());
+        $this->assertSame(1, RankingSnapshot::query()->count());
         $this->assertSame(0, ConsequenceLink::query()->count());
         $this->assertSame(0, CohortFeedbackEffect::query()->count());
         $this->assertSame(0, StandingState::query()->count());

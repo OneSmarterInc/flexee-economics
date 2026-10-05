@@ -44,7 +44,7 @@ class KpiFrameworkTest extends TestCase
 
         $this->assertCount(7, $definitions);
         $this->assertSame('0.300000', $definitions->firstWhere('key', 'integrated_margin_per_boe')->weight);
-        $this->assertSame('halden_kpi_v1', $definitions->first()->version);
+        $this->assertSame(KpiDefinitionCatalog::HALDEN_KPI_VERSION, $definitions->first()->version);
         $this->assertSame(7, KpiDefinition::query()->count());
     }
 
@@ -86,9 +86,9 @@ class KpiFrameworkTest extends TestCase
 
         $this->assertSame(KpiSnapshotStatus::Unavailable, $roace->status);
         $this->assertNull($roace->value);
-        $this->assertSame('requires capital base state', $roace->unavailableReason);
+        $this->assertSame('requires ebitda state', $roace->unavailableReason);
         $this->assertSame(KpiSnapshotStatus::Unavailable, $refiningBenchmark->status);
-        $this->assertSame('requires refining benchmark state', $refiningBenchmark->unavailableReason);
+        $this->assertSame('requires refining_vs_benchmark state', $refiningBenchmark->unavailableReason);
     }
 
     public function test_kpi_snapshots_are_immutable(): void

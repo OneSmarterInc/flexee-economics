@@ -30,33 +30,22 @@ class Week10KpiPopulationTest extends TestCase
     use CreatesFoundationData;
     use RefreshDatabase;
 
-    public function test_week10_evaluation_creates_unavailable_kpi_snapshots_with_provenance(): void
+    public function test_week10_evaluation_creates_package_backed_kpi_snapshots_with_provenance(): void
     {
         $context = $this->evaluatedWeek10Decision();
 
         $snapshots = app(Week10KpiPopulationService::class)->populate($context['evaluation']);
         $integrated = collect($snapshots)->firstOrFail(fn (KpiSnapshot $snapshot): bool => $snapshot->definition->key === 'integrated_margin_per_boe');
-        $refining = collect($snapshots)->firstOrFail(fn (KpiSnapshot $snapshot): bool => $snapshot->definition->key === 'refining_net_margin_vs_benchmark');
-        $roace = collect($snapshots)->firstOrFail(fn (KpiSnapshot $snapshot): bool => $snapshot->definition->key === 'roace');
 
         $this->assertCount(7, $snapshots);
-        $this->assertTrue(collect($snapshots)->every(fn (KpiSnapshot $snapshot): bool => $snapshot->statusEnum() === KpiSnapshotStatus::Unavailable));
-        $this->assertTrue(collect($snapshots)->every(fn (KpiSnapshot $snapshot): bool => $snapshot->value === null));
-        $this->assertSame(KpiSnapshotStatus::Unavailable, $integrated->statusEnum());
-        $this->assertSame('requires integrated_margin_per_boe input', $integrated->unavailable_reason);
-        $this->assertSame(KpiSnapshotStatus::Unavailable, $refining->statusEnum());
-        $this->assertSame('requires refining benchmark state', $refining->unavailable_reason);
-        $this->assertSame(KpiSnapshotStatus::Unavailable, $roace->statusEnum());
-        $this->assertSame('requires capital base state', $roace->unavailable_reason);
+        $this->assertTrue(collect($snapshots)->every(fn (KpiSnapshot $snapshot): bool => $snapshot->statusEnum() === KpiSnapshotStatus::Available));
+        $this->assertTrue(collect($snapshots)->every(fn (KpiSnapshot $snapshot): bool => $snapshot->value !== null));
 
         $this->assertNull($integrated->economic_resolution_id);
-        $this->assertSame($context['evaluation']->id, $integrated->input_snapshot['source_snapshot']['week10_economic_evaluation_id']);
-        $this->assertSame(Week10ConvergenceEconomicEngine::ENGINE_VERSION, $integrated->input_snapshot['source_snapshot']['engine_version']);
-        $this->assertSame('1.0.0-draft', $integrated->input_snapshot['source_snapshot']['package_version']);
-        $this->assertSame(5, $integrated->input_snapshot['source_snapshot']['economic_outputs']['binding_constraint_count']);
-        $this->assertSame('Singapore', $integrated->input_snapshot['source_snapshot']['economic_outputs']['hardest_hit_refinery']);
-        $this->assertSame('0.45', $integrated->input_snapshot['source_snapshot']['inherited_state_snapshot']['values']['crude_hedge_coverage']);
-        $this->assertSame('week5_economic_evaluation', $integrated->input_snapshot['source_snapshot']['inherited_state_snapshot']['dependencies']['crude_hedge_coverage']['source_entity']);
+        $this->assertSame($context['evaluation']->id, $integrated->input_snapshot['source_id']);
+        $this->assertTrue($integrated->input_snapshot['source_snapshot']['package_backed_kpi_state']);
+        $this->assertSame('1.0.1', $integrated->input_snapshot['source_snapshot']['provenance']['package_version']);
+        $this->assertArrayHasKey('i10_binding_count', $integrated->input_snapshot['source_snapshot']['inputs']);
     }
 
     public function test_week10_kpi_population_is_idempotent(): void
@@ -86,7 +75,7 @@ class Week10KpiPopulationTest extends TestCase
         $this->assertSame(0, KpiSnapshot::query()->count());
     }
 
-    public function test_week10_kpis_create_incomplete_ranking_without_fake_zeroes(): void
+    public function test_week10_kpis_create_complete_package_backed_ranking(): void
     {
         $context = $this->evaluatedWeek10Decision();
 
@@ -94,13 +83,12 @@ class Week10KpiPopulationTest extends TestCase
         $rankings = app(RankingCalculationService::class)->calculateForSectionWeek($context['runtimeWeek']);
         $ranking = collect($rankings)->firstOrFail(fn (RankingSnapshot $snapshot): bool => $snapshot->team_simulation_id === $context['teamSimulation']->id);
 
-        $this->assertSame(RankingSnapshotStatus::Incomplete, $ranking->statusEnum());
-        $this->assertNull($ranking->composite_score);
-        $this->assertNull($ranking->rank);
-        $this->assertStringContainsString('integrated_margin_per_boe: requires integrated_margin_per_boe input', (string) $ranking->incomplete_reason);
-        $this->assertStringContainsString('refining_net_margin_vs_benchmark: requires refining benchmark state', (string) $ranking->incomplete_reason);
-        $this->assertSame('unavailable', $ranking->input_snapshot['kpi_snapshots'][0]['status']);
-        $this->assertNull(KpiSnapshot::query()->where('team_simulation_id', $context['teamSimulation']->id)->whereNotNull('value')->first());
+        $this->assertSame(RankingSnapshotStatus::Complete, $ranking->statusEnum());
+        $this->assertSame('50.000000', $ranking->composite_score);
+        $this->assertSame(1, $ranking->rank);
+        $this->assertNull($ranking->incomplete_reason);
+        $this->assertSame('available', $ranking->input_snapshot['kpi_snapshots'][0]['status']);
+        $this->assertNotNull(KpiSnapshot::query()->where('team_simulation_id', $context['teamSimulation']->id)->whereNotNull('value')->first());
     }
 
     public function test_week10_kpi_and_ranking_visibility_remains_team_isolated(): void

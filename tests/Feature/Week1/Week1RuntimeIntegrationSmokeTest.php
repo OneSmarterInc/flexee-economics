@@ -99,8 +99,8 @@ class Week1RuntimeIntegrationSmokeTest extends TestCase
         $this->assertSame('vestergaard', $evaluation->input_snapshot['decision_submission']['answers']['first_meeting_choice']);
         $this->assertSame(Week1EconomicEngine::ENGINE_VERSION, $evaluation->input_snapshot['decision_submission']['definition_version']);
 
-        $this->assertSame(0, KpiSnapshot::query()->count());
-        $this->assertSame(0, RankingSnapshot::query()->count());
+        $this->assertSame(7, KpiSnapshot::query()->count());
+        $this->assertSame(1, RankingSnapshot::query()->count());
         $this->assertSame(0, ConsequenceLink::query()->count());
         $this->assertSame(0, CohortFeedbackEffect::query()->count());
         $this->assertSame(0, StandingState::query()->count());

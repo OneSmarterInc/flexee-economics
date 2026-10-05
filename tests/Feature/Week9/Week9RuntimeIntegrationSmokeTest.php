@@ -94,8 +94,8 @@ class Week9RuntimeIntegrationSmokeTest extends TestCase
         $this->assertSame('9.440591', $evaluation->output_snapshot['pricewar_partial_payback_years']);
         $this->assertSame('180000.000000', $evaluation->input_snapshot['rebrand_parameters']['fills_per_site_year']);
 
-        $this->assertSame(0, KpiSnapshot::query()->where('section_simulation_week_id', $context['runtimeWeek']->id)->count());
-        $this->assertSame(0, RankingSnapshot::query()->where('section_simulation_week_id', $context['runtimeWeek']->id)->count());
+        $this->assertSame(7, KpiSnapshot::query()->where('section_simulation_week_id', $context['runtimeWeek']->id)->count());
+        $this->assertSame(1, RankingSnapshot::query()->where('section_simulation_week_id', $context['runtimeWeek']->id)->count());
         $this->assertSame(0, ConsequenceLink::query()->where('source_section_simulation_week_id', $context['runtimeWeek']->id)->count());
         $this->assertSame(0, CohortFeedbackEffect::query()->count());
 

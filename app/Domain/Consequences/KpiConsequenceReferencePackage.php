@@ -85,6 +85,82 @@ final class KpiConsequenceReferencePackage
     }
 
     /**
+     * @return list<array<string, string>>
+     */
+    public function openingState(): array
+    {
+        return $this->csvRows('data/state_opening.csv');
+    }
+
+    /**
+     * @return list<array<string, string>>
+     */
+    public function kpiDefinitions(): array
+    {
+        return $this->csvRows('data/kpi_definitions.csv');
+    }
+
+    /**
+     * @return list<array<string, string>>
+     */
+    public function kpiRules(): array
+    {
+        return $this->csvRows('data/kpi_rules.csv');
+    }
+
+    /**
+     * @return list<array<string, string>>
+     */
+    public function inputDictionary(): array
+    {
+        return $this->csvRows('data/input_dictionary.csv');
+    }
+
+    /**
+     * @return list<array<string, string>>
+     */
+    public function referenceTeamInputs(): array
+    {
+        return $this->csvRows('data/reference_team_inputs.csv');
+    }
+
+    /**
+     * @return list<array<string, string>>
+     */
+    public function referenceTeamDecisions(): array
+    {
+        return $this->csvRows('data/reference_team_decisions.csv');
+    }
+
+    /**
+     * @return list<array<string, string>>
+     */
+    public function workedExampleNormalization(): array
+    {
+        return $this->csvRows('data/worked_example_normalization.csv');
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function goldenFixture(): array
+    {
+        $path = $this->root.DIRECTORY_SEPARATOR.'fixtures'.DIRECTORY_SEPARATOR.'kpi_consequence_golden.json';
+
+        if (! is_file($path)) {
+            throw new InvalidArgumentException('KPI/consequence golden fixture is missing.');
+        }
+
+        $fixture = json_decode((string) file_get_contents($path), true);
+
+        if (! is_array($fixture)) {
+            throw new InvalidArgumentException('KPI/consequence golden fixture is invalid.');
+        }
+
+        return $fixture;
+    }
+
+    /**
      * @return array<string, string>
      */
     public function catalogRow(string $key): array

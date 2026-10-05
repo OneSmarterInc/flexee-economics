@@ -55,10 +55,11 @@ final class RankingCalculationService
                 ->orderBy('id')
                 ->get();
             $latestSnapshots = $this->latestSnapshotsByTeamAndDefinition($runtimeWeek, $definitions);
+            $normalization = $this->normalizationByDefinition($definitions, $latestSnapshots);
             $teamResults = [];
 
             foreach ($teamSimulations as $teamSimulation) {
-                $teamResults[] = $this->calculateTeamResult($teamSimulation, $definitions, $latestSnapshots);
+                $teamResults[] = $this->calculateTeamResult($teamSimulation, $definitions, $latestSnapshots, $normalization);
             }
 
             $teamResults = $this->assignRanks($teamResults);
@@ -86,6 +87,7 @@ final class RankingCalculationService
                             'calculation_source' => $definition->calculation_source,
                         ])->values()->all(),
                         'kpi_snapshots' => $result->inputSnapshots,
+                        'normalization' => $normalization,
                     ],
                     'incomplete_reason' => $result->incompleteReason,
                     'calculated_at' => Carbon::now(),
@@ -158,8 +160,9 @@ final class RankingCalculationService
     /**
      * @param  Collection<int, KpiDefinition>  $definitions
      * @param  array<int, array<int, KpiSnapshot>>  $snapshots
+     * @param  array<int, array{kpi_key: string, direction: string, min?: string|null, max?: string|null, scores: array<int, string>}>  $normalization
      */
-    private function calculateTeamResult(TeamSimulation $teamSimulation, Collection $definitions, array $snapshots): RankingTeamResult
+    private function calculateTeamResult(TeamSimulation $teamSimulation, Collection $definitions, array $snapshots, array $normalization): RankingTeamResult
     {
         $score = BigDecimal::zero();
         $inputSnapshots = [];
@@ -181,6 +184,7 @@ final class RankingCalculationService
                 'value' => $snapshot->value,
                 'weight' => $definition->weight,
                 'calculation_version' => $snapshot->calculation_version,
+                'normalized_score' => $normalization[$definition->id]['scores'][$teamSimulation->id] ?? null,
             ];
 
             if ($snapshot->statusEnum() !== KpiSnapshotStatus::Available || $snapshot->value === null) {
@@ -189,9 +193,14 @@ final class RankingCalculationService
                 continue;
             }
 
-            $score = $score->plus(
-                BigDecimal::of((string) $snapshot->value)->multipliedBy((string) $definition->weight),
-            );
+            $normalizedScore = $normalization[$definition->id]['scores'][$teamSimulation->id] ?? null;
+            if ($normalizedScore === null) {
+                $unavailable[] = "{$definition->key}: normalization unavailable";
+
+                continue;
+            }
+
+            $score = $score->plus(BigDecimal::of($normalizedScore)->multipliedBy((string) $definition->weight));
         }
 
         if ($unavailable !== []) {
@@ -213,6 +222,81 @@ final class RankingCalculationService
             inputSnapshots: $inputSnapshots,
             incompleteReason: null,
         );
+    }
+
+    /**
+     * @param  Collection<int, KpiDefinition>  $definitions
+     * @param  array<int, array<int, KpiSnapshot>>  $snapshots
+     * @return array<int, array{kpi_key: string, direction: string, min?: string|null, max?: string|null, scores: array<int, string>}>
+     */
+    private function normalizationByDefinition(Collection $definitions, array $snapshots): array
+    {
+        $normalization = [];
+
+        foreach ($definitions as $definition) {
+            $values = [];
+            foreach ($snapshots as $teamSimulationId => $teamSnapshots) {
+                $snapshot = $teamSnapshots[$definition->id] ?? null;
+                if ($snapshot instanceof KpiSnapshot && $snapshot->statusEnum() === KpiSnapshotStatus::Available && $snapshot->value !== null) {
+                    $values[(int) $teamSimulationId] = BigDecimal::of((string) $snapshot->value);
+                }
+            }
+
+            if ($values === []) {
+                $normalization[$definition->id] = [
+                    'kpi_key' => $definition->key,
+                    'direction' => $this->direction($definition),
+                    'scores' => [],
+                ];
+
+                continue;
+            }
+
+            $firstTeamSimulationId = array_key_first($values);
+            $min = $values[$firstTeamSimulationId];
+            $max = $values[$firstTeamSimulationId];
+            foreach ($values as $value) {
+                $min = $min->isLessThanOrEqualTo($value) ? $min : $value;
+                $max = $max->isGreaterThanOrEqualTo($value) ? $max : $value;
+            }
+
+            $scores = [];
+            $direction = $this->direction($definition);
+            foreach ($values as $teamSimulationId => $value) {
+                if ($max->isEqualTo($min)) {
+                    $scores[$teamSimulationId] = '50.000000';
+
+                    continue;
+                }
+
+                $range = $max->minus($min);
+                $numerator = $direction === 'lower'
+                    ? $max->minus($value)
+                    : $value->minus($min);
+
+                $scores[$teamSimulationId] = (string) $numerator
+                    ->dividedBy($range, 8, RoundingMode::HalfUp)
+                    ->multipliedBy('100')
+                    ->toScale(6, RoundingMode::HalfUp);
+            }
+
+            $normalization[$definition->id] = [
+                'kpi_key' => $definition->key,
+                'direction' => $direction,
+                'min' => (string) $min,
+                'max' => (string) $max,
+                'scores' => $scores,
+            ];
+        }
+
+        return $normalization;
+    }
+
+    private function direction(KpiDefinition $definition): string
+    {
+        $direction = data_get($definition->getAttribute('metadata'), 'direction');
+
+        return $direction === 'lower' ? 'lower' : 'higher';
     }
 
     /**
@@ -261,6 +345,6 @@ final class RankingCalculationService
 
     private function scoreDecimal(BigDecimal $score): string
     {
-        return (string) $score->toScale(6, RoundingMode::Unnecessary);
+        return (string) $score->toScale(6, RoundingMode::HalfUp);
     }
 }

@@ -98,8 +98,8 @@ class Week5RuntimeIntegrationSmokeTest extends TestCase
         $this->assertSame(1, $record->outputs['resolve_decisions']['week5_economic_evaluation_count']);
         $this->assertSame(1, $record->outputs['resolve_decisions']['evaluation_status_counts'][Week5EconomicEvaluation::STATUS_CALCULATED]);
 
-        $this->assertSame(0, KpiSnapshot::query()->where('section_simulation_week_id', $context['runtimeWeek']->id)->count());
-        $this->assertSame(0, RankingSnapshot::query()->where('section_simulation_week_id', $context['runtimeWeek']->id)->count());
+        $this->assertSame(7, KpiSnapshot::query()->where('section_simulation_week_id', $context['runtimeWeek']->id)->count());
+        $this->assertSame(1, RankingSnapshot::query()->where('section_simulation_week_id', $context['runtimeWeek']->id)->count());
         $this->assertSame(0, ConsequenceLink::query()->where('source_section_simulation_week_id', $context['runtimeWeek']->id)->count());
         $this->assertSame(0, CohortFeedbackEffect::query()->count());
 

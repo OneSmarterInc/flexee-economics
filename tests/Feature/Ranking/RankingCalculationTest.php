@@ -41,7 +41,7 @@ class RankingCalculationTest extends TestCase
         $second = collect($snapshots)->firstWhere('team_simulation_id', $context['otherTeamSimulation']->id);
 
         $this->assertSame(RankingSnapshotStatus::Complete, $first->statusEnum());
-        $this->assertSame('100.000000', $first->composite_score);
+        $this->assertSame('90.000000', $first->composite_score);
         $this->assertSame(1, $first->rank);
         $this->assertSame(2, $second->rank);
         $this->assertSame(RankingScope::WithinSection, $first->scopeEnum());
@@ -78,7 +78,7 @@ class RankingCalculationTest extends TestCase
         $secondTeamRank = collect($secondRun)->where('team_simulation_id', $context['teamSimulation']->id)->last();
 
         $this->assertSame(1, $firstTeamRank->refresh()->rank);
-        $this->assertSame('100.000000', $firstTeamRank->refresh()->composite_score);
+        $this->assertSame('90.000000', $firstTeamRank->refresh()->composite_score);
         $this->assertSame(2, $secondTeamRank->rank);
         $this->assertSame(4, RankingSnapshot::query()->count());
     }

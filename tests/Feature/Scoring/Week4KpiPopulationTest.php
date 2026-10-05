@@ -5,6 +5,7 @@ namespace Tests\Feature\Scoring;
 use App\Domain\Economics\Resolution\WeekResolutionService;
 use App\Domain\Economics\Week4\Week4EconomicEngine;
 use App\Domain\Scoring\KpiCalculationService;
+use App\Domain\Scoring\KpiDefinitionCatalog;
 use App\Domain\Scoring\KpiSnapshotService;
 use App\Domain\Scoring\Week4KpiPopulationService;
 use App\Domain\Simulation\SimulationLifecycleService;
@@ -47,7 +48,7 @@ class Week4KpiPopulationTest extends TestCase
         $this->assertCount(7, $snapshots);
         $this->assertSame($resolution->id, $integrated->economic_resolution_id);
         $this->assertSame(KpiSnapshotStatus::Available, $integrated->statusEnum());
-        $this->assertSame('76.7500', $integrated->value);
+        $this->assertSame('67.1250', $integrated->value);
         $this->assertSame('usd_boe', $integrated->unit);
         $this->assertSame(KpiCalculationService::CALCULATION_VERSION, $integrated->calculation_version);
         $this->assertSame($resolution->id, $integrated->input_snapshot['source_id']);
@@ -109,9 +110,9 @@ class Week4KpiPopulationTest extends TestCase
             'metadata' => ['fixture' => true],
         ]);
 
-        $this->assertSame('halden_kpi_v1', $snapshot->definition->version);
+        $this->assertSame(KpiDefinitionCatalog::HALDEN_KPI_VERSION, $snapshot->definition->version);
         $this->assertSame('0.300000', $snapshot->input_snapshot['kpi_definition']['weight']);
-        $this->assertSame('76.7500', $snapshot->refresh()->value);
+        $this->assertSame('67.1250', $snapshot->refresh()->value);
     }
 
     public function test_student_cannot_view_another_team_population_snapshots(): void
@@ -126,7 +127,7 @@ class Week4KpiPopulationTest extends TestCase
         app(KpiSnapshotService::class)->assertCanView($graph['student'], $snapshot);
     }
 
-    public function test_week4_population_keeps_unavailable_kpis_null(): void
+    public function test_week4_population_creates_package_backed_available_kpis(): void
     {
         $resolution = $this->resolvedWeek4Decision('46.20');
 
@@ -134,12 +135,12 @@ class Week4KpiPopulationTest extends TestCase
         $roace = collect($snapshots)->first(fn (KpiSnapshot $snapshot) => $snapshot->definition->key === 'roace');
         $debt = collect($snapshots)->first(fn (KpiSnapshot $snapshot) => $snapshot->definition->key === 'net_debt_to_ebitda');
 
-        $this->assertSame(KpiSnapshotStatus::Unavailable, $roace->statusEnum());
-        $this->assertNull($roace->value);
-        $this->assertSame('requires capital base state', $roace->unavailable_reason);
-        $this->assertSame(KpiSnapshotStatus::Unavailable, $debt->statusEnum());
-        $this->assertNull($debt->value);
-        $this->assertSame('requires debt and EBITDA state', $debt->unavailable_reason);
+        $this->assertSame(7, collect($snapshots)->where('status', KpiSnapshotStatus::Available->value)->whereNotNull('value')->count());
+        $this->assertSame(KpiSnapshotStatus::Available, $roace->statusEnum());
+        $this->assertNotNull($roace->value);
+        $this->assertSame(KpiSnapshotStatus::Available, $debt->statusEnum());
+        $this->assertNotNull($debt->value);
+        $this->assertTrue($roace->input_snapshot['source_snapshot']['package_backed_kpi_state']);
     }
 
     /**

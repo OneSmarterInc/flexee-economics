@@ -3,8 +3,10 @@
 namespace App\Domain\Consequences;
 
 use App\Models\CapitalAllocationEvaluation;
+use App\Models\CohortFeedbackEffect;
 use App\Models\ConsequenceDefinition;
 use App\Models\EconomicResolution;
+use App\Models\SectionSimulationWeek;
 use App\Models\StandingState;
 use App\Models\Week8EconomicEvaluation;
 use Illuminate\Database\Eloquent\Model;
@@ -49,6 +51,24 @@ final readonly class KpiConsequenceDefinitionCatalog
     }
 
     /**
+     * @return list<ConsequenceDefinition>
+     */
+    public function registerActiveDefinitions(): array
+    {
+        $definitions = [];
+
+        foreach ($this->package->consequenceCatalog() as $row) {
+            if (($row['status'] ?? '') !== 'active') {
+                continue;
+            }
+
+            $definitions[] = $this->definitionFromRow($row);
+        }
+
+        return $definitions;
+    }
+
+    /**
      * @param  class-string<Model>  $sourceType
      * @param  class-string<Model>  $targetType
      */
@@ -60,13 +80,26 @@ final readonly class KpiConsequenceDefinitionCatalog
             throw new InvalidArgumentException("Consequence catalog row [{$key}] is not active.");
         }
 
+        return $this->definitionFromRow($row, $sourceType, $targetType);
+    }
+
+    /**
+     * @param  array<string, string>  $row
+     * @param  class-string<Model>|null  $sourceType
+     * @param  class-string<Model>|null  $targetType
+     */
+    private function definitionFromRow(array $row, ?string $sourceType = null, ?string $targetType = null): ConsequenceDefinition
+    {
+        $sourceType ??= $this->modelForCatalogPath($row['source'] ?? '');
+        $targetType ??= $this->modelForCatalogPath($row['target'] ?? '');
+
         return ConsequenceDefinition::query()->firstOrCreate(
             [
-                'key' => $key,
+                'key' => $row['key'],
                 'version' => $row['version'] ?: self::VERSION,
             ],
             [
-                'name' => str($key)->replace('_', ' ')->title()->toString(),
+                'name' => str($row['key'])->replace('_', ' ')->title()->toString(),
                 'description' => $row['rule'] ?: null,
                 'source_type' => (new $sourceType)->getMorphClass(),
                 'target_type' => (new $targetType)->getMorphClass(),
@@ -79,5 +112,21 @@ final readonly class KpiConsequenceDefinitionCatalog
                 ],
             ],
         );
+    }
+
+    /**
+     * @return class-string<Model>
+     */
+    private function modelForCatalogPath(string $path): string
+    {
+        return match (true) {
+            str_starts_with($path, 'standing.') => StandingState::class,
+            str_starts_with($path, 'cohort') => CohortFeedbackEffect::class,
+            str_starts_with($path, 'input.') => SectionSimulationWeek::class,
+            str_starts_with($path, 'constraint.') => SectionSimulationWeek::class,
+            str_contains($path, 'capital_envelope') => CapitalAllocationEvaluation::class,
+            str_contains($path, 'discount') => CapitalAllocationEvaluation::class,
+            default => EconomicResolution::class,
+        };
     }
 }

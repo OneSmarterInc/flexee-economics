@@ -95,8 +95,8 @@ class Week13RuntimeIntegrationSmokeTest extends TestCase
         $this->assertSame('50.000000', $evaluation->worked_example_snapshot['after_tax_wage_increase']);
         $this->assertTrue($evaluation->ordering_assertions['delaying_carries_asset_health_penalty']);
 
-        $this->assertSame(0, KpiSnapshot::query()->count());
-        $this->assertSame(0, RankingSnapshot::query()->count());
+        $this->assertSame(7, KpiSnapshot::query()->count());
+        $this->assertSame(1, RankingSnapshot::query()->count());
         $this->assertSame(0, ConsequenceLink::query()->count());
         $this->assertSame(0, CohortFeedbackEffect::query()->count());
         $this->assertSame(0, StandingState::query()->count());

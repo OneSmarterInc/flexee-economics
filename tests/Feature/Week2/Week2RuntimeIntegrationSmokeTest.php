@@ -104,8 +104,8 @@ class Week2RuntimeIntegrationSmokeTest extends TestCase
         $this->assertSame('0.074967', $evaluation->worked_vol_response_pct);
         $this->assertSame('Target elastic urban stations and avoid broad rural cuts.', $evaluation->decision_snapshot['answers']['pricing_strategy']);
 
-        $this->assertSame(0, KpiSnapshot::query()->count());
-        $this->assertSame(0, RankingSnapshot::query()->count());
+        $this->assertSame(7, KpiSnapshot::query()->count());
+        $this->assertSame(1, RankingSnapshot::query()->count());
         $this->assertSame(0, ConsequenceLink::query()->count());
         $this->assertSame(0, CohortFeedbackEffect::query()->count());
 

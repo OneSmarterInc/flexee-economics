@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Domain\Capital\Week6\Week6CapitalReferencePackage;
 use App\Domain\Consequences\KpiConsequenceReferencePackage;
 use App\Domain\Interpretation\InterpretiveAssistantProvider;
 use App\Domain\Interpretation\StructuredPlaceholderInterpretiveAssistantProvider;
@@ -20,6 +21,7 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->app->bind(InterpretiveAssistantProvider::class, StructuredPlaceholderInterpretiveAssistantProvider::class);
         $this->app->singleton(KpiConsequenceReferencePackage::class, fn (): KpiConsequenceReferencePackage => KpiConsequenceReferencePackage::fromRepository());
+        $this->app->singleton(Week6CapitalReferencePackage::class, fn (): Week6CapitalReferencePackage => Week6CapitalReferencePackage::fromRepository());
     }
 
     /**

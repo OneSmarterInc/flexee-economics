@@ -3,16 +3,14 @@
 namespace App\Domain\Scoring;
 
 use App\Models\KpiSnapshot;
+use App\Models\SectionSimulationWeek;
+use App\Models\TeamSimulation;
 use App\Models\Week10EconomicEvaluation;
-use Illuminate\Support\Facades\DB;
 
 final readonly class Week10KpiPopulationService
 {
     public function __construct(
-        private KpiDefinitionCatalog $catalog,
-        private Week10KpiInputAggregator $aggregator,
-        private KpiCalculationService $calculator,
-        private KpiSnapshotService $snapshots,
+        private PackageBackedKpiPopulationService $packageBackedKpis,
     ) {}
 
     /**
@@ -24,38 +22,9 @@ final readonly class Week10KpiPopulationService
             return [];
         }
 
-        return DB::transaction(function () use ($evaluation): array {
-            $definitions = $this->catalog->publishHaldenV1();
-            $definitionIds = $definitions->pluck('id')->all();
-            $existing = KpiSnapshot::query()
-                ->where('tenant_id', $evaluation->tenant_id)
-                ->where('section_simulation_week_id', $evaluation->section_simulation_week_id)
-                ->where('team_simulation_id', $evaluation->team_simulation_id)
-                ->where('calculation_version', KpiCalculationService::CALCULATION_VERSION)
-                ->whereIn('kpi_definition_id', $definitionIds)
-                ->lockForUpdate()
-                ->get();
+        $teamSimulation = TeamSimulation::query()->findOrFail($evaluation->team_simulation_id);
+        $runtimeWeek = SectionSimulationWeek::query()->findOrFail($evaluation->section_simulation_week_id);
 
-            $existingDefinitionIds = $existing->pluck('kpi_definition_id')->all();
-            $missingDefinitions = $definitions
-                ->reject(fn ($definition) => in_array($definition->id, $existingDefinitionIds, true))
-                ->values();
-
-            if ($missingDefinitions->isNotEmpty()) {
-                $context = $this->aggregator->fromEvaluation($evaluation);
-                $results = $this->calculator->calculate($context, $missingDefinitions);
-                $this->snapshots->storeSnapshots($context, $results);
-            }
-
-            return array_values(KpiSnapshot::query()
-                ->where('tenant_id', $evaluation->tenant_id)
-                ->where('section_simulation_week_id', $evaluation->section_simulation_week_id)
-                ->where('team_simulation_id', $evaluation->team_simulation_id)
-                ->where('calculation_version', KpiCalculationService::CALCULATION_VERSION)
-                ->whereIn('kpi_definition_id', $definitionIds)
-                ->orderBy('id')
-                ->get()
-                ->all());
-        });
+        return $this->packageBackedKpis->populateForTeamWeek($teamSimulation, $runtimeWeek, $evaluation);
     }
 }

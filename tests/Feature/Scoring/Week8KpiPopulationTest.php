@@ -26,7 +26,7 @@ class Week8KpiPopulationTest extends TestCase
     use CreatesFoundationData;
     use RefreshDatabase;
 
-    public function test_week8_evaluation_populates_only_supported_kpi_snapshots(): void
+    public function test_week8_evaluation_populates_package_backed_kpi_snapshots(): void
     {
         $evaluation = $this->evaluatedWeek8Decision();
 
@@ -37,18 +37,17 @@ class Week8KpiPopulationTest extends TestCase
 
         $this->assertCount(7, $snapshots);
         $this->assertSame(KpiSnapshotStatus::Available, $refining->statusEnum());
-        $this->assertSame('-4.9000', $refining->value);
+        $this->assertSame('0.0000', $refining->value);
         $this->assertNull($refining->economic_resolution_id);
-        $this->assertSame($evaluation->id, $refining->input_snapshot['source_snapshot']['week8_economic_evaluation_id']);
-        $this->assertSame('holds_full', $refining->input_snapshot['source_snapshot']['realization_snapshot']['scenario_key']);
-        $this->assertSame('0.700000', $refining->input_snapshot['source_snapshot']['prediction_snapshot']['probability_distribution']['fails']);
+        $this->assertSame($evaluation->id, $refining->input_snapshot['source_id']);
+        $this->assertTrue($refining->input_snapshot['source_snapshot']['package_backed_kpi_state']);
+        $this->assertSame('7.00', $refining->input_snapshot['source_snapshot']['inputs']['i8_dwti']);
+        $this->assertSame('0.00', $refining->input_snapshot['source_snapshot']['inputs']['i8_window2_shift']);
 
-        $this->assertSame(KpiSnapshotStatus::Unavailable, $integrated->statusEnum());
-        $this->assertNull($integrated->value);
-        $this->assertSame('requires integrated_margin_per_boe input', $integrated->unavailable_reason);
-        $this->assertSame(KpiSnapshotStatus::Unavailable, $roace->statusEnum());
-        $this->assertNull($roace->value);
-        $this->assertSame('requires capital base state', $roace->unavailable_reason);
+        $this->assertSame(KpiSnapshotStatus::Available, $integrated->statusEnum());
+        $this->assertSame('81.3000', $integrated->value);
+        $this->assertSame(KpiSnapshotStatus::Available, $roace->statusEnum());
+        $this->assertNotNull($roace->value);
     }
 
     public function test_week8_kpi_population_is_idempotent(): void

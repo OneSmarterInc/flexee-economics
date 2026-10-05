@@ -103,8 +103,8 @@ class Week6RuntimeActivationSmokeTest extends TestCase
         $this->assertSame(number_format((float) ($golden['irr']['baton_rouge'] * 100), 2, '.', ''), $evaluation->output_snapshot['project_results']['baton_rouge']['irr_percent']);
         $this->assertSame(number_format((float) ($golden['irr']['helix'] * 100), 2, '.', ''), $evaluation->output_snapshot['project_results']['helix']['irr_percent']);
         $this->assertSame(['baton_rouge', 'helix'], $evaluation->output_snapshot['selected_project_keys']);
-        $this->assertSame(0, KpiSnapshot::query()->where('section_simulation_week_id', $context['week6']->id)->count());
-        $this->assertSame(0, RankingSnapshot::query()->where('section_simulation_week_id', $context['week6']->id)->count());
+        $this->assertSame(7, KpiSnapshot::query()->where('section_simulation_week_id', $context['week6']->id)->count());
+        $this->assertSame(1, RankingSnapshot::query()->where('section_simulation_week_id', $context['week6']->id)->count());
 
         $this->actingAs($context['graph']['student'])
             ->get(route('student.submissions.show', $context['week6']))

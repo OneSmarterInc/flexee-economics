@@ -87,14 +87,14 @@ class WeekExecutionServiceTest extends TestCase
 
         $this->assertSame(WeekExecutionRecord::STATUS_COMPLETED, $record->status);
         $this->assertSame('completed', $record->steps[2]['status']);
-        $this->assertSame('deferred', $record->steps[3]['status']);
+        $this->assertSame('completed', $record->steps[3]['status']);
         $this->assertSame(1, $record->outputs['resolve_decisions']['capital_allocation_evaluation_count']);
         $this->assertSame(1, $record->outputs['resolve_decisions']['evaluation_status_counts'][CapitalAllocationEvaluation::STATUS_CALCULATED]);
         $this->assertSame(CapitalAllocationEvaluation::STATUS_CALCULATED, $evaluation->status);
         $this->assertSame('492.927', $evaluation->portfolioNpvMusdValue());
         $this->assertSame('week_execution_service', $evaluation->evaluated_by_process);
-        $this->assertSame(0, KpiSnapshot::query()->where('section_simulation_week_id', $context['week6']->id)->count());
-        $this->assertSame(0, RankingSnapshot::query()->where('section_simulation_week_id', $context['week6']->id)->count());
+        $this->assertSame(7, KpiSnapshot::query()->where('section_simulation_week_id', $context['week6']->id)->count());
+        $this->assertSame(1, RankingSnapshot::query()->where('section_simulation_week_id', $context['week6']->id)->count());
     }
 
     public function test_week4_execution_creates_configured_discount_rate_consequences_for_week6_context(): void
