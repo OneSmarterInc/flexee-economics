@@ -1,0 +1,118 @@
+name: deploy-production
+
+on:
+  workflow_run:
+    workflows:
+      - tests
+    branches:
+      - main
+    types:
+      - completed
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Deploy production after tests
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    environment: production
+
+    steps:
+      - name: Deploy tested release to production
+        uses: appleboy/ssh-action@v1.2.2
+        env:
+          RELEASE_SHA: ${{ github.event.workflow_run.head_sha }}
+          PRODUCTION_BACKUP_COMMAND: ${{ secrets.PRODUCTION_BACKUP_COMMAND }}
+          PRODUCTION_BACKUP_VERIFY_COMMAND: ${{ secrets.PRODUCTION_BACKUP_VERIFY_COMMAND }}
+          PRODUCTION_HEALTH_URL: ${{ secrets.PRODUCTION_HEALTH_URL }}
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          port: ${{ secrets.DEPLOY_PORT }}
+          envs: RELEASE_SHA,PRODUCTION_BACKUP_COMMAND,PRODUCTION_BACKUP_VERIFY_COMMAND,PRODUCTION_HEALTH_URL
+          script: |
+            set -euo pipefail
+
+            APP_DIR="${APP_DIR:-$HOME/public_html/economics.flexee.org}"
+
+            echo "======================================"
+            echo "Starting Flexee Economics deployment"
+            echo "Release SHA: ${RELEASE_SHA}"
+            echo "======================================"
+
+            cd "${APP_DIR}"
+
+            echo "Fetching tested release..."
+            git fetch origin main
+            git checkout --force "${RELEASE_SHA}"
+
+            echo "Installing production Composer dependencies..."
+            composer install \
+              --no-dev \
+              --prefer-dist \
+              --no-interaction \
+              --optimize-autoloader
+
+            echo "Building frontend assets..."
+            npm ci
+            npm run build
+
+            echo "Entering maintenance mode..."
+            php artisan down --secret="${RELEASE_SHA}" || true
+
+            cleanup() {
+              php artisan up || true
+            }
+            trap cleanup EXIT
+
+            if [ -z "${PRODUCTION_BACKUP_COMMAND:-}" ]; then
+              echo "TAKE VERIFIED DATABASE BACKUP before running production migrations."
+              echo "Set the PRODUCTION_BACKUP_COMMAND secret to the operator-approved backup command."
+              exit 1
+            fi
+
+            if [ -z "${PRODUCTION_BACKUP_VERIFY_COMMAND:-}" ]; then
+              echo "VERIFY DATABASE BACKUP before running production migrations."
+              echo "Set the PRODUCTION_BACKUP_VERIFY_COMMAND secret to the operator-approved verification command."
+              exit 1
+            fi
+
+            echo "Taking production database backup..."
+            bash -lc "${PRODUCTION_BACKUP_COMMAND}"
+
+            echo "Verifying production database backup..."
+            bash -lc "${PRODUCTION_BACKUP_VERIFY_COMMAND}"
+
+            echo "Running database migrations..."
+            php artisan migrate --force
+
+            echo "Clearing Laravel cache..."
+            php artisan optimize:clear
+
+            echo "Caching Laravel configuration..."
+            php artisan config:cache
+
+            echo "Caching Laravel routes..."
+            php artisan route:cache
+
+            echo "Caching Laravel views..."
+            php artisan view:cache
+
+            echo "Leaving maintenance mode..."
+            php artisan up
+            trap - EXIT
+
+            echo "Checking application health..."
+            if [ -n "${PRODUCTION_HEALTH_URL:-}" ]; then
+              curl --fail --show-error --silent --location "${PRODUCTION_HEALTH_URL}" > /dev/null
+            else
+              php artisan migrate:status --no-interaction > /dev/null
+              php artisan about --only=environment --no-interaction > /dev/null
+            fi
+
+            echo "======================================"
+            echo "Production deployment completed"
+            echo "======================================"
