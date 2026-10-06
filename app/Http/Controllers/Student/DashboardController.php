@@ -10,6 +10,7 @@ use App\Domain\Content\Week8\Week8ContentPackageManifest;
 use App\Domain\Submissions\SubmissionCompletenessService;
 use App\Enums\SectionSimulationWeekStatus;
 use App\Http\Controllers\Controller;
+use App\Models\BoardDefenseSubmission;
 use App\Models\CapitalAllocationEvaluation;
 use App\Models\DecisionFormDefinition;
 use App\Models\DecisionSubmission;
@@ -141,8 +142,12 @@ class DashboardController extends Controller
      */
     private function currentWeek(Collection $weeks, TeamSimulation $teamSimulation): ?SectionSimulationWeek
     {
-        return $weeks->first(fn (SectionSimulationWeek $week): bool => $week->statusEnum() === SectionSimulationWeekStatus::Open)
-            ?? $weeks->first(fn (SectionSimulationWeek $week): bool => $week->statusEnum() === SectionSimulationWeekStatus::Released)
+        return $weeks->first(fn (SectionSimulationWeek $week): bool => $this->isStudentVisible($week)
+            && $this->resolutionState($week, $teamSimulation)['status'] !== 'resolved'
+            && $week->statusEnum() === SectionSimulationWeekStatus::Open)
+            ?? $weeks->first(fn (SectionSimulationWeek $week): bool => $this->isStudentVisible($week)
+                && $this->resolutionState($week, $teamSimulation)['status'] !== 'resolved'
+                && $week->statusEnum() === SectionSimulationWeekStatus::Released)
             ?? $weeks->first(fn (SectionSimulationWeek $week): bool => $this->isStudentVisible($week) && $this->resolutionState($week, $teamSimulation)['status'] !== 'resolved')
             ?? $weeks->filter(fn (SectionSimulationWeek $week): bool => $this->isStudentVisible($week))->last();
     }
@@ -169,6 +174,7 @@ class DashboardController extends Controller
             'decision_status' => $submissionStatus['decision_status'],
             'memo_status' => $submissionStatus['memo_status'],
             'capital_allocation_status' => $submissionStatus['capital_allocation_status'] ?? null,
+            'board_defense_status' => $this->boardDefenseSubmission($runtimeWeek, $teamSimulation)?->status,
             'complete' => $submissionStatus['complete'],
             'ready_for_evaluation' => $submissionStatus['ready_for_evaluation'],
             'resolution_status' => $resolution['status'],
@@ -350,6 +356,7 @@ class DashboardController extends Controller
         $memo = $memoDefinition instanceof MemoDefinition
             ? $this->memoSubmission($runtimeWeek, $teamSimulation, $memoDefinition)
             : null;
+        $boardDefense = $this->boardDefenseSubmission($runtimeWeek, $teamSimulation);
         $resolution = $this->resolutionState($runtimeWeek, $teamSimulation);
 
         return [
@@ -360,6 +367,8 @@ class DashboardController extends Controller
             'decision_submitted_at' => $this->formatTimestamp($decision?->getAttribute('submitted_at')),
             'memo_status' => $memo?->statusValue() ?? 'not_started',
             'memo_submitted_at' => $this->formatTimestamp($memo?->getAttribute('submitted_at')),
+            'board_defense_status' => $boardDefense?->status,
+            'board_defense_submitted_at' => $this->formatTimestamp($boardDefense?->getAttribute('submitted_at')),
             'resolution_status' => $resolution['status'],
             'resolved_at' => $resolution['resolved_at'],
             'result_summary' => $resolution['status'] === 'resolved'
@@ -388,6 +397,21 @@ class DashboardController extends Controller
             ->where('section_simulation_week_id', $runtimeWeek->id)
             ->where('team_simulation_id', $teamSimulation->id)
             ->where('decision_form_definition_id', $definition->id)
+            ->first();
+    }
+
+    private function boardDefenseSubmission(
+        SectionSimulationWeek $runtimeWeek,
+        TeamSimulation $teamSimulation,
+    ): ?BoardDefenseSubmission {
+        if ($runtimeWeek->definition->week_number !== 14) {
+            return null;
+        }
+
+        return BoardDefenseSubmission::query()
+            ->where('tenant_id', $runtimeWeek->tenant_id)
+            ->where('section_simulation_week_id', $runtimeWeek->id)
+            ->where('team_simulation_id', $teamSimulation->id)
             ->first();
     }
 

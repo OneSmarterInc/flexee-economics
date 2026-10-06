@@ -256,6 +256,70 @@ Recommendation:
 
 - Teach `SubmissionStatus` or the underlying status payload to render `Capital allocation: submitted` for capital-allocation weeks.
 
+Status: Still deferred after Batch 34H.
+
+## Batch 34H Follow-Up
+
+Batch 34H repeated the seven-week browser rehearsal after the Batch 34A-G integrity fixes.
+
+### B34H-001: Deprecated Inherited-State Fields Persisted In Upgraded Demo Databases
+
+Severity: High for upgraded local demo databases.
+
+Observed:
+
+- Week 8 exposed a stale `cash_cushion_musd` student input in the browser.
+- Earlier Week 4 also retained a stale `br_reported_margin_strong` field in the local upgraded database.
+
+Impact:
+
+- Fresh databases were already protected, but upgraded local databases could still show fields that students must not control.
+
+Status: Resolved in Batch 34H.
+
+Resolution:
+
+- `DatabaseSeeder` prunes deprecated inherited-state fields for Weeks 4, 8, and 10 during seed/reset.
+- Focused regression verifies reseeding removes stale inherited-state fields from upgraded databases.
+
+### B34H-002: Student Dashboard Selected A Resolved Open Week As Current
+
+Severity: Medium.
+
+Observed:
+
+- After Week 10 opened, the student journey dashboard could still show Week 1 as current if Week 1 remained `open` after execution.
+
+Impact:
+
+- Role rotation and current-week context could lag behind the actual active work.
+
+Status: Resolved in Batch 34H.
+
+Resolution:
+
+- Student dashboard current-week selection now prefers visible unresolved open/released weeks before resolved weeks.
+- Focused regression covers a resolved-open Week 1 with unresolved-open Week 10.
+
+### B34H-003: Week 14 Dashboard Rendered Decision/Memo Status
+
+Severity: Low to Medium.
+
+Observed:
+
+- The Week 14 workspace correctly showed board-defense status, but the student dashboard history/current-week card displayed `Decision not started / Memo not started`.
+
+Impact:
+
+- Students could think Week 14 work was incomplete even after submitting the board defense.
+
+Status: Resolved in Batch 34H.
+
+Resolution:
+
+- Student dashboard now includes and renders `board_defense_status` for Week 14.
+- Focused Week 14 assessment regression verifies the board-defense status is present in the dashboard payload and private faculty notes remain hidden.
+
 See:
 
 - `docs/BATCH33D_IMPLEMENTATION.md`

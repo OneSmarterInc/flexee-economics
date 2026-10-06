@@ -377,6 +377,8 @@ class DatabaseSeeder extends Seeder
             $this->ensureDemoSubmissionDefinitions($sevenWeekVersion, $week);
         }
 
+        $this->pruneDeprecatedInheritedStateFields();
+
         $this->ensureDemoCapitalProjects();
         $this->ensureDemoDiscountRateSchedule();
 
@@ -810,6 +812,27 @@ class DatabaseSeeder extends Seeder
             'options' => $options,
             'validation' => $validation,
         ]);
+    }
+
+    private function pruneDeprecatedInheritedStateFields(): void
+    {
+        $deprecatedByWeek = [
+            4 => ['br_reported_margin_strong'],
+            8 => ['cash_cushion_musd'],
+            10 => [
+                'br_reported_margin_strong',
+                'cancellable_capex_musd',
+                'crude_hedge_coverage',
+                'cash_cushion_musd',
+            ],
+        ];
+
+        foreach ($deprecatedByWeek as $weekNumber => $fieldKeys) {
+            DecisionFieldDefinition::query()
+                ->whereIn('field_key', $fieldKeys)
+                ->whereHas('formDefinition.simulationWeek', fn ($query) => $query->where('week_number', $weekNumber))
+                ->delete();
+        }
     }
 
     private function ensureDemoCapitalProjects(): void

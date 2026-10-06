@@ -1,6 +1,6 @@
 # Release Readiness
 
-Current release-readiness checkpoint: Batch 33D final seven-week browser pilot rehearsal.
+Current release-readiness checkpoint: Batch 34H local seven-week browser rehearsal pending final commit approval.
 
 Current baseline command results:
 
@@ -15,11 +15,12 @@ Current baseline command results:
 - Focused seven-week/student/faculty regression: `26 tests / 408 assertions`, passed
 - Core runtime/cohort regression: `23 tests / 424 assertions`, passed
 - Reference-team runtime reconciliation: focused runtime test passed locally during Batch 34E reconciliation; final full-suite release verification pending.
-- Full Laravel suite: `457 tests / 3,228 assertions`, passed
+- Full Laravel suite: `492 tests / 4,591 assertions`, passed
 - PHPStan: `0 errors`
 - Frontend check/types/build: passed
 - Local teaching pilot rehearsal: ready with UX friction
 - Seven-week pilot rehearsal: completed through browser UI from Week 1 through Week 14
+- Post-audit seven-week browser rehearsal: completed locally with targeted UX fixes; final full-suite verification passed.
 
 ## Supported Platform Capabilities
 
@@ -253,6 +254,36 @@ See:
 
 - `docs/BATCH33B_IMPLEMENTATION.md`
 - `docs/BATCH33B_UX_DEFECT_REGISTER.md`
+
+## Batch 34H Post-Audit Browser Rehearsal
+
+Batch 34H repeated the seven-week pilot browser rehearsal after the Batch 34A-G simulation-integrity fixes.
+
+Confirmed:
+
+- Week 1, Week 4, Week 6, Week 8, Week 10, and Week 12 can be submitted/executed through the local browser flow.
+- Week 4 -> Week 6 discount-rate/capital-envelope state is section-level and hidden until the appropriate downstream context.
+- Week 10 inherited constraints are derived from persisted consequences/standing history, not student-entered fields.
+- Week 14 board-defense submission, faculty assessment, feedback publication, and student feedback visibility work through the UI.
+- Student access to the faculty Week 14 assessment route returns `403 Forbidden`.
+- Student dashboard and Week 14 workspace were checked at a `390 x 844` viewport.
+
+Batch 34H fixes:
+
+- demo seed prunes deprecated inherited-state fields from upgraded local databases;
+- student dashboard current-week selection skips resolved open weeks when a later unresolved week is open;
+- student dashboard renders Week 14 board-defense status instead of decision/memo status.
+
+Batch 34H verification:
+
+- focused student/faculty seven-week regression: `14 tests / 185 assertions`, passed;
+- broader focused regression including Week 10 constraints: `23 tests / 333 assertions`, passed;
+- full Laravel suite: `492 tests / 4,591 assertions`, passed;
+- Composer validation, Pint/lint, PHPStan, frontend check/types/build, and `git diff --check`: passed.
+
+See:
+
+- `docs/BATCH34H_SEVEN_WEEK_BROWSER_REHEARSAL.md`
 
 ## Batch 33C Seven-Week Pilot Exposure
 

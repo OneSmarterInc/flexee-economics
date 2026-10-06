@@ -127,6 +127,17 @@ class Week14AssessmentWorkflowTest extends TestCase
             ->assertJsonPath('assessment.reasoning_outcome_tier', 'strong_reasoning_weaker_outcomes')
             ->assertJsonPath('assessment.feedback.body', 'Published later: strong reasoning despite weaker outcomes.')
             ->assertJsonMissing(['faculty_private_notes' => 'Probe the Week 10 answer during debrief.']);
+
+        $this->actingAs($context['graph']['student'])
+            ->get(route('student.dashboard'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('journey.simulations.0.current_week.number', 14)
+                ->where('journey.simulations.0.current_week.board_defense_status', BoardDefenseSubmission::STATUS_SUBMITTED)
+                ->where('journey.simulations.0.history.0.board_defense_status', BoardDefenseSubmission::STATUS_SUBMITTED)
+            )
+            ->assertDontSee('Decision not started / Memo not started', false)
+            ->assertDontSee('Probe the Week 10 answer during debrief.', false);
     }
 
     public function test_student_cannot_view_other_team_or_faculty_assessment(): void

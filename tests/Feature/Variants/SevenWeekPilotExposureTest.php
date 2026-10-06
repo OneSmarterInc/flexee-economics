@@ -10,9 +10,12 @@ use App\Models\CohortDecisionAggregate;
 use App\Models\CohortFeedbackEffect;
 use App\Models\Counterparty;
 use App\Models\DecisionFieldDefinition;
+use App\Models\DecisionFormDefinition;
+use App\Models\DecisionSubmission;
 use App\Models\SectionSimulation;
 use App\Models\StandingState;
 use App\Models\User;
+use App\Models\Week1EconomicEvaluation;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -146,6 +149,80 @@ class SevenWeekPilotExposureTest extends TestCase
                 ->where('journey.simulations.0.role_rotation.label', 'Second seat'));
     }
 
+    public function test_student_dashboard_prefers_open_unresolved_week_over_resolved_open_week(): void
+    {
+        $this->seed();
+
+        $pilot = $this->pilotSectionSimulation();
+        $weeks = $pilot->weeks()->with('definition.decisionFormDefinitions')->get()->keyBy('definition.week_number');
+        $week1 = $weeks[1];
+        $week10 = $weeks[10];
+        $student = User::query()->where('email', 'pilot-alpha1@example.test')->firstOrFail();
+        $faculty = User::query()->where('email', 'faculty@example.test')->firstOrFail();
+        $teamSimulation = $pilot->teamSimulations()
+            ->whereHas('team.members', fn ($query) => $query->whereKey($student->id))
+            ->firstOrFail();
+        $definition = $week1->definition->decisionFormDefinitions->firstOrFail();
+
+        $this->actingAs($student)
+            ->post(route('student.submissions.decisions.submit', $week1), [
+                'definition_ulid' => $definition->ulid,
+                'answers' => [
+                    'permian_rig_count' => 8,
+                    'rotterdam_review_posture' => 'hold_review',
+                    'first_meeting_choice' => 'delacroix',
+                ],
+            ])
+            ->assertSessionHasNoErrors()
+            ->assertRedirect();
+
+        $submission = DecisionSubmission::query()
+            ->where('section_simulation_week_id', $week1->id)
+            ->where('team_simulation_id', $teamSimulation->id)
+            ->firstOrFail();
+
+        Week1EconomicEvaluation::query()->create([
+            'tenant_id' => $week1->tenant_id,
+            'section_simulation_id' => $week1->section_simulation_id,
+            'section_simulation_week_id' => $week1->id,
+            'team_simulation_id' => $teamSimulation->id,
+            'team_id' => $teamSimulation->team_id,
+            'decision_submission_id' => $submission->id,
+            'engine_identifier' => 'seven_week_dashboard_fixture',
+            'engine_version' => 'test_v1',
+            'package_identifier' => 'seven_week_dashboard_fixture',
+            'package_version' => 'test_v1',
+            'status' => Week1EconomicEvaluation::STATUS_CALCULATED,
+            'permian_margin' => '56.400000',
+            'rot_net' => '-0.300000',
+            'economic_rank' => 'Permian > Kessana > Baton Rouge > Norwegian > Singapore > Rotterdam',
+            'reported_rank' => 'Permian > Baton Rouge > Kessana > Norwegian > Singapore > Rotterdam',
+            'top_economic_asset' => 'Permian',
+            'input_snapshot' => ['fixture' => true],
+            'output_snapshot' => ['released' => true],
+            'evaluated_by_user_id' => $faculty->id,
+            'evaluated_by_process' => 'seven_week_dashboard_fixture',
+            'evaluated_at' => now(),
+        ]);
+
+        $this->assertSame(SectionSimulationWeekStatus::Open->value, $week1->fresh()->statusValue());
+
+        $week10->forceFill([
+            'status' => SectionSimulationWeekStatus::Open->value,
+            'opened_at' => now(),
+            'closes_at' => now()->addWeek(),
+        ])->save();
+
+        $this->actingAs($student)
+            ->get(route('student.dashboard'))
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->where('journey.simulations.0.current_week.number', 10)
+                ->where('journey.simulations.0.role_rotation.phase', 'second_seat')
+                ->where('journey.simulations.0.timeline.0.state', 'completed')
+                ->where('journey.simulations.0.timeline.4.state', 'active'));
+    }
+
     public function test_faculty_surfaces_identify_pilot_sequence_and_exclude_omitted_weeks(): void
     {
         $this->seed();
@@ -207,12 +284,55 @@ class SevenWeekPilotExposureTest extends TestCase
         $this->assertFalse($this->fieldExists($week8->simulation_week_id, 'cash_cushion_musd'));
     }
 
+    public function test_demo_seed_prunes_deprecated_inherited_state_fields_from_upgraded_databases(): void
+    {
+        $this->seed();
+
+        $pilot = $this->pilotSectionSimulation();
+        $weeks = $pilot->weeks()->with('definition')->get()->keyBy('definition.week_number');
+
+        $this->addStaleField($weeks[4]->definition->id, 'br_reported_margin_strong');
+        $this->addStaleField($weeks[8]->definition->id, 'cash_cushion_musd');
+        foreach (['br_reported_margin_strong', 'cancellable_capex_musd', 'crude_hedge_coverage', 'cash_cushion_musd'] as $fieldKey) {
+            $this->addStaleField($weeks[10]->definition->id, $fieldKey);
+        }
+
+        $this->assertTrue($this->fieldExists($weeks[8]->definition->id, 'cash_cushion_musd'));
+
+        $this->seed();
+
+        $this->assertFalse($this->fieldExists($weeks[4]->definition->id, 'br_reported_margin_strong'));
+        $this->assertFalse($this->fieldExists($weeks[8]->definition->id, 'cash_cushion_musd'));
+        $this->assertFalse($this->fieldExists($weeks[10]->definition->id, 'br_reported_margin_strong'));
+        $this->assertFalse($this->fieldExists($weeks[10]->definition->id, 'cancellable_capex_musd'));
+        $this->assertFalse($this->fieldExists($weeks[10]->definition->id, 'crude_hedge_coverage'));
+        $this->assertFalse($this->fieldExists($weeks[10]->definition->id, 'cash_cushion_musd'));
+    }
+
     private function fieldExists(int $simulationWeekId, string $fieldKey): bool
     {
         return DecisionFieldDefinition::query()
             ->whereHas('formDefinition', fn ($query) => $query->where('simulation_week_id', $simulationWeekId))
             ->where('field_key', $fieldKey)
             ->exists();
+    }
+
+    private function addStaleField(int $simulationWeekId, string $fieldKey): void
+    {
+        $definition = DecisionFormDefinition::query()
+            ->where('simulation_week_id', $simulationWeekId)
+            ->firstOrFail();
+
+        DecisionFieldDefinition::query()->create([
+            'decision_form_definition_id' => $definition->id,
+            'field_key' => $fieldKey,
+            'label' => 'Stale '.$fieldKey,
+            'field_type' => 'decimal',
+            'is_required' => true,
+            'display_order' => 99,
+            'validation' => [],
+            'options' => [],
+        ]);
     }
 
     private function pilotSectionSimulation(): SectionSimulation

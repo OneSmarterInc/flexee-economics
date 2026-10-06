@@ -31,6 +31,7 @@ type WeekSummary = {
     decision_status: string;
     memo_status: string;
     capital_allocation_status?: string | null;
+    board_defense_status?: string | null;
     complete: boolean;
     ready_for_evaluation: boolean;
     resolution_status: string;
@@ -53,6 +54,8 @@ type HistoryWeek = {
     decision_submitted_at?: string | null;
     memo_status: string;
     memo_submitted_at?: string | null;
+    board_defense_status?: string | null;
+    board_defense_submitted_at?: string | null;
     resolution_status: string;
     resolved_at?: string | null;
     result_summary?: {
@@ -106,6 +109,10 @@ defineProps<{
 
 function statusLabel(status?: string | null) {
     return status ? status.replaceAll('_', ' ') : 'not started';
+}
+
+function isBoardDefenseWeek(week?: { number: number } | null) {
+    return week?.number === 14;
 }
 </script>
 
@@ -238,31 +245,52 @@ function statusLabel(status?: string | null) {
                                     }}
                                 </p>
                             </div>
-                            <div class="rounded-md border p-3">
+                            <div
+                                v-if="
+                                    isBoardDefenseWeek(simulation.current_week)
+                                "
+                                class="col-span-2 rounded-md border p-3"
+                            >
                                 <p class="text-muted-foreground text-xs">
-                                    Decision
+                                    Board defense
                                 </p>
                                 <p class="font-medium">
                                     {{
                                         statusLabel(
                                             simulation.current_week
-                                                .decision_status,
+                                                .board_defense_status,
                                         )
                                     }}
                                 </p>
                             </div>
-                            <div class="rounded-md border p-3">
-                                <p class="text-muted-foreground text-xs">
-                                    Memo
-                                </p>
-                                <p class="font-medium">
-                                    {{
-                                        statusLabel(
-                                            simulation.current_week.memo_status,
-                                        )
-                                    }}
-                                </p>
-                            </div>
+                            <template v-else>
+                                <div class="rounded-md border p-3">
+                                    <p class="text-muted-foreground text-xs">
+                                        Decision
+                                    </p>
+                                    <p class="font-medium">
+                                        {{
+                                            statusLabel(
+                                                simulation.current_week
+                                                    .decision_status,
+                                            )
+                                        }}
+                                    </p>
+                                </div>
+                                <div class="rounded-md border p-3">
+                                    <p class="text-muted-foreground text-xs">
+                                        Memo
+                                    </p>
+                                    <p class="font-medium">
+                                        {{
+                                            statusLabel(
+                                                simulation.current_week
+                                                    .memo_status,
+                                            )
+                                        }}
+                                    </p>
+                                </div>
+                            </template>
                         </div>
                         <Link
                             v-if="simulation.current_week.url"
@@ -417,6 +445,18 @@ function statusLabel(status?: string | null) {
                                         Week {{ week.number }}: {{ week.title }}
                                     </p>
                                     <p
+                                        v-if="isBoardDefenseWeek(week)"
+                                        class="text-muted-foreground mt-1 text-sm"
+                                    >
+                                        Board defense
+                                        {{
+                                            statusLabel(
+                                                week.board_defense_status,
+                                            )
+                                        }}
+                                    </p>
+                                    <p
+                                        v-else
                                         class="text-muted-foreground mt-1 text-sm"
                                     >
                                         Decision
