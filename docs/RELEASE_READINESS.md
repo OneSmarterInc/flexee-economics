@@ -1,6 +1,6 @@
 # Release Readiness
 
-Current release-readiness checkpoint: Batch 35C Week 8 interim EBITDA bridge pending final commit approval.
+Current release-readiness checkpoint: Batch 35E GitHub production safety gate.
 
 Current baseline command results:
 
@@ -18,7 +18,11 @@ Current baseline command results:
 - Full Laravel suite: `492 tests / 4,591 assertions`, passed
 - PHPStan: `0 errors`
 - Frontend check/types/build: passed
-- MySQL release gate: configured in GitHub Actions with `mysql:8.4`; remote run required before production approval
+- MySQL release gate: CONFIGURED / AWAITING REMOTE EXECUTION in GitHub Actions with `mysql:8.4`; remote run required before production approval
+- GitHub default branch: BLOCKED. GitHub currently reports `master`; required release branch is `main`.
+- Main branch protection: BLOCKED. GitHub public branch metadata reports `main.protected=false`.
+- Production approval gate: BLOCKED. GitHub environment inspection found `Production` with no protection rules.
+- Legacy master deployment path: BLOCKED. `origin/master` still contains an active push-to-`master` production deployment workflow.
 - Local teaching pilot rehearsal: ready with UX friction
 - Seven-week pilot rehearsal: completed through browser UI from Week 1 through Week 14
 - Post-audit seven-week browser rehearsal: completed locally with targeted UX fixes; final full-suite verification passed.
@@ -217,6 +221,34 @@ See:
 
 - `docs/BATCH35B_MYSQL_AND_RELEASE_BRANCH.md`
 - `docs/BATCH35C_WEEK8_INTERIM_EBITDA_BRIDGE.md`
+- `docs/BATCH35D_MYSQL_CI_VALIDATION.md`
+- `docs/BATCH35E_GITHUB_PRODUCTION_SAFETY_GATE.md`
+
+## Batch 35E GitHub Production Safety Gate
+
+Batch 35E verifies GitHub-side production safety without pushing or deploying.
+
+Current status:
+
+- `main` is the required release branch, but GitHub currently reports `master` as the repository default branch.
+- `main` exists but is not protected according to public branch metadata.
+- The MySQL 8.4 CI job is configured in `.github/workflows/tests.yml`, but it cannot be considered a required production gate until branch protection requires it.
+- The main-branch deployment workflow is structurally safe: it deploys only after the `tests` workflow succeeds on `main`, checks out the tested SHA, uses the production environment, runs Composer before frontend build, enters maintenance mode, requires backup and backup verification commands before migration, runs migrations with `--force`, rebuilds caches, and performs health checks.
+- Production environment approval is not currently enforced. The inspected GitHub environment is `Production` and has no protection rules.
+- `origin/master` still contains an active push-to-`master` production deploy workflow with no test, approval, or backup gate.
+- Production secret names required by the main deployment workflow are documented, but secret existence was not verified because the GitHub API returned `401 Unauthorized` for Actions secrets.
+
+Production remains blocked until GitHub is manually reconciled:
+
+1. Set the repository default branch to `main`.
+2. Protect `main`.
+3. Require pull requests or equivalent review control for `main`.
+4. Require the MySQL 8.4 CI job before merge/deploy.
+5. Configure the production environment with required reviewer approval.
+6. Disable or remove the legacy `master` deployment path.
+7. Verify required production secrets are present.
+
+Batch 35E did not push code, trigger remote CI, deploy production, delete branches, or modify application logic.
 
 ## Batch 33B Teaching Pilot Rehearsal
 
