@@ -10,11 +10,51 @@ permissions:
 
 jobs:
   deploy:
-    name: Deploy to Flexee Economics
+    name: Build and Deploy Flexee Economics
     runs-on: ubuntu-latest
 
     steps:
-      - name: Deploy to server
+
+      # ---------------------------------------------------------
+      # 1. Checkout application code
+      # ---------------------------------------------------------
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # ---------------------------------------------------------
+      # 2. Setup Node
+      # ---------------------------------------------------------
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      # ---------------------------------------------------------
+      # 3. Install frontend dependencies
+      # ---------------------------------------------------------
+      - name: Install Node dependencies
+        run: npm ci
+
+      # ---------------------------------------------------------
+      # 4. Build Vite production assets
+      # ---------------------------------------------------------
+      - name: Build frontend assets
+        run: npm run build
+
+      # ---------------------------------------------------------
+      # 5. Verify Vite build
+      # ---------------------------------------------------------
+      - name: Verify Vite build
+        run: |
+          test -f public/build/manifest.json
+          echo "Vite build verified successfully."
+          ls -lah public/build
+
+      # ---------------------------------------------------------
+      # 6. Deploy Laravel application
+      # ---------------------------------------------------------
+      - name: Deploy application
         uses: appleboy/ssh-action@v1.2.2
         with:
           host: ${{ secrets.DEPLOY_HOST }}
@@ -45,6 +85,40 @@ jobs:
             echo "Running database migrations..."
             php artisan migrate --force
 
+            echo "======================================"
+            echo "Laravel application updated"
+            echo "======================================"
+
+      # ---------------------------------------------------------
+      # 7. Upload Vite production assets
+      # ---------------------------------------------------------
+      - name: Upload Vite build
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          port: ${{ secrets.DEPLOY_PORT }}
+          source: "public/build"
+          target: "~/public_html/economics.flexee.org/public/"
+          overwrite: true
+
+      # ---------------------------------------------------------
+      # 8. Rebuild Laravel caches
+      # ---------------------------------------------------------
+      - name: Rebuild Laravel caches
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          port: ${{ secrets.DEPLOY_PORT }}
+
+          script: |
+            set -e
+
+            cd ~/public_html/economics.flexee.org
+
             echo "Clearing Laravel cache..."
             php artisan optimize:clear
 
@@ -57,6 +131,10 @@ jobs:
             echo "Caching Laravel views..."
             php artisan view:cache
 
+            echo "Verifying Vite manifest..."
+            test -f public/build/manifest.json
+
             echo "======================================"
             echo "Deployment completed successfully"
+            echo "Vite manifest verified successfully"
             echo "======================================"
