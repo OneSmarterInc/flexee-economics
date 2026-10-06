@@ -15,45 +15,50 @@ jobs:
 
     steps:
 
-      # ---------------------------------------------------------
       # 1. Checkout application code
-      # ---------------------------------------------------------
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # ---------------------------------------------------------
-      # 2. Setup Node
-      # ---------------------------------------------------------
+      # 2. Setup PHP
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          tools: composer:v2
+          coverage: none
+
+      # 3. Install Composer dependencies
+      - name: Install Composer dependencies
+        run: |
+          composer install \
+            --no-dev \
+            --prefer-dist \
+            --no-interaction \
+            --optimize-autoloader
+
+      # 4. Setup Node
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: npm
 
-      # ---------------------------------------------------------
-      # 3. Install frontend dependencies
-      # ---------------------------------------------------------
+      # 5. Install frontend dependencies
       - name: Install Node dependencies
         run: npm ci
 
-      # ---------------------------------------------------------
-      # 4. Build Vite production assets
-      # ---------------------------------------------------------
+      # 6. Build Vite production assets
       - name: Build frontend assets
         run: npm run build
 
-      # ---------------------------------------------------------
-      # 5. Verify Vite build
-      # ---------------------------------------------------------
+      # 7. Verify Vite build
       - name: Verify Vite build
         run: |
           test -f public/build/manifest.json
           echo "Vite build verified successfully."
           ls -lah public/build
 
-      # ---------------------------------------------------------
-      # 6. Deploy Laravel application
-      # ---------------------------------------------------------
+      # 8. Deploy Laravel application
       - name: Deploy application
         uses: appleboy/ssh-action@v1.2.2
         with:
@@ -89,9 +94,7 @@ jobs:
             echo "Laravel application updated"
             echo "======================================"
 
-      # ---------------------------------------------------------
-      # 7. Upload Vite production assets
-      # ---------------------------------------------------------
+      # 9. Upload Vite production assets
       - name: Upload Vite build
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -103,9 +106,7 @@ jobs:
           target: "~/public_html/economics.flexee.org/public/"
           overwrite: true
 
-      # ---------------------------------------------------------
-      # 8. Rebuild Laravel caches
-      # ---------------------------------------------------------
+      # 10. Rebuild Laravel caches
       - name: Rebuild Laravel caches
         uses: appleboy/ssh-action@v1.2.2
         with:
