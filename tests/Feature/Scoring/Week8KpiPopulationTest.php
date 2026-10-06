@@ -41,11 +41,13 @@ class Week8KpiPopulationTest extends TestCase
         $this->assertNull($refining->economic_resolution_id);
         $this->assertSame($evaluation->id, $refining->input_snapshot['source_id']);
         $this->assertTrue($refining->input_snapshot['source_snapshot']['package_backed_kpi_state']);
-        $this->assertSame('7.00', $refining->input_snapshot['source_snapshot']['inputs']['i8_dwti']);
+        $this->assertSame('14.00', $refining->input_snapshot['source_snapshot']['inputs']['i8_dwti']);
+        $this->assertSame('830.375000', $refining->input_snapshot['source_snapshot']['inputs']['i8_ebitda_effect_musd']);
+        $this->assertSame('interim_week8_ebitda_bridge_v0', $refining->input_snapshot['source_snapshot']['inputs']['i8_ebitda_bridge_identifier']);
         $this->assertSame('0.00', $refining->input_snapshot['source_snapshot']['inputs']['i8_window2_shift']);
 
         $this->assertSame(KpiSnapshotStatus::Available, $integrated->statusEnum());
-        $this->assertSame('81.3000', $integrated->value);
+        $this->assertSame('85.8500', $integrated->value);
         $this->assertSame(KpiSnapshotStatus::Available, $roace->statusEnum());
         $this->assertNotNull($roace->value);
     }

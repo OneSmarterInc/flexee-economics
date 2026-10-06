@@ -2,7 +2,7 @@
 
 Updated: 2026-10-05.
 
-The authoritative markdown sources and package roots for Weeks 1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12, and 13 are now present and registered through the content package framework. Week 4 remains the stable vertical-slice baseline. Week 1 now has a package-backed asset-register economic engine and runtime evaluation persistence. Week 2 now has a package-backed elasticity-estimation economic engine and runtime evaluation persistence. Week 4 and Week 6 have runtime paths; Week 8 has a package-backed Laravel economic engine, runtime evaluation persistence, KPI/ranking integration, and Window 2 Week 6 -> Week 8 cohort adjustment support from `halden-window2-cohort-addendum/`. Week 9 now has a package-backed Laravel economic engine and runtime evaluation persistence. Week 10 now has a package-backed convergence economic engine, runtime state assembly, execution integration, and KPI/ranking integration from the authoritative KPI/consequence package. Week 11 now has a package-backed Kessana hold-up economic engine, golden tests, runtime evaluation persistence, and package-backed KPI/ranking integration. Week 12 has package-backed runtime evaluation. Week 13 now has a package-backed factor-markets economic engine, golden tests, and runtime evaluation persistence.
+The authoritative markdown sources and package roots for Weeks 1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12, and 13 are now present and registered through the content package framework. Week 4 remains the stable vertical-slice baseline. Week 1 now has a package-backed asset-register economic engine and runtime evaluation persistence. Week 2 now has a package-backed elasticity-estimation economic engine and runtime evaluation persistence. Week 4 and Week 6 have runtime paths; Week 8 has a package-backed Laravel economic engine, runtime evaluation persistence, KPI/ranking integration, an audit-authorized interim EBITDA bridge, and Window 2 Week 6 -> Week 8 cohort adjustment support from `halden-window2-cohort-addendum/`. Week 9 now has a package-backed Laravel economic engine and runtime evaluation persistence. Week 10 now has a package-backed convergence economic engine, runtime state assembly, execution integration, and KPI/ranking integration from the authoritative KPI/consequence package. Week 11 now has a package-backed Kessana hold-up economic engine, golden tests, runtime evaluation persistence, and package-backed KPI/ranking integration. Week 12 has package-backed runtime evaluation. Week 13 now has a package-backed factor-markets economic engine, golden tests, and runtime evaluation persistence.
 
 ## Week 1 package questions
 
@@ -329,6 +329,8 @@ Resolved by the authoritative package:
 - prediction distribution and realized scenario represented separately in the engine result.
 - KPI snapshots populated from realized Week 8 evaluation where package-supported;
 - `refining_net_margin_vs_benchmark` populated from realized refining crack versus package baseline;
+- audit-authorized interim bridge `interim_week8_ebitda_bridge_v0` now maps realized delta WTI to `i8_ebitda_effect_musd` using `delta_wti * 0.65 * 91.25`;
+- Week 10 cash cushion and KPI financial state share the same persisted Week 8 bridge value;
 - unsupported published KPIs remain unavailable with null values;
 - Week 8 ranking snapshots remain incomplete until the full KPI basis exists.
 
@@ -337,6 +339,7 @@ Still open:
 - Native Excel recalculation was not performed in Batch 18A; openpyxl structure/formula/error scans and cached values were validated instead.
 - What production scenario-resolution source should set `realized_scenario_key` when it is not supplied by controlled runtime/test data?
 - Which Week 8 student probability and posture fields are submitted through the application versus kept in the workbook/notebook package?
+- What final position-aware EBITDA mapping should replace `interim_week8_ebitda_bridge_v0` once the authoritative addendum supplies hedge coverage, production posture, and exposure rules?
 
 ## Week 6 to Week 8 cohort response questions
 

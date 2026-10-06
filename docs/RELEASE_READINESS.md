@@ -1,6 +1,6 @@
 # Release Readiness
 
-Current release-readiness checkpoint: Batch 35B MySQL compatibility and single-release-branch hardening pending final commit approval.
+Current release-readiness checkpoint: Batch 35C Week 8 interim EBITDA bridge pending final commit approval.
 
 Current baseline command results:
 
@@ -188,7 +188,8 @@ Step 7 result: passed.
   normalization, visibility, and publication timing require an authoritative specification before implementation.
 - Week 6 to Week 8 cohort-response production parameters are supplied by `halden-window2-cohort-addendum/`; Week 7 compounding and the future market-data anchor refresh remain deferred.
 - The seven-week Week 4 -> Week 6 capital-capacity path remains implemented through the evidence-backed discount-rate consequence. The separate authoritative aggregate classification rule for disciplined/base/lax remains unresolved.
-- KPI/consequence package `reference_team_inputs.csv` is a scoring-engine fixture, not a runtime economic-output oracle for Weeks 2, 5, 8, 11, 12, or 13. In particular, no authoritative mapping currently connects the Week 8 OPEC runtime result to the synthetic `i8_ebitda_effect_musd` reference-team input; no such mapping should be invented.
+- KPI/consequence package `reference_team_inputs.csv` is a scoring-engine fixture, not a runtime economic-output oracle for Weeks 2, 5, 8, 11, 12, or 13.
+- Week 8 runtime now uses the audit-authorized interim bridge `interim_week8_ebitda_bridge_v0` for both Week 10 cash cushion and KPI input `i8_ebitda_effect_musd`: `delta_wti * 0.65 * 91.25`. The future position-aware mapping that incorporates hedge coverage and production posture remains deferred until an authoritative addendum supplies it.
 - Seat assignment history is effective-dated for historical reconstruction. The authoritative automatic second-seat assignment order remains undefined, so second-seat periods must be supplied by faculty/admin configuration rather than inferred.
 - Week 14 assessment does not calculate automatic grades, points, weights, or ranking-derived scores.
 - LLM interpretation remains behind the existing service/provider boundary and is not a grading authority.
@@ -215,6 +216,7 @@ The platform is ready for production only after:
 See:
 
 - `docs/BATCH35B_MYSQL_AND_RELEASE_BRANCH.md`
+- `docs/BATCH35C_WEEK8_INTERIM_EBITDA_BRIDGE.md`
 
 ## Batch 33B Teaching Pilot Rehearsal
 

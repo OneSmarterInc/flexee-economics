@@ -4,6 +4,7 @@ namespace App\Domain\Scoring;
 
 use App\Domain\Capital\Week6\Week6CapitalReferencePackage;
 use App\Domain\Consequences\KpiConsequenceReferencePackage;
+use App\Domain\Economics\Week8\Week8InterimEbitdaBridge;
 use App\Models\CapitalAllocationEvaluation;
 use App\Models\EconomicResolution;
 use App\Models\SectionSimulationWeek;
@@ -26,6 +27,7 @@ final readonly class KpiFinancialStateService
     public function __construct(
         private KpiConsequenceReferencePackage $package,
         private Week6CapitalReferencePackage $week6Package,
+        private Week8InterimEbitdaBridge $week8EbitdaBridge,
     ) {}
 
     public function forTeamWeek(TeamSimulation $teamSimulation, SectionSimulationWeek $runtimeWeek): KpiFinancialStateResult
@@ -178,8 +180,12 @@ final readonly class KpiFinancialStateService
         if ($throughWeek >= 8) {
             $evaluation = $this->latestEvaluation(Week8EconomicEvaluation::class, $teamSimulation);
             if ($evaluation instanceof Week8EconomicEvaluation && $evaluation->status === Week8EconomicEvaluation::STATUS_CALCULATED) {
-                $inputs['i8_dwti'] = (string) BigDecimal::of((string) ($evaluation->realized_wti ?? '0'))->minus('81.00');
-                $inputs['i8_ebitda_effect_musd'] = (string) data_get($evaluation->output_snapshot, 'realized.ebitda_effect_musd', data_get($evaluation->output_snapshot, 'realized_ebitda_effect_musd', '0'));
+                $bridge = $this->week8EbitdaBridge->calculate($evaluation);
+                if ($bridge !== null) {
+                    $inputs['i8_dwti'] = (string) $bridge->deltaWti;
+                    $inputs['i8_ebitda_effect_musd'] = (string) $bridge->ebitdaEffectMusd;
+                    $inputs['i8_ebitda_bridge_identifier'] = Week8InterimEbitdaBridge::IDENTIFIER;
+                }
                 $inputs['i8_window2_shift'] = (string) data_get($evaluation->input_snapshot, 'cohort_adjustment.refining_crack_shift', data_get($evaluation->realization_snapshot, 'cohort_refining_crack_shift', '0'));
             }
         }

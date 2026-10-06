@@ -2,6 +2,7 @@
 
 namespace App\Domain\Consequences;
 
+use App\Domain\Economics\Week8\Week8InterimEbitdaBridge;
 use App\Domain\Standing\StandingService;
 use App\Enums\StandingValue;
 use App\Enums\SubmissionStatus;
@@ -30,6 +31,7 @@ final readonly class DerivedWeek10ConstraintService
     public function __construct(
         private ConsequenceService $consequences,
         private KpiConsequenceDefinitionCatalog $definitions,
+        private Week8InterimEbitdaBridge $week8EbitdaBridge,
     ) {}
 
     public function resolveWeek4Consequences(EconomicResolution $resolution, ?User $actor = null): void
@@ -191,7 +193,13 @@ final readonly class DerivedWeek10ConstraintService
             return null;
         }
 
-        $week8EbitdaEffect = $this->week8EbitdaEffect($evaluation);
+        $bridge = $this->week8EbitdaBridge->calculate($evaluation);
+
+        if ($bridge === null) {
+            return null;
+        }
+
+        $week8EbitdaEffect = $bridge->ebitdaEffectMusd;
         $week6Outlay = $this->week6Outlay($teamSimulation);
         $week7CapacityMatch = $this->week7CapacityMatch($teamSimulation);
         $week9RebrandCost = $this->week9RebrandCost($teamSimulation);
@@ -217,6 +225,7 @@ final readonly class DerivedWeek10ConstraintService
                 'target_value' => $this->decimal($cash, 3),
                 'constraint_key' => 'cash_cushion_musd',
                 'week8_ebitda_effect_musd' => $this->decimal($week8EbitdaEffect, 3),
+                'week8_ebitda_bridge' => $bridge->provenance,
                 'week6_outlay_musd' => $this->decimal($week6Outlay, 3),
                 'week7_capacity_match' => $this->decimal($week7CapacityMatch, 3),
                 'week9_rebrand_cost_musd' => $this->decimal($week9RebrandCost, 3),
@@ -412,17 +421,6 @@ final readonly class DerivedWeek10ConstraintService
             ->where('status', CapitalAllocationEvaluation::STATUS_CALCULATED)
             ->latest('evaluated_at')
             ->first();
-    }
-
-    private function week8EbitdaEffect(Week8EconomicEvaluation $evaluation): BigDecimal
-    {
-        $realization = $evaluation->getAttribute('realization_snapshot');
-        $deltaWti = is_array($realization) && isset($realization['delta_wti'])
-            ? BigDecimal::of((string) $realization['delta_wti'])
-            : BigDecimal::of((string) $evaluation->realized_upstream_impact_per_bbl);
-
-        // Package-backed bridge: integrated margin moves 0.65 per $1 WTI on the 250 kb/d Permian-Baton Rouge chain.
-        return $deltaWti->multipliedBy('0.65')->multipliedBy('91.25');
     }
 
     private function week6Outlay(TeamSimulation $teamSimulation): BigDecimal
