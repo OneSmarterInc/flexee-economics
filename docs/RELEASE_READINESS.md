@@ -180,6 +180,8 @@ Step 7 result: passed.
 
 - KPI and ranking outputs are intentionally incomplete where authoritative package mappings are absent.
 - Consequence links are created only where authoritative consequence mappings exist.
+- Cross-section ranking is deferred. Within-section ranking remains implemented; cross-section population,
+  normalization, visibility, and publication timing require an authoritative specification before implementation.
 - Week 6 to Week 8 cohort-response production parameters are supplied by `halden-window2-cohort-addendum/`; Week 7 compounding and the future market-data anchor refresh remain deferred.
 - The seven-week Week 4 -> Week 6 capital-capacity path remains implemented through the evidence-backed discount-rate consequence. The separate authoritative aggregate classification rule for disciplined/base/lax remains unresolved.
 - KPI/consequence package `reference_team_inputs.csv` is a scoring-engine fixture, not a runtime economic-output oracle for Weeks 2, 5, 8, 11, 12, or 13. In particular, no authoritative mapping currently connects the Week 8 OPEC runtime result to the synthetic `i8_ebitda_effect_musd` reference-team input; no such mapping should be invented.

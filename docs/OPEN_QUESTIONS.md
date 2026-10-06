@@ -126,6 +126,25 @@ Still open:
 - Should the memo grading rubric be published to students on day one or discovered through feedback?
 - Which package-backed economic engine should receive implementation after Week 9 runtime validation?
 
+## Cross-section ranking questions
+
+Resolved by Batch 34G readiness review:
+
+- Current within-section ranking remains the authoritative implemented ranking path.
+- `RankingScope::CrossSection` remains reserved and rejected by `RankingCalculationService`.
+- Cross-section ranking is not required for the current single-section/seven-week pilot.
+- Seven-week teams must not be ranked against fourteen-week teams without a future authoritative rule.
+
+Still open before implementation:
+
+- What exact population defines a cross-section leaderboard: same course, same simulation version, same tenant, same institution, or cross-installation?
+- Is cross-tenant ranking permitted, and if so, what privacy and authorization boundary applies?
+- Does cross-section ranking normalize raw KPI values globally, reuse section-normalized values, use percentiles, or use another method?
+- When are cross-section ranks published if sections run on different pacing calendars?
+- Are cross-section snapshots immutable records, recalculated views, or both?
+- What student, faculty, admin, and cross-institution visibility rules apply?
+- What tie behavior applies to cross-section ranks if it differs from the current within-section behavior?
+
 ## Week 9 package questions
 
 Resolved by the authoritative package:
