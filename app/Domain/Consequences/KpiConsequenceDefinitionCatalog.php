@@ -93,25 +93,26 @@ final readonly class KpiConsequenceDefinitionCatalog
         $sourceType ??= $this->modelForCatalogPath($row['source'] ?? '');
         $targetType ??= $this->modelForCatalogPath($row['target'] ?? '');
 
-        return ConsequenceDefinition::query()->firstOrCreate(
-            [
-                'key' => $row['key'],
-                'version' => $row['version'] ?: self::VERSION,
+        $definition = ConsequenceDefinition::query()->firstOrNew([
+            'key' => $row['key'],
+            'version' => $row['version'] ?: self::VERSION,
+        ]);
+
+        $definition->forceFill([
+            'name' => str($row['key'])->replace('_', ' ')->title()->toString(),
+            'description' => $row['rule'] ?: null,
+            'source_type' => (new $sourceType)->getMorphClass(),
+            'target_type' => (new $targetType)->getMorphClass(),
+            'effect_type' => $row['effect_type'] ?: 'consequence',
+            'is_active' => true,
+            'metadata' => [
+                'package' => KpiConsequenceReferencePackage::PACKAGE_ROOT,
+                'package_version' => $this->package->version(),
+                'catalog_row' => $row,
             ],
-            [
-                'name' => str($row['key'])->replace('_', ' ')->title()->toString(),
-                'description' => $row['rule'] ?: null,
-                'source_type' => (new $sourceType)->getMorphClass(),
-                'target_type' => (new $targetType)->getMorphClass(),
-                'effect_type' => $row['effect_type'] ?: 'consequence',
-                'is_active' => true,
-                'metadata' => [
-                    'package' => KpiConsequenceReferencePackage::PACKAGE_ROOT,
-                    'package_version' => $this->package->version(),
-                    'catalog_row' => $row,
-                ],
-            ],
-        );
+        ])->save();
+
+        return $definition->refresh();
     }
 
     /**

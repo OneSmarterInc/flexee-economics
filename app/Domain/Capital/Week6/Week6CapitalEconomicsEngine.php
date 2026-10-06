@@ -75,9 +75,13 @@ final class Week6CapitalEconomicsEngine
         $selectedKeys = $this->projectKeys($decision->selectedProjectSnapshots());
         $selectedProjects = array_map(fn (string $key): Week6ProjectCashFlows => $inputs->project($key), $selectedKeys);
         $projectResults = $this->projectResults($inputs, $discountRate);
-        $portfolioFlows = $this->portfolioFlows($selectedProjects);
+        $portfolioFlows = $selectedProjects === []
+            ? [BigDecimal::zero()]
+            : $this->portfolioFlows($selectedProjects);
         $portfolioNpv = $this->npvForFlows($discountRate, $portfolioFlows);
-        $portfolioIrr = $this->irrForFlows($portfolioFlows);
+        $portfolioIrr = $selectedProjects === []
+            ? BigDecimal::zero()
+            : $this->irrForFlows($portfolioFlows);
         $capitalRequired = $this->capitalRequired($selectedProjects);
         $capitalEnvelopeFeasible = $capitalRequired->isLessThanOrEqualTo($capitalEnvelope);
 
@@ -175,7 +179,7 @@ final class Week6CapitalEconomicsEngine
     private function projectKeys(?array $projects): array
     {
         if ($projects === null || $projects === []) {
-            throw new InvalidArgumentException('Week 6 capital economics requires at least one selected project.');
+            return [];
         }
 
         return array_map(function (array $project): string {

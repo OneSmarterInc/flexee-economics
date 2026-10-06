@@ -169,6 +169,10 @@ final class Week9EconomicEngine
 
     private function payback(BigDecimal $costMusd, BigDecimal $gainMusd): BigDecimal
     {
+        if ($costMusd->isEqualTo(BigDecimal::zero()) && $gainMusd->isEqualTo(BigDecimal::zero())) {
+            return BigDecimal::zero();
+        }
+
         if (! $gainMusd->isGreaterThan(BigDecimal::zero())) {
             throw new InvalidArgumentException('Week 9 payback requires a positive annual gain.');
         }

@@ -14,6 +14,7 @@ Current baseline command results:
 - Targeted post-integration regression: `49 tests / 1,033 assertions`, passed
 - Focused seven-week/student/faculty regression: `26 tests / 408 assertions`, passed
 - Core runtime/cohort regression: `23 tests / 424 assertions`, passed
+- Reference-team runtime reconciliation: focused runtime test passed locally during Batch 34E reconciliation; final full-suite release verification pending.
 - Full Laravel suite: `457 tests / 3,228 assertions`, passed
 - PHPStan: `0 errors`
 - Frontend check/types/build: passed
@@ -181,6 +182,7 @@ Step 7 result: passed.
 - Consequence links are created only where authoritative consequence mappings exist.
 - Week 6 to Week 8 cohort-response production parameters are supplied by `halden-window2-cohort-addendum/`; Week 7 compounding and the future market-data anchor refresh remain deferred.
 - The seven-week Week 4 -> Week 6 capital-capacity path remains implemented through the evidence-backed discount-rate consequence. The separate authoritative aggregate classification rule for disciplined/base/lax remains unresolved.
+- KPI/consequence package `reference_team_inputs.csv` is a scoring-engine fixture, not a runtime economic-output oracle for Weeks 2, 5, 8, 11, 12, or 13. In particular, no authoritative mapping currently connects the Week 8 OPEC runtime result to the synthetic `i8_ebitda_effect_musd` reference-team input; no such mapping should be invented.
 - Seat assignment is currently stored as current state with role-phase metadata preserved in decision snapshots; an effective-dated seat assignment model remains unresolved.
 - Week 14 assessment does not calculate automatic grades, points, weights, or ranking-derived scores.
 - LLM interpretation remains behind the existing service/provider boundary and is not a grading authority.
@@ -297,3 +299,18 @@ Batch 33C verification:
 See:
 
 - `docs/BATCH33C_IMPLEMENTATION.md`
+
+## Batch 34E Reference-Team Runtime Reconciliation
+
+Batch 34E adds a reference-team runtime reconciliation test that submits the four KPI/consequence package reference teams through the actual runtime from Weeks 1 through 13.
+
+The test deliberately separates:
+
+- exact KPI/consequence package parity through `reference_team_inputs.csv`;
+- actual runtime wiring through persisted submissions, evaluations, consequences, KPI snapshots, and ranking snapshots.
+
+This distinction is required because the authoritative KPI/consequence package labels the reference-team inputs for Weeks 2, 5, 8, 11, 12, and 13 as synthetic scoring-engine paths rather than economic claims. The Week 8 package pins OPEC propagation outputs, but it does not define a runtime formula from `Week8EconomicEvaluation` to `i8_ebitda_effect_musd`.
+
+See:
+
+- `docs/BATCH34E_REFERENCE_TEAM_RUNTIME_RECONCILIATION.md`

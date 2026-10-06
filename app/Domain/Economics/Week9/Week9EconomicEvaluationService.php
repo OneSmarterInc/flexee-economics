@@ -136,6 +136,17 @@ final readonly class Week9EconomicEvaluationService
             return $this->validateMarketKeys(array_values(array_unique(array_map('strval', $markets))), $inputs);
         }
 
+        if (array_key_exists('rebrand_markets', $answers) && is_string($markets)) {
+            $selected = str($markets)
+                ->squish()
+                ->explode(' ')
+                ->filter(fn (string $marketKey): bool => $marketKey !== '')
+                ->values()
+                ->all();
+
+            return $this->validateMarketKeys(array_values($selected), $inputs);
+        }
+
         $marketDecisions = $answers['market_decisions'] ?? null;
 
         if (is_array($marketDecisions)) {
@@ -150,15 +161,20 @@ final readonly class Week9EconomicEvaluationService
         }
 
         $selected = [];
+        $sawMarketAnswer = false;
         foreach (array_keys($inputs->markets) as $marketKey) {
             $answerKey = 'rebrand_'.$marketKey;
 
-            if (array_key_exists($answerKey, $answers) && filter_var($answers[$answerKey], FILTER_VALIDATE_BOOLEAN)) {
-                $selected[] = $marketKey;
+            if (array_key_exists($answerKey, $answers)) {
+                $sawMarketAnswer = true;
+
+                if (filter_var($answers[$answerKey], FILTER_VALIDATE_BOOLEAN)) {
+                    $selected[] = $marketKey;
+                }
             }
         }
 
-        if ($selected !== []) {
+        if ($selected !== [] || $sawMarketAnswer) {
             return $this->validateMarketKeys($selected, $inputs);
         }
 
