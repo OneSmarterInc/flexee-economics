@@ -17,7 +17,7 @@ jobs:
 
       # 1. Checkout application code
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       # 2. Setup PHP
       - name: Setup PHP
@@ -38,7 +38,7 @@ jobs:
 
       # 4. Setup Node
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: '22'
           cache: npm
@@ -60,7 +60,7 @@ jobs:
 
       # 8. Deploy Laravel application
       - name: Deploy application
-        uses: appleboy/ssh-action@v1.2.2
+        uses: appleboy/ssh-action@v1.2.5
         with:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
@@ -96,7 +96,7 @@ jobs:
 
       # 9. Upload Vite production assets
       - name: Upload Vite build
-        uses: appleboy/scp-action@v0.1.7
+        uses: appleboy/scp-action@v1.0.0
         with:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
@@ -108,7 +108,7 @@ jobs:
 
       # 10. Rebuild Laravel caches
       - name: Rebuild Laravel caches
-        uses: appleboy/ssh-action@v1.2.2
+        uses: appleboy/ssh-action@v1.2.5
         with:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
