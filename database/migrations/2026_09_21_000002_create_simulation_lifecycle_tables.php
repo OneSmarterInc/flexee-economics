@@ -53,7 +53,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->unique(['simulation_variant_id', 'version']);
-            $table->unique(['simulation_id', 'simulation_variant_id', 'id']);
+            $table->unique(['simulation_id', 'simulation_variant_id', 'id'], 'sim_versions_sim_variant_id_uniq');
             $table->unique(['simulation_variant_id', 'id']);
             $table->foreign(['simulation_id', 'simulation_variant_id'])->references(['simulation_id', 'id'])->on('simulation_variants')->restrictOnDelete();
         });
@@ -76,7 +76,7 @@ return new class extends Migration
             $table->unique(['simulation_version_id', 'week_number']);
             $table->unique(['simulation_version_id', 'slug']);
             $table->unique(['simulation_version_id', 'id']);
-            $table->foreign(['simulation_id', 'simulation_variant_id', 'simulation_version_id'])->references(['simulation_id', 'simulation_variant_id', 'id'])->on('simulation_versions')->restrictOnDelete();
+            $table->foreign(['simulation_id', 'simulation_variant_id', 'simulation_version_id'], 'sim_weeks_sim_variant_version_fk')->references(['simulation_id', 'simulation_variant_id', 'id'])->on('simulation_versions')->restrictOnDelete();
         });
 
         Schema::create('week_content_versions', function (Blueprint $table) {
@@ -93,7 +93,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->unique(['simulation_week_id', 'version']);
-            $table->foreign(['simulation_version_id', 'simulation_week_id'])->references(['simulation_version_id', 'id'])->on('simulation_weeks')->restrictOnDelete();
+            $table->foreign(['simulation_version_id', 'simulation_week_id'], 'week_content_version_week_fk')->references(['simulation_version_id', 'id'])->on('simulation_weeks')->restrictOnDelete();
         });
 
         Schema::create('section_simulations', function (Blueprint $table) {
@@ -118,7 +118,7 @@ return new class extends Migration
             $table->index(['tenant_id', 'section_id', 'status']);
             $table->foreign(['tenant_id', 'section_id'])->references(['tenant_id', 'id'])->on('sections')->cascadeOnDelete();
             $table->foreign(['tenant_id', 'created_by_user_id'])->references(['tenant_id', 'id'])->on('users')->nullOnDelete();
-            $table->foreign(['simulation_id', 'simulation_variant_id', 'simulation_version_id'])->references(['simulation_id', 'simulation_variant_id', 'id'])->on('simulation_versions')->restrictOnDelete();
+            $table->foreign(['simulation_id', 'simulation_variant_id', 'simulation_version_id'], 'section_sims_sim_variant_version_fk')->references(['simulation_id', 'simulation_variant_id', 'id'])->on('simulation_versions')->restrictOnDelete();
         });
 
         Schema::create('section_simulation_weeks', function (Blueprint $table) {
@@ -138,11 +138,11 @@ return new class extends Migration
             $table->json('metadata')->nullable();
             $table->timestamps();
 
-            $table->unique(['tenant_id', 'section_simulation_id', 'simulation_week_id']);
+            $table->unique(['tenant_id', 'section_simulation_id', 'simulation_week_id'], 'section_weeks_tenant_section_sim_week_uniq');
             $table->unique(['tenant_id', 'id']);
             $table->index(['tenant_id', 'status', 'closes_at']);
-            $table->foreign(['tenant_id', 'section_simulation_id', 'simulation_version_id'])->references(['tenant_id', 'id', 'simulation_version_id'])->on('section_simulations')->cascadeOnDelete();
-            $table->foreign(['simulation_version_id', 'simulation_week_id'])->references(['simulation_version_id', 'id'])->on('simulation_weeks')->restrictOnDelete();
+            $table->foreign(['tenant_id', 'section_simulation_id', 'simulation_version_id'], 'section_weeks_tenant_section_sim_version_fk')->references(['tenant_id', 'id', 'simulation_version_id'])->on('section_simulations')->cascadeOnDelete();
+            $table->foreign(['simulation_version_id', 'simulation_week_id'], 'section_weeks_version_week_fk')->references(['simulation_version_id', 'id'])->on('simulation_weeks')->restrictOnDelete();
         });
 
         Schema::create('team_simulations', function (Blueprint $table) {
@@ -159,7 +159,7 @@ return new class extends Migration
             $table->unique(['tenant_id', 'section_simulation_id', 'team_id']);
             $table->unique(['tenant_id', 'id']);
             $table->unique(['tenant_id', 'id', 'team_id']);
-            $table->foreign(['tenant_id', 'section_simulation_id', 'section_id'])->references(['tenant_id', 'id', 'section_id'])->on('section_simulations')->cascadeOnDelete();
+            $table->foreign(['tenant_id', 'section_simulation_id', 'section_id'], 'team_sims_tenant_section_sim_section_fk')->references(['tenant_id', 'id', 'section_id'])->on('section_simulations')->cascadeOnDelete();
             $table->foreign(['tenant_id', 'section_id', 'team_id'])->references(['tenant_id', 'section_id', 'id'])->on('teams')->cascadeOnDelete();
         });
 
@@ -173,9 +173,9 @@ return new class extends Migration
             $table->foreignId('seat_id')->constrained()->restrictOnDelete();
             $table->timestamps();
 
-            $table->unique(['tenant_id', 'team_simulation_id', 'user_id']);
-            $table->unique(['tenant_id', 'team_simulation_id', 'seat_id']);
-            $table->foreign(['tenant_id', 'team_simulation_id', 'team_id'])->references(['tenant_id', 'id', 'team_id'])->on('team_simulations')->cascadeOnDelete();
+            $table->unique(['tenant_id', 'team_simulation_id', 'user_id'], 'seat_assignments_tenant_team_sim_user_uniq');
+            $table->unique(['tenant_id', 'team_simulation_id', 'seat_id'], 'seat_assignments_tenant_team_sim_seat_uniq');
+            $table->foreign(['tenant_id', 'team_simulation_id', 'team_id'], 'seat_assignments_tenant_team_sim_team_fk')->references(['tenant_id', 'id', 'team_id'])->on('team_simulations')->cascadeOnDelete();
             $table->foreign(['tenant_id', 'team_id', 'user_id'])->references(['tenant_id', 'team_id', 'user_id'])->on('team_members')->cascadeOnDelete();
         });
 
@@ -193,8 +193,8 @@ return new class extends Migration
             $table->json('metadata')->nullable();
             $table->timestamps();
 
-            $table->unique(['simulation_version_id', 'simulation_week_id', 'artifact_key', 'version']);
-            $table->foreign(['simulation_version_id', 'simulation_week_id'])->references(['simulation_version_id', 'id'])->on('simulation_weeks')->restrictOnDelete();
+            $table->unique(['simulation_version_id', 'simulation_week_id', 'artifact_key', 'version'], 'gen_artifacts_version_week_artikey_version_uniq');
+            $table->foreign(['simulation_version_id', 'simulation_week_id'], 'gen_artifacts_version_week_fk')->references(['simulation_version_id', 'id'])->on('simulation_weeks')->restrictOnDelete();
         });
 
         Schema::create('audit_events', function (Blueprint $table) {

@@ -1,6 +1,6 @@
 # Release Readiness
 
-Current release-readiness checkpoint: Batch 34H local seven-week browser rehearsal pending final commit approval.
+Current release-readiness checkpoint: Batch 35B MySQL compatibility and single-release-branch hardening pending final commit approval.
 
 Current baseline command results:
 
@@ -18,9 +18,12 @@ Current baseline command results:
 - Full Laravel suite: `492 tests / 4,591 assertions`, passed
 - PHPStan: `0 errors`
 - Frontend check/types/build: passed
+- MySQL release gate: configured in GitHub Actions with `mysql:8.4`; remote run required before production approval
 - Local teaching pilot rehearsal: ready with UX friction
 - Seven-week pilot rehearsal: completed through browser UI from Week 1 through Week 14
 - Post-audit seven-week browser rehearsal: completed locally with targeted UX fixes; final full-suite verification passed.
+- MySQL identifier compatibility: all detected over-64-character migration identifiers normalized with explicit names.
+- Release branch strategy: `main` remains the only release source; `origin/master` remains present and must be disabled/deleted only after GitHub-side verification.
 
 ## Supported Platform Capabilities
 
@@ -200,6 +203,18 @@ The platform is ready for a local faculty/student pilot when:
 - full test suite passes;
 - quality checks pass;
 - working tree is clean.
+
+The platform is ready for production only after:
+
+- the GitHub Actions MySQL release-gate job passes;
+- GitHub default branch is confirmed as `main`;
+- branch protection requires pull requests and the MySQL test job;
+- the GitHub `production` environment requires approval;
+- the remote `master` branch can no longer deploy production.
+
+See:
+
+- `docs/BATCH35B_MYSQL_AND_RELEASE_BRANCH.md`
 
 ## Batch 33B Teaching Pilot Rehearsal
 

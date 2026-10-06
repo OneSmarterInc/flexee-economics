@@ -28,8 +28,8 @@ return new class extends Migration
 
             $table->unique(['tenant_id', 'section_simulation_week_id', 'team_simulation_id'], 'board_defense_submission_current_unique');
             $table->unique(['tenant_id', 'id']);
-            $table->foreign(['tenant_id', 'section_simulation_week_id'])->references(['tenant_id', 'id'])->on('section_simulation_weeks')->cascadeOnDelete();
-            $table->foreign(['tenant_id', 'team_simulation_id', 'team_id'])->references(['tenant_id', 'id', 'team_id'])->on('team_simulations')->cascadeOnDelete();
+            $table->foreign(['tenant_id', 'section_simulation_week_id'], 'board_subs_tenant_runtime_week_fk')->references(['tenant_id', 'id'])->on('section_simulation_weeks')->cascadeOnDelete();
+            $table->foreign(['tenant_id', 'team_simulation_id', 'team_id'], 'board_subs_tenant_team_sim_team_fk')->references(['tenant_id', 'id', 'team_id'])->on('team_simulations')->cascadeOnDelete();
             $table->foreign(['tenant_id', 'submitted_by_user_id'])->references(['tenant_id', 'id'])->on('users')->nullOnDelete();
             $table->foreign(['tenant_id', 'updated_by_user_id'])->references(['tenant_id', 'id'])->on('users')->nullOnDelete();
         });
@@ -48,8 +48,8 @@ return new class extends Migration
             $table->timestamps();
 
             $table->unique(['board_defense_submission_id', 'revision_number'], 'board_defense_submission_revision_unique');
-            $table->foreign(['tenant_id', 'board_defense_submission_id'])->references(['tenant_id', 'id'])->on('board_defense_submissions')->cascadeOnDelete();
-            $table->foreign(['tenant_id', 'actor_user_id'])->references(['tenant_id', 'id'])->on('users')->nullOnDelete();
+            $table->foreign(['tenant_id', 'board_defense_submission_id'], 'board_sub_revs_tenant_board_submission_fk')->references(['tenant_id', 'id'])->on('board_defense_submissions')->cascadeOnDelete();
+            $table->foreign(['tenant_id', 'actor_user_id'], 'board_sub_revs_tenant_actor_fk')->references(['tenant_id', 'id'])->on('users')->nullOnDelete();
         });
 
         Schema::create('board_defense_assessments', function (Blueprint $table) {
@@ -72,9 +72,9 @@ return new class extends Migration
 
             $table->unique(['tenant_id', 'section_simulation_week_id', 'team_simulation_id', 'rubric_version'], 'board_defense_assessment_current_unique');
             $table->unique(['tenant_id', 'id']);
-            $table->foreign(['tenant_id', 'section_simulation_week_id'])->references(['tenant_id', 'id'])->on('section_simulation_weeks')->cascadeOnDelete();
-            $table->foreign(['tenant_id', 'team_simulation_id', 'team_id'])->references(['tenant_id', 'id', 'team_id'])->on('team_simulations')->cascadeOnDelete();
-            $table->foreign(['tenant_id', 'board_defense_submission_id'])->references(['tenant_id', 'id'])->on('board_defense_submissions')->nullOnDelete();
+            $table->foreign(['tenant_id', 'section_simulation_week_id'], 'board_assessments_tenant_runtime_week_fk')->references(['tenant_id', 'id'])->on('section_simulation_weeks')->cascadeOnDelete();
+            $table->foreign(['tenant_id', 'team_simulation_id', 'team_id'], 'board_assessments_tenant_team_sim_team_fk')->references(['tenant_id', 'id', 'team_id'])->on('team_simulations')->cascadeOnDelete();
+            $table->foreign(['tenant_id', 'board_defense_submission_id'], 'board_assessments_tenant_board_submission_fk')->references(['tenant_id', 'id'])->on('board_defense_submissions')->nullOnDelete();
             $table->foreign(['tenant_id', 'reviewer_user_id'])->references(['tenant_id', 'id'])->on('users')->restrictOnDelete();
         });
 
@@ -91,7 +91,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->unique(['board_defense_assessment_id', 'dimension_key'], 'board_defense_assessment_dimension_unique');
-            $table->foreign(['tenant_id', 'board_defense_assessment_id'])->references(['tenant_id', 'id'])->on('board_defense_assessments')->cascadeOnDelete();
+            $table->foreign(['tenant_id', 'board_defense_assessment_id'], 'board_dimensions_tenant_board_assessment_fk')->references(['tenant_id', 'id'])->on('board_defense_assessments')->cascadeOnDelete();
         });
 
         Schema::create('board_defense_assessment_feedback', function (Blueprint $table) {
@@ -106,8 +106,8 @@ return new class extends Migration
             $table->timestamps();
 
             $table->unique(['tenant_id', 'board_defense_assessment_id'], 'board_defense_assessment_feedback_unique');
-            $table->foreign(['tenant_id', 'board_defense_assessment_id'])->references(['tenant_id', 'id'])->on('board_defense_assessments')->cascadeOnDelete();
-            $table->foreign(['tenant_id', 'published_by_user_id'])->references(['tenant_id', 'id'])->on('users')->nullOnDelete();
+            $table->foreign(['tenant_id', 'board_defense_assessment_id'], 'board_feedback_tenant_board_assessment_fk')->references(['tenant_id', 'id'])->on('board_defense_assessments')->cascadeOnDelete();
+            $table->foreign(['tenant_id', 'published_by_user_id'], 'board_feedback_tenant_published_by_fk')->references(['tenant_id', 'id'])->on('users')->nullOnDelete();
         });
     }
 

@@ -12,6 +12,7 @@ class ProductionDeploymentPipelineTest extends TestCase
         $deployWorkflow = $this->readFile('.github/workflows/deploy.yml');
 
         $this->assertStringContainsString('name: tests', $testsWorkflow);
+        $this->assertStringContainsString('MySQL 8.4 CI', $testsWorkflow);
         $this->assertStringContainsString('branches:', $testsWorkflow);
         $this->assertStringContainsString('- main', $testsWorkflow);
 
@@ -21,6 +22,17 @@ class ProductionDeploymentPipelineTest extends TestCase
         $this->assertStringContainsString("github.event.workflow_run.conclusion == 'success'", $deployWorkflow);
         $this->assertStringNotContainsString('- master', $deployWorkflow);
         $this->assertStringNotContainsString('on:'."\n".'  push:', $deployWorkflow);
+    }
+
+    public function test_tests_workflow_has_mysql_release_gate(): void
+    {
+        $testsWorkflow = $this->readFile('.github/workflows/tests.yml');
+
+        $this->assertStringContainsString('image: mysql:8.4', $testsWorkflow);
+        $this->assertStringContainsString('DB_CONNECTION: mysql', $testsWorkflow);
+        $this->assertStringContainsString('DB_COLLATION: utf8mb4_0900_ai_ci', $testsWorkflow);
+        $this->assertStringContainsString('php artisan migrate:fresh --seed --no-interaction', $testsWorkflow);
+        $this->assertStringContainsString('php artisan test --no-interaction', $testsWorkflow);
     }
 
     public function test_deploy_workflow_builds_frontend_and_installs_production_dependencies(): void
@@ -94,6 +106,26 @@ class ProductionDeploymentPipelineTest extends TestCase
         }
     }
 
+    public function test_migration_identifiers_are_mysql_safe(): void
+    {
+        $longIdentifiers = [];
+
+        foreach (glob(base_path('database/migrations/*.php')) ?: [] as $migration) {
+            foreach ($this->migrationIdentifiers($migration) as $identifier) {
+                if (mb_strlen($identifier['name']) > 64) {
+                    $longIdentifiers[] = [
+                        'migration' => basename($migration),
+                        'identifier' => $identifier['name'],
+                        'length' => mb_strlen($identifier['name']),
+                        'type' => $identifier['type'],
+                    ];
+                }
+            }
+        }
+
+        $this->assertSame([], $longIdentifiers);
+    }
+
     private function readFile(string $path): string
     {
         $fullPath = base_path($path);
@@ -101,5 +133,55 @@ class ProductionDeploymentPipelineTest extends TestCase
         $this->assertFileExists($fullPath);
 
         return (string) file_get_contents($fullPath);
+    }
+
+    /**
+     * @return array<int, array{name: string, type: string}>
+     */
+    private function migrationIdentifiers(string $migration): array
+    {
+        $identifiers = [];
+        $table = null;
+
+        foreach (file($migration) ?: [] as $line) {
+            if (preg_match("/Schema::create\\('([^']+)'/", $line, $matches) === 1) {
+                $table = $matches[1];
+            }
+
+            if ($table === null) {
+                continue;
+            }
+
+            if (preg_match("/->foreignId\\('([^']+)'\\).*->constrained\\(/", $line, $matches) === 1) {
+                $identifiers[] = [
+                    'name' => "{$table}_{$matches[1]}_foreign",
+                    'type' => 'foreign',
+                ];
+            }
+
+            foreach ([
+                'foreign' => 'foreign',
+                'unique' => 'unique',
+                'index' => 'index',
+            ] as $method => $type) {
+                if (preg_match("/->{$method}\\(\\[([^\\]]+)\\](?:,\\s*'([^']+)')?/", $line, $matches) !== 1) {
+                    continue;
+                }
+
+                $identifiers[] = [
+                    'name' => $matches[2] ?? "{$table}_{$this->columnIdentifier($matches[1])}_{$type}",
+                    'type' => $type,
+                ];
+            }
+        }
+
+        return $identifiers;
+    }
+
+    private function columnIdentifier(string $columns): string
+    {
+        preg_match_all("/'([^']+)'/", $columns, $matches);
+
+        return implode('_', $matches[1]);
     }
 }

@@ -33,9 +33,9 @@ return new class extends Migration
             $table->timestamp('state_changed_at');
             $table->timestamps();
 
-            $table->unique(['tenant_id', 'team_simulation_id', 'counterparty_id']);
+            $table->unique(['tenant_id', 'team_simulation_id', 'counterparty_id'], 'standing_states_tenant_team_sim_counterparty_uniq');
             $table->unique(['tenant_id', 'id']);
-            $table->index(['tenant_id', 'section_simulation_id', 'counterparty_id']);
+            $table->index(['tenant_id', 'section_simulation_id', 'counterparty_id'], 'standing_states_tenant_section_sim_counterparty_idx');
             $table->foreign(['tenant_id', 'team_simulation_id', 'team_id'])->references(['tenant_id', 'id', 'team_id'])->on('team_simulations')->cascadeOnDelete();
         });
 
@@ -58,7 +58,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->unique(['tenant_id', 'id']);
-            $table->index(['tenant_id', 'team_simulation_id', 'counterparty_id', 'occurred_at']);
+            $table->index(['tenant_id', 'team_simulation_id', 'counterparty_id', 'occurred_at'], 'standing_events_tenant_team_sim_counterparty_occurred_at_idx');
             $table->index(['trigger_type', 'trigger_id']);
             $table->foreign(['tenant_id', 'standing_state_id'])->references(['tenant_id', 'id'])->on('standing_states')->cascadeOnDelete();
             $table->foreign(['tenant_id', 'section_simulation_week_id'])->references(['tenant_id', 'id'])->on('section_simulation_weeks')->nullOnDelete();

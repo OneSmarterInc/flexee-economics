@@ -50,10 +50,10 @@ return new class extends Migration
 
             $table->unique(['tenant_id', 'id']);
             $table->unique(['tenant_id', 'economic_resolution_id', 'discount_rate_schedule_id'], 'discount_rate_consequence_unique');
-            $table->foreign(['tenant_id', 'source_section_simulation_week_id'])->references(['tenant_id', 'id'])->on('section_simulation_weeks')->cascadeOnDelete();
-            $table->foreign(['tenant_id', 'target_section_simulation_week_id'])->references(['tenant_id', 'id'])->on('section_simulation_weeks')->cascadeOnDelete();
-            $table->foreign(['tenant_id', 'team_simulation_id', 'team_id'])->references(['tenant_id', 'id', 'team_id'])->on('team_simulations')->cascadeOnDelete();
-            $table->foreign(['tenant_id', 'economic_resolution_id'])->references(['tenant_id', 'id'])->on('economic_resolutions')->cascadeOnDelete();
+            $table->foreign(['tenant_id', 'source_section_simulation_week_id'], 'discount_rates_tenant_source_week_fk')->references(['tenant_id', 'id'])->on('section_simulation_weeks')->cascadeOnDelete();
+            $table->foreign(['tenant_id', 'target_section_simulation_week_id'], 'discount_rates_tenant_target_week_fk')->references(['tenant_id', 'id'])->on('section_simulation_weeks')->cascadeOnDelete();
+            $table->foreign(['tenant_id', 'team_simulation_id', 'team_id'], 'discount_rates_tenant_team_sim_team_fk')->references(['tenant_id', 'id', 'team_id'])->on('team_simulations')->cascadeOnDelete();
+            $table->foreign(['tenant_id', 'economic_resolution_id'], 'discount_rates_tenant_econresoid_fk')->references(['tenant_id', 'id'])->on('economic_resolutions')->cascadeOnDelete();
             $table->foreign(['tenant_id', 'resolved_by_user_id'])->references(['tenant_id', 'id'])->on('users')->nullOnDelete();
             $table->foreign('discount_rate_schedule_id')->references('id')->on('discount_rate_schedules')->cascadeOnDelete();
         });

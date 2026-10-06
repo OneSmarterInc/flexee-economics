@@ -28,7 +28,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->unique(['tenant_id', 'id']);
-            $table->index(['tenant_id', 'source_economic_resolution_id', 'requested_at']);
+            $table->index(['tenant_id', 'source_economic_resolution_id', 'requested_at'], 'whatif_runs_tenant_source_resolution_requested_at_idx');
             $table->foreign(['tenant_id', 'section_simulation_week_id'])->references(['tenant_id', 'id'])->on('section_simulation_weeks')->cascadeOnDelete();
             $table->foreign(['tenant_id', 'team_simulation_id', 'team_id'])->references(['tenant_id', 'id', 'team_id'])->on('team_simulations')->cascadeOnDelete();
             $table->foreign(['tenant_id', 'source_economic_resolution_id'])->references(['tenant_id', 'id'])->on('economic_resolutions')->cascadeOnDelete();

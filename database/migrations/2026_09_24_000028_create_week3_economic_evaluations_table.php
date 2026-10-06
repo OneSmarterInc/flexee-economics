@@ -38,11 +38,11 @@ return new class extends Migration
 
             $table->unique(['tenant_id', 'id']);
             $table->unique(['tenant_id', 'decision_submission_id', 'engine_identifier'], 'week3_evaluation_unique');
-            $table->index(['tenant_id', 'engine_identifier', 'engine_version']);
-            $table->foreign(['tenant_id', 'section_simulation_week_id'])->references(['tenant_id', 'id'])->on('section_simulation_weeks')->cascadeOnDelete();
-            $table->foreign(['tenant_id', 'team_simulation_id', 'team_id'])->references(['tenant_id', 'id', 'team_id'])->on('team_simulations')->cascadeOnDelete();
-            $table->foreign(['tenant_id', 'decision_submission_id'])->references(['tenant_id', 'id'])->on('decision_submissions')->cascadeOnDelete();
-            $table->foreign(['tenant_id', 'evaluated_by_user_id'])->references(['tenant_id', 'id'])->on('users')->nullOnDelete();
+            $table->index(['tenant_id', 'engine_identifier', 'engine_version'], 'w3_evals_tenant_engine_engine_ver_idx');
+            $table->foreign(['tenant_id', 'section_simulation_week_id'], 'w3_evals_tenant_runtime_week_fk')->references(['tenant_id', 'id'])->on('section_simulation_weeks')->cascadeOnDelete();
+            $table->foreign(['tenant_id', 'team_simulation_id', 'team_id'], 'w3_evals_tenant_team_sim_team_fk')->references(['tenant_id', 'id', 'team_id'])->on('team_simulations')->cascadeOnDelete();
+            $table->foreign(['tenant_id', 'decision_submission_id'], 'w3_evals_tenant_decision_sub_fk')->references(['tenant_id', 'id'])->on('decision_submissions')->cascadeOnDelete();
+            $table->foreign(['tenant_id', 'evaluated_by_user_id'], 'w3_evals_tenant_evaluated_by_fk')->references(['tenant_id', 'id'])->on('users')->nullOnDelete();
         });
     }
 

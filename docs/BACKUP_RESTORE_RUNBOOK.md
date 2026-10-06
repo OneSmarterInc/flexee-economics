@@ -17,7 +17,7 @@ The repository does not define a database provider-specific backup tool. That is
 
 Before approving production deployment:
 
-1. Confirm the backup command targets the production database.
+1. Confirm the backup command targets the production MySQL database.
 2. Confirm the backup destination has enough space and retention.
 3. Confirm the backup verification command checks that the backup artifact exists and is restorable enough for the release risk.
 4. Confirm the restore operator knows the latest backup path or identifier.
