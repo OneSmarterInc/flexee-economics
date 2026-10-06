@@ -105,10 +105,11 @@ Resolved by Step 6 validation and the Batch 34A KPI/consequence integrity fix:
 - Window 1, Window 2, and Window 3 remain excluded.
 - Weeks 7 and 9 are absent from the seven-week cash-cushion calculation and contribute zero rather than synthetic evaluations.
 - Role rotation between Week 8 and Week 10 is represented in decision-definition snapshots while preserving team identity.
+- Effective-dated seat assignment periods now preserve historical seat/role context independently of current assignment state.
 
 Still open:
 
-- Should the current seat assignment model become effective-dated so historical role rotation can be queried independently of decision-definition snapshots?
+- What authoritative rule, if any, assigns each student's second seat automatically rather than through faculty/admin assignment?
 
 ## Faculty/stage questions
 
@@ -120,7 +121,7 @@ Still open:
 ## Later content/versioning questions
 
 - How should role charter content versions be named and promoted?
-- Is the Week 7 role rotation fixed or optional?
+- Is the fourteen-week Week 7/8 role rotation fixed for every section or configurable by faculty policy?
 - What institution-level setting governs student-side LLM help for analytical work?
 - Should the memo grading rubric be published to students on day one or discovered through feedback?
 - Which package-backed economic engine should receive implementation after Week 9 runtime validation?

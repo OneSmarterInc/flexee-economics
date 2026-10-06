@@ -183,7 +183,7 @@ Step 7 result: passed.
 - Week 6 to Week 8 cohort-response production parameters are supplied by `halden-window2-cohort-addendum/`; Week 7 compounding and the future market-data anchor refresh remain deferred.
 - The seven-week Week 4 -> Week 6 capital-capacity path remains implemented through the evidence-backed discount-rate consequence. The separate authoritative aggregate classification rule for disciplined/base/lax remains unresolved.
 - KPI/consequence package `reference_team_inputs.csv` is a scoring-engine fixture, not a runtime economic-output oracle for Weeks 2, 5, 8, 11, 12, or 13. In particular, no authoritative mapping currently connects the Week 8 OPEC runtime result to the synthetic `i8_ebitda_effect_musd` reference-team input; no such mapping should be invented.
-- Seat assignment is currently stored as current state with role-phase metadata preserved in decision snapshots; an effective-dated seat assignment model remains unresolved.
+- Seat assignment history is effective-dated for historical reconstruction. The authoritative automatic second-seat assignment order remains undefined, so second-seat periods must be supplied by faculty/admin configuration rather than inferred.
 - Week 14 assessment does not calculate automatic grades, points, weights, or ranking-derived scores.
 - LLM interpretation remains behind the existing service/provider boundary and is not a grading authority.
 

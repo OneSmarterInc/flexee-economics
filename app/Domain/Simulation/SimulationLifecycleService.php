@@ -2,11 +2,13 @@
 
 namespace App\Domain\Simulation;
 
+use App\Domain\Assignments\EffectiveSeatAssignmentService;
 use App\Enums\SectionSimulationStatus;
 use App\Enums\SectionSimulationWeekStatus;
 use App\Enums\SimulationVersionStatus;
 use App\Enums\TeamSimulationStatus;
 use App\Models\AuditEvent;
+use App\Models\Seat;
 use App\Models\Section;
 use App\Models\SectionSimulation;
 use App\Models\SectionSimulationWeek;
@@ -23,6 +25,10 @@ use InvalidArgumentException;
 
 class SimulationLifecycleService
 {
+    public function __construct(
+        private readonly EffectiveSeatAssignmentService $seatAssignments,
+    ) {}
+
     /**
      * @return array<string, list<SectionSimulationWeekStatus>>
      */
@@ -185,6 +191,22 @@ class SimulationLifecycleService
                     'user_id' => $member->user_id,
                     'seat_id' => $member->seat_id,
                 ]);
+
+                $user = User::query()->find($member->user_id);
+                $seat = Seat::query()->find($member->seat_id);
+
+                if ($user instanceof User && $seat instanceof Seat) {
+                    $this->seatAssignments->createPeriod(
+                        teamSimulation: $teamSimulation,
+                        user: $user,
+                        seat: $seat,
+                        effectiveFromWeekNumber: 1,
+                        source: 'lifecycle_service',
+                        metadata: [
+                            'assignment_source' => 'initial_team_member_seat',
+                        ],
+                    );
+                }
             });
 
         return $teamSimulation;

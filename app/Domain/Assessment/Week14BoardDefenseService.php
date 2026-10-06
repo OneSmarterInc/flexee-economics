@@ -2,6 +2,7 @@
 
 namespace App\Domain\Assessment;
 
+use App\Domain\Assignments\EffectiveSeatAssignmentService;
 use App\Enums\SectionSimulationWeekStatus;
 use App\Models\BoardDefenseAssessment;
 use App\Models\BoardDefenseAssessmentFeedback;
@@ -45,6 +46,10 @@ class Week14BoardDefenseService
         'weak_reasoning_strong_outcomes',
         'weak_reasoning_weak_outcomes',
     ];
+
+    public function __construct(
+        private readonly EffectiveSeatAssignmentService $seatAssignments,
+    ) {}
 
     /**
      * @param  list<array<string, mixed>>  $artifactReferences
@@ -477,6 +482,7 @@ class Week14BoardDefenseService
                 'reasoning_versus_luck',
                 'counterfactuals_where_available',
             ],
+            'seat_history' => $this->seatAssignments->teamHistory($teamSimulation),
             'generated_at' => Carbon::now()->toIso8601String(),
         ];
     }

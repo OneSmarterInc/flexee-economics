@@ -2,6 +2,7 @@
 
 namespace App\Domain\CausalTrace;
 
+use App\Domain\Assignments\EffectiveSeatAssignmentService;
 use App\Domain\CausalTrace\Nodes\AdvisorNode;
 use App\Domain\CausalTrace\Nodes\CausalTraceNode;
 use App\Domain\CausalTrace\Nodes\ConsequenceNode;
@@ -27,6 +28,7 @@ final class CausalTraceService
 {
     public function __construct(
         private readonly DecisionDefinitionSnapshotter $snapshotter,
+        private readonly EffectiveSeatAssignmentService $seatAssignments,
     ) {}
 
     public function forwardFromDecision(User $actor, DecisionSubmission $decision): CausalTrace
@@ -144,6 +146,9 @@ final class CausalTraceService
         }
 
         $definition = is_array($snapshot['definition'] ?? null) ? $snapshot['definition'] : [];
+        $seatContext = is_array($snapshot['seat_context'] ?? null)
+            ? $snapshot['seat_context']
+            : $this->seatContextFor($decision);
 
         return new DecisionNode(
             id: $decision->id,
@@ -158,8 +163,40 @@ final class CausalTraceService
                 'definition_version' => $definition['version'] ?? null,
                 'definition_snapshot' => $snapshot,
                 'available_alternatives' => $snapshot['available_alternatives'] ?? $this->snapshotter->alternativesFromSnapshot($snapshot, $answers),
+                'seat_context' => $seatContext,
                 'submitted_at' => $this->dateIso($decision->getAttribute('submitted_at')),
             ],
+        );
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private function seatContextFor(DecisionSubmission $decision): ?array
+    {
+        $userId = $decision->submitted_by_user_id ?? $decision->updated_by_user_id;
+
+        if (! is_int($userId)) {
+            return null;
+        }
+
+        $user = User::query()
+            ->where('tenant_id', $decision->tenant_id)
+            ->find($userId);
+
+        if (! $user instanceof User) {
+            return null;
+        }
+
+        $decision->loadMissing(['runtimeWeek', 'teamSimulation']);
+
+        $submittedAt = $decision->getAttribute('submitted_at');
+
+        return $this->seatAssignments->contextFor(
+            teamSimulation: $decision->teamSimulation,
+            user: $user,
+            runtimeWeek: $decision->runtimeWeek,
+            at: $submittedAt instanceof CarbonInterface ? $submittedAt : null,
         );
     }
 

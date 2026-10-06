@@ -2,6 +2,7 @@
 
 namespace App\Domain\Submissions;
 
+use App\Domain\Assignments\EffectiveSeatAssignmentService;
 use App\Enums\SectionSimulationWeekStatus;
 use App\Enums\SubmissionStatus;
 use App\Models\AuditEvent;
@@ -24,6 +25,7 @@ class SubmissionService
     public function __construct(
         private readonly DefinitionInputValidator $validator,
         private readonly DecisionDefinitionSnapshotter $snapshotter,
+        private readonly EffectiveSeatAssignmentService $seatAssignments,
     ) {}
 
     /**
@@ -139,6 +141,12 @@ class SubmissionService
 
             $now = Carbon::now();
             $definitionSnapshot = $this->snapshotter->snapshotForSubmission($definition, $answers);
+            $definitionSnapshot['seat_context'] = $this->seatAssignments->contextFor(
+                teamSimulation: $teamSimulation,
+                user: $actor,
+                runtimeWeek: $runtimeWeek,
+                at: $now,
+            );
             $submission->fill([
                 'status' => $status->value,
                 'answers' => $answers,

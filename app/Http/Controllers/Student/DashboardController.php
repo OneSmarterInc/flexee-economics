@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Student;
 
+use App\Domain\Assignments\EffectiveSeatAssignmentService;
 use App\Domain\Content\AuthoritativePackages\AuthoritativeContentPackageManifest;
 use App\Domain\Content\SimulationContentResolver;
 use App\Domain\Content\Week6\Week6ContentPackageManifest;
@@ -18,7 +19,6 @@ use App\Models\MemoDefinition;
 use App\Models\MemoSubmission;
 use App\Models\SectionSimulationWeek;
 use App\Models\SimulationContentActivation;
-use App\Models\SimulationSeatAssignment;
 use App\Models\TeamSimulation;
 use App\Models\User;
 use App\Models\Week10EconomicEvaluation;
@@ -300,8 +300,7 @@ class DashboardController extends Controller
         $weekNumber = $currentWeek?->definition->week_number ?? 1;
         $phase = $weekNumber <= 8 ? 'first_seat' : 'second_seat';
         $phaseWeeks = $phase === 'first_seat' ? [1, 4, 6, 8] : [10, 12, 14];
-        $assignment = $teamSimulation->seatAssignments
-            ->first(fn (SimulationSeatAssignment $assignment): bool => $assignment->user_id === $student->id);
+        $seatContext = app(EffectiveSeatAssignmentService::class)->contextFor($teamSimulation, $student, $currentWeek);
 
         return [
             'phase' => $phase,
@@ -310,7 +309,9 @@ class DashboardController extends Controller
             'description' => $phase === 'first_seat'
                 ? 'You hold your first seat for Weeks 1, 4, 6, and 8. Roles rotate before Week 10.'
                 : 'You are now in your second seat for Weeks 10, 12, and 14.',
-            'seat_name' => $assignment?->seat?->name,
+            'seat_name' => $seatContext['seat_name'] ?? null,
+            'seat_code' => $seatContext['seat_code'] ?? null,
+            'seat_source' => $seatContext['resolved_from'] ?? null,
             'rotation_note' => 'Seven-week pilot role rotation: first seat through Week 8, second seat from Week 10 through Board Defense.',
         ];
     }
