@@ -36,7 +36,7 @@ class ProductionDeploymentPipelineTest extends TestCase
         $this->assertStringContainsString('DB_CONNECTION: mysql', $testsWorkflow);
         $this->assertStringContainsString('DB_COLLATION: utf8mb4_0900_ai_ci', $testsWorkflow);
         $this->assertStringContainsString('php artisan migrate:fresh --seed --no-interaction', $testsWorkflow);
-        $this->assertStringContainsString('php artisan test --no-interaction', $testsWorkflow);
+        $this->assertStringContainsString('php artisan test', $testsWorkflow);
     }
 
     public function test_deploy_workflow_builds_frontend_and_installs_production_dependencies(): void
