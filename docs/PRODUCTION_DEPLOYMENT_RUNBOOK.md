@@ -16,10 +16,13 @@ main
 
 The previous `master` deployment path is not the release source. The remote `master` branch remains present for history only and must not receive independent production changes.
 
+Production uses MySQL. The release gate must include the `MySQL 8.4 CI` job in `.github/workflows/tests.yml`, including a clean `migrate:fresh --seed` and full Laravel test run against MySQL. SQLite-only success is not sufficient for production release approval.
+
 ## Pre-Deployment
 
 1. Confirm the intended release commit on `main`.
 2. Confirm the `tests` workflow passed for that exact commit.
+    - Confirm both the fast SQLite job and the MySQL release-gate job passed.
 3. Confirm the GitHub `production` environment requires an authorized approval before the deploy job can continue.
 4. Confirm these GitHub Actions secrets exist. Do not print their values.
     - `DEPLOY_HOST`
@@ -91,7 +94,9 @@ This is a release health gate only. It is not a full monitoring platform.
 
 - Do not deploy from `master`.
 - Do not deploy a SHA whose tests have not passed.
+- Do not approve a release without a passing MySQL test job.
 - Do not run `php artisan migrate --force` without a verified backup.
 - Do not commit `public/build` assets.
 - Do not print secrets in logs.
 - Do not use migration rollback as a substitute for restoring production data.
+- Do not edit existing migrations after production launch; add new migrations for future schema changes.

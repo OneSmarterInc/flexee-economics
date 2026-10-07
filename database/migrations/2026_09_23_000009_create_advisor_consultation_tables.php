@@ -40,9 +40,9 @@ return new class extends Migration
 
             $table->unique(['tenant_id', 'id']);
             $table->unique(['tenant_id', 'section_simulation_week_id', 'team_simulation_id', 'advisor_id'], 'advisor_consultation_one_advisor_per_week');
-            $table->index(['tenant_id', 'section_simulation_week_id', 'team_simulation_id']);
-            $table->foreign(['tenant_id', 'section_simulation_week_id'])->references(['tenant_id', 'id'])->on('section_simulation_weeks')->cascadeOnDelete();
-            $table->foreign(['tenant_id', 'team_simulation_id', 'team_id'])->references(['tenant_id', 'id', 'team_id'])->on('team_simulations')->cascadeOnDelete();
+            $table->index(['tenant_id', 'section_simulation_week_id', 'team_simulation_id'], 'advisor_sessions_tenant_runtime_week_team_sim_idx');
+            $table->foreign(['tenant_id', 'section_simulation_week_id'], 'advisor_sessions_tenant_runtime_week_fk')->references(['tenant_id', 'id'])->on('section_simulation_weeks')->cascadeOnDelete();
+            $table->foreign(['tenant_id', 'team_simulation_id', 'team_id'], 'advisor_sessions_tenant_team_sim_team_fk')->references(['tenant_id', 'id', 'team_id'])->on('team_simulations')->cascadeOnDelete();
         });
 
         Schema::create('advisor_responses', function (Blueprint $table) {
@@ -59,7 +59,7 @@ return new class extends Migration
 
             $table->unique(['tenant_id', 'id']);
             $table->unique(['tenant_id', 'advisor_consultation_session_id'], 'advisor_response_one_per_session');
-            $table->foreign(['tenant_id', 'advisor_consultation_session_id'])->references(['tenant_id', 'id'])->on('advisor_consultation_sessions')->cascadeOnDelete();
+            $table->foreign(['tenant_id', 'advisor_consultation_session_id'], 'advisor_responses_tenant_advisor_session_fk')->references(['tenant_id', 'id'])->on('advisor_consultation_sessions')->cascadeOnDelete();
         });
     }
 

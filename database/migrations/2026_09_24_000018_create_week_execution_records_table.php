@@ -28,10 +28,10 @@ return new class extends Migration
 
             $table->unique(['tenant_id', 'id']);
             $table->unique(['tenant_id', 'section_simulation_week_id', 'execution_version'], 'week_execution_unique');
-            $table->foreign(['tenant_id', 'section_simulation_week_id'])->references(['tenant_id', 'id'])->on('section_simulation_weeks')->cascadeOnDelete();
+            $table->foreign(['tenant_id', 'section_simulation_week_id'], 'week_execs_tenant_runtime_week_fk')->references(['tenant_id', 'id'])->on('section_simulation_weeks')->cascadeOnDelete();
             $table->foreign(['tenant_id', 'section_simulation_id'])->references(['tenant_id', 'id'])->on('section_simulations')->cascadeOnDelete();
             $table->foreign('simulation_week_id')->references('id')->on('simulation_weeks')->restrictOnDelete();
-            $table->foreign(['tenant_id', 'started_by_user_id'])->references(['tenant_id', 'id'])->on('users')->nullOnDelete();
+            $table->foreign('started_by_user_id')->references('id')->on('users')->nullOnDelete();
         });
     }
 

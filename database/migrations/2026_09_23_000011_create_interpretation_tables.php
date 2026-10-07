@@ -26,9 +26,9 @@ return new class extends Migration
             $table->timestamps();
 
             $table->unique(['tenant_id', 'id']);
-            $table->index(['tenant_id', 'team_simulation_id', 'section_simulation_week_id']);
-            $table->foreign(['tenant_id', 'section_simulation_week_id'])->references(['tenant_id', 'id'])->on('section_simulation_weeks')->cascadeOnDelete();
-            $table->foreign(['tenant_id', 'team_simulation_id', 'team_id'])->references(['tenant_id', 'id', 'team_id'])->on('team_simulations')->cascadeOnDelete();
+            $table->index(['tenant_id', 'team_simulation_id', 'section_simulation_week_id'], 'interp_reqs_tenant_team_sim_runtime_week_idx');
+            $table->foreign(['tenant_id', 'section_simulation_week_id'], 'interp_reqs_tenant_runtime_week_fk')->references(['tenant_id', 'id'])->on('section_simulation_weeks')->cascadeOnDelete();
+            $table->foreign(['tenant_id', 'team_simulation_id', 'team_id'], 'interp_reqs_tenant_team_sim_team_fk')->references(['tenant_id', 'id', 'team_id'])->on('team_simulations')->cascadeOnDelete();
             $table->foreign(['tenant_id', 'requested_by_user_id'])->references(['tenant_id', 'id'])->on('users')->cascadeOnDelete();
         });
 
@@ -47,8 +47,8 @@ return new class extends Migration
             $table->timestamps();
 
             $table->unique(['tenant_id', 'id']);
-            $table->unique(['tenant_id', 'interpretation_request_id']);
-            $table->foreign(['tenant_id', 'interpretation_request_id'])->references(['tenant_id', 'id'])->on('interpretation_requests')->cascadeOnDelete();
+            $table->unique(['tenant_id', 'interpretation_request_id'], 'interp_results_tenant_interp_req_uniq');
+            $table->foreign(['tenant_id', 'interpretation_request_id'], 'interp_results_tenant_interp_req_fk')->references(['tenant_id', 'id'])->on('interpretation_requests')->cascadeOnDelete();
         });
     }
 

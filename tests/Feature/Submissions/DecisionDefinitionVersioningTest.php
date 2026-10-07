@@ -38,7 +38,7 @@ class DecisionDefinitionVersioningTest extends TestCase
         $this->assertSame('week-versioning-test', $snapshot['definition']['key']);
         $this->assertSame('discipline', $snapshot['available_alternatives']['operating_mode']['selected']);
         $this->assertSame('capacity_shift', $snapshot['available_alternatives']['capacity_shift']['field_key']);
-        $this->assertSame(['min' => 0, 'max' => 100], $snapshot['available_alternatives']['capacity_shift']['validation']);
+        $this->assertEquals(['min' => 0, 'max' => 100], $snapshot['available_alternatives']['capacity_shift']['validation']);
         $this->assertSame(
             ['growth', 'stress'],
             collect($snapshot['available_alternatives']['operating_mode']['not_selected_options'])->pluck('value')->all(),

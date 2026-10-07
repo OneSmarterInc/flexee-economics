@@ -17,18 +17,26 @@ feature branch or local work
 - `main` is the release source.
 - `master` is not an independent production line.
 - If infrastructure still expects `master`, update the infrastructure to deploy from `main` or merge `main` into `master` only through a controlled pull request after tests pass.
+- Do not allow a push to `master` to deploy production.
 
-Batch 34D does not merge or delete branches.
+Batch 35B does not merge or delete branches.
 
 ## Required Gates
 
 Before a production release:
 
 1. All tests must pass for the exact commit.
-2. Composer validation, lint, and PHPStan must pass.
-3. Frontend check, typecheck, and build must pass.
-4. A release approver must approve the GitHub `production` environment deployment.
-5. A production database backup must be taken and verified before migrations run.
+2. The MySQL release-gate job must pass against MySQL 8.
+3. Composer validation, lint, and PHPStan must pass.
+4. Frontend check, typecheck, and build must pass.
+5. A release approver must approve the GitHub `production` environment deployment.
+6. A production database backup must be taken and verified before migrations run.
+
+## Migrations
+
+Before first production launch, existing migrations may be edited only for explicitly approved launch blockers such as MySQL identifier compatibility, because the production database is confirmed to contain no real data.
+
+After production launch, existing migrations must never be edited. Future schema changes must use new migrations.
 
 ## Versioning
 

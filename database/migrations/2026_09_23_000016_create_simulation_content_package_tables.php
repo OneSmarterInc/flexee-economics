@@ -23,7 +23,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->unique(['simulation_week_id', 'package_type', 'version'], 'simulation_content_package_unique');
-            $table->foreign(['simulation_version_id', 'simulation_week_id'])->references(['simulation_version_id', 'id'])->on('simulation_weeks')->restrictOnDelete();
+            $table->foreign(['simulation_version_id', 'simulation_week_id'], 'content_packages_version_week_fk')->references(['simulation_version_id', 'id'])->on('simulation_weeks')->restrictOnDelete();
         });
 
         Schema::create('content_artifacts', function (Blueprint $table) {

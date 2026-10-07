@@ -37,6 +37,7 @@ class SectionSimulationLifecycleTest extends TestCase
             ->assignToSection($graph['section'], $structure['version'], $graph['faculty']);
 
         $this->assertSame($graph['tenant']->id, $sectionSimulation->tenant_id);
+        $this->assertSame($graph['faculty']->id, $sectionSimulation->created_by_user_id);
         $this->assertCount(4, $sectionSimulation->weeks);
         $this->assertDatabaseHas('team_simulations', [
             'tenant_id' => $graph['tenant']->id,
@@ -68,6 +69,61 @@ class SectionSimulationLifecycleTest extends TestCase
 
         app(SimulationLifecycleService::class)
             ->assignToSection($graph['section'], $structure['version'], $other['faculty']);
+    }
+
+    public function test_section_simulation_allows_null_creator(): void
+    {
+        $graph = $this->tenantGraph('A');
+        $structure = $this->simulationStructure(1);
+
+        $sectionSimulation = SectionSimulation::query()->create([
+            'tenant_id' => $graph['tenant']->id,
+            'section_id' => $graph['section']->id,
+            'simulation_id' => $structure['simulation']->id,
+            'simulation_variant_id' => $structure['variant']->id,
+            'simulation_version_id' => $structure['version']->id,
+            'created_by_user_id' => null,
+            'name' => 'Null creator simulation',
+            'status' => 'active',
+            'metadata' => [],
+        ]);
+
+        $this->assertNull($sectionSimulation->created_by_user_id);
+    }
+
+    public function test_section_simulation_rejects_cross_tenant_creator(): void
+    {
+        $graph = $this->tenantGraph('A');
+        $other = $this->tenantGraph('B');
+        $structure = $this->simulationStructure(1);
+
+        $this->expectException(InvalidArgumentException::class);
+
+        SectionSimulation::query()->create([
+            'tenant_id' => $graph['tenant']->id,
+            'section_id' => $graph['section']->id,
+            'simulation_id' => $structure['simulation']->id,
+            'simulation_variant_id' => $structure['variant']->id,
+            'simulation_version_id' => $structure['version']->id,
+            'created_by_user_id' => $other['faculty']->id,
+            'name' => 'Cross tenant creator simulation',
+            'status' => 'active',
+            'metadata' => [],
+        ]);
+    }
+
+    public function test_deleting_creator_nulls_reference_without_changing_tenant(): void
+    {
+        $graph = $this->tenantGraph('A');
+        $sectionSimulation = $this->assignSimulation($graph, $this->simulationStructure(1)['version']);
+
+        $graph['faculty']->delete();
+
+        $sectionSimulation->refresh();
+
+        $this->assertSame($graph['tenant']->id, $sectionSimulation->tenant_id);
+        $this->assertSame($graph['section']->id, $sectionSimulation->section_id);
+        $this->assertNull($sectionSimulation->created_by_user_id);
     }
 
     public function test_section_simulation_rejects_cross_tenant_section_context(): void

@@ -23,7 +23,7 @@ return new class extends Migration
 
             $table->unique(['simulation_week_id', 'key', 'version']);
             $table->unique(['simulation_version_id', 'id']);
-            $table->foreign(['simulation_version_id', 'simulation_week_id'])->references(['simulation_version_id', 'id'])->on('simulation_weeks')->restrictOnDelete();
+            $table->foreign(['simulation_version_id', 'simulation_week_id'], 'decision_forms_version_week_fk')->references(['simulation_version_id', 'id'])->on('simulation_weeks')->restrictOnDelete();
         });
 
         Schema::create('decision_field_definitions', function (Blueprint $table) {
@@ -42,8 +42,8 @@ return new class extends Migration
             $table->json('visibility')->nullable();
             $table->timestamps();
 
-            $table->unique(['decision_form_definition_id', 'field_key']);
-            $table->index(['decision_form_definition_id', 'display_order']);
+            $table->unique(['decision_form_definition_id', 'field_key'], 'decision_fields_decision_form_field_uniq');
+            $table->index(['decision_form_definition_id', 'display_order'], 'decision_fields_decision_form_display_idx');
         });
 
         Schema::create('memo_definitions', function (Blueprint $table) {
@@ -66,7 +66,7 @@ return new class extends Migration
 
             $table->unique(['simulation_week_id', 'key', 'version']);
             $table->unique(['simulation_version_id', 'id']);
-            $table->foreign(['simulation_version_id', 'simulation_week_id'])->references(['simulation_version_id', 'id'])->on('simulation_weeks')->restrictOnDelete();
+            $table->foreign(['simulation_version_id', 'simulation_week_id'], 'memo_defs_version_week_fk')->references(['simulation_version_id', 'id'])->on('simulation_weeks')->restrictOnDelete();
         });
 
         Schema::create('decision_submissions', function (Blueprint $table) {
@@ -89,11 +89,14 @@ return new class extends Migration
 
             $table->unique(['tenant_id', 'section_simulation_week_id', 'team_simulation_id', 'decision_form_definition_id'], 'decision_submissions_current_unique');
             $table->unique(['tenant_id', 'id']);
-            $table->foreign(['tenant_id', 'section_simulation_week_id'])->references(['tenant_id', 'id'])->on('section_simulation_weeks')->cascadeOnDelete();
-            $table->foreign(['tenant_id', 'team_simulation_id', 'team_id'])->references(['tenant_id', 'id', 'team_id'])->on('team_simulations')->cascadeOnDelete();
-            $table->foreign(['tenant_id', 'updated_by_user_id'])->references(['tenant_id', 'id'])->on('users')->nullOnDelete();
-            $table->foreign(['tenant_id', 'submitted_by_user_id'])->references(['tenant_id', 'id'])->on('users')->nullOnDelete();
-            $table->foreign(['decision_form_definition_id'])->references(['id'])->on('decision_form_definitions')->restrictOnDelete();
+            $table->foreign(['tenant_id', 'section_simulation_week_id'], 'decision_subs_tenant_runtime_week_fk')->references(['tenant_id', 'id'])->on('section_simulation_weeks')->cascadeOnDelete();
+            $table->foreign(['tenant_id', 'team_simulation_id', 'team_id'], 'decision_subs_tenant_team_sim_team_fk')->references(['tenant_id', 'id', 'team_id'])->on('team_simulations')->cascadeOnDelete();
+            $table->foreign('updated_by_user_id')->references('id')->on('users')->nullOnDelete();
+            $table->foreign('submitted_by_user_id')->references('id')->on('users')->nullOnDelete();
+            $table->foreign(['decision_form_definition_id'], 'decision_submission_revision_definition_fk')
+                ->references(['id'])
+                ->on('decision_form_definitions')
+                ->restrictOnDelete();
         });
 
         Schema::create('decision_submission_revisions', function (Blueprint $table) {
@@ -109,10 +112,10 @@ return new class extends Migration
             $table->timestamp('submitted_at')->nullable();
             $table->timestamps();
 
-            $table->unique(['decision_submission_id', 'revision_number']);
-            $table->foreign(['tenant_id', 'decision_submission_id'])->references(['tenant_id', 'id'])->on('decision_submissions')->cascadeOnDelete();
-            $table->foreign(['decision_form_definition_id'])->references(['id'])->on('decision_form_definitions')->restrictOnDelete();
-            $table->foreign(['tenant_id', 'actor_user_id'])->references(['tenant_id', 'id'])->on('users')->nullOnDelete();
+            $table->unique(['decision_submission_id', 'revision_number'], 'decision_revs_decision_sub_revision_uniq');
+            $table->foreign(['tenant_id', 'decision_submission_id'], 'decision_revs_tenant_decision_sub_fk')->references(['tenant_id', 'id'])->on('decision_submissions')->cascadeOnDelete();
+            $table->foreign(['decision_form_definition_id'], 'decision_revs_decision_form_fk')->references(['id'])->on('decision_form_definitions')->restrictOnDelete();
+            $table->foreign('actor_user_id')->references('id')->on('users')->nullOnDelete();
         });
 
         Schema::create('memo_submissions', function (Blueprint $table) {
@@ -139,8 +142,8 @@ return new class extends Migration
             $table->unique(['tenant_id', 'id']);
             $table->foreign(['tenant_id', 'section_simulation_week_id'])->references(['tenant_id', 'id'])->on('section_simulation_weeks')->cascadeOnDelete();
             $table->foreign(['tenant_id', 'team_simulation_id', 'team_id'])->references(['tenant_id', 'id', 'team_id'])->on('team_simulations')->cascadeOnDelete();
-            $table->foreign(['tenant_id', 'updated_by_user_id'])->references(['tenant_id', 'id'])->on('users')->nullOnDelete();
-            $table->foreign(['tenant_id', 'submitted_by_user_id'])->references(['tenant_id', 'id'])->on('users')->nullOnDelete();
+            $table->foreign('updated_by_user_id')->references('id')->on('users')->nullOnDelete();
+            $table->foreign('submitted_by_user_id')->references('id')->on('users')->nullOnDelete();
             $table->foreign(['memo_definition_id'])->references(['id'])->on('memo_definitions')->restrictOnDelete();
         });
 
@@ -159,10 +162,10 @@ return new class extends Migration
             $table->timestamp('submitted_at')->nullable();
             $table->timestamps();
 
-            $table->unique(['memo_submission_id', 'revision_number']);
+            $table->unique(['memo_submission_id', 'revision_number'], 'memo_revs_memo_sub_revision_uniq');
             $table->foreign(['tenant_id', 'memo_submission_id'])->references(['tenant_id', 'id'])->on('memo_submissions')->cascadeOnDelete();
             $table->foreign(['memo_definition_id'])->references(['id'])->on('memo_definitions')->restrictOnDelete();
-            $table->foreign(['tenant_id', 'actor_user_id'])->references(['tenant_id', 'id'])->on('users')->nullOnDelete();
+            $table->foreign('actor_user_id')->references('id')->on('users')->nullOnDelete();
         });
     }
 

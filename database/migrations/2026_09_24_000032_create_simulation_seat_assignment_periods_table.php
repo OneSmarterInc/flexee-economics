@@ -28,8 +28,8 @@ return new class extends Migration
             $table->unique(['tenant_id', 'team_simulation_id', 'user_id', 'effective_from_week_number'], 'seat_period_user_week_unique');
             $table->index(['tenant_id', 'team_simulation_id', 'user_id', 'effective_from_week_number'], 'seat_period_user_week_index');
             $table->index(['tenant_id', 'team_simulation_id', 'seat_id', 'effective_from_week_number'], 'seat_period_seat_week_index');
-            $table->foreign(['tenant_id', 'team_simulation_id', 'team_id'])->references(['tenant_id', 'id', 'team_id'])->on('team_simulations')->cascadeOnDelete();
-            $table->foreign(['tenant_id', 'team_id', 'user_id'])->references(['tenant_id', 'team_id', 'user_id'])->on('team_members')->cascadeOnDelete();
+            $table->foreign(['tenant_id', 'team_simulation_id', 'team_id'], 'seat_periods_tenant_team_sim_team_fk')->references(['tenant_id', 'id', 'team_id'])->on('team_simulations')->cascadeOnDelete();
+            $table->foreign(['tenant_id', 'team_id', 'user_id'], 'seat_periods_tenant_team_user_fk')->references(['tenant_id', 'team_id', 'user_id'])->on('team_members')->cascadeOnDelete();
         });
     }
 

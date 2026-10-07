@@ -13,7 +13,7 @@ return new class extends Migration
             $table->ulid('ulid')->unique();
             $table->foreignId('simulation_version_id');
             $table->foreignId('simulation_week_id');
-            $table->foreignId('simulation_content_package_id')->unique();
+            $table->foreignId('simulation_content_package_id');
             $table->string('package_type');
             $table->string('package_version');
             $table->string('status');
@@ -22,8 +22,9 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index(['simulation_week_id', 'package_type', 'status'], 'content_activation_week_status_index');
-            $table->foreign(['simulation_version_id', 'simulation_week_id'])->references(['simulation_version_id', 'id'])->on('simulation_weeks')->restrictOnDelete();
-            $table->foreign('simulation_content_package_id')->references('id')->on('simulation_content_packages')->restrictOnDelete();
+            $table->unique('simulation_content_package_id', 'content_activations_package_unique');
+            $table->foreign(['simulation_version_id', 'simulation_week_id'], 'content_activations_version_week_fk')->references(['simulation_version_id', 'id'])->on('simulation_weeks')->restrictOnDelete();
+            $table->foreign('simulation_content_package_id', 'content_activations_package_fk')->references('id')->on('simulation_content_packages')->restrictOnDelete();
         });
     }
 
