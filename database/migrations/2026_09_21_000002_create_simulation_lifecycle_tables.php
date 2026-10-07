@@ -117,7 +117,7 @@ return new class extends Migration
             $table->unique(['tenant_id', 'id', 'simulation_version_id']);
             $table->index(['tenant_id', 'section_id', 'status']);
             $table->foreign(['tenant_id', 'section_id'])->references(['tenant_id', 'id'])->on('sections')->cascadeOnDelete();
-            $table->foreign(['tenant_id', 'created_by_user_id'])->references(['tenant_id', 'id'])->on('users')->nullOnDelete();
+            $table->foreign('created_by_user_id')->references('id')->on('users')->nullOnDelete();
             $table->foreign(['simulation_id', 'simulation_variant_id', 'simulation_version_id'], 'section_sims_sim_variant_version_fk')->references(['simulation_id', 'simulation_variant_id', 'id'])->on('simulation_versions')->restrictOnDelete();
         });
 
@@ -212,7 +212,7 @@ return new class extends Migration
 
             $table->index(['tenant_id', 'action', 'occurred_at']);
             $table->index(['auditable_type', 'auditable_id']);
-            $table->foreign(['tenant_id', 'actor_user_id'])->references(['tenant_id', 'id'])->on('users')->nullOnDelete();
+            $table->foreign('actor_user_id')->references('id')->on('users')->nullOnDelete();
         });
     }
 

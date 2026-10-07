@@ -29,6 +29,9 @@ class ProductionDeploymentPipelineTest extends TestCase
     {
         $testsWorkflow = $this->readFile('.github/workflows/tests.yml');
 
+        $this->assertStringContainsString('DB_CONNECTION: sqlite', $testsWorkflow);
+        $this->assertStringContainsString('DB_DATABASE: ${{ github.workspace }}/database/database.sqlite', $testsWorkflow);
+        $this->assertStringContainsString('touch database/database.sqlite', $testsWorkflow);
         $this->assertStringContainsString('image: mysql:8.4', $testsWorkflow);
         $this->assertStringContainsString('DB_CONNECTION: mysql', $testsWorkflow);
         $this->assertStringContainsString('DB_COLLATION: utf8mb4_0900_ai_ci', $testsWorkflow);
