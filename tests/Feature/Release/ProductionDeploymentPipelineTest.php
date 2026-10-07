@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Release;
 
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class ProductionDeploymentPipelineTest extends TestCase
@@ -126,6 +127,37 @@ class ProductionDeploymentPipelineTest extends TestCase
         $this->assertSame([], $longIdentifiers);
     }
 
+    public function test_mysql_schema_identifiers_are_mysql_safe_after_migration(): void
+    {
+        if (DB::connection()->getDriverName() !== 'mysql') {
+            $this->markTestSkipped('MySQL information_schema identifier audit requires a MySQL connection.');
+        }
+
+        /** @var list<object{kind: string, table_name: string, identifier: string, length: int}> $longIdentifiers */
+        $longIdentifiers = DB::select(<<<'SQL'
+            SELECT 'index' AS kind, table_name, index_name AS identifier, CHAR_LENGTH(index_name) AS length
+            FROM information_schema.statistics
+            WHERE table_schema = DATABASE()
+              AND CHAR_LENGTH(index_name) > 64
+            UNION ALL
+            SELECT 'constraint' AS kind, table_name, constraint_name AS identifier, CHAR_LENGTH(constraint_name) AS length
+            FROM information_schema.table_constraints
+            WHERE table_schema = DATABASE()
+              AND CHAR_LENGTH(constraint_name) > 64
+            ORDER BY table_name, identifier
+        SQL);
+
+        $this->assertSame([], array_map(
+            fn (object $identifier): array => [
+                'kind' => $identifier->kind,
+                'table' => $identifier->table_name,
+                'identifier' => $identifier->identifier,
+                'length' => $identifier->length,
+            ],
+            $longIdentifiers,
+        ));
+    }
+
     private function readFile(string $path): string
     {
         $fullPath = base_path($path);
@@ -155,6 +187,20 @@ class ProductionDeploymentPipelineTest extends TestCase
             if (preg_match("/->foreignId\\('([^']+)'\\).*->constrained\\(/", $line, $matches) === 1) {
                 $identifiers[] = [
                     'name' => "{$table}_{$matches[1]}_foreign",
+                    'type' => 'foreign',
+                ];
+            }
+
+            if (preg_match("/->\\w+\\('([^']+)'\\).*->unique\\((?:\\s*'([^']+)')?/", $line, $matches) === 1) {
+                $identifiers[] = [
+                    'name' => $matches[2] ?? "{$table}_{$matches[1]}_unique",
+                    'type' => 'unique',
+                ];
+            }
+
+            if (preg_match("/->foreign\\('([^']+)'(?:,\\s*'([^']+)')?/", $line, $matches) === 1) {
+                $identifiers[] = [
+                    'name' => $matches[2] ?? "{$table}_{$matches[1]}_foreign",
                     'type' => 'foreign',
                 ];
             }
