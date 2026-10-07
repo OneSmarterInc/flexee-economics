@@ -8,10 +8,9 @@ This keeps `.env.example` unchanged while ensuring the job named `SQLite CI` act
 
 ## MySQL Foreign Keys
 
-MySQL 8.4 rejected composite `SET NULL` foreign keys that included non-null `tenant_id`. The affected optional user references now use single-column nullable foreign keys:
+MySQL 8.4 rejected composite `SET NULL` foreign keys that included non-null `tenant_id`. The affected optional references now use single-column nullable foreign keys while required tenant-scoped cascade/restrict constraints remain composite.
 
-- `section_simulations.created_by_user_id`
-- `audit_events.actor_user_id`
+This applies to optional user references such as creator, actor, submitter, updater, evaluator, and publisher fields, plus optional runtime/consequence references whose target id is nullable.
 
 The creator relationship remains optional. Deleting the creator user nulls the creator reference while preserving the section simulation's non-null tenant ownership.
 

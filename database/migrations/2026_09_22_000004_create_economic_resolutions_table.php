@@ -41,7 +41,7 @@ return new class extends Migration
             $table->foreign(['tenant_id', 'section_simulation_week_id'], 'econ_res_tenant_runtime_week_fk')->references(['tenant_id', 'id'])->on('section_simulation_weeks')->cascadeOnDelete();
             $table->foreign(['tenant_id', 'team_simulation_id', 'team_id'], 'econ_res_tenant_team_sim_team_fk')->references(['tenant_id', 'id', 'team_id'])->on('team_simulations')->cascadeOnDelete();
             $table->foreign(['tenant_id', 'decision_submission_id'])->references(['tenant_id', 'id'])->on('decision_submissions')->restrictOnDelete();
-            $table->foreign(['tenant_id', 'resolved_by_user_id'])->references(['tenant_id', 'id'])->on('users')->nullOnDelete();
+            $table->foreign('resolved_by_user_id')->references('id')->on('users')->nullOnDelete();
         });
     }
 

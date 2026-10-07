@@ -54,8 +54,8 @@ return new class extends Migration
             $table->index(['tenant_id', 'team_simulation_id', 'target_type', 'target_id'], 'conseq_links_tenant_team_sim_target_type_target_idx');
             $table->index(['tenant_id', 'source_section_simulation_week_id', 'target_section_simulation_week_id'], 'conseq_links_tenant_source_week_target_week_idx');
             $table->foreign(['tenant_id', 'team_simulation_id', 'team_id'])->references(['tenant_id', 'id', 'team_id'])->on('team_simulations')->cascadeOnDelete();
-            $table->foreign(['tenant_id', 'source_section_simulation_week_id'], 'conseq_links_tenant_source_week_fk')->references(['tenant_id', 'id'])->on('section_simulation_weeks')->nullOnDelete();
-            $table->foreign(['tenant_id', 'target_section_simulation_week_id'], 'conseq_links_tenant_target_week_fk')->references(['tenant_id', 'id'])->on('section_simulation_weeks')->nullOnDelete();
+            $table->foreign('source_section_simulation_week_id', 'conseq_links_tenant_source_week_fk')->references('id')->on('section_simulation_weeks')->nullOnDelete();
+            $table->foreign('target_section_simulation_week_id', 'conseq_links_tenant_target_week_fk')->references('id')->on('section_simulation_weeks')->nullOnDelete();
         });
     }
 

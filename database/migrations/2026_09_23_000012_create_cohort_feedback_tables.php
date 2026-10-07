@@ -48,7 +48,7 @@ return new class extends Migration
             $table->unique(['tenant_id', 'section_simulation_id', 'source_section_simulation_week_id', 'cohort_response_function_id'], 'cohort_aggregate_unique');
             $table->foreign(['tenant_id', 'source_section_simulation_week_id'], 'cohort_aggs_tenant_source_week_fk')->references(['tenant_id', 'id'])->on('section_simulation_weeks')->cascadeOnDelete();
             $table->foreign(['tenant_id', 'target_section_simulation_week_id'], 'cohort_aggs_tenant_target_week_fk')->references(['tenant_id', 'id'])->on('section_simulation_weeks')->cascadeOnDelete();
-            $table->foreign(['tenant_id', 'calculated_by_user_id'], 'cohort_aggs_tenant_calculated_by_fk')->references(['tenant_id', 'id'])->on('users')->nullOnDelete();
+            $table->foreign('calculated_by_user_id', 'cohort_aggs_tenant_calculated_by_fk')->references('id')->on('users')->nullOnDelete();
             $table->foreign('cohort_response_function_id')->references('id')->on('cohort_response_functions')->cascadeOnDelete();
         });
 
