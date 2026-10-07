@@ -35,6 +35,8 @@ class ProductionDeploymentPipelineTest extends TestCase
         $this->assertStringContainsString('image: mysql:8.4', $testsWorkflow);
         $this->assertStringContainsString('DB_CONNECTION: mysql', $testsWorkflow);
         $this->assertStringContainsString('DB_COLLATION: utf8mb4_0900_ai_ci', $testsWorkflow);
+        $this->assertStringContainsString('npm ci', $testsWorkflow);
+        $this->assertStringContainsString('npm run build', $testsWorkflow);
         $this->assertStringContainsString('php artisan migrate:fresh --seed --no-interaction', $testsWorkflow);
         $this->assertStringContainsString('php artisan test', $testsWorkflow);
     }
