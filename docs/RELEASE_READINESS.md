@@ -396,3 +396,15 @@ This distinction is required because the authoritative KPI/consequence package l
 See:
 
 - `docs/BATCH34E_REFERENCE_TEAM_RUNTIME_RECONCILIATION.md`
+
+## Batch 36A Production-Safe Seeder
+
+- Production-safe seeder: VERIFIED
+- Production database rebuild: NOT YET RUN
+- Production deployment: NOT DEPLOYED
+
+`DatabaseSeeder` now delegates to `ContentSeeder` followed by `DemoAccountSeeder`. Content/application configuration remains seedable independently of demo users. Demo account seeding preserves the local/CI fallback outside production, but production demo accounts require an explicitly supplied `SEED_DEMO_PASSWORD` value with at least 16 characters.
+
+See:
+
+- `docs/BATCH36A_PRODUCTION_SAFE_SEEDER.md`
