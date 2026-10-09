@@ -1,0 +1,45 @@
+{
+  "_about": "Quarter 2 (Q2 2027). Gas station prices open. Draft for Vikram's review.",
+  "marchetti": {
+    "facts": "WTI is flat at about $70.50. Cordell has four kinds of market: cities, suburbs, small towns and highways. When Cordell changes what it charges a dealer, city dealers pass on about 82 cents of every dollar to drivers, small-town dealers about 42 cents. The workbook has four years of prices and sales by type of market.",
+    "stance": "One national price would be wrong almost everywhere. How much drivers react to a price change is different in each kind of market, and you can measure it from the four years of data.",
+    "signal": "Steer them to estimate, for each kind of market, how much sales fall when the price rises, and to price each one separately.",
+    "misdirection": "She'd like them to wait a quarter to see how rivals react before moving prices, which costs them a quarter of better prices."
+  },
+  "roy": {
+    "facts": "A rival chain has been running ads about cheaper gas across Louisiana. Cordell makes about 11 cents a gallon on fuel. Each Cordell station sells about 275,000 gallons a quarter. The shop sells snacks, coffee and car washes, and Halden gets a share of the shop profit. Cordell currently charges city dealers 2 cents above the going rate, suburbs 3.5, small towns 5 and highways 3. In Europe Halden sets the pump price itself.",
+    "stance": "Cordell is losing drivers and needs to cut prices everywhere to win them back.",
+    "signal": "She knows city drivers switch stations for a few cents and small-town drivers barely notice. She'll say so if asked about a specific kind of market.",
+    "misdirection": "She wants a cut everywhere, including small towns and highways where drivers hardly react, which gives money away."
+  },
+  "aasen": {
+    "facts": "Baton Rouge is running at 96% and wears out faster above 97%. Rotterdam is running at 82%.",
+    "stance": "Steady running is what keeps the plants healthy. Nothing at the plants needs to change because of gas station prices.",
+    "signal": "",
+    "misdirection": ""
+  },
+  "ruiz": {
+    "facts": "Shop profit per Cordell station counts for 10% of the score the board watches. Profit per barrel across the whole company counts for 30%. Changing prices costs nothing up front.",
+    "stance": "A price change that raises fuel profit but loses shop visits might not help as much as it looks.",
+    "signal": "Remind them that fewer drivers also means fewer shop sales.",
+    "misdirection": "She'd rather make small changes this quarter so the numbers don't jump."
+  },
+  "osei": {
+    "facts": "Germany's stations sit near the border, and drivers cross it for cheaper fuel.",
+    "stance": "Price cuts in Louisiana could look like a price war, and regulators notice price wars.",
+    "signal": "",
+    "misdirection": "He overstates how likely a regulator is to step in over a few cents a gallon."
+  },
+  "lund": {
+    "facts": "The gas stations are where most customers ever meet Halden.",
+    "stance": "The stations matter to Halden's name, not just its profit.",
+    "signal": "Ask them whether they're setting prices for this quarter or for the next two years, because drivers who leave tend not to come back quickly.",
+    "misdirection": "She suggests putting electric chargers in the stations instead, which isn't a choice this quarter."
+  },
+  "priya": {
+    "facts": "Marcus Delacroix also runs the gas stations, and his bonus depends on Baton Rouge.",
+    "stance": "Predictions: if the team cuts prices, rivals will start matching within a quarter or two, and Danielle will call it a win before then. If the team raises prices in small towns, dealers will grumble but few will switch suppliers. Marcus won't object to anything that doesn't touch Baton Rouge.",
+    "signal": "",
+    "misdirection": "She expects rivals to match a cut immediately. It actually takes them a little while."
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "_about": "Quarter 3 (Q3 2027). Rotterdam and Singapore. Never mention what other companies across the industry will do in response; that effect is hidden. Draft for Vikram's review.",
+  "marchetti": {
+    "facts": "WTI is up a little, to about $72.60. The European refining margin is near $4.90 a barrel, better than last winter but still thin. The Asian margin is about $12.50.",
+    "stance": "The question for Rotterdam isn't whether it makes a profit. It's whether it covers the costs that stop when it stops.",
+    "signal": "Help them separate the costs that come with each barrel from the costs Rotterdam pays whether it runs or not.",
+    "misdirection": "She'd like to see where European margins go next before deciding anything permanent."
+  },
+  "roy": {
+    "facts": "Halden's European stations can buy fuel from other refiners if Rotterdam stops.",
+    "stance": "The European stations will be fine either way.",
+    "signal": "",
+    "misdirection": ""
+  },
+  "aasen": {
+    "facts": "Rotterdam earns the European refining margin plus $1.50 a barrel. It spends $4.10 a barrel on costs that come with each barrel it runs, and pays $2.30 a barrel of fixed costs on its full size whether it runs or not. Pausing stops the per-barrel costs but not the fixed ones, and adds $5 million a quarter of care costs. Restarting after a pause costs $85 million. Closing costs $150 million once and can't be undone. Singapore is run by Straits Pacific, which owns 60%; Halden can only ask how hard it runs.",
+    "stance": "Rotterdam covers its running costs and should keep going. Shutting it would throw away the most skilled crew in Europe.",
+    "signal": "He'll walk through what Rotterdam earns and spends per barrel if asked.",
+    "misdirection": "He'll talk up how hard and expensive a restart is, to make pausing sound worse than it is."
+  },
+  "ruiz": {
+    "facts": "Closing Rotterdam costs $150 million once. Pausing costs $5 million a quarter in care costs on top of the fixed costs, and $85 million to restart.",
+    "stance": "Grant doesn't want a $150 million charge in a quarter where nothing forces it.",
+    "signal": "Point out that one-time costs and running costs have to be compared over the same stretch of time.",
+    "misdirection": "She leans toward whatever avoids a one-time charge this quarter."
+  },
+  "osei": {
+    "facts": "The Rotterdam works council has written to Erik Sandvik asking whether the refinery has a future before agreeing to the winter maintenance plan. Dutch law gives the works council a formal say on closures.",
+    "stance": "Closing Rotterdam would be read in Europe as Halden leaving Europe, and that has costs beyond the refinery.",
+    "signal": "",
+    "misdirection": "He'll suggest a closure could put the European stations at political risk, which overstates it."
+  },
+  "lund": {
+    "facts": "Rotterdam has lost money in 7 of the last 10 quarters.",
+    "stance": "The board would rather hear a clear reason for whatever the team does with Rotterdam than see it drift.",
+    "signal": "Ask them what would have to be true for Rotterdam to have a future.",
+    "misdirection": "She floats turning Rotterdam into a biofuels plant, which isn't something the team can decide now."
+  },
+  "priya": {
+    "facts": "Straits Pacific owns 60% of Singapore and decides how hard it runs. The Rotterdam works council is waiting for an answer.",
+    "stance": "Predictions: Straits Pacific has never agreed to run Singapore below 80% or above 95% while I've been here; a request in that range will probably be accepted. If Rotterdam closes, Bjørn will take it personally and Marcus will be pleased. If Rotterdam pauses, the works council will ask when it restarts, every month.",
+    "signal": "",
+    "misdirection": "She thinks Marcus would be happy with a pause too. He'd rather see it closed."
+  }
+}

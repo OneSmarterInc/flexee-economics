@@ -2,6 +2,10 @@
 
 namespace App\Halden\Game;
 
+use App\Halden\Ai\AdvisorRoom;
+use App\Halden\Ai\Carrying;
+use App\Halden\Ai\FacultyDrafts;
+use App\Halden\Ai\HelpDesk;
 use App\Halden\Content\ContentPack;
 use App\Halden\OperatingModel\ModelData;
 use App\Halden\OperatingModel\OperatingModel;
@@ -37,7 +41,24 @@ final class QuarterView
         private readonly DecisionBook $book,
         private readonly OperatingModel $model,
         private readonly QuarterRunner $runner,
+        private readonly AdvisorRoom $room,
+        private readonly FacultyDrafts $drafts,
+        private readonly Carrying $carrying,
+        private readonly HelpDesk $help,
     ) {}
+
+    /** @return array{title: string, text: string|null, reason: string|null}|null */
+    private function carryingFor(?TeamQuarter $tq, bool $forFaculty): ?array
+    {
+        if ($tq === null || $tq->carrying_status === null) {
+            return null;
+        }
+        if ($tq->carrying_status !== 'ok' && ! $forFaculty) {
+            return null;
+        }
+
+        return ['title' => $this->carrying->title(), 'text' => $tq->carrying, 'reason' => $forFaculty ? $tq->carrying_reason : null];
+    }
 
     /** @return array<string, mixed> */
     public function build(Team $team, Quarter $quarter, ?User $viewer, bool $readOnly = false): array
@@ -95,7 +116,7 @@ final class QuarterView
             'content' => $this->content->hasQuarter($quarter->number) ? $this->contentFor($quarter) : null,
             'market' => $this->marketRows($quarter),
             'wti' => $this->wtiHistory($quarter),
-            'advisors' => $this->content->opening()['advisors'],
+            'advisors' => $this->room->view($team, $quarter, forFaculty: $readOnly && $me === null),
             'leverText' => $this->content->leverText(),
             'pages' => array_values(array_intersect(array_keys(self::PAGE_TITLES), $this->book->openPages($quarter->number))),
             'decisions' => [
@@ -124,6 +145,11 @@ final class QuarterView
             'ready' => $tq?->ready_at?->toIso8601String(),
             'results' => $quarter->status === Quarter::PUBLISHED && $tq !== null && $tq->results !== null
                 ? $this->results($team, $quarter, $tq, $data) : null,
+            'carrying' => $this->carryingFor($tq, $readOnly && $me === null),
+            'help' => $this->help->view() + ['enabled' => $this->help->enabled()],
+            'feedback' => $tq?->feedback_published_at !== null && trim((string) $tq->feedback) !== ''
+                ? ['title' => $this->drafts->screenText()['student_title'], 'text' => (string) $tq->feedback, 'at' => $tq->feedback_published_at->toIso8601String()]
+                : null,
         ];
     }
 
@@ -246,6 +272,11 @@ final class QuarterView
         if (abs((float) $r['line.rotterdam_one_time']) > 0.05) {
             $named[] = ['name' => 'Rotterdam one-time cost', 'amount' => (float) $r['line.rotterdam_one_time'],
                 'why' => (float) $r['line.rotterdam_one_time'] <= -100 ? 'The cost of closing the refinery.' : 'The cost of restarting the refinery.'];
+        }
+        if (abs((float) ($r['line.advisor_time'] ?? 0)) > 0.0001) {
+            $n = (int) ($r['advisor.answers'] ?? 0);
+            $named[] = ['name' => 'Advisor time', 'amount' => (float) $r['line.advisor_time'],
+                'why' => sprintf('%d %s from your advisors, at $%sK each. Counted under Head office.', $n, $n === 1 ? 'answer' : 'answers', number_format($data->c('advisor_cost_per_answer') * 1000))];
         }
         $named[] = ['name' => 'Drilling in Texas (capital spending, not in EBITDA)', 'amount' => -(float) $d['rigs'] * $data->c('rig_capex_per_qtr'),
             'why' => sprintf('%d rigs at $%dM each this quarter.', (int) $d['rigs'], (int) $data->c('rig_capex_per_qtr'))];

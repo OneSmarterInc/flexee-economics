@@ -1,0 +1,45 @@
+{
+  "_about": "Quarter 1 (Q1 2027). What each advisor knows, believes, should help the team notice, and gets wrong this quarter. Empty means nothing for them this quarter. Draft for Vikram's review.",
+  "marchetti": {
+    "facts": "US oil (WTI) fell from $73.10 to $71.00 a barrel over the winter. Brent is usually $4.50 above WTI. The Gulf Coast refining margin is about $22.50 a barrel, the European margin about $4.00, the Asian margin about $12.50. Last quarter Halden earned $3,750M before interest, tax and depreciation: oil fields $2,496M, refineries $1,073M, Geneva $45M, gas stations $336M, head office -$200M. A Texas barrel sells for about $3.50 under WTI at the wellhead, and costs on average $9.90 to lift and $2.10 to gather.",
+    "stance": "The parts of Halden can only be compared per barrel, not in totals. The oil fields look like the hero because oil is still above $70, but that is the price talking, not the management.",
+    "signal": "Steer them to compare each business on what it earns per barrel it handles, and to ask what each one would earn at a different oil price.",
+    "misdirection": "She'd like another quarter of data before changing the rig count, even though waiting has a cost too."
+  },
+  "roy": {
+    "facts": "Cordell has 4,300 stations and Halden has 1,100 in the Netherlands, Belgium and Germany. Cordell makes about 11 cents a gallon on fuel. Gas station prices can't be changed until next quarter.",
+    "stance": "The gas stations are the steadiest money Halden has, and nobody upstairs gives them credit for it.",
+    "signal": "",
+    "misdirection": "She'll suggest the stations deserve more investment before anyone has compared them per barrel with the rest."
+  },
+  "aasen": {
+    "facts": "Fourteen rigs are drilling in Texas. A rig costs $40 million a quarter. The first eight rigs drill the best ground; each new rig on top of that adds about 950 barrels a day at best, and each rig past the eighth drills poorer ground, so it adds less than the one before. New wells take about three months to start pumping, and Texas output falls about 8% a quarter without new wells. Baton Rouge is running at 96% and wears out faster above 97%. Rotterdam is running at 82%. Rotterdam spends $4.10 a barrel on costs that come with each barrel and $2.30 a barrel of fixed costs on its full size.",
+    "stance": "Fourteen rigs is what the field can take, and cutting rigs means losing crews you won't get back quickly.",
+    "signal": "If asked, he'll confirm that the extra oil from each added rig shrinks past the eighth rig, and that the oil from a new well keeps flowing for many quarters, falling a little each quarter.",
+    "misdirection": "He'll say the last few rigs are needed to keep crews together, which is about people, not the economics of the last rig."
+  },
+  "ruiz": {
+    "facts": "Rigs are capital spending, not a running cost, so they don't show up in earnings before interest, tax and depreciation, but they do come out of free cash flow. Halden pays out $1,750M a quarter to shareholders. The score the board watches gives 30% weight to profit per barrel across the whole company.",
+    "stance": "Grant wants a steady first quarter from the new EVP. Big swings in spending will get questions.",
+    "signal": "Point them at free cash flow as the place where rig spending shows up.",
+    "misdirection": "She'll favour keeping the rig count close to last year's to avoid surprising Grant, whatever the last rig earns."
+  },
+  "osei": {
+    "facts": "In Norway the government takes 78% of the profit on every barrel and absorbs 78% of any loss. Kessana runs under a contract with the Kessana government; Halden keeps 38% of the profit oil there and can't change the volume. Halden's Norway fields can be kept as planned or run 10% lower.",
+    "stance": "Norway is very stable and very heavily taxed, so changes there move Halden's profit far less than they seem to.",
+    "signal": "Help them see that both savings and losses in Norway are mostly shared with the government.",
+    "misdirection": "He worries that pumping less in Norway would upset the ministry, which overstates a small risk."
+  },
+  "lund": {
+    "facts": "The board created the EVP job in December 2026 to run Halden as one company. Rotterdam has lost money in 7 of the last 10 quarters. The board will decide in 14 quarters whether the job stays.",
+    "stance": "The board wants to see the team understand the whole company, not just defend whichever piece looked good last year.",
+    "signal": "Push them to say which parts of Halden actually create value and which only look good because of the oil price.",
+    "misdirection": "She'll wonder aloud whether Texas drilling money would be better spent on cleaner energy, which isn't a choice on the table this quarter."
+  },
+  "priya": {
+    "facts": "Marcus Delacroix runs the refineries and gas stations, reports to the EVP, and is paid on Baton Rouge's profit. Ingrid Vestergaard used to run the oil fields and now reviews big projects in Corporate Strategy. Grant Whitaker, the CFO, wants to hear by Thursday whether the team will change anything.",
+    "stance": "Predictions: if Texas drills fewer rigs, Ingrid will ask Grant why, probably within the quarter. If the team talks about selling Rotterdam, Marcus will be pleased and say so loudly. If the team keeps everything as it is, Grant will be relieved but will ask what the team learned.",
+    "signal": "",
+    "misdirection": "She thinks Marcus won't care what happens in Texas. She may be wrong about that."
+  }
+}

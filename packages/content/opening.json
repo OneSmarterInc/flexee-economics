@@ -112,12 +112,12 @@
     }
   },
   "advisors": [
-    {"initials": "EM", "name": "Dr. Elena Marchetti", "role": "Chief Economist", "good_at": "Reading what oil prices, currencies and the economy are telling you.", "watch_out": "She'll want more data than you have time to wait for."},
-    {"initials": "DR", "name": "Danielle Roy", "role": "Head of Sales and Marketing", "good_at": "Knowing where your customers are and how they react to price changes.", "watch_out": "She'll fight for market share even when it's costing you money."},
-    {"initials": "BA", "name": "Bjørn Aasen", "role": "Head of Operations", "good_at": "Knowing what the refineries and oil fields can actually do, and what breaks if you push them.", "watch_out": "He hates shutting anything down, even when it's the right call."},
-    {"initials": "AR", "name": "Ana Ruiz", "role": "VP Finance", "good_at": "Returns, cash, and what the CFO will approve.", "watch_out": "She also reports to the CFO, so her advice has to keep him happy too."},
-    {"initials": "KO", "name": "Dr. Kwame Osei", "role": "VP Political Risk", "good_at": "Governments, regulators, and how a decision will look in five years.", "watch_out": "He'll give up money today to avoid risks that might never happen."},
-    {"initials": "ML", "name": "Margrethe Lund", "role": "Board member", "good_at": "The big question of what Halden should become.", "watch_out": "She'd move into clean energy faster than the numbers support."},
-    {"initials": "PV", "name": "Priya Venkatesan", "role": "Your chief of staff", "good_at": "Predicting how people will react: will Marcus push back, will Singapore say yes.", "watch_out": "It's her best guess, and sometimes she's wrong."}
+    {"key": "marchetti", "initials": "EM", "name": "Dr. Elena Marchetti", "role": "Chief Economist", "good_at": "Reading what oil prices, currencies and the economy are telling you.", "watch_out": "She'll want more data than you have time to wait for."},
+    {"key": "roy", "initials": "DR", "name": "Danielle Roy", "role": "Head of Sales and Marketing", "good_at": "Knowing where your customers are and how they react to price changes.", "watch_out": "She'll fight for market share even when it's costing you money."},
+    {"key": "aasen", "initials": "BA", "name": "Bjørn Aasen", "role": "Head of Operations", "good_at": "Knowing what the refineries and oil fields can actually do, and what breaks if you push them.", "watch_out": "He hates shutting anything down, even when it's the right call."},
+    {"key": "ruiz", "initials": "AR", "name": "Ana Ruiz", "role": "VP Finance", "good_at": "Returns, cash, and what the CFO will approve.", "watch_out": "She also reports to the CFO, so her advice has to keep him happy too."},
+    {"key": "osei", "initials": "KO", "name": "Dr. Kwame Osei", "role": "VP Political Risk", "good_at": "Governments, regulators, and how a decision will look in five years.", "watch_out": "He'll give up money today to avoid risks that might never happen."},
+    {"key": "lund", "initials": "ML", "name": "Margrethe Lund", "role": "Board member", "good_at": "The big question of what Halden should become.", "watch_out": "She'd move into clean energy faster than the numbers support."},
+    {"key": "priya", "initials": "PV", "name": "Priya Venkatesan", "role": "Your chief of staff", "good_at": "Predicting how people will react: will Marcus push back, will Singapore say yes.", "watch_out": "It's her best guess, and sometimes she's wrong."}
   ]
 }

@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { Head, router, usePage } from '@inertiajs/vue3';
 import { computed, reactive, ref, watch } from 'vue';
+import AdvisorsPanel from '@/halden/AdvisorsPanel.vue';
+import HelpPanel from '@/halden/HelpPanel.vue';
 import type {
     DecisionMap,
     DecisionValue,
@@ -475,20 +477,25 @@ function quarterHref(id: number): string {
                 >
                 <span style="color: #c9d4da">{{ quarter.deadlineText }}</span>
             </div>
-            <nav aria-label="Quarters" class="flex flex-wrap gap-1.5">
-                <a
-                    v-for="q in quarters.filter((q) => q.status !== 'upcoming')"
-                    :key="q.id"
-                    :href="quarterHref(q.id)"
-                    class="rounded px-2 py-1 text-[12px] no-underline"
-                    :style="
-                        q.id === quarter.id
-                            ? 'background: #2a3b47; color: #fff'
-                            : 'color: #c9d4da'
-                    "
-                    >Q{{ q.number }}</a
-                >
-            </nav>
+            <div class="flex flex-wrap items-center gap-3">
+                <nav aria-label="Quarters" class="flex flex-wrap gap-1.5">
+                    <a
+                        v-for="q in quarters.filter(
+                            (q) => q.status !== 'upcoming',
+                        )"
+                        :key="q.id"
+                        :href="quarterHref(q.id)"
+                        class="rounded px-2 py-1 text-[12px] no-underline"
+                        :style="
+                            q.id === quarter.id
+                                ? 'background: #2a3b47; color: #fff'
+                                : 'color: #c9d4da'
+                        "
+                        >Q{{ q.number }}</a
+                    >
+                </nav>
+                <HelpPanel :help="help" />
+            </div>
         </header>
         <div
             class="hx-serif px-7 py-2 text-[15px] italic"
@@ -597,7 +604,11 @@ function quarterHref(id: number): string {
                                 class="hx-eyebrow mb-1.5"
                                 style="color: var(--hx-teal)"
                             >
-                                Where you left off
+                                {{
+                                    quarter.number > 1 && carrying?.text
+                                        ? carrying.title
+                                        : 'Where you left off'
+                                }}
                             </div>
                             <p v-if="quarter.number === 1" class="hx-p m-0">
                                 This is your first quarter. Everything the old
@@ -606,6 +617,18 @@ function quarterHref(id: number): string {
                                     Your team's plan: {{ team.strategy }}</span
                                 >
                             </p>
+                            <template v-else-if="carrying">
+                                <p v-if="carrying.text" class="hx-p m-0">
+                                    {{ carrying.text }}
+                                </p>
+                                <p
+                                    v-if="carrying.reason"
+                                    class="mt-1 text-[13px]"
+                                    style="color: var(--hx-amber-text)"
+                                >
+                                    Not shown to the team: {{ carrying.reason }}
+                                </p>
+                            </template>
                             <p v-else class="hx-p m-0">
                                 {{
                                     team.strategy ??
@@ -778,57 +801,13 @@ function quarterHref(id: number): string {
 
                 <!-- Advisors -->
                 <template v-if="section === 'advisors'">
-                    <div class="hx-card">
-                        <h1 class="hx-h1">Your advisors</h1>
-                        <p class="hx-p">
-                            Your six advisors and your chief of staff will be
-                            available here to talk with your team. Their time
-                            will cost Halden money, nothing you say to them is
-                            graded, and your instructor can read the
-                            conversations.
-                        </p>
-                        <p class="hx-hint">
-                            Conversations with advisors open in the next version
-                            of Halden. For now, here's who they are.
-                        </p>
-                    </div>
-                    <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
-                        <div
-                            v-for="a in advisors"
-                            :key="a.name"
-                            class="hx-card flex gap-3.5"
-                        >
-                            <div
-                                class="flex h-10 w-10 flex-none items-center justify-center rounded-full text-[13px] font-semibold"
-                                style="
-                                    background: var(--hx-teal-soft);
-                                    color: var(--hx-teal);
-                                "
-                            >
-                                {{ a.initials }}
-                            </div>
-                            <div>
-                                <div class="font-semibold">{{ a.name }}</div>
-                                <div class="hx-hint mb-2">{{ a.role }}</div>
-                                <div class="text-[14px] leading-snug">
-                                    <span
-                                        class="font-medium"
-                                        style="color: var(--hx-teal)"
-                                        >Good at:</span
-                                    >
-                                    {{ a.good_at }}
-                                </div>
-                                <div class="mt-1 text-[14px] leading-snug">
-                                    <span
-                                        class="font-medium"
-                                        style="color: var(--hx-amber-text)"
-                                        >Watch out for:</span
-                                    >
-                                    {{ a.watch_out }}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <AdvisorsPanel
+                        :advisors="advisors"
+                        :quarter-id="quarter.id"
+                        :can-ask="!readOnly && me !== null"
+                        :for-faculty="readOnly && me === null"
+                        @go-decide="go(pages[0] as Section)"
+                    />
                 </template>
 
                 <!-- The big question -->
@@ -1787,6 +1766,21 @@ function quarterHref(id: number): string {
 
                 <!-- Results -->
                 <template v-if="showResults && results">
+                    <div
+                        v-if="section === 'story' && feedback"
+                        class="hx-card"
+                        style="
+                            border-color: var(--hx-teal);
+                            background: var(--hx-teal-wash);
+                        "
+                    >
+                        <div class="hx-eyebrow mb-1.5">
+                            {{ feedback.title }}
+                        </div>
+                        <p class="hx-p whitespace-pre-line">
+                            {{ feedback.text }}
+                        </p>
+                    </div>
                     <div v-if="section === 'story'" class="hx-card">
                         <div class="hx-eyebrow mb-2">
                             {{ quarter.label }} · What happened

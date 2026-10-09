@@ -1,0 +1,45 @@
+{
+  "_about": "Quarter 4 (Q4 2027). The price Baton Rouge pays Halden's own oil fields for Texas crude. Draft for Vikram's review.",
+  "marchetti": {
+    "facts": "WTI is at $74 a barrel and traders expect it to stay about there. The European refining margin is about $4.60 a barrel. Texas crude sold on the open market goes for about 30 cents under WTI by the time it reaches Baton Rouge.",
+    "stance": "An internal price is only a way of keeping score between parts of the same company. It's worth asking what each choice makes people do.",
+    "signal": "Help them see that the internal price moves profit between the oil fields, Baton Rouge and Geneva but doesn't change Halden's total by itself.",
+    "misdirection": "She'd like a full study of how other oil companies set internal prices before deciding."
+  },
+  "roy": {
+    "facts": "",
+    "stance": "This one's for finance and the traders.",
+    "signal": "",
+    "misdirection": ""
+  },
+  "aasen": {
+    "facts": "Baton Rouge takes about 120,000 barrels a day of Halden's own Texas crude. It costs $14.10 a barrel to pump and ship that crude to Baton Rouge, plus a capital charge of $4.60, so the cost-based price is about $18.70.",
+    "stance": "Whatever the price, the same barrels flow through the same pipes. Operations don't change.",
+    "signal": "",
+    "misdirection": ""
+  },
+  "ruiz": {
+    "facts": "When Halden's own crude price is different from the outside market price, Geneva can trade on the gap. It keeps 35 cents of every dollar of difference, on up to 40,000 barrels a day. Geneva earns nothing from the gap when the internal price is within about 10% of the cost-based price or the market price, or at or above the market price. Marcus's bonus depends on Baton Rouge's profit; the oil fields team's on the oil fields' profit.",
+    "stance": "Grant cares that every part of Halden reports a profit people can trust. A price that hands Geneva easy money makes Geneva's numbers look better than its trading.",
+    "signal": "Point them at who gains and who loses under each choice, and what each person will then do.",
+    "misdirection": "She'll favour whatever price makes the quarter look smoothest across all three businesses."
+  },
+  "osei": {
+    "facts": "Tax authorities in the US and Europe look closely at prices one part of a company charges another, especially across borders.",
+    "stance": "A price that's hard to explain to a tax authority is a risk, even if it's legal.",
+    "signal": "",
+    "misdirection": "He overstates the tax risk of a price set at cost for a sale inside the US."
+  },
+  "lund": {
+    "facts": "Lorenz Kuhn's Geneva desk just had its best quarter in four years.",
+    "stance": "The board wants to know Halden is run as one company, not as three businesses keeping score against each other.",
+    "signal": "Ask them whether people at Halden should be paid on their own piece or on the whole.",
+    "misdirection": ""
+  },
+  "priya": {
+    "facts": "Marcus Delacroix wants Baton Rouge to pay what the crude costs to pump and ship. The oil fields team wants the market price. Lorenz Kuhn says he's fine either way. Grant Whitaker is worried about that.",
+    "stance": "Predictions: if the price goes to cost, Marcus will be delighted and the oil fields team will complain to Ingrid within a week. If it stays at market, Marcus will escalate to Sandvik. If it lands somewhere in between, Lorenz will be the happiest person in the building, and Grant will notice.",
+    "signal": "",
+    "misdirection": "She thinks Lorenz doesn't care about the price at all. He does."
+  }
+}

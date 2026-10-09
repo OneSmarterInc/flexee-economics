@@ -58,11 +58,36 @@ export interface MarketRow {
 }
 
 export interface Advisor {
+    key: string;
     initials: string;
     name: string;
     role: string;
     good_at: string;
     watch_out: string;
+}
+
+export interface AdvisorMessageView {
+    id: number;
+    from: 'team' | 'advisor' | 'notice' | 'dropped';
+    who: string;
+    body: string;
+    reason?: string | null;
+    at: string | null;
+}
+
+export interface AdvisorCard extends Advisor {
+    first: string;
+    used: number;
+    limit: number;
+    left: number;
+    messages: AdvisorMessageView[];
+}
+
+export interface AdvisorsView {
+    enabled: boolean;
+    open: boolean;
+    text: Record<string, string>;
+    cards: AdvisorCard[];
 }
 
 export interface Results {
@@ -111,7 +136,7 @@ export interface PlayProps {
     content: QuarterContent | null;
     market: MarketRow[];
     wti: { label: string; value: number; current: boolean }[];
-    advisors: Advisor[];
+    advisors: AdvisorsView;
     leverText: LeverText;
     pages: string[];
     decisions: {
@@ -135,6 +160,17 @@ export interface PlayProps {
     memo: { text: string; savedAt: string | null };
     ready: string | null;
     results: Results | null;
+    feedback: { title: string; text: string; at: string } | null;
+    carrying: {
+        title: string;
+        text: string | null;
+        reason: string | null;
+    } | null;
+    help: {
+        enabled: boolean;
+        screen: Record<string, string>;
+        faq: { q: string; a: string }[];
+    };
 }
 
 export interface LeverText {
