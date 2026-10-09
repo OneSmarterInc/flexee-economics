@@ -1,0 +1,7 @@
+parameter,value,note
+street_cut_usd_gal,0.06,what Pelican took off the pump price near Cordell stations
+pump_price_usd_gal,3.2,typical pump price
+cordell_fuel_margin_usd_gal,0.11,what Cordell makes on a gallon of fuel
+shop_margin_usd_gal,0.42,dealer shop margin per gallon of fuel sold
+halden_share_of_shop_margin,0.36,Halden's share of the dealer's shop margin
+chance_pelican_builds,0.7,Ana's team's read of Pelican's balance sheet

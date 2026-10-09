@@ -19,3 +19,8 @@ nok_hedge,trading_finance,Kroner bought forward for next quarter,usd_m,0,600,25,
 proj_br_upgrade,capital,Baton Rouge upgrade,choice hold|commit,,,,hold,6,your_call
 proj_rot_upgrade,capital,Rotterdam upgrade,choice hold|commit,,,,hold,6,your_call
 proj_helix,capital,Helix,choice hold|commit,,,,hold,6,your_call
+resp_urban,gas_stations,Cordell · cities: the rival's cut,choice ignore|match,,,,ignore,7,your_call
+resp_suburban,gas_stations,Cordell · suburbs: the rival's cut,choice ignore|match,,,,ignore,7,your_call
+resp_rural,gas_stations,Cordell · small towns: the rival's cut,choice ignore|match,,,,ignore,7,your_call
+resp_interstate,gas_stations,Cordell · highways: the rival's cut,choice ignore|match,,,,ignore,7,your_call
+capacity_response,capital,Pelican's new Gulf Coast refining unit,choice hold|match,,,,hold,7,your_call

@@ -11,6 +11,7 @@ final class Decisions
     /**
      * @param  array<string, float>  $offsets  cents per gallon above (+) or below (-) the going rate, by station market
      * @param  array<string, string>  $projects  project key => commit | hold
+     * @param  array<string, string>  $responses  Cordell cluster => ignore | match the rival's street cut
      */
     public function __construct(
         public int $rigs = 14,
@@ -27,6 +28,8 @@ final class Decisions
         public float $eurHedge = 0.0,           // USD m of euros sold forward for next quarter
         public float $nokHedge = 0.0,           // USD m of kroner bought forward for next quarter
         public array $projects = [],
+        public array $responses = [],
+        public string $capacityResponse = 'hold',  // hold | match the rival's Gulf Coast expansion
     ) {}
 
     /** @param  array<string, mixed>  $row  a row shaped like fixtures/reference_decisions.csv */
@@ -54,6 +57,22 @@ final class Decisions
             eurHedge: (float) ($row['eur_hedge'] ?? 0),
             nokHedge: (float) ($row['nok_hedge'] ?? 0),
             projects: array_filter(array_map(fn (string $k): string => (string) ($row["proj_$k"] ?? 'hold'), array_combine(array_keys($data->projects), array_keys($data->projects)))),
+            responses: self::responsesFromRow($row, $data),
+            capacityResponse: (string) ($row['capacity_response'] ?? 'hold'),
         );
+    }
+
+    /**
+     * @param  array<string, mixed>  $row
+     * @return array<string, string>
+     */
+    private static function responsesFromRow(array $row, ModelData $data): array
+    {
+        $out = [];
+        foreach ($data->cordell as $c) {
+            $out[$c['key']] = (string) ($row['resp_'.$c['key']] ?? 'ignore');
+        }
+
+        return $out;
     }
 }

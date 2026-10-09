@@ -106,7 +106,9 @@ export interface Results {
         def: string;
         last: number | null;
         now: number;
+        class: { low: number; avg: number; high: number } | null;
     }[];
+    compare: boolean;
     score: number;
     scoreLast: number | null;
     rank: number;
@@ -161,6 +163,11 @@ export interface PlayProps {
             rate: number;
             projects: { key: string; label: string; outlay: number }[];
             committedBefore: string[];
+            capacityMatchedBefore: boolean;
+        } | null;
+        rival: {
+            cut: number;
+            clusters: { key: string; label: string; gallons: number }[];
         } | null;
     };
     memo: { text: string; savedAt: string | null };
@@ -180,9 +187,17 @@ export interface PlayProps {
 }
 
 export interface LeverText {
-    pages: Record<string, { title: string; intro: string }>;
+    pages: Record<
+        string,
+        {
+            title: string;
+            intro: string;
+            rival?: { title: string; intro: string; means: string };
+        }
+    >;
     help: Record<string, string>;
     choices: Record<string, Record<string, string>>;
+    capacity_matched: string;
     badges: Record<string, string>;
     station_notes: Record<string, string>;
     fixed_items: Record<

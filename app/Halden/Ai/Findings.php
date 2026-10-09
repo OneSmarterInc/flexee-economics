@@ -54,7 +54,7 @@ final class Findings
             $parts = [];
             foreach ($names as $k => $label) {
                 $now = (float) ($d[$k] ?? 0);
-                $was = (float) ($base[$k] ?? 0);
+                $was = (float) ($base[substr($k, 4)] ?? 0);
                 $parts[] = sprintf('%s %+.1f cents a gallon (the old presidents had %+.1f)', $label, $now, $was);
             }
             $lines[] = 'Station prices against the going rate: '.implode('; ', $parts);
@@ -66,6 +66,21 @@ final class Findings
                 'other' => sprintf('Baton Rouge pays the team\'s own price for Texas crude: $%.2f a barrel', (float) ($d['tp_value'] ?? 0)),
                 default => sprintf('Baton Rouge pays the market price for Texas crude: $%.2f a barrel', (float) ($r['ops.tp'] ?? 0)),
             };
+        }
+
+        if ($q->number >= 7) {
+            $held = [];
+            $matched = [];
+            foreach (['off_urban' => 'cities', 'off_suburban' => 'suburbs', 'off_rural' => 'small towns', 'off_interstate' => 'highways'] as $k => $label) {
+                $rk = 'resp_'.substr($k, 4);
+                if (($d[$rk] ?? 'ignore') === 'match') {
+                    $matched[] = $label;
+                } else {
+                    $held[] = $label;
+                }
+            }
+            $lines[] = 'Pelican\'s 6-cent price cut: matched in '.($matched === [] ? 'no market' : implode(', ', $matched)).'; held the price in '.($held === [] ? 'no market' : implode(', ', $held)).'.';
+            $lines[] = 'Pelican\'s announced Gulf Coast unit: '.(($d['capacity_response'] ?? 'hold') === 'match' ? 'Halden is building a unit of its own' : 'Halden is not building');
         }
 
         return $lines;
@@ -132,6 +147,14 @@ final class Findings
                 ? sprintf('Geneva made %s by trading on the gap between Halden\'s own crude price and the market. That money came out of the refinery; Halden\'s total didn\'t change because of it.', $this->money($gap))
                 : 'Geneva made nothing from the internal crude price this quarter, because the price was too close to cost or to market for the gap to be worth trading.';
         }
+        if ($q->number >= 7 && (((float) ($r['ops.rival_match_cost'] ?? 0)) > 0 || ((float) ($r['ops.rival_ignore_cost'] ?? 0)) > 0)) {
+            $out[] = sprintf('Pelican\'s price cut: matching gave up %s of fuel margin this quarter; in the markets where the team held its price, drivers drifting to Pelican cost about %s. Matching costs six cents on every gallon; holding costs a fraction of a percent of volume.',
+                $this->money((float) ($r['ops.rival_match_cost'] ?? 0)), $this->money((float) ($r['ops.rival_ignore_cost'] ?? 0)));
+        }
+        if (abs((float) ($r['line.capacity_game'] ?? 0)) > 0.05) {
+            $out[] = sprintf('Pelican built its Gulf Coast unit. Halden\'s answer (%s) is costing %s a quarter under Refineries.',
+                ($d['capacity_response'] ?? 'hold') === 'match' ? 'building too' : 'not building', $this->money(abs((float) $r['line.capacity_game'])));
+        }
         if ($q->number >= 2) {
             $out[] = sprintf('Cordell fuel earned %s and Cordell shops %s this quarter.', $this->money((float) ($r['line.cordell_fuel'] ?? 0)), $this->money((float) ($r['line.cordell_shop'] ?? 0)));
         }
@@ -146,6 +169,6 @@ final class Findings
 
     private function money(float $m): string
     {
-        return ($m < 0 ? '-' : '').'$'.number_format(abs($m)).'M';
+        return ($m < 0 ? '-' : '').'$'.number_format(abs($m), abs($m) < 10 ? 1 : 0).'M';
     }
 }

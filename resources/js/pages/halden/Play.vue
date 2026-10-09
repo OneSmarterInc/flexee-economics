@@ -179,6 +179,10 @@ const pageKeys: Record<string, string[]> = {
         'off_nl',
         'off_be',
         'off_de',
+        'resp_urban',
+        'resp_suburban',
+        'resp_rural',
+        'resp_interstate',
     ],
     trading_finance: [
         'tp_method',
@@ -187,7 +191,12 @@ const pageKeys: Record<string, string[]> = {
         'eur_hedge',
         'nok_hedge',
     ],
-    capital: ['proj_br_upgrade', 'proj_rot_upgrade', 'proj_helix'],
+    capital: [
+        'proj_br_upgrade',
+        'proj_rot_upgrade',
+        'proj_helix',
+        'capacity_response',
+    ],
 };
 
 function savePage(p: string): void {
@@ -326,7 +335,27 @@ const commitText = computed(() => {
     return parts.join(' · ');
 });
 
-const stationKeys = pageKeys.gas_stations;
+const stationKeys = pageKeys.gas_stations.filter((k) => k.startsWith('off_'));
+
+const matchedMarkets = computed(() =>
+    (props.desk.rival?.clusters ?? []).filter(
+        (c) => draft[`resp_${c.key}`] === 'match',
+    ),
+);
+const matchCost = computed(() =>
+    matchedMarkets.value.reduce(
+        (sum, c) => sum + (c.gallons * (props.desk.rival?.cut ?? 0)) / 1e6,
+        0,
+    ),
+);
+function rivalMeans(): string {
+    const n = matchedMarkets.value.length;
+
+    return (props.leverText.pages.gas_stations.rival?.means ?? '')
+        .replace('{n}', String(n))
+        .replace('{markets}', n === 1 ? 'market' : 'markets')
+        .replace('{cost}', fmt(matchCost.value, 1));
+}
 const hedgeKeys = ['crude_hedge', 'eur_hedge', 'nok_hedge'];
 
 function hedgeText(key: string, v: DecisionValue | undefined): string {
@@ -1463,12 +1492,104 @@ function quarterHref(id: number): string {
                                 </tbody>
                             </table>
                         </div>
+                        <div
+                            v-if="desk.rival && isOpenLever('resp_urban')"
+                            class="hx-lever mt-4"
+                        >
+                            <div class="flex flex-wrap items-center gap-2">
+                                <span class="text-[16px] font-semibold">{{
+                                    leverText.pages.gas_stations.rival?.title
+                                }}</span>
+                                <span
+                                    v-if="lever('resp_urban').isNew"
+                                    class="hx-badge hx-badge-new"
+                                    >NEW</span
+                                >
+                            </div>
+                            <div class="hx-hint mt-1 mb-3">
+                                {{ leverText.pages.gas_stations.rival?.intro }}
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="hx-tbl">
+                                    <thead>
+                                        <tr>
+                                            <th>Where</th>
+                                            <th>
+                                                Fuel sold there each quarter
+                                            </th>
+                                            <th>Your answer</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr
+                                            v-for="c in desk.rival.clusters"
+                                            :key="c.key"
+                                        >
+                                            <td class="font-medium">
+                                                {{ c.label }}
+                                            </td>
+                                            <td class="hx-mono">
+                                                {{ fmt(c.gallons / 1e6) }}M
+                                                gallons
+                                            </td>
+                                            <td>
+                                                <div
+                                                    class="flex flex-wrap gap-2"
+                                                >
+                                                    <button
+                                                        v-for="(
+                                                            label, choice
+                                                        ) in leverText.choices
+                                                            .response"
+                                                        :key="choice"
+                                                        type="button"
+                                                        class="hx-opt"
+                                                        :aria-pressed="
+                                                            draft[
+                                                                `resp_${c.key}`
+                                                            ] === choice
+                                                        "
+                                                        :disabled="!editable"
+                                                        @click="
+                                                            draft[
+                                                                `resp_${c.key}`
+                                                            ] = String(choice)
+                                                        "
+                                                    >
+                                                        {{ label }}
+                                                    </button>
+                                                </div>
+                                                <div
+                                                    v-if="
+                                                        errors[`resp_${c.key}`]
+                                                    "
+                                                    class="hx-error"
+                                                >
+                                                    {{
+                                                        errors[`resp_${c.key}`]
+                                                    }}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                         <div class="hx-desk mt-4">
                             <div>
                                 <span class="hx-eyebrow">What this means</span>
                                 <div class="hx-mono mt-1 text-[14px]">
-                                    Changing prices doesn't cost anything up
-                                    front.
+                                    <template
+                                        v-if="
+                                            desk.rival &&
+                                            isOpenLever('resp_urban')
+                                        "
+                                        >{{ rivalMeans() }}</template
+                                    >
+                                    <template v-else
+                                        >Changing prices doesn't cost anything
+                                        up front.</template
+                                    >
                                 </div>
                             </div>
                             <button
@@ -1779,6 +1900,55 @@ function quarterHref(id: number): string {
                                 >
                                     {{ label }}
                                 </button>
+                            </div>
+                        </div>
+                        <div
+                            v-if="isOpenLever('capacity_response')"
+                            class="hx-lever"
+                        >
+                            <div class="flex flex-wrap items-center gap-2">
+                                <span class="text-[16px] font-semibold">{{
+                                    lever('capacity_response').label
+                                }}</span>
+                                <span
+                                    v-if="lever('capacity_response').isNew"
+                                    class="hx-badge hx-badge-new"
+                                    >NEW</span
+                                >
+                            </div>
+                            <div class="hx-hint mt-1 mb-3">
+                                {{ leverText.help.capacity_response }}
+                            </div>
+                            <div
+                                v-if="desk.capital.capacityMatchedBefore"
+                                class="font-semibold"
+                                style="color: var(--hx-teal)"
+                            >
+                                {{ leverText.capacity_matched }}
+                            </div>
+                            <div v-else class="flex flex-wrap gap-2.5">
+                                <button
+                                    v-for="(label, choice) in leverText.choices
+                                        .capacity"
+                                    :key="choice"
+                                    type="button"
+                                    class="hx-opt"
+                                    :aria-pressed="
+                                        draft.capacity_response === choice
+                                    "
+                                    :disabled="!editable"
+                                    @click="
+                                        draft.capacity_response = String(choice)
+                                    "
+                                >
+                                    {{ label }}
+                                </button>
+                            </div>
+                            <div
+                                v-if="errors.capacity_response"
+                                class="hx-error"
+                            >
+                                {{ errors.capacity_response }}
                             </div>
                         </div>
                         <div v-if="errors.capital" class="hx-error mt-2">
@@ -2260,6 +2430,11 @@ function quarterHref(id: number): string {
                                         <th>Counts for</th>
                                         <th>Last quarter</th>
                                         <th>This quarter</th>
+                                        <template v-if="results.compare">
+                                            <th>Lowest in class</th>
+                                            <th>Class average</th>
+                                            <th>Highest in class</th>
+                                        </template>
                                         <th>What it means</th>
                                     </tr>
                                 </thead>
@@ -2278,15 +2453,61 @@ function quarterHref(id: number): string {
                                         <td class="hx-mono font-semibold">
                                             {{ kpiValue(k.unit, k.now) }}
                                         </td>
+                                        <template v-if="results.compare">
+                                            <td
+                                                class="hx-mono"
+                                                style="color: var(--hx-muted)"
+                                            >
+                                                {{
+                                                    k.class
+                                                        ? kpiValue(
+                                                              k.unit,
+                                                              k.class.low,
+                                                          )
+                                                        : ''
+                                                }}
+                                            </td>
+                                            <td class="hx-mono">
+                                                {{
+                                                    k.class
+                                                        ? kpiValue(
+                                                              k.unit,
+                                                              k.class.avg,
+                                                          )
+                                                        : ''
+                                                }}
+                                            </td>
+                                            <td
+                                                class="hx-mono"
+                                                style="color: var(--hx-muted)"
+                                            >
+                                                {{
+                                                    k.class
+                                                        ? kpiValue(
+                                                              k.unit,
+                                                              k.class.high,
+                                                          )
+                                                        : ''
+                                                }}
+                                            </td>
+                                        </template>
                                         <td class="hx-hint">{{ k.def }}</td>
                                     </tr>
                                 </tbody>
                             </table>
                         </div>
                         <div class="hx-hint mt-3">
-                            You'll see how each of these compares with the other
-                            teams at the midterm (quarter 7) and again at the
-                            end.
+                            <template v-if="results.compare"
+                                >This quarter you can see where each measure
+                                sits against every team in your class. The
+                                lowest and highest aren't named.</template
+                            >
+                            <template v-else
+                                >You'll see how each of these compares with the
+                                other teams at the midterm (quarter
+                                {{ Math.ceil(quarter.total / 2) }}) and again at
+                                the end.</template
+                            >
                         </div>
                     </div>
 

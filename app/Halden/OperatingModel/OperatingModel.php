@@ -120,6 +120,39 @@ final class OperatingModel
         throw new \RuntimeException("No capital terms for [$b].");
     }
 
+    /** Window 3: the class's Q3 2028 price aggression sets the Cordell shop margin per gallon in Q1 2029, within 15% of base. */
+    public function window3Nonfuel(float $avgAggression): float
+    {
+        $c = fn (string $k): float => $this->data->c($k);
+        $base = $c('window3_base_nonfuel');
+        $v = $base - $c('window3_slope') * ($avgAggression - $c('window3_pivot'));
+
+        return min($base * (1 + $c('window3_bound')), max($base * (1 - $c('window3_bound')), $v));
+    }
+
+    /** Share of the Cordell markets where a team matched the rival's cut (0 = held every price, 1 = matched everywhere). */
+    public function priceAggression(Decisions $dec): float
+    {
+        $matched = 0;
+        foreach ($this->data->cordell as $c) {
+            if (($dec->responses[$c['key']] ?? 'ignore') === 'match') {
+                $matched++;
+            }
+        }
+
+        return $matched / count($this->data->cordell);
+    }
+
+    /** Quarterly payoff of Halden's answer to the rival's expansion once the rival has shown its hand. */
+    public function capacityPayoff(string $action, bool $rivalBuilds): float
+    {
+        if (! $rivalBuilds) {
+            return 0.0;
+        }
+
+        return $this->data->capacityGame["$action|builds"] / 4;
+    }
+
     /** @param  array<string, mixed>  $mkt  one row of the market path */
     public function step(CompanyState $state, Decisions $dec, array $mkt): QuarterResult
     {
@@ -228,7 +261,10 @@ final class OperatingModel
         }
         $lines['projects_refining'] = $projLines['refineries'];
         $lines['projects_upstream'] = $projLines['oil_fields'];
-        $refining = $lines['baton_rouge'] + $lines['rotterdam'] + $lines['rotterdam_one_time'] + $lines['singapore'] + $lines['projects_refining'];
+        // The rival's Gulf Coast expansion: once it is built (from Q4 2028), Halden's answer sets a yearly payoff.
+        $lines['capacity_game'] = $this->capacityPayoff($dec->capacityResponse, (bool) ($mkt['rival_builds'] ?? false));
+        $refining = $lines['baton_rouge'] + $lines['rotterdam'] + $lines['rotterdam_one_time'] + $lines['singapore']
+            + $lines['projects_refining'] + $lines['capacity_game'];
 
         // Geneva
         $lines['geneva_desk'] = $c('geneva_base_desk');
@@ -261,17 +297,35 @@ final class OperatingModel
             return [1 + $e * $street / $c('pump_base'), $delta];
         };
 
+        // A rival's street cut (from Q3 2028): where the team holds its price, drivers drift to the rival;
+        // where it matches, Cordell gives up the cut on every gallon and keeps the drivers.
         $cordGalTotal = $c('cordell_sites') * $c('cordell_gal_per_site_qtr');
+        $nonfuelPerGal = (float) ($mkt['cordell_nonfuel'] ?? 0) > 0 ? (float) $mkt['cordell_nonfuel'] : $c('cordell_nonfuel_per_gal');
+        $rivalCut = (float) ($mkt['rival_cut'] ?? 0.0);
         $cordFuel = 0.0;
         $cordNonfuel = 0.0;
+        $matchCost = 0.0;
+        $ignoreCost = 0.0;
         foreach ($this->data->cordell as $cl) {
             [$vf, $delta] = $volumeFactor($cl, $offsets[$cl['key']]);
             $gal = $cordGalTotal * $cl['share'] * $vf;
-            $cordFuel += $gal * ($c('cordell_fuel_margin') + $delta);
-            $cordNonfuel += $gal * $c('cordell_nonfuel_per_gal') * $c('cordell_nonfuel_halden_share');
+            $cutGiven = 0.0;
+            if ($rivalCut > 0) {
+                if (($dec->responses[$cl['key']] ?? 'ignore') === 'match') {
+                    $cutGiven = $rivalCut;
+                    $matchCost += $gal * $rivalCut;
+                } else {
+                    $lost = $gal * (-$cl['e']) * $rivalCut / $c('pump_base');
+                    $ignoreCost += $lost * ($c('cordell_fuel_margin') + $delta + $nonfuelPerGal * $c('cordell_nonfuel_halden_share'));
+                    $gal -= $lost;
+                }
+            }
+            $cordFuel += $gal * ($c('cordell_fuel_margin') + $delta - $cutGiven);
+            $cordNonfuel += $gal * $nonfuelPerGal * $c('cordell_nonfuel_halden_share');
         }
         $lines['cordell_fuel'] = $cordFuel / 1e6;
         $lines['cordell_shop'] = $cordNonfuel / 1e6;
+        $lines['cordell_price_match'] = -$matchCost / 1e6;   // already inside cordell_fuel; shown on its own
 
         $euFactor = $state->europeVolumeFactor * (1 - $c('europe_volume_decline_qtr'));
         $euGalTotal = $c('europe_sites') * $c('europe_gal_per_site_qtr') * $euFactor;
@@ -391,7 +445,8 @@ final class OperatingModel
             kpi: $kpi,
             ops: ['tp' => $tp, 'market_tp' => $marketTp, 'cost_tp' => $costTp, 'permian_prod' => $prod,
                 'br_throughput' => $brTpBbl, 'rot_throughput' => $rotTp, 'sg_accepted' => $sgRun, 'rot_status' => $rotStatus,
-                'fx_effect' => $fxEffect, 'project_outlay' => $commitOutlay, 'nwe' => $mkt['nwe']],
+                'fx_effect' => $fxEffect, 'project_outlay' => $commitOutlay, 'nwe' => $mkt['nwe'],
+                'rival_match_cost' => $matchCost / 1e6, 'rival_ignore_cost' => $ignoreCost / 1e6],
             notes: $notes,
             state: $newState,
         );

@@ -107,7 +107,7 @@ final class ContentPack
             }
         }
         $chosen ??= end($story['bands']);
-        $vars = self::placeholders($results, $decisions);
+        $vars = self::placeholders($results, $decisions) + $this->fills($n, $decisions);
         $fill = fn (string $t): string => strtr($t, $vars);
 
         return [
@@ -175,6 +175,13 @@ final class ContentPack
                 $key = $crude + $eur + $nok <= 0 ? 'none' : (($crude >= 40 || $eur >= 450 || $nok >= 450) ? 'heavy' : 'measured');
 
                 return ['key' => $key, 'value' => $crude];
+            case 'rival':
+                $matched = 0;
+                foreach (['urban', 'suburban', 'rural', 'interstate'] as $k) {
+                    $matched += ($decisions["resp_$k"] ?? 'ignore') === 'match' ? 1 : 0;
+                }
+
+                return ['key' => $matched === 0 ? 'held' : ($matched >= 3 ? 'matched' : 'mixed'), 'value' => (float) $matched];
             case 'projects':
                 $helix = ($decisions['proj_helix'] ?? 'hold') === 'commit';
                 $refining = ($decisions['proj_br_upgrade'] ?? 'hold') === 'commit' || ($decisions['proj_rot_upgrade'] ?? 'hold') === 'commit';
@@ -183,6 +190,26 @@ final class ContentPack
                 return ['key' => $key, 'value' => (float) ($results['ops.project_outlay'] ?? 0)];
         }
         throw new RuntimeException("Unknown story band [$on].");
+    }
+
+    /**
+     * Sentences a quarter's story picks by one of the team's choices ("fills" in quarters.json).
+     *
+     * @param  array<string, string|float|int|null>  $d
+     * @return array<string, string>
+     */
+    private function fills(int $n, array $d): array
+    {
+        $out = [];
+        foreach ((array) ($this->quarter($n)['fills'] ?? []) as $placeholder => $fill) {
+            if (! is_array($fill)) {
+                continue;
+            }
+            $choice = (string) ($d[(string) $fill['on']] ?? '');
+            $out[(string) $placeholder] = (string) ($fill[$choice] ?? '');
+        }
+
+        return $out;
     }
 
     /**
@@ -207,6 +234,8 @@ final class ContentPack
             '{hedges}' => $money('line.hedges'),
             '{project_outlay}' => $money('ops.project_outlay'),
             '{nwe}' => '$'.number_format((float) ($r['ops.nwe'] ?? 0), 2),
+            '{match_cost}' => $money('ops.rival_match_cost'),
+            '{ignore_cost}' => $money('ops.rival_ignore_cost'),
         ];
     }
 

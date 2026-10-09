@@ -11,7 +11,12 @@
     },
     "gas_stations": {
       "title": "Gas stations",
-      "intro": "Most Cordell stations are owned by local dealers. You set what Cordell charges them for fuel, in cents a gallon above or below the going rate in their area. The dealers then decide what to charge drivers. In Europe, Halden owns its stations and sets the pump price itself."
+      "intro": "Most Cordell stations are owned by local dealers. You set what Cordell charges them for fuel, in cents a gallon above or below the going rate in their area. The dealers then decide what to charge drivers. In Europe, Halden owns its stations and sets the pump price itself.",
+      "rival": {
+        "title": "Pelican's price cut",
+        "intro": "Pelican cut what drivers pay by 6¢ a gallon near Cordell stations, in every kind of market. For each market, hold your price or match the cut. Matching gives up 6¢ on every gallon Cordell sells there; holding lets some drivers drift to Pelican.",
+        "means": "Matching in {n} {markets} gives up about ${cost}M of fuel margin this quarter."
+      }
     },
     "trading_finance": {
       "title": "Trading & finance",
@@ -35,7 +40,8 @@
     "nok_hedge": "Buy kroner now for next quarter, at today's rate. If the krone strengthens, the hedge pays; if it weakens further, it costs you.",
     "proj_br_upgrade": "Lets Baton Rouge make more of the high-value fuels from each barrel. Pays back over ten years, most of it early.",
     "proj_rot_upgrade": "Cuts Rotterdam's costs and lifts what it earns per barrel. It only pays while Rotterdam is running.",
-    "proj_helix": "A new business: a West Texas supply contract with a customer in Rotterdam. Slow to start, and paying most in later years."
+    "proj_helix": "A new business: a West Texas supply contract with a customer in Rotterdam. Slow to start, and paying most in later years.",
+    "capacity_response": "Pelican says it will build a new refining unit on the Gulf Coast. Build one too, or hold. You'll learn next quarter whether Pelican meant it, and building is for good: a new unit takes two years and can't be unbuilt."
   },
   "choices": {
     "norway": {
@@ -55,6 +61,14 @@
     "project": {
       "hold": "Hold for now",
       "commit": "Go ahead"
+    },
+    "response": {
+      "ignore": "Hold our price",
+      "match": "Match the cut"
+    },
+    "capacity": {
+      "hold": "Hold",
+      "match": "Build too"
     }
   },
   "badges": {
@@ -85,5 +99,6 @@
         "text": "Runs under Halden's contract with the Kessana government. You don't set this one."
       }
     ]
-  }
+  },
+  "capacity_matched": "You're building. It's under way."
 }

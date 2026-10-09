@@ -1,6 +1,6 @@
-# Operating model validation (v0.2, Quarters 1-6)
+# Operating model validation (v0.3, Quarters 1-7)
 
-**Result: 34 of 34 checks pass.**
+**Result: 41 of 41 checks pass.**
 
 | # | Check | Result | Detail |
 | --- | --- | --- | --- |
@@ -36,5 +36,12 @@
 | 30 | A committed project costs its outlay now and pays a quarter of year one, at 88% of forecast, next quarter | PASS | outlay 640, then 39.60 a quarter |
 | 31 | A Rotterdam project stops paying if Rotterdam closes | PASS | 0 after closure |
 | 32 | The score counts free cash flow before new projects; net debt still carries the outlay | PASS | score FCF 1848.7 vs cash FCF 1208.7 |
-| 33 | Score order careful > average > careless in all six quarters | PASS | Q1: 88.1 / 82.2 / 12.2; Q2: 89.2 / 80.8 / 11.2; Q3: 92.2 / 84.6 / 7.8; Q4: 92.3 / 86.1 / 7.7; Q5: 90.4 / 84.9 / 9.3; Q6: 89.1 / 88.7 / 8.6 |
-| 34 | Fixtures rebuild identically | PASS | 03402125b118e88f |
+| 33 | Holding price against the rival's cut costs under a twentieth of matching it, in every Cordell market | PASS | urban: hold 0.19 vs match 21.3; suburban: hold 0.12 vs match 24.8; rural: hold 0.02 vs match 14.2; interstate: hold 0.04 vs match 10.6 ($M a quarter) |
+| 34 | Matching everywhere costs 6c on every Cordell gallon and shows as its own line | PASS | -70.95 |
+| 35 | Before the rival moves, the answer levers change nothing | PASS | Q2 2028 EBITDA equal |
+| 36 | Capacity game: at a 70% chance the rival builds, holding (-$28M a year) beats matching (-$80M); breakeven is 37.5% | PASS | hold -28, match -80, breakeven 0.375 |
+| 37 | Once the rival builds, holding costs $10M a quarter and matching $35M, under Refineries | PASS | -10 / -35; 0 before it builds |
+| 38 | Window 3 reproduces the ledger: a price war 0.38, base 0.42, disciplined 0.45 a fill, bounded within 15% of base | PASS | 0.38 / 0.42 / 0.45; floor 0.357 at full aggression |
+| 39 | A team that matches in two of four Cordell markets is half aggressive | PASS | 0.5 |
+| 40 | Score order careful > average > careless in all seven quarters | PASS | Q1: 88.1 / 82.2 / 12.2; Q2: 89.2 / 80.8 / 11.2; Q3: 92.2 / 84.6 / 7.8; Q4: 92.3 / 86.1 / 7.7; Q5: 90.4 / 84.9 / 9.3; Q6: 89.1 / 88.7 / 8.6; Q7: 90.9 / 83.3 / 9.0 |
+| 41 | Fixtures rebuild identically | PASS | e061914516927627 |

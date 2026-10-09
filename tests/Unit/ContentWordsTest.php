@@ -14,7 +14,7 @@ class ContentWordsTest extends TestCase
     private const BANNED = ['room', 'rooms', 'war room', 'lever', 'levers', 'tier', 'tiers', 'converge', 'commit', 'segment', 'segments', 'cohort', 'cohorts', 'runtime', 'round', 'rounds'];
 
     // Keys whose values never reach a screen: ids, file names, and the rules the advisors are given (which name the words they must avoid).
-    private const INTERNAL_KEYS = ['key', 'band_on', 'file', 'sees', 'rules'];
+    private const INTERNAL_KEYS = ['key', 'band_on', 'file', 'sees', 'rules', 'on'];
 
     public function test_student_content_uses_plain_words(): void
     {

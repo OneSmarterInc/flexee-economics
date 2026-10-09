@@ -79,6 +79,14 @@ class GoldenQuartersTest extends TestCase
                 $this->assertSame($effects['capital_behaviour'], $terms['behaviour']);
                 $this->assertClose((float) $effects['capital_envelope'], $terms['envelope'], 'capital envelope');
             }
+            if ($key === '2028Q3') {
+                $agg = array_sum(array_map(fn (array $byRound) => $model->priceAggression($byRound[7]), $plans)) / count($plans);
+                $this->assertClose((float) $effects['window3_avg_aggression'], $agg, 'Window 3 aggression');
+                $this->assertClose((float) $effects['window3_nonfuel'], $model->window3Nonfuel($agg), 'Window 3 shop margin');
+            }
+            if ($key === '2029Q1') {
+                $quarter['cordell_nonfuel'] = (float) $effects['window3_nonfuel'];
+            }
             $results = [];
             foreach ($plans as $team => $byRound) {
                 $results[$team] = $model->step($states[$team], $byRound[$round], $quarter);
@@ -96,7 +104,7 @@ class GoldenQuartersTest extends TestCase
                 }
             }
         }
-        $this->assertCount(6, $quarters);
+        $this->assertCount(7, $quarters);
         $this->assertGreaterThan(800, $checked);
     }
 }

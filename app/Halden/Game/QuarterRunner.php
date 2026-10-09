@@ -139,10 +139,10 @@ final class QuarterRunner
         return in_array($quarter->company_quarter, array_column($this->model->data->market, 'quarter'), true);
     }
 
-    /** @return array<string, mixed> */
     /**
      * This quarter's prices for this class, including what the whole class did earlier (hidden until it lands).
      * Window 1: the class's Q3 2027 European run rates set the Q1 2028 European refining margin.
+     * Window 3: the class's Q3 2028 price aggression sets the Q1 2029 Cordell shop margin.
      *
      * @return array<string, mixed>
      */
@@ -157,6 +157,12 @@ final class QuarterRunner
             $util = $this->classAverage($quarter, '2027Q3', fn (array $d): float => $this->model->europeanUtil($this->book->toEngine($d)));
             if ($util !== null) {
                 $m['nwe'] = $this->model->window1Nwe($util);
+            }
+        }
+        if ($quarter->company_quarter === '2029Q1') {
+            $aggression = $this->classAggression($quarter);
+            if ($aggression !== null) {
+                $m['cordell_nonfuel'] = $this->model->window3Nonfuel($aggression);
             }
         }
 
@@ -174,6 +180,12 @@ final class QuarterRunner
         $avg = $this->classAverage($quarter, '2027Q4', fn (array $d): float => $this->model->crudePriceDiscipline($this->book->toEngine($d), $wti));
 
         return $this->model->capitalTerms($avg ?? 0.5);
+    }
+
+    /** How aggressively this class answered the rival's Q3 2028 price cut, 0 (nobody matched) to 1 (everyone matched everywhere). */
+    public function classAggression(Quarter $quarter): ?float
+    {
+        return $this->classAverage($quarter, '2028Q3', fn (array $d): float => $this->model->priceAggression($this->book->toEngine($d)));
     }
 
     /**
