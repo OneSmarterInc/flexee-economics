@@ -276,6 +276,8 @@ final class AdvisorRoom
         if (isset($who['rules_extra'])) {
             $rules[] = (string) $who['rules_extra'];
         }
+        // The words the check drops a reply for, so the advisor avoids them instead of losing the answer.
+        $rules[] = 'Never use these words, even in passing, unless the team used them first: '.implode(', ', ReplyCheck::BANNED).'.';
         if ($lastAnswer) {
             $rules[] = (string) $this->book['last_answer'];
         }
