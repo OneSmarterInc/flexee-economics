@@ -72,6 +72,54 @@ final class OperatingModel
         return $this->data->c('geneva_capture_rate') * ($market - $tp);
     }
 
+    /** Window 1: the class's average European run rate in Q3 2027 sets the NWE margin in Q1 2028. */
+    public function window1Nwe(float $avgUtil): float
+    {
+        $c = fn (string $k): float => $this->data->c($k);
+
+        return max($c('window1_floor'), $c('window1_base_crack') + $c('window1_slope') * ($c('window1_base_util') - $avgUtil));
+    }
+
+    /** Share of Rotterdam's capacity a team ran (0 when paused or closed). */
+    public function europeanUtil(Decisions $dec): float
+    {
+        return $dec->rotPosture === 'run' ? $dec->rotRun / 100.0 : 0.0;
+    }
+
+    /** 1 = crude price at cost, 0.5 = at market, 0 = somewhere a trader can exploit. */
+    public function crudePriceDiscipline(Decisions $dec, float $wti): float
+    {
+        [$market, $cost] = $this->transferPrices($wti);
+        if ($dec->tpMethod === 'cost') {
+            return 1.0;
+        }
+        if ($dec->tpMethod === 'market') {
+            return 0.5;
+        }
+        $tp = (float) $dec->tpValue;
+        $band = $this->data->c('geneva_band');
+        if (abs($tp - $cost) <= $band * $cost) {
+            return 1.0;
+        }
+        if (abs($tp - $market) <= $band * $market) {
+            return 0.5;
+        }
+
+        return 0.0;
+    }
+
+    /** @return array{behaviour: string, rate: float, envelope: float} Q2 2028 capital terms from Q4 2027 crude-price discipline */
+    public function capitalTerms(float $avgDiscipline): array
+    {
+        $b = $avgDiscipline > 2 / 3 + 1e-9 ? 'disciplined' : ($avgDiscipline < 1 / 3 - 1e-9 ? 'lax' : 'base');
+        foreach ($this->data->cohortCapital as $row) {
+            if ($row['behaviour'] === $b) {
+                return $row;
+            }
+        }
+        throw new \RuntimeException("No capital terms for [$b].");
+    }
+
     /** @param  array<string, mixed>  $mkt  one row of the market path */
     public function step(CompanyState $state, Decisions $dec, array $mkt): QuarterResult
     {
@@ -81,6 +129,11 @@ final class OperatingModel
         $notes = [];
         $wti = $mkt['wti'];
         $brent = $wti + $c('brent_spread');
+        $fx = (bool) ($mkt['fx_live'] ?? false);
+        $eurF = $fx ? $mkt['eurusd'] / $c('fx_ref_eurusd') : 1.0;
+        $nokF = $fx ? $c('fx_ref_usdnok') / $mkt['usdnok'] : 1.0;
+        $sgdF = $fx ? $c('fx_ref_usdsgd') / $mkt['usdsgd'] : 1.0;
+        $norLifting = $c('norway_lifting') * $nokF;
 
         // Oil fields
         $prod = $state->permianProd;
@@ -98,9 +151,9 @@ final class OperatingModel
         $lines['permian'] = $permianRev - $permianCost;
 
         $cut = $dec->norway === 'cut' ? $c('norway_cut_share') : 0.0;
-        $norMarginFull = $brent - $c('norway_discount_to_brent') - $c('norway_lifting') - $c('norway_transport');
+        $norMarginFull = $brent - $c('norway_discount_to_brent') - $norLifting - $c('norway_transport');
         $norVol = $c('norway_op_volume');
-        $norSavedPerBbl = $c('norway_lifting') * $c('norway_lifting_variable_share') + $c('norway_transport');
+        $norSavedPerBbl = $norLifting * $c('norway_lifting_variable_share') + $c('norway_transport');
         $lines['norway_operated'] = ($norVol * $norMarginFull
             - $norVol * $cut * ($brent - $c('norway_discount_to_brent') - $norSavedPerBbl)) * $D / 1e6;
         $lines['norway_cutback_effect'] = -$norVol * $cut * ($brent - $c('norway_discount_to_brent') - $norSavedPerBbl) * $D / 1e6;
@@ -108,7 +161,7 @@ final class OperatingModel
         $kesNet = ($brent - $c('kessana_discount_to_brent') - $c('kessana_lifting')) * $c('kessana_company_share_profit_oil');
         $lines['kessana'] = $c('kessana_volume') * $kesNet * $D / 1e6;
         $lines['gas_other'] = $c('gas_other_ebitda');
-        $upstream = $lines['permian'] + $lines['norway_operated'] + $lines['norway_partner_run'] + $lines['kessana'] + $lines['gas_other'];
+        $upstreamBase = $lines['permian'] + $lines['norway_operated'] + $lines['norway_partner_run'] + $lines['kessana'] + $lines['gas_other'];
 
         // Refineries
         $brTpBbl = $c('br_capacity') * $dec->brRun / 100.0;
@@ -145,14 +198,37 @@ final class OperatingModel
             $rotTp = $c('rot_capacity') * $dec->rotRun / 100.0;
             $rot = $rotTp * ($mkt['nwe'] + $c('rot_complexity') - $c('rot_variable_opex')) * $D / 1e6 - $rotFixed;
         }
-        $lines['rotterdam'] = $rot;
+        $lines['rotterdam'] = $rot * $eurF;
         $lines['rotterdam_one_time'] = $oneTime;
 
         $sgRun = min(max($dec->sgRequest, $c('sg_accept_min')), $c('sg_accept_max'));
         $notes['sg_accepted'] = $sgRun;
         $sgTp = $c('sg_capacity') * $c('sg_halden_share') * $sgRun / 100.0;
-        $lines['singapore'] = $sgTp * ($mkt['sg'] + $c('sg_complexity') - $c('sg_opex')) * $D / 1e6;
-        $refining = $lines['baton_rouge'] + $lines['rotterdam'] + $lines['rotterdam_one_time'] + $lines['singapore'];
+        $lines['singapore'] = $sgTp * ($mkt['sg'] + $c('sg_complexity') - $c('sg_opex')) * $D / 1e6 * $sgdF;
+
+        // Projects committed earlier pay a quarter of each year's cash flow, cut to what such projects deliver.
+        $projAge = [];
+        $projLines = ['refineries' => 0.0, 'oil_fields' => 0.0];
+        foreach ($state->projects as $key => $age) {
+            $p = $this->data->projects[$key];
+            $age++;
+            $projAge[$key] = $age;
+            $year = intdiv($age - 1, 4) + 1;
+            if ($year > count($p['cf']) || ($key === 'rot_upgrade' && $rotStatus === 'closed')) {
+                continue;
+            }
+            $projLines[$p['segment']] += $p['cf'][$year - 1] * $p['haircut'] / 4;
+        }
+        $commitOutlay = 0.0;
+        foreach ($dec->projects as $key => $choice) {
+            if ($choice === 'commit' && ! array_key_exists($key, $state->projects)) {
+                $projAge[$key] = 0;
+                $commitOutlay += $this->data->projects[$key]['outlay'];
+            }
+        }
+        $lines['projects_refining'] = $projLines['refineries'];
+        $lines['projects_upstream'] = $projLines['oil_fields'];
+        $refining = $lines['baton_rouge'] + $lines['rotterdam'] + $lines['rotterdam_one_time'] + $lines['singapore'] + $lines['projects_refining'];
 
         // Geneva
         $lines['geneva_desk'] = $c('geneva_base_desk');
@@ -205,15 +281,32 @@ final class OperatingModel
             $gal = $euGalTotal * $cl['share'] * $vf;
             $eu += $gal * ($c('europe_fuel_margin') + $delta + $c('europe_nonfuel_per_gal'));
         }
-        $lines['europe_stations'] = $eu / 1e6;
+        $lines['europe_stations'] = $eu / 1e6 * $eurF;
         $lines['retail_fixed'] = -$c('retail_fixed_cost');
         $retail = $lines['cordell_fuel'] + $lines['cordell_shop'] + $lines['europe_stations'] + $lines['retail_fixed'];
 
         // Head office
         $lines['head_office'] = -$c('corporate_ga');
         $lines['advisor_time'] = -$c('advisor_cost_per_answer') * $dec->advisorAnswers;
-        $corporate = $lines['head_office'] + $lines['advisor_time'];
+        $h = $state->hedges;
+        $settle = 0.0;
+        if ($h !== []) {
+            $settle += ($h['crude_bbl_day'] ?? 0.0) * $D * (($h['crude_price'] ?? $wti) - $wti) / 1e6;
+            if (($h['eur'] ?? 0.0) != 0.0) {
+                $settle += $h['eur'] * ($h['eur_rate'] - $mkt['eurusd']) / $h['eur_rate'];
+            }
+            if (($h['nok'] ?? 0.0) != 0.0) {
+                $settle += $h['nok'] * ($h['nok_rate'] / $mkt['usdnok'] - 1);
+            }
+        }
+        if ((bool) ($mkt['existing_eur_hedge'] ?? false)) {
+            $r0 = $c('existing_eur_hedge_rate');
+            $settle += $c('existing_eur_hedge_notional') * ($r0 - $mkt['eurusd']) / $r0;
+        }
+        $lines['hedges'] = $settle;
+        $corporate = $lines['head_office'] + $lines['advisor_time'] + $lines['hedges'];
 
+        $upstream = $upstreamBase + $lines['projects_upstream'];
         $seg = ['oil_fields' => $upstream, 'refineries' => $refining, 'geneva' => $trading, 'gas_stations' => $retail, 'head_office' => $corporate];
         $ebitda = 0.0;
         foreach ($seg as $v) {
@@ -223,7 +316,7 @@ final class OperatingModel
         // Money
         $da = $state->capitalEmployed * $c('da_rate_annual') / 4;
         $tax = $c('tax_rate') * max(0.0, $ebitda - $da);
-        $capex = $c('other_sustaining_capex') + $dec->rigs * $c('rig_capex_per_qtr');
+        $capex = $c('other_sustaining_capex') + $dec->rigs * $c('rig_capex_per_qtr') + $commitOutlay;
         $fcf = $ebitda - $tax - $capex;
         $newCe = $state->capitalEmployed + $capex - $da;
         $newNd = $state->netDebt - $fcf + $c('shareholder_payout');
@@ -244,7 +337,8 @@ final class OperatingModel
         $kpi = [
             'profit_per_barrel' => ($ebitda - $corporate) * 1e6 / ($c('total_production') * $D),
             'roace_pct' => 100 * 4 * ($ebitda - $da) * (1 - $c('tax_rate')) / $state->capitalEmployed,
-            'free_cash_flow' => $fcf,
+            // Before growth projects (decision S2): a sound project isn't punished in the quarter its money goes out.
+            'free_cash_flow' => $fcf + $commitOutlay,
             'refining_vs_industry' => $refinedBbl > 0 ? $refiningExInternal * 1e6 / $refinedBbl - $benchMargin : -$benchMargin,
             'shop_profit_per_station_k' => $cordNonfuel / $c('cordell_sites') / 1e3,
             'debt_to_earnings' => $ebitda > 0 ? $newNd / (4 * $ebitda) : 99.0,
@@ -252,6 +346,28 @@ final class OperatingModel
         ];
 
         $nextProd = $prod * (1 - $c('permian_decline_qtr')) + $this->permianAdds($dec->rigs);
+
+        // Hedges opened now settle next quarter: crude at this quarter's price, currencies at today's rates.
+        $nextCrude = $nextProd + $norVol * (1 - $cut) + $c('norway_nonop_volume');
+        $newHedges = [];
+        if ($dec->crudeHedgePct > 0) {
+            $newHedges['crude_bbl_day'] = $dec->crudeHedgePct / 100.0 * $nextCrude;
+            $newHedges['crude_price'] = $wti;
+        }
+        if ($dec->eurHedge > 0) {
+            $newHedges['eur'] = $dec->eurHedge;
+            $newHedges['eur_rate'] = $mkt['eurusd'];
+        }
+        if ($dec->nokHedge > 0) {
+            $newHedges['nok'] = $dec->nokHedge;
+            $newHedges['nok_rate'] = $mkt['usdnok'];
+        }
+        $fxEffect = 0.0;
+        if ($fx) {
+            $fxEffect = $lines['rotterdam'] * (1 - 1 / $eurF) + $lines['europe_stations'] * (1 - 1 / $eurF)
+                + $lines['singapore'] * (1 - 1 / $sgdF)
+                + ($c('norway_lifting') - $norLifting) * ($norVol * (1 - $cut * $c('norway_lifting_variable_share')) + $c('norway_nonop_volume')) * $D / 1e6;
+        }
 
         $newState = new CompanyState(
             permianProd: $nextProd,
@@ -263,6 +379,8 @@ final class OperatingModel
             europeVolumeFactor: $euFactor,
             heldUp: $heldUp,
             heldDown: $heldDown,
+            hedges: $newHedges,
+            projects: $projAge,
         );
 
         return new QuarterResult(
@@ -272,7 +390,8 @@ final class OperatingModel
                 'capital_employed_end' => $newCe, 'net_debt_end' => $newNd],
             kpi: $kpi,
             ops: ['tp' => $tp, 'market_tp' => $marketTp, 'cost_tp' => $costTp, 'permian_prod' => $prod,
-                'br_throughput' => $brTpBbl, 'rot_throughput' => $rotTp, 'sg_accepted' => $sgRun, 'rot_status' => $rotStatus],
+                'br_throughput' => $brTpBbl, 'rot_throughput' => $rotTp, 'sg_accepted' => $sgRun, 'rot_status' => $rotStatus,
+                'fx_effect' => $fxEffect, 'project_outlay' => $commitOutlay, 'nwe' => $mkt['nwe']],
             notes: $notes,
             state: $newState,
         );

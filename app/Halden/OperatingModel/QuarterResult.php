@@ -42,7 +42,7 @@ final class QuarterResult
         foreach ($this->kpi as $k => $v) {
             $out["kpi.$k"] = $v;
         }
-        foreach (['tp', 'market_tp', 'cost_tp', 'permian_prod', 'br_throughput', 'rot_throughput', 'sg_accepted'] as $k) {
+        foreach (['tp', 'market_tp', 'cost_tp', 'permian_prod', 'br_throughput', 'rot_throughput', 'sg_accepted', 'fx_effect', 'project_outlay', 'nwe'] as $k) {
             $out["ops.$k"] = (float) $this->ops[$k];
         }
 

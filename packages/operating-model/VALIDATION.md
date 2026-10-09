@@ -1,6 +1,6 @@
-# Operating model validation (v0.1, Quarters 1-4)
+# Operating model validation (v0.2, Quarters 1-6)
 
-**Result: 22 of 22 checks pass.**
+**Result: 34 of 34 checks pass.**
 
 | # | Check | Result | Detail |
 | --- | --- | --- | --- |
@@ -24,5 +24,17 @@
 | 18 | Straits Pacific holds Singapore between 80% and 95% | PASS | 100 -> 95, 60 -> 80 |
 | 19 | Holding a city price rise loses more shop traffic each quarter | PASS | 178.718 > 178.681 > 178.643 |
 | 20 | Holding a city price cut gains less traffic each quarter as rivals match | PASS | 178.870 > 178.832 > 178.794 |
-| 21 | Score order careful > average > careless in all four quarters | PASS | Q1: 88.1 / 82.2 / 12.2; Q2: 89.2 / 80.8 / 11.2; Q3: 92.2 / 84.6 / 7.8; Q4: 92.3 / 86.1 / 7.7 |
-| 22 | Fixtures rebuild identically | PASS | 7fb41c10b2f3a4ed |
+| 21 | Norwegian lifting falls from $28.00 to about $25.85 when the krone weakens to 11.05 | PASS | $25.8462 |
+| 22 | European station profit loses about 6.45% in dollars when the euro falls to 1.015 | PASS | -6.45% |
+| 23 | Rotterdam is a natural hedge: its net euro swing is under a fifth of the swing on its gross euro costs (Week 5: about a tenth) | PASS | net 1.28 vs gross -11.00 (12%) |
+| 24 | Before 2028, currency effects are held at zero (rates moved less than 1%) | PASS | fx_live = 0 for 2026-2027 |
+| 25 | The $300M euro forward sold before the shock pays $19.35M in Q1 2028 | PASS | $19.3548M |
+| 26 | A crude hedge gains when oil falls and loses when it rises (euro and krone legs equal in both) | PASS | oil -$5: 93.9; oil +$5: -107.4 |
+| 27 | Selling $600M of euros at 1.015 loses when the euro recovers to 1.031 | PASS | $-9.46M |
+| 28 | Window 1: at a 75% average the margin stays $4.60; at 90% it falls to $3.25; it never goes below $2.60 | PASS | 4.60 / 3.25 / 2.60 |
+| 29 | Capital envelope: all at cost $1,520M at 6.5%; mixed $1,150M at 8.5%; lax $950M at 11% | PASS | 1520 / 1150 / 950 |
+| 30 | A committed project costs its outlay now and pays a quarter of year one, at 88% of forecast, next quarter | PASS | outlay 640, then 39.60 a quarter |
+| 31 | A Rotterdam project stops paying if Rotterdam closes | PASS | 0 after closure |
+| 32 | The score counts free cash flow before new projects; net debt still carries the outlay | PASS | score FCF 1848.7 vs cash FCF 1208.7 |
+| 33 | Score order careful > average > careless in all six quarters | PASS | Q1: 88.1 / 82.2 / 12.2; Q2: 89.2 / 80.8 / 11.2; Q3: 92.2 / 84.6 / 7.8; Q4: 92.3 / 86.1 / 7.7; Q5: 90.4 / 84.9 / 9.3; Q6: 89.1 / 88.7 / 8.6 |
+| 34 | Fixtures rebuild identically | PASS | 03402125b118e88f |

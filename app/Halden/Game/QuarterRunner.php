@@ -140,12 +140,58 @@ final class QuarterRunner
     }
 
     /** @return array<string, mixed> */
-    private function marketFor(Quarter $quarter): array
+    /**
+     * This quarter's prices for this class, including what the whole class did earlier (hidden until it lands).
+     * Window 1: the class's Q3 2027 European run rates set the Q1 2028 European refining margin.
+     *
+     * @return array<string, mixed>
+     */
+    public function marketFor(Quarter $quarter): array
     {
         try {
-            return $this->model->data->quarter($quarter->company_quarter);
+            $m = $this->model->data->quarter($quarter->company_quarter);
         } catch (RuntimeException) {
             throw new RuntimeException("The economics for {$quarter->label()} aren't built yet.");
         }
+        if ($quarter->company_quarter === '2028Q1') {
+            $util = $this->classAverage($quarter, '2027Q3', fn (array $d): float => $this->model->europeanUtil($this->book->toEngine($d)));
+            if ($util !== null) {
+                $m['nwe'] = $this->model->window1Nwe($util);
+            }
+        }
+
+        return $m;
+    }
+
+    /**
+     * Q2 2028 cost of capital and spending envelope for this class, set by its Q4 2027 crude-price choices.
+     *
+     * @return array{behaviour: string, rate: float, envelope: float}
+     */
+    public function capitalTerms(Quarter $quarter): array
+    {
+        $wti = (float) $this->model->data->quarter('2027Q4')['wti'];
+        $avg = $this->classAverage($quarter, '2027Q4', fn (array $d): float => $this->model->crudePriceDiscipline($this->book->toEngine($d), $wti));
+
+        return $this->model->capitalTerms($avg ?? 0.5);
+    }
+
+    /**
+     * Average over the class's teams of something about what ran in an earlier company quarter.
+     *
+     * @param  callable(array<string, string|float|int|null>): float  $measure
+     */
+    private function classAverage(Quarter $quarter, string $companyQuarter, callable $measure): ?float
+    {
+        $source = Quarter::query()->where('section_id', $quarter->section_id)->where('company_quarter', $companyQuarter)->first();
+        if ($source === null) {
+            return null;
+        }
+        $values = [];
+        foreach (TeamQuarter::query()->where('quarter_id', $source->id)->whereNotNull('effective_decisions')->get() as $tq) {
+            $values[] = $measure($tq->effective_decisions ?? []);
+        }
+
+        return $values === [] ? null : array_sum($values) / count($values);
     }
 }

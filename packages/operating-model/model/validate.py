@@ -114,24 +114,81 @@ check("Holding a city price rise loses more shop traffic each quarter", up[0] > 
 dn = cordell_fuel([-3.0, -3.0, -3.0])
 check("Holding a city price cut gains less traffic each quarter as rivals match", dn[0] > dn[1] > dn[2], " > ".join(f"{x:.3f}" for x in dn))
 
-# 11 Reference teams: careful > average > careless in every quarter
+# 11 Currency (Q1 2028, Week 5 package): krone weakness helps, euro weakness hurts retail, Rotterdam hedges itself
+m5, m6 = q("2028Q1"), q("2028Q2")
+lift = hm.C["norway_lifting"] * hm.C["fx_ref_usdnok"] / m5["usdnok"]
+check("Norwegian lifting falls from $28.00 to about $25.85 when the krone weakens to 11.05", abs(lift - 25.846154) < 1e-5, f"${lift:.4f}")
+eu_change = m5["eurusd"] / hm.C["fx_ref_eurusd"] - 1
+check("European station profit loses about 6.45% in dollars when the euro falls to 1.015", abs(eu_change + 0.064516) < 1e-5, f"{100*eu_change:.2f}%")
+s4 = rr  # noqa
+base5 = hm.step(copy.deepcopy(start), hm.Decisions(), dict(m5, fx_live=False, existing_eur_hedge=False))
+live5 = hm.step(copy.deepcopy(start), hm.Decisions(), dict(m5, existing_eur_hedge=False))
+rot_gross = (hm.C["rot_capacity"] * 0.82 * hm.C["rot_variable_opex"] + hm.C["rot_capacity"] * hm.C["rot_fixed_opex_per_bbl_capacity"]) * 91.25 / 1e6
+rot_move = live5[0]["rotterdam"] - base5[0]["rotterdam"]
+gross_move = rot_gross * eu_change
+check("Rotterdam is a natural hedge: its net euro swing is under a fifth of the swing on its gross euro costs (Week 5: about a tenth)",
+      abs(rot_move) < 0.20 * abs(gross_move), f"net {rot_move:.2f} vs gross {gross_move:.2f} ({100 * abs(rot_move / gross_move):.0f}%)")
+check("Before 2028, currency effects are held at zero (rates moved less than 1%)",
+      all(not m["fx_live"] for m in hm.load_market() if m["quarter"] < "2028Q1"), "fx_live = 0 for 2026-2027")
+eh = hm.step(copy.deepcopy(start), hm.Decisions(), m5)[0]["hedges"]
+check("The $300M euro forward sold before the shock pays $19.35M in Q1 2028", abs(eh - 19.354839) < 1e-5, f"${eh:.4f}M")
+
+# 12 Hedges settle next quarter against the rates then
+h5 = hm.step(copy.deepcopy(start), hm.Decisions(crude_hedge_pct=50, eur_hedge=600, nok_hedge=600), dict(m5, existing_eur_hedge=False))
+st5 = h5[-1]
+falls = hm.step(copy.deepcopy(st5), hm.Decisions(), dict(m6, wti=m5["wti"] - 5))[0]["hedges"]
+rises = hm.step(copy.deepcopy(st5), hm.Decisions(), dict(m6, wti=m5["wti"] + 5))[0]["hedges"]
+check("A crude hedge gains when oil falls and loses when it rises (euro and krone legs equal in both)", falls > rises and abs((falls - rises) - 10 * st5.hedges["crude_bbl_day"] * 91.25 / 1e6) < 1e-6,
+      f"oil -$5: {falls:.1f}; oil +$5: {rises:.1f}")
+eur_leg = 600 * (m5["eurusd"] - m6["eurusd"]) / m5["eurusd"]
+check("Selling $600M of euros at 1.015 loses when the euro recovers to 1.031", eur_leg < 0, f"${eur_leg:.2f}M")
+
+# 13 Window 1: the class's Q3 2027 European run rates set the Q1 2028 European margin
+check("Window 1: at a 75% average the margin stays $4.60; at 90% it falls to $3.25; it never goes below $2.60",
+      abs(hm.window1_nwe(0.75) - 4.60) < 1e-9 and abs(hm.window1_nwe(0.90) - 3.25) < 1e-9 and abs(hm.window1_nwe(1.0) - 2.60) < 1e-9,
+      f"{hm.window1_nwe(0.75):.2f} / {hm.window1_nwe(0.90):.2f} / {hm.window1_nwe(1.0):.2f}")
+
+# 14 Capital terms from Q4 2027 crude-price discipline (Week 6 package)
+cost_d = hm.crude_price_discipline(hm.Decisions(tp_method="cost"), 74.0)
+lazy_d = hm.crude_price_discipline(hm.Decisions(tp_method="other", tp_value=46.20), 74.0)
+mkt_d = hm.crude_price_discipline(hm.Decisions(tp_method="market"), 74.0)
+t = lambda xs: hm.capital_terms(sum(xs) / len(xs))
+check("Capital envelope: all at cost $1,520M at 6.5%; mixed $1,150M at 8.5%; lax $950M at 11%",
+      t([cost_d] * 3)["envelope"] == 1520 and t([cost_d, mkt_d, lazy_d])["envelope"] == 1150 and t([lazy_d] * 3)["envelope"] == 950
+      and t([cost_d] * 3)["rate"] == 0.065 and t([lazy_d] * 3)["rate"] == 0.110, "1520 / 1150 / 950")
+
+# 15 Projects pay from the quarter after commitment, cut to what such projects deliver
+p1 = hm.step(copy.deepcopy(start), hm.Decisions(projects={"br_upgrade": "commit"}), m6)
+p2 = hm.step(p1[-1], hm.Decisions(projects={"br_upgrade": "commit"}), m6)
+check("A committed project costs its outlay now and pays a quarter of year one, at 88% of forecast, next quarter",
+      abs(p1[2]["capex"] - 640 - (hm.C["other_sustaining_capex"] + 14 * 40)) < 1e-9 and p1[0]["projects_refining"] == 0
+      and abs(p2[0]["projects_refining"] - 180 * 0.88 / 4) < 1e-9 and p2[2]["capex"] == hm.C["other_sustaining_capex"] + 14 * 40,
+      f"outlay 640, then {p2[0]['projects_refining']:.2f} a quarter")
+r1 = hm.step(copy.deepcopy(start), hm.Decisions(projects={"rot_upgrade": "commit"}), m6)
+r2 = hm.step(r1[-1], hm.Decisions(rot_posture="close"), m6)
+check("A Rotterdam project stops paying if Rotterdam closes", r2[0]["projects_refining"] == 0, "0 after closure")
+check("The score counts free cash flow before new projects; net debt still carries the outlay",
+      abs(p1[3]["free_cash_flow"] - p1[2]["fcf"] - 640) < 1e-9 and p1[2]["net_debt_end"] > hm.step(copy.deepcopy(start), hm.Decisions(), m6)[2]["net_debt_end"],
+      f"score FCF {p1[3]['free_cash_flow']:.1f} vs cash FCF {p1[2]['fcf']:.1f}")
+
+# 16 Reference teams: careful > average > careless in every quarter
 summary = rr.main()
 ok = True
 detail = []
-for i in range(4):
+for i in range(len(summary["careful"])):
     c, a, l = (summary[t][i][2] for t in ("careful", "average", "careless"))
     ok &= c > a > l
     detail.append(f"Q{i+1}: {c:.1f} / {a:.1f} / {l:.1f}")
-check("Score order careful > average > careless in all four quarters", ok, "; ".join(detail))
+check("Score order careful > average > careless in all six quarters", ok, "; ".join(detail))
 
-# 12 Determinism: fixtures rebuild byte-identical
+# 17 Determinism: fixtures rebuild byte-identical
 h1 = hashlib.sha256((ROOT / "fixtures/golden_quarters.csv").read_bytes()).hexdigest()
 rr.main()
 h2 = hashlib.sha256((ROOT / "fixtures/golden_quarters.csv").read_bytes()).hexdigest()
 check("Fixtures rebuild identically", h1 == h2, h1[:16])
 
 passed = sum(1 for c in checks if c[1])
-lines = ["# Operating model validation (v0.1, Quarters 1-4)", "", f"**Result: {passed} of {len(checks)} checks pass.**", "",
+lines = ["# Operating model validation (v0.2, Quarters 1-6)", "", f"**Result: {passed} of {len(checks)} checks pass.**", "",
          "| # | Check | Result | Detail |", "| --- | --- | --- | --- |"]
 for i, (n, okk, d) in enumerate(checks, 1):
     lines.append(f"| {i} | {n} | {'PASS' if okk else 'FAIL'} | {d} |")

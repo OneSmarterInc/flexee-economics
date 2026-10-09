@@ -1,0 +1,45 @@
+{
+  "_about": "Quarter 6 (Q2 2028). Three projects and a capital limit. The cost of capital and the limit depend on what the class did in Q4 2027; advisors may say lenders are rewarding discipline, but never give the schedule. Draft for Vikram's review.",
+  "marchetti": {
+    "facts": "WTI is $73.50. The euro has recovered to about $1.031 and the krone to 11.00. Halden's cost of capital and the board's spending limit this quarter are shown on the Big projects page.",
+    "stance": "The project with the highest percentage return isn't always the one that adds the most value. It depends on what money costs.",
+    "signal": "Steer them to value each project at this quarter's cost of capital, not just compare their percentage returns.",
+    "misdirection": "She'd like another year of forecasts for Helix before anyone decides."
+  },
+  "roy": {
+    "facts": "",
+    "stance": "None of these projects touches the gas stations, so she has no strong view.",
+    "signal": "",
+    "misdirection": ""
+  },
+  "aasen": {
+    "facts": "The Baton Rouge upgrade lets the refinery make more high-value fuels from each barrel. The Rotterdam upgrade cuts costs there, but only pays while Rotterdam runs.",
+    "stance": "Rotterdam's upgrade is the one that keeps a good crew working.",
+    "signal": "",
+    "misdirection": "He'll push the Rotterdam upgrade hardest, though it adds the least value of the three."
+  },
+  "ruiz": {
+    "facts": "The Baton Rouge upgrade costs $640 million, Rotterdam's $400 million and Helix $880 million, all paid up front. Refining upgrades have historically delivered about 88% of their forecast value, upstream projects 79%, and new businesses 61%. Committed projects add to Halden's debt.",
+    "stance": "Grant wants every dollar to earn more than it costs, and he trusts refining forecasts more than new-business ones.",
+    "signal": "Remind them to cut each forecast to what such projects have really delivered before comparing them.",
+    "misdirection": "She favours whichever project pays back fastest, because Grant likes early cash."
+  },
+  "osei": {
+    "facts": "Helix's contract is in dollars, but its Rotterdam customer would pay in euros.",
+    "stance": "A new business carries risks nobody has priced yet, from regulators and from partners.",
+    "signal": "",
+    "misdirection": "He'd add a large risk premium to Helix on top of the usual one, which double-counts."
+  },
+  "lund": {
+    "facts": "Helix is the first project Halden has proposed outside oil and refining since the merger.",
+    "stance": "If Halden never starts something new, the board will decide what it becomes for it.",
+    "signal": "Ask them what each project says about the company they wrote down in their sentence.",
+    "misdirection": "She wants Helix even if the numbers say it adds less this quarter."
+  },
+  "priya": {
+    "facts": "Marcus Delacroix wants the Baton Rouge upgrade. Bjørn Aasen wants the Rotterdam one. Margrethe Lund wants Helix. Ingrid Vestergaard has to take the choice to the board.",
+    "stance": "Predictions: whichever project loses, its champion will ask for a meeting within a week. If the team picks Baton Rouge, Marcus will be loyal for a quarter. If it picks Helix, Margrethe will mention it at the next board meeting. If it picks nothing, Ingrid will feel she wasted a quarter.",
+    "signal": "",
+    "misdirection": "She thinks Bjørn will take a lost Rotterdam upgrade quietly. He won't."
+  }
+}

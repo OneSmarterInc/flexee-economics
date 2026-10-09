@@ -156,6 +156,12 @@ export interface PlayProps {
         genevaMaxVolume: number;
         marketTp: number | null;
         costTp: number;
+        capital: {
+            envelope: number;
+            rate: number;
+            projects: { key: string; label: string; outlay: number }[];
+            committedBefore: string[];
+        } | null;
     };
     memo: { text: string; savedAt: string | null };
     ready: string | null;

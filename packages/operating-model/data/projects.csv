@@ -1,0 +1,4 @@
+key,label,segment,risk_class,haircut,outlay,cf1,cf2,cf3,cf4,cf5,cf6,cf7,cf8,cf9,cf10
+br_upgrade,Baton Rouge upgrade,refineries,refining,0.88,640,180,190,185,170,150,125,98,72,46,24
+rot_upgrade,Rotterdam upgrade,refineries,refining,0.88,400,70,95,105,105,95,80,65,50,35,25
+helix,Helix,oil_fields,new_business,0.61,880,5,35,80,140,195,245,285,315,335,345

@@ -1,0 +1,4 @@
+behaviour,score_min,score_max,discount_rate,capital_envelope,note
+lax,0.0,0.3333,0.110,950,"Wk6 package: most of the class set the crude price far from cost or market"
+base,0.3333,0.6667,0.085,1150,"Wk6 package: mixed class"
+disciplined,0.6667,1.0,0.065,1520,"Wk6 package: most of the class set the crude price at cost"

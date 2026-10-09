@@ -46,6 +46,7 @@ class QuarterFlowTest extends TestCase
                 if (in_array($k, ['team', 'round', 'quarter', 'advisor_answers'], true)) {
                     continue;
                 }
+                $k = $k === 'crude_hedge_pct' ? 'crude_hedge' : $k;
                 $flat[$k] = $v === '' ? null : (is_numeric($v) ? ($k === 'rigs' ? (int) $v : (float) $v) : $v);
             }
             $plans[$row['team']][(int) $row['round']] = $flat;
@@ -55,7 +56,8 @@ class QuarterFlowTest extends TestCase
             $golden[$r['team']][$r['quarter']][$r['metric']] = (float) $r['value'];
         }
 
-        foreach ([1, 2, 3, 4] as $n) {
+        $keys = [1 => '2027Q1', 2 => '2027Q2', 3 => '2027Q3', 4 => '2027Q4', 5 => '2028Q1', 6 => '2028Q2'];
+        foreach ($keys as $n => $key) {
             $quarter = $section->quarters()->where('number', $n)->firstOrFail();
             $runner->open($quarter);
             foreach ($teams as $name => $team) {
@@ -66,13 +68,13 @@ class QuarterFlowTest extends TestCase
 
             foreach ($teams as $name => $team) {
                 $tq = TeamQuarter::query()->where('team_id', $team->id)->where('quarter_id', $quarter->id)->firstOrFail();
-                $expected = $golden[$name]["2027Q$n"];
+                $expected = $golden[$name][$key];
                 $this->assertEqualsWithDelta($expected['score.composite'], $tq->score, 1e-4, "$name Q$n score");
                 $this->assertSame((int) $expected['score.rank'], (int) $tq->rank, "$name Q$n rank");
                 $r = $tq->results;
                 $this->assertEqualsWithDelta($r['money.ebitda'] - $r['bridge.previous'],
                     $r['bridge.prices'] + $r['bridge.decisions'] + $r['bridge.carried_over'], 1e-6, "$name Q$n bridge adds up");
-                foreach (['money.ebitda', 'money.fcf', 'segment.oil_fields', 'kpi.plant_condition', 'ops.permian_prod'] as $m) {
+                foreach (['money.ebitda', 'money.fcf', 'segment.oil_fields', 'kpi.plant_condition', 'ops.permian_prod', 'line.hedges', 'ops.nwe', 'ops.project_outlay', 'line.projects_refining'] as $m) {
                     $this->assertEqualsWithDelta($expected[$m], $tq->results[$m], max(1e-4, abs($expected[$m]) * 1e-6), "$name Q$n $m");
                 }
             }
@@ -126,17 +128,17 @@ class QuarterFlowTest extends TestCase
         $this->assertSame([], $clean, 'the crude price cannot be set before Quarter 4');
     }
 
-    public function test_quarter_five_cannot_open_until_its_economics_exist(): void
+    public function test_quarter_seven_cannot_open_until_its_economics_exist(): void
     {
-        [$section, $teams] = $this->section(['a']);
+        [$section] = $this->section(['a']);
         $runner = app(QuarterRunner::class);
-        foreach ([1, 2, 3, 4] as $n) {
+        foreach ([1, 2, 3, 4, 5, 6] as $n) {
             $q = $section->quarters()->where('number', $n)->firstOrFail();
             $runner->open($q);
             $runner->close($q->refresh());
             $runner->publish($q->refresh());
         }
-        $this->expectExceptionMessage("The economics for Q1 2028 aren't built yet.");
-        $runner->open($section->quarters()->where('number', 5)->firstOrFail());
+        $this->expectExceptionMessage("The economics for Q3 2028 aren't built yet.");
+        $runner->open($section->quarters()->where('number', 7)->firstOrFail());
     }
 }

@@ -6,6 +6,7 @@ use App\Halden\Ai\AdvisorRoom;
 use App\Halden\Ai\HelpDesk;
 use App\Halden\Content\ContentPack;
 use App\Halden\Game\DecisionBook;
+use App\Halden\Game\QuarterRunner;
 use App\Halden\Game\QuarterView;
 use App\Http\Controllers\Controller;
 use App\Models\Quarter;
@@ -51,7 +52,7 @@ class PlayController extends Controller
         return Inertia::render('halden/Play', $view->build($team, $quarter, $user) + ['startPage' => (string) $request->query('page', '')]);
     }
 
-    public function savePage(Request $request, Quarter $quarter, string $page, DecisionBook $book): RedirectResponse
+    public function savePage(Request $request, Quarter $quarter, string $page, DecisionBook $book, QuarterRunner $runner): RedirectResponse
     {
         $user = $this->user($request);
         $team = $this->teamOf($user);
@@ -63,6 +64,23 @@ class PlayController extends Controller
             throw ValidationException::withMessages($errors);
         }
         $tq = TeamQuarter::query()->firstOrCreate(['team_id' => $team->id, 'quarter_id' => $quarter->id]);
+        if ($page === 'capital') {
+            // Committed projects stay committed, and new commitments must fit this quarter's envelope.
+            $previous = $book->previousEffective($team, $quarter);
+            foreach ($previous as $key => $value) {
+                if (str_starts_with($key, 'proj_') && $value === 'commit') {
+                    $clean[$key] = 'commit';
+                }
+            }
+            $envelope = $runner->capitalTerms($quarter)['envelope'];
+            $outlay = $book->newProjectOutlay(array_merge($tq->decisions ?? [], $clean), $previous);
+            if ($outlay > $envelope + 1e-9) {
+                throw ValidationException::withMessages(['capital' => sprintf(
+                    "That's \$%sM of new projects. Ingrid can take up to \$%sM to the board this quarter, so hold one of them.",
+                    number_format($outlay), number_format($envelope),
+                )]);
+            }
+        }
         $tq->decisions = array_merge($tq->decisions ?? [], $clean);
         $tq->saved_pages = array_merge($tq->saved_pages ?? [], [$page => ['by' => $user->name, 'at' => now()->toIso8601String()]]);
         $tq->save();

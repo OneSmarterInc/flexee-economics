@@ -1,10 +1,26 @@
 {
   "_about": "Help text shown under each decision, and the words on choice buttons. Keys match packages/operating-model/data/levers.csv.",
   "pages": {
-    "oil_fields": {"title": "Oil fields", "intro": ""},
-    "refineries": {"title": "Refineries", "intro": ""},
-    "gas_stations": {"title": "Gas stations", "intro": "Most Cordell stations are owned by local dealers. You set what Cordell charges them for fuel, in cents a gallon above or below the going rate in their area. The dealers then decide what to charge drivers. In Europe, Halden owns its stations and sets the pump price itself."},
-    "trading_finance": {"title": "Trading & finance", "intro": ""}
+    "oil_fields": {
+      "title": "Oil fields",
+      "intro": ""
+    },
+    "refineries": {
+      "title": "Refineries",
+      "intro": ""
+    },
+    "gas_stations": {
+      "title": "Gas stations",
+      "intro": "Most Cordell stations are owned by local dealers. You set what Cordell charges them for fuel, in cents a gallon above or below the going rate in their area. The dealers then decide what to charge drivers. In Europe, Halden owns its stations and sets the pump price itself."
+    },
+    "trading_finance": {
+      "title": "Trading & finance",
+      "intro": ""
+    },
+    "capital": {
+      "title": "Big projects",
+      "intro": "Each project costs its full price now and pays back over about ten years. Once you go ahead with one, there's no turning back. Ingrid takes them to the board, and the board caps what she can spend this quarter."
+    }
   },
   "help": {
     "rigs": "How many rigs drill new wells in Texas next quarter. A new well takes about three months to start pumping, and every rig costs $40 million a quarter whether its wells pay off or not.",
@@ -13,17 +29,39 @@
     "rot_posture": "Keep it running, pause it, or close it. Pausing saves the costs that come with each barrel, but you still pay the fixed costs like staff and upkeep. Restarting after a pause costs about $85 million. Closing is for good.",
     "rot_run": "As a share of everything Rotterdam can handle.",
     "sg_request": "This is a request, not an order. Straits Pacific owns 60% of the refinery and makes the call. You'll hear their answer with your results.",
-    "tp": "The price per barrel Baton Rouge pays Halden's own oil fields. It moves profit between the oil fields, the refinery and Geneva. It doesn't change Halden's total profit."
+    "tp": "The price per barrel Baton Rouge pays Halden's own oil fields. It moves profit between the oil fields, the refinery and Geneva. It doesn't change Halden's total profit.",
+    "crude_hedge": "Sell part of next quarter's oil now, at this quarter's price. If oil falls next quarter, the hedge pays; if it rises, it costs you.",
+    "eur_hedge": "Sell euros now for dollars next quarter, at today's rate. If the euro falls further, the hedge pays; if it recovers, it costs you.",
+    "nok_hedge": "Buy kroner now for next quarter, at today's rate. If the krone strengthens, the hedge pays; if it weakens further, it costs you.",
+    "proj_br_upgrade": "Lets Baton Rouge make more of the high-value fuels from each barrel. Pays back over ten years, most of it early.",
+    "proj_rot_upgrade": "Cuts Rotterdam's costs and lifts what it earns per barrel. It only pays while Rotterdam is running.",
+    "proj_helix": "A new business: a West Texas supply contract with a customer in Rotterdam. Slow to start, and paying most in later years."
   },
   "choices": {
-    "norway": {"run": "Keep pumping as planned", "cut": "Pump 10% less"},
-    "rot_posture": {"run": "Keep running", "idle": "Pause", "close": "Close for good"},
-    "tp_method": {"cost": "What it costs to pump and ship", "market": "Market price", "other": "Our own number"}
+    "norway": {
+      "run": "Keep pumping as planned",
+      "cut": "Pump 10% less"
+    },
+    "rot_posture": {
+      "run": "Keep running",
+      "idle": "Pause",
+      "close": "Close for good"
+    },
+    "tp_method": {
+      "cost": "What it costs to pump and ship",
+      "market": "Market price",
+      "other": "Our own number"
+    },
+    "project": {
+      "hold": "Hold for now",
+      "commit": "Go ahead"
+    }
   },
   "badges": {
     "your_call": "YOUR CALL",
     "geneva_has_to_agree": "GENEVA HAS TO AGREE",
-    "you_can_only_ask": "YOU CAN ONLY ASK"
+    "you_can_only_ask": "YOU CAN ONLY ASK",
+    "cfo_has_to_agree": "THE CFO HAS TO AGREE"
   },
   "station_notes": {
     "off_urban": "Lots of stations nearby; drivers switch for a few cents",
@@ -36,8 +74,16 @@
   },
   "fixed_items": {
     "oil_fields": [
-      {"title": "Norway fields partners run", "badge": "PARTNERS DECIDE", "text": "Halden owns part of these and pays its share of the bills, but the partners decide how much to pump. Right now they're pumping as planned."},
-      {"title": "Kessana, offshore West Africa", "badge": "FIXED BY CONTRACT", "text": "Runs under Halden's contract with the Kessana government. You don't set this one."}
+      {
+        "title": "Norway fields partners run",
+        "badge": "PARTNERS DECIDE",
+        "text": "Halden owns part of these and pays its share of the bills, but the partners decide how much to pump. Right now they're pumping as planned."
+      },
+      {
+        "title": "Kessana, offshore West Africa",
+        "badge": "FIXED BY CONTRACT",
+        "text": "Runs under Halden's contract with the Kessana government. You don't set this one."
+      }
     ]
   }
 }

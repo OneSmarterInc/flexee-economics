@@ -55,14 +55,30 @@ class GoldenQuartersTest extends TestCase
         [$start] = $model->runHistory();
 
         $plans = [];
+        $quarters = [];
         foreach (ModelData::csv(base_path('packages/operating-model/fixtures/reference_decisions.csv')) as $row) {
             $plans[$row['team']][(int) $row['round']] = Decisions::fromRow($row, $data);
+            $quarters[(int) $row['round']] = $row['quarter'];
         }
+        ksort($quarters);
+        $effects = json_decode((string) file_get_contents(base_path('packages/operating-model/fixtures/class_effects.json')), true, flags: JSON_THROW_ON_ERROR);
 
         $states = array_map(fn () => clone $start, $plans);
         $checked = 0;
-        foreach ([1, 2, 3, 4] as $round) {
-            $quarter = $data->quarter("2027Q$round");
+        foreach ($quarters as $round => $key) {
+            $quarter = $data->quarter($key);
+            if ($key === '2028Q1') {
+                $util = array_sum(array_map(fn (array $byRound) => $model->europeanUtil($byRound[3]), $plans)) / count($plans);
+                $quarter['nwe'] = $model->window1Nwe($util);
+                $this->assertClose((float) $effects['window1_nwe'], $quarter['nwe'], 'Window 1 margin');
+            }
+            if ($key === '2028Q2') {
+                $q4 = $data->quarter('2027Q4')['wti'];
+                $avg = array_sum(array_map(fn (array $byRound) => $model->crudePriceDiscipline($byRound[4], $q4), $plans)) / count($plans);
+                $terms = $model->capitalTerms($avg);
+                $this->assertSame($effects['capital_behaviour'], $terms['behaviour']);
+                $this->assertClose((float) $effects['capital_envelope'], $terms['envelope'], 'capital envelope');
+            }
             $results = [];
             foreach ($plans as $team => $byRound) {
                 $results[$team] = $model->step($states[$team], $byRound[$round], $quarter);
@@ -73,13 +89,14 @@ class GoldenQuartersTest extends TestCase
 
             foreach ($results as $team => $result) {
                 $metrics = $result->metrics() + ['score.composite' => $scores[$team], 'score.rank' => (float) $ranks[$team]];
-                foreach ($golden[$team]["2027Q$round"] as $metric => $expected) {
+                foreach ($golden[$team][$key] as $metric => $expected) {
                     $this->assertArrayHasKey($metric, $metrics, "missing $metric");
-                    $this->assertClose($expected, $metrics[$metric], "$team 2027Q$round $metric");
+                    $this->assertClose($expected, $metrics[$metric], "$team $key $metric");
                     $checked++;
                 }
             }
         }
-        $this->assertGreaterThan(400, $checked);
+        $this->assertCount(6, $quarters);
+        $this->assertGreaterThan(800, $checked);
     }
 }

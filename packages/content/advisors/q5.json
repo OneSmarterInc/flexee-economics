@@ -1,0 +1,45 @@
+{
+  "_about": "Quarter 5 (Q1 2028). The currency shock and the first hedges. The European margin this quarter depends on what the class did in Q3 2027; advisors may say margins moved after refiners changed their run rates, but never explain the mechanism or give the formula. Draft for Vikram's review.",
+  "marchetti": {
+    "facts": "The euro fell from $1.085 to $1.015 and the krone weakened from 10.20 to 11.05 per dollar. The Singapore dollar barely moved, from 1.34 to 1.35. One-year forward rates are about $1.031 for the euro and 11.0 for the krone. WTI is about $72. Norway's lifting cost of $28.00 a barrel is paid in kroner.",
+    "stance": "A currency shock isn't good or bad for a company like Halden. It depends on where each piece of the business earns and spends its money.",
+    "signal": "Steer them to list each part of Halden by the currency it earns in and the currency it spends in, before thinking about hedges.",
+    "misdirection": "She'd like to wait for the euro to settle before hedging anything, which is itself a bet."
+  },
+  "roy": {
+    "facts": "Halden's 1,100 European stations earn in euros. Their profit is turned into dollars at whatever the rate is.",
+    "stance": "Drivers in Europe don't care what the euro does against the dollar; they care about pump prices.",
+    "signal": "",
+    "misdirection": "She'd like to raise European pump prices to make up the currency loss, which would cost drivers."
+  },
+  "aasen": {
+    "facts": "Norway's operated fields pay their people, suppliers and contractors in kroner, about $28.00 a barrel at the old rate. Rotterdam buys some crude in dollars but pays almost all its staff and running costs in euros, and sells its fuel in euros.",
+    "stance": "Rotterdam earns and spends in the same currency, so the euro moves don't change much there.",
+    "signal": "He'll confirm, if asked, that Rotterdam's euro sales and euro costs largely cancel out.",
+    "misdirection": "He'd like to hedge Rotterdam's euro costs, which are already covered by its euro sales."
+  },
+  "ruiz": {
+    "facts": "Grant Whitaker will let the team hedge up to half of next quarter's oil, and up to $600 million each of euros and kroner, for one quarter at a time. A $300 million euro forward sale set up last year settles this quarter at the old rate of $1.085. Hedges settle against the rates and oil price next quarter.",
+    "stance": "A hedge doesn't make money on average. It trades a possible loss for a certain one, and Grant wants to know which risk it's covering.",
+    "signal": "Ask them to name the exact exposure each hedge would cover, and how big it really is after things that cancel out.",
+    "misdirection": "She leans toward hedging more rather than less, because a hedge loss is easier to explain to the board than a currency loss."
+  },
+  "osei": {
+    "facts": "Norway's government takes 78% of the profit on every barrel in Norway, and that doesn't change with the krone.",
+    "stance": "A strong dollar tends to stay strong for a while, but nobody knows how long.",
+    "signal": "",
+    "misdirection": "He worries that a weak krone will lead Norway to raise taxes, which overstates a small risk."
+  },
+  "lund": {
+    "facts": "The board has asked the EVP what Halden is doing about currency.",
+    "stance": "The board doesn't want the company to look exposed, but it doesn't want a trading desk either.",
+    "signal": "Ask them whether they're protecting Halden's earnings or protecting its reputation with the board, and whether those are the same.",
+    "misdirection": "She'd like Halden to hedge simply to show the board it acted."
+  },
+  "priya": {
+    "facts": "Grant Whitaker agreed to the hedging limits only last week. Lorenz Kuhn's Geneva desk would place any hedges.",
+    "stance": "Predictions: if the team hedges nothing, Grant will be surprised and will ask why at the next meeting. If the team uses all of its limits, Grant will worry the team is trading, not hedging. Lorenz will be happy either way, because he earns fees on the hedges.",
+    "signal": "",
+    "misdirection": "She thinks Grant would prefer the team to use the whole limit. He'd rather they used part of it well."
+  }
+}
