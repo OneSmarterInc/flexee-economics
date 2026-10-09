@@ -14,46 +14,100 @@
     "rule": "A rig costs $40 million a quarter. Each extra rig drills poorer ground than the one before, so it adds less oil. New wells take about three months to start pumping. In Norway, the government takes 78% of the profit on every barrel, and it also absorbs 78% of any loss. A refinery has costs that come with each barrel it runs and costs it pays whether it runs or not.",
     "new_pages_note": "This quarter you can change the oil fields and the refineries. Gas station prices open next quarter.",
     "exhibits": [
-      {"title": "The asset register: every oil field, refinery and gas station business, with its costs", "file": "q1/halden-q1-asset-register.xlsx"},
-      {"title": "Python notebook with the same data (optional)", "file": "q1/halden-q1-analysis.ipynb"}
+      {
+        "title": "The asset register: every oil field, refinery and gas station business, with its costs",
+        "file": "q1/halden-q1-asset-register.xlsx"
+      },
+      {
+        "title": "Python notebook with the same data (optional)",
+        "file": "q1/halden-q1-analysis.ipynb"
+      }
     ],
     "marchetti": "Oil dropped from $73 to $71 a barrel over the winter. Refining margins on the Gulf Coast held up, around $22 a barrel. Europe is weak: refiners near Rotterdam are making about $4 a barrel. I wouldn't plan on prices bouncing back quickly, but I wouldn't plan on a collapse either.",
     "story": {
       "band_on": "rigs",
       "bands": [
-        {"max": 12, "title": "Fewer rigs, more cash", "paragraphs": [
-          "You cut Texas to {rigs} rigs. Drilling spending fell, and free cash flow came in at {fcf}. Ingrid asked Grant why Texas was drilling less while oil was still above $70.",
-          "Texas output was {permian_prod} barrels a day this quarter. Fewer rigs means less new oil from next quarter on, so watch how fast that number slides."
-        ]},
-        {"max": 15, "title": "Steady as she goes", "paragraphs": [
-          "You kept Texas at about the old presidents' level, {rigs} rigs. Nothing surprised anyone, including Grant.",
-          "Texas output was {permian_prod} barrels a day. Whether each of those rigs earns back its $40 million is still an open question."
-        ]},
-        {"max": 99, "title": "Texas drilled hard", "paragraphs": [
-          "You pushed Texas to {rigs} rigs. Ingrid was delighted. Grant noticed that drilling spending jumped, and free cash flow came in at {fcf}.",
-          "The new wells start pumping next quarter. Each extra rig drilled poorer ground than the last one, so the question is whether they pay for themselves."
-        ]}
+        {
+          "max": 12,
+          "title": "Fewer rigs, more cash",
+          "paragraphs": [
+            "You cut Texas to {rigs} rigs. Drilling spending fell, and free cash flow came in at {fcf}. Ingrid asked Grant why Texas was drilling less while oil was still above $70.",
+            "Texas output was {permian_prod} barrels a day this quarter. Fewer rigs means less new oil from next quarter on, so watch how fast that number slides."
+          ]
+        },
+        {
+          "max": 15,
+          "title": "Steady as she goes",
+          "paragraphs": [
+            "You kept Texas at about the old presidents' level, {rigs} rigs. Nothing surprised anyone, including Grant.",
+            "Texas output was {permian_prod} barrels a day. Whether each of those rigs earns back its $40 million is still an open question."
+          ]
+        },
+        {
+          "max": 99,
+          "title": "Texas drilled hard",
+          "paragraphs": [
+            "You pushed Texas to {rigs} rigs. Ingrid was delighted. Grant noticed that drilling spending jumped, and free cash flow came in at {fcf}.",
+            "The new wells start pumping next quarter. Each extra rig drilled poorer ground than the last one, so the question is whether they pay for themselves."
+          ]
+        }
       ],
       "closing": "Halden earned {ebitda} before interest, tax and depreciation this quarter. Next quarter, you'll also set prices at the gas stations."
     },
     "news": [
-      {"title": "Oil drifts lower", "body": "Crude slipped to about $71 a barrel. Most producers in your class kept drilling at last year's pace."},
-      {"title": "Rotterdam's neighbours struggle", "body": "European refiners are making about $4 a barrel. Two plants near Rotterdam cut their runs over the winter."}
+      {
+        "title": "Oil drifts lower",
+        "body": "Crude slipped to about $71 a barrel. Most producers in your class kept drilling at last year's pace."
+      },
+      {
+        "title": "Rotterdam's neighbours struggle",
+        "body": "European refiners are making about $4 a barrel. Two plants near Rotterdam cut their runs over the winter."
+      }
     ],
     "relations": {
       "band_on": "first_meeting",
       "bands": {
         "marcus": [
-          {"who": "Marcus Delacroix", "was": "Guarded", "now": "Cooperative", "why": "You went to Baton Rouge first."},
-          {"who": "Ingrid Vestergaard", "was": "Cooperative", "now": "Watchful", "why": "You met Marcus before her."}
+          {
+            "who": "Marcus Delacroix",
+            "was": "Guarded",
+            "now": "Cooperative",
+            "why": "You went to Baton Rouge first."
+          },
+          {
+            "who": "Ingrid Vestergaard",
+            "was": "Cooperative",
+            "now": "Watchful",
+            "why": "You met Marcus before her."
+          }
         ],
         "ingrid": [
-          {"who": "Ingrid Vestergaard", "was": "Cooperative", "now": "Cooperative", "why": "You met her first and listened."},
-          {"who": "Marcus Delacroix", "was": "Guarded", "now": "Guarded", "why": "You met Ingrid before him. He noticed."}
+          {
+            "who": "Ingrid Vestergaard",
+            "was": "Cooperative",
+            "now": "Cooperative",
+            "why": "You met her first and listened."
+          },
+          {
+            "who": "Marcus Delacroix",
+            "was": "Guarded",
+            "now": "Guarded",
+            "why": "You met Ingrid before him. He noticed."
+          }
         ],
         "none": [
-          {"who": "Marcus Delacroix", "was": "Guarded", "now": "Guarded", "why": "You haven't met yet."},
-          {"who": "Ingrid Vestergaard", "was": "Cooperative", "now": "Cooperative", "why": "You haven't met yet."}
+          {
+            "who": "Marcus Delacroix",
+            "was": "Guarded",
+            "now": "Guarded",
+            "why": "You haven't met yet."
+          },
+          {
+            "who": "Ingrid Vestergaard",
+            "was": "Cooperative",
+            "now": "Cooperative",
+            "why": "You haven't met yet."
+          }
         ]
       }
     }
@@ -72,38 +126,83 @@
     "rule": "When you change what Cordell charges a dealer, the dealer passes part of it on to drivers. City dealers pass on about 82 cents of every dollar; small-town dealers about 42 cents. City drivers switch stations over a few cents; small-town drivers barely notice. If you keep a price rise in place, more drivers drift away each quarter. If you cut prices, rivals start matching you, so the extra drivers fade. In Europe, Halden owns its stations and sets the pump price directly.",
     "new_pages_note": "New this quarter: gas station prices.",
     "exhibits": [
-      {"title": "Four years of prices and sales, by type of market", "file": "q2/halden-q2-station-prices.xlsx"},
-      {"title": "Python notebook with the same data (optional)", "file": "q2/halden-q2-analysis.ipynb"}
+      {
+        "title": "Four years of prices and sales, by type of market",
+        "file": "q2/halden-q2-station-prices.xlsx"
+      },
+      {
+        "title": "Python notebook with the same data (optional)",
+        "file": "q2/halden-q2-analysis.ipynb"
+      }
     ],
     "marchetti": "Oil is flat at about $70.50. What matters this quarter is how drivers react to price. In cities they react a lot. In small towns and on highways, hardly at all. One national price would be wrong almost everywhere.",
     "story": {
       "band_on": "price_move",
       "bands": [
-        {"max": -0.25, "title": "Cheaper gas, busier stations", "paragraphs": [
-          "You cut prices on average. Stations got busier in the cities, and Danielle sent the whole sales team a note of congratulations.",
-          "Fuel profit at Cordell came in at {cordell_fuel}. Rival chains noticed the cuts. Expect some of them to match you next quarter."
-        ]},
-        {"max": 0.25, "title": "Prices held", "paragraphs": [
-          "You left prices about where they were. Danielle thinks you missed a chance. Elena thinks you didn't have to change anything to find out what drivers would do.",
-          "Fuel profit at Cordell came in at {cordell_fuel}."
-        ]},
-        {"max": 99, "title": "Higher prices, fewer drivers where it counts", "paragraphs": [
-          "You raised prices on average. Fuel profit at Cordell came in at {cordell_fuel}. In the cities, a few drivers went elsewhere. In the small towns, almost nobody noticed.",
-          "Price rises that last tend to cost more drivers over time. Keep an eye on traffic."
-        ]}
+        {
+          "max": -0.25,
+          "title": "Cheaper gas, busier stations",
+          "paragraphs": [
+            "You cut prices on average. Stations got busier in the cities, and Danielle sent the whole sales team a note of congratulations.",
+            "Fuel profit at Cordell came in at {cordell_fuel}. Rival chains noticed the cuts. Expect some of them to match you next quarter."
+          ]
+        },
+        {
+          "max": 0.25,
+          "title": "Prices held",
+          "paragraphs": [
+            "You left prices about where they were. Danielle thinks you missed a chance. Elena thinks you didn't have to change anything to find out what drivers would do.",
+            "Fuel profit at Cordell came in at {cordell_fuel}."
+          ]
+        },
+        {
+          "max": 99,
+          "title": "Higher prices, fewer drivers where it counts",
+          "paragraphs": [
+            "You raised prices on average. Fuel profit at Cordell came in at {cordell_fuel}. In the cities, a few drivers went elsewhere. In the small towns, almost nobody noticed.",
+            "Price rises that last tend to cost more drivers over time. Keep an eye on traffic."
+          ]
+        }
       ],
       "closing": "Halden earned {ebitda} before interest, tax and depreciation this quarter. Next quarter, Rotterdam's future is on the table."
     },
     "news": [
-      {"title": "Price war talk in Louisiana", "body": "Two chains cut street prices by a few cents in Baton Rouge and New Orleans. Small-town prices barely moved."},
-      {"title": "European margins tick up", "body": "Refiners around Rotterdam made a little over $5 a barrel this quarter, the best in a year."}
+      {
+        "title": "Price war talk in Louisiana",
+        "body": "Two chains cut street prices by a few cents in Baton Rouge and New Orleans. Small-town prices barely moved."
+      },
+      {
+        "title": "European margins tick up",
+        "body": "Refiners around Rotterdam made a little over $5 a barrel this quarter, the best in a year."
+      }
     ],
     "relations": {
       "band_on": "price_move",
       "bands": {
-        "down": [{"who": "Danielle Roy", "was": "Cooperative", "now": "Cooperative", "why": "You took her advice on prices."}],
-        "flat": [{"who": "Danielle Roy", "was": "Cooperative", "now": "Watchful", "why": "She asked for price cuts and didn't get them."}],
-        "up": [{"who": "Danielle Roy", "was": "Cooperative", "now": "Strained", "why": "You raised prices while she was asking for cuts."}]
+        "down": [
+          {
+            "who": "Danielle Roy",
+            "was": "Cooperative",
+            "now": "Cooperative",
+            "why": "You took her advice on prices."
+          }
+        ],
+        "flat": [
+          {
+            "who": "Danielle Roy",
+            "was": "Cooperative",
+            "now": "Watchful",
+            "why": "She asked for price cuts and didn't get them."
+          }
+        ],
+        "up": [
+          {
+            "who": "Danielle Roy",
+            "was": "Cooperative",
+            "now": "Strained",
+            "why": "You raised prices while she was asking for cuts."
+          }
+        ]
       }
     }
   },
@@ -121,46 +220,123 @@
     "rule": "Rotterdam earns the European refining margin plus $1.50 a barrel, and spends $4.10 a barrel on costs that come with each barrel it runs. It also pays $2.30 a barrel of fixed costs (staff, upkeep) on its full size whether it runs or not. Pausing stops the per-barrel costs but not the fixed ones, plus $5 million a quarter of care costs. Restarting after a pause costs $85 million. Closing costs $150 million once and is permanent. Singapore is a request: Straits Pacific owns 60% and decides.",
     "new_pages_note": "New this quarter: pause or close Rotterdam, and what you ask Singapore for.",
     "exhibits": [
-      {"title": "What each refinery spends, per barrel and fixed", "file": "q3/halden-q3-refinery-costs.csv"},
-      {"title": "What it would take to restart Rotterdam", "file": "q3/halden-q3-rotterdam-restart.csv"},
-      {"title": "Refining margins month by month, three regions", "file": "q3/halden-q3-crack-history.csv"},
-      {"title": "Who decides what at the Singapore joint venture", "file": "q3/halden-q3-jv-governance.csv"},
-      {"title": "Worked example: a refinery deciding whether to run", "file": "q3/halden-q3-worked-example-plant.csv"}
+      {
+        "title": "What each refinery spends, per barrel and fixed",
+        "file": "q3/halden-q3-refinery-costs.csv"
+      },
+      {
+        "title": "What it would take to restart Rotterdam",
+        "file": "q3/halden-q3-rotterdam-restart.csv"
+      },
+      {
+        "title": "Refining margins month by month, three regions",
+        "file": "q3/halden-q3-crack-history.csv"
+      },
+      {
+        "title": "Who decides what at the Singapore joint venture",
+        "file": "q3/halden-q3-jv-governance.csv"
+      },
+      {
+        "title": "Worked example: a refinery deciding whether to run",
+        "file": "q3/halden-q3-worked-example-plant.csv"
+      }
     ],
     "marchetti": "Oil is up a little, to about $72.60. Europe's refining margin is near $4.90 a barrel, better than last winter but still thin. If you're deciding about Rotterdam, the number to compare it with isn't whether it makes a profit. It's whether it covers the costs that stop when it stops.",
     "story": {
       "band_on": "rotterdam",
       "bands": [
-        {"key": "closed", "title": "Rotterdam is closing", "paragraphs": [
-          "You closed Rotterdam. The one-time cost hit this quarter, and the works council has asked for a meeting with Sandvik.",
-          "Halden no longer carries Rotterdam's losses. It also no longer earns anything from Europe's refining margin, whatever happens to it from here."
-        ]},
-        {"key": "idle", "title": "Rotterdam goes quiet", "paragraphs": [
-          "You paused Rotterdam. The plant stopped buying crude, but the staff, the upkeep and the care costs are still on the books: Rotterdam cost {rotterdam} this quarter.",
-          "Restarting will cost $85 million. Bjørn has asked how long you expect the pause to last."
-        ]},
-        {"key": "running_hard", "title": "Rotterdam runs on", "paragraphs": [
-          "You kept Rotterdam running hard. It still lost money after its fixed costs ({rotterdam} this quarter), but less than it would have running slowly.",
-          "The works council has agreed to the maintenance plan. Marcus says you're throwing good money after bad. Bjørn says you're the first person in years to understand the plant."
-        ]},
-        {"key": "running_slow", "title": "Rotterdam, slowed down", "paragraphs": [
-          "You kept Rotterdam running, but slowly. It lost {rotterdam} this quarter after its fixed costs.",
-          "Bjørn warns that equipment run slowly for a long time starts to act up. The works council is still waiting for an answer."
-        ]}
+        {
+          "key": "closed",
+          "title": "Rotterdam is closing",
+          "paragraphs": [
+            "You closed Rotterdam. The one-time cost hit this quarter, and the works council has asked for a meeting with Sandvik.",
+            "Halden no longer carries Rotterdam's losses. It also no longer earns anything from Europe's refining margin, whatever happens to it from here."
+          ]
+        },
+        {
+          "key": "idle",
+          "title": "Rotterdam goes quiet",
+          "paragraphs": [
+            "You paused Rotterdam. The plant stopped buying crude, but the staff, the upkeep and the care costs are still on the books: Rotterdam cost {rotterdam} this quarter.",
+            "Restarting will cost $85 million. Bjørn has asked how long you expect the pause to last."
+          ]
+        },
+        {
+          "key": "running_hard",
+          "title": "Rotterdam runs on",
+          "paragraphs": [
+            "You kept Rotterdam running hard. It still lost money after its fixed costs ({rotterdam} this quarter), but less than it would have running slowly.",
+            "The works council has agreed to the maintenance plan. Marcus says you're throwing good money after bad. Bjørn says you're the first person in years to understand the plant."
+          ]
+        },
+        {
+          "key": "running_slow",
+          "title": "Rotterdam, slowed down",
+          "paragraphs": [
+            "You kept Rotterdam running, but slowly. It lost {rotterdam} this quarter after its fixed costs.",
+            "Bjørn warns that equipment run slowly for a long time starts to act up. The works council is still waiting for an answer."
+          ]
+        }
       ],
       "closing": "Straits Pacific ran Singapore at {sg_accepted}%. Halden earned {ebitda} before interest, tax and depreciation this quarter. Next quarter, Geneva's results raise a question about how Halden charges itself for crude."
     },
     "news": [
-      {"title": "European refiners pick different paths", "body": "Some companies in your class slowed or paused their European refineries this quarter. Others kept running. Traders are watching what that does to Europe's refining margin."},
-      {"title": "Singapore partners stay cautious", "body": "Asian refining margins were steady at a little over $12 a barrel."}
+      {
+        "title": "European refiners pick different paths",
+        "body": "Some companies in your class slowed or paused their European refineries this quarter. Others kept running. Traders are watching what that does to Europe's refining margin."
+      },
+      {
+        "title": "Singapore partners stay cautious",
+        "body": "Asian refining margins were steady at a little over $12 a barrel."
+      }
     ],
     "relations": {
       "band_on": "rotterdam",
       "bands": {
-        "closed": [{"who": "Bjørn Aasen", "was": "Cooperative", "now": "Strained", "why": "You closed a plant he spent 20 years running."}, {"who": "Marcus Delacroix", "was": "Guarded", "now": "Cooperative", "why": "He's wanted Rotterdam gone for years."}],
-        "idle": [{"who": "Bjørn Aasen", "was": "Cooperative", "now": "Watchful", "why": "He doesn't trust a pause to stay a pause."}],
-        "running_hard": [{"who": "Bjørn Aasen", "was": "Cooperative", "now": "Cooperative", "why": "You backed his plant."}, {"who": "Marcus Delacroix", "was": "Guarded", "now": "Watchful", "why": "You kept the plant he wants to sell."}],
-        "running_slow": [{"who": "Bjørn Aasen", "was": "Cooperative", "now": "Watchful", "why": "He thinks running slowly is the worst of both."}]
+        "closed": [
+          {
+            "who": "Bjørn Aasen",
+            "was": "Cooperative",
+            "now": "Strained",
+            "why": "You closed a plant he spent 20 years running."
+          },
+          {
+            "who": "Marcus Delacroix",
+            "was": "Guarded",
+            "now": "Cooperative",
+            "why": "He's wanted Rotterdam gone for years."
+          }
+        ],
+        "idle": [
+          {
+            "who": "Bjørn Aasen",
+            "was": "Cooperative",
+            "now": "Watchful",
+            "why": "He doesn't trust a pause to stay a pause."
+          }
+        ],
+        "running_hard": [
+          {
+            "who": "Bjørn Aasen",
+            "was": "Cooperative",
+            "now": "Cooperative",
+            "why": "You backed his plant."
+          },
+          {
+            "who": "Marcus Delacroix",
+            "was": "Guarded",
+            "now": "Watchful",
+            "why": "You kept the plant he wants to sell."
+          }
+        ],
+        "running_slow": [
+          {
+            "who": "Bjørn Aasen",
+            "was": "Cooperative",
+            "now": "Watchful",
+            "why": "He thinks running slowly is the worst of both."
+          }
+        ]
       }
     }
   },
@@ -177,48 +353,313 @@
     "rule": "When Halden's own crude price is different from the outside market price, Geneva can trade on the gap. It keeps 35 cents of every dollar of difference, on up to 40,000 barrels a day, and that shows up as Geneva's profit. Here's the key point: the price doesn't change what Halden earns in total. It only changes which part of Halden gets the credit.",
     "new_pages_note": "New this quarter: what Baton Rouge pays for Texas crude, on your Trading & finance page. It stays there for the rest of the course.",
     "exhibits": [
-      {"title": "What it costs to pump a barrel in Texas and ship it to Baton Rouge", "file": "q4/halden-q4-crude-price.xlsx"},
-      {"title": "Python notebook with the same data (optional)", "file": "q4/halden-q4-analysis.ipynb"},
-        {"title": "Data files the notebook reads (unzip them next to it)", "file": "q4/halden-q4-notebook-data.zip"}
+      {
+        "title": "What it costs to pump a barrel in Texas and ship it to Baton Rouge",
+        "file": "q4/halden-q4-crude-price.xlsx"
+      },
+      {
+        "title": "Python notebook with the same data (optional)",
+        "file": "q4/halden-q4-analysis.ipynb"
+      },
+      {
+        "title": "Data files the notebook reads (unzip them next to it)",
+        "file": "q4/halden-q4-notebook-data.zip"
+      }
     ],
     "marchetti": "Oil is at $74 a barrel, and traders expect it to stay about there. What I keep looking at is Europe: refineries there are making only $4.60 on each barrel, and the ones around Rotterdam are slowing down. Honestly, I don't have a call on next quarter's oil price that I'd bet a refinery on.",
     "story": {
       "band_on": "tp",
       "bands": [
-        {"key": "cost", "title": "Baton Rouge's best quarter since the merger", "paragraphs": [
-          "Baton Rouge had its best quarter since the merger. Marcus sent the plant a thank-you note and made sure you were copied. Meanwhile, the oil fields' profit dropped to almost nothing on paper, and Ingrid asked Grant why.",
-          "Geneva stopped making money on the gap in Halden's own crude prices. Kuhn didn't mention it."
-        ]},
-        {"key": "market", "title": "Nothing changed, and everyone noticed", "paragraphs": [
-          "You kept the market price the old presidents used. The oil fields had a strong quarter on paper. Baton Rouge's numbers stayed thin, and Marcus sent you an email complaining about it, with the CEO copied.",
-          "Geneva had a quiet quarter. Kuhn didn't complain."
-        ]},
-        {"key": "between", "title": "Geneva had another great quarter", "paragraphs": [
-          "You moved the price, but only partway. The oil fields and Baton Rouge both posted so-so numbers, and neither side was happy.",
-          "Geneva made {geneva} on the gap between your price and the outside market. Kuhn sent Grant a short note about it. Grant forwarded it to you without a word."
-        ]}
+        {
+          "key": "cost",
+          "title": "Baton Rouge's best quarter since the merger",
+          "paragraphs": [
+            "Baton Rouge had its best quarter since the merger. Marcus sent the plant a thank-you note and made sure you were copied. Meanwhile, the oil fields' profit dropped to almost nothing on paper, and Ingrid asked Grant why.",
+            "Geneva stopped making money on the gap in Halden's own crude prices. Kuhn didn't mention it."
+          ]
+        },
+        {
+          "key": "market",
+          "title": "Nothing changed, and everyone noticed",
+          "paragraphs": [
+            "You kept the market price the old presidents used. The oil fields had a strong quarter on paper. Baton Rouge's numbers stayed thin, and Marcus sent you an email complaining about it, with the CEO copied.",
+            "Geneva had a quiet quarter. Kuhn didn't complain."
+          ]
+        },
+        {
+          "key": "between",
+          "title": "Geneva had another great quarter",
+          "paragraphs": [
+            "You moved the price, but only partway. The oil fields and Baton Rouge both posted so-so numbers, and neither side was happy.",
+            "Geneva made {geneva} on the gap between your price and the outside market. Kuhn sent Grant a short note about it. Grant forwarded it to you without a word."
+          ]
+        }
       ],
       "closing": "Here's the thing: Halden as a whole made {ebitda} before interest, tax and depreciation, exactly what it would have made at any price. The money just moved from one column to another. Next on Grant's mind: currencies, before the Norwegian krone moves again."
     },
     "news": [
-      {"title": "Lenders are asking about internal prices", "body": "Several companies in your class changed what their refineries pay for their own crude this quarter. Banks have started asking about it when they review loans."},
-      {"title": "European refineries slowed down again", "body": "Several refineries around Rotterdam ran below 80% for another quarter. Traders say Europe can make more diesel than it can sell."}
+      {
+        "title": "Lenders are asking about internal prices",
+        "body": "Several companies in your class changed what their refineries pay for their own crude this quarter. Banks have started asking about it when they review loans."
+      },
+      {
+        "title": "European refineries slowed down again",
+        "body": "Several refineries around Rotterdam ran below 80% for another quarter. Traders say Europe can make more diesel than it can sell."
+      }
     ],
     "relations": {
       "band_on": "tp",
       "bands": {
         "cost": [
-          {"who": "Marcus Delacroix", "was": "Guarded", "now": "Cooperative", "why": "You set Baton Rouge's crude price at cost. His refinery just had its best quarter since the merger."},
-          {"who": "Ingrid Vestergaard", "was": "Cooperative", "now": "Watchful", "why": "The oil fields' profit collapsed on paper, and nobody asked her first."},
-          {"who": "Lorenz Kuhn", "was": "Cooperative", "now": "Watchful", "why": "Geneva can't make money on the price gap anymore."}
+          {
+            "who": "Marcus Delacroix",
+            "was": "Guarded",
+            "now": "Cooperative",
+            "why": "You set Baton Rouge's crude price at cost. His refinery just had its best quarter since the merger."
+          },
+          {
+            "who": "Ingrid Vestergaard",
+            "was": "Cooperative",
+            "now": "Watchful",
+            "why": "The oil fields' profit collapsed on paper, and nobody asked her first."
+          },
+          {
+            "who": "Lorenz Kuhn",
+            "was": "Cooperative",
+            "now": "Watchful",
+            "why": "Geneva can't make money on the price gap anymore."
+          }
         ],
         "market": [
-          {"who": "Marcus Delacroix", "was": "Guarded", "now": "Strained", "why": "You kept the old price after he'd asked you to change it."},
-          {"who": "Lorenz Kuhn", "was": "Cooperative", "now": "Cooperative", "why": "Nothing changed for Geneva."}
+          {
+            "who": "Marcus Delacroix",
+            "was": "Guarded",
+            "now": "Strained",
+            "why": "You kept the old price after he'd asked you to change it."
+          },
+          {
+            "who": "Lorenz Kuhn",
+            "was": "Cooperative",
+            "now": "Cooperative",
+            "why": "Nothing changed for Geneva."
+          }
         ],
         "between": [
-          {"who": "Lorenz Kuhn", "was": "Cooperative", "now": "Obliged", "why": "Geneva made money on the gap you left."},
-          {"who": "Grant Whitaker", "was": "Cooperative", "now": "Guarded", "why": "He's asked twice why Geneva's profit keeps going up."}
+          {
+            "who": "Lorenz Kuhn",
+            "was": "Cooperative",
+            "now": "Obliged",
+            "why": "Geneva made money on the gap you left."
+          },
+          {
+            "who": "Grant Whitaker",
+            "was": "Cooperative",
+            "now": "Guarded",
+            "why": "He's asked twice why Geneva's profit keeps going up."
+          }
+        ]
+      }
+    }
+  },
+  "5": {
+    "briefing": {
+      "dateline": "Q1 2028 · Monday 10 January · Houston",
+      "headline": "The euro fell 6% over the holidays, and the krone fell with it",
+      "paragraphs": [
+        "The dollar jumped while everyone was away. The euro dropped from $1.085 to $1.015, and the Norwegian krone weakened from 10.20 to 11.05 per dollar. Danielle says the European stations will look worse in dollars. Bjørn points out that Norway pays its people and suppliers in kroner. Ana says the board expects Halden to do something about it.",
+        "Grant Whitaker has agreed, for the first time, to let you hedge. You can sell part of next quarter's oil at today's price, and buy or sell euros and kroner for next quarter at today's rates. He wants to know which of Halden's currency risks are real before you use any of it.",
+        "One more thing on the prices page: European refining margins have moved a lot since last summer, after refiners around Rotterdam changed how hard they ran."
+      ],
+      "question": "Which of Halden's currency risks are real, and how much, if any, should you hedge?"
+    },
+    "rule": "A weaker krone makes Norway's costs cheaper in dollars, because those costs are paid in kroner. A weaker euro shrinks what the European stations earn once it's turned into dollars. Rotterdam earns and spends in euros, so the two mostly cancel out. Any hedge you set this quarter settles next quarter: oil at this quarter's price, euros and kroner at today's rates. If prices then move in your favour, the hedge costs you; if they move against you, it pays. Grant lets you hedge up to half of next quarter's oil and up to $600 million of each currency.",
+    "new_pages_note": "New this quarter: three hedges on your Trading & finance page. Grant has to agree to them, so each one has a limit.",
+    "exhibits": [
+      {
+        "title": "Where Halden's money is earned and spent, by currency",
+        "file": "q5/halden-q5-currency.xlsx"
+      },
+      {
+        "title": "Python notebook with the same data (optional)",
+        "file": "q5/halden-q5-analysis.ipynb"
+      }
+    ],
+    "marchetti": "The euro is at $1.015 and the krone at 11.05 per dollar. Forward markets think the euro could be back near $1.03 within a year, but I wouldn't bet the company on that. Oil is about $72. The question isn't which way currencies go next. It's which parts of Halden actually feel it.",
+    "story": {
+      "band_on": "hedges",
+      "bands": [
+        {
+          "key": "none",
+          "title": "You let the currencies ride",
+          "paragraphs": [
+            "You didn't hedge anything this quarter. The currency moves changed Halden's earnings by {fx_effect} on their own: Norway's costs got cheaper in dollars, the European stations earned less, and Rotterdam mostly cancelled itself out.",
+            "The euro hedge the old team set up last year paid {hedges}. Grant noticed you didn't use the hedging he'd agreed to."
+          ]
+        },
+        {
+          "key": "measured",
+          "title": "A measured first hedge",
+          "paragraphs": [
+            "The currency moves changed Halden's earnings by {fx_effect} this quarter, before any hedging. Norway's costs got cheaper in dollars, the European stations earned less, and Rotterdam mostly cancelled itself out.",
+            "You hedged part of next quarter. Those hedges settle next quarter, at whatever oil and currencies do by then. The euro hedge the old team set up last year paid {hedges}."
+          ]
+        },
+        {
+          "key": "heavy",
+          "title": "You used most of Grant's hedging limits",
+          "paragraphs": [
+            "The currency moves changed Halden's earnings by {fx_effect} this quarter, before any hedging. Norway's costs got cheaper in dollars, the European stations earned less, and Rotterdam mostly cancelled itself out.",
+            "You used most of the limits Grant set. If oil or the euro moves your way next quarter, those hedges will cost real money. The euro hedge the old team set up last year paid {hedges}."
+          ]
+        }
+      ],
+      "closing": "Halden made {ebitda} before interest, tax and depreciation. Next on Ingrid's desk: three big projects, and not enough money for all of them."
+    },
+    "news": [
+      {
+        "title": "The dollar is at a five-year high",
+        "body": "The euro fell about 6% and the krone nearly 8% against the dollar. Companies that earn in dollars and spend in kroner are quietly better off."
+      },
+      {
+        "title": "European refining margins moved sharply",
+        "body": "How hard refiners around Rotterdam ran last summer, including the companies in your class, is now showing up in what they earn on each barrel. Check this quarter's European margin on the prices page."
+      }
+    ],
+    "relations": {
+      "band_on": "hedges",
+      "bands": {
+        "none": [
+          {
+            "who": "Grant Whitaker",
+            "was": "Cooperative",
+            "now": "Watchful",
+            "why": "He agreed to let you hedge, and you didn't use it or explain why."
+          }
+        ],
+        "measured": [
+          {
+            "who": "Grant Whitaker",
+            "was": "Cooperative",
+            "now": "Cooperative",
+            "why": "You hedged carefully, well inside his limits."
+          }
+        ],
+        "heavy": [
+          {
+            "who": "Grant Whitaker",
+            "was": "Cooperative",
+            "now": "Guarded",
+            "why": "You used nearly all of his hedging limits the first time you had them."
+          }
+        ]
+      }
+    }
+  },
+  "6": {
+    "briefing": {
+      "dateline": "Q2 2028 · Monday 3 April · Houston",
+      "headline": "Three projects, one budget",
+      "paragraphs": [
+        "Ingrid has three projects ready for the board: an upgrade at Baton Rouge, an upgrade at Rotterdam, and Helix, a new business built around a West Texas supply contract with a customer in Rotterdam. Marcus wants Baton Rouge. Bjørn wants Rotterdam. Margrethe wants Helix.",
+        "There isn't money for all three. How much the board lets Ingrid spend, and what Halden's money costs this quarter, depend on how lenders now read the industry, including how companies like Halden priced their own crude last autumn."
+      ],
+      "question": "Which of the three projects should Halden go ahead with, given what money costs this quarter?"
+    },
+    "rule": "Each project costs its full price now and pays back over about ten years. Once you go ahead with one, there's no turning back. The board caps what Ingrid can spend this quarter, and Halden's cost of capital sets what money in later years is worth today. Forecasts run optimistic: refining upgrades have delivered about 88% of what was promised, new businesses about 61%. A project's price adds to Halden's debt, but your free cash flow score is measured before new projects, so a good project isn't punished in the quarter you pay for it.",
+    "new_pages_note": "New this quarter: Big projects, a page for the EVP.",
+    "exhibits": [
+      {
+        "title": "The three projects' cash flows, and what money costs this quarter",
+        "file": "q6/halden-q6-projects.xlsx"
+      },
+      {
+        "title": "Python notebook with the same data (optional)",
+        "file": "q6/halden-q6-analysis.ipynb"
+      },
+      {
+        "title": "Data files the notebook reads (unzip them next to it)",
+        "file": "q6/halden-q6-notebook-data.zip"
+      }
+    ],
+    "marchetti": "Oil is at $73.50, and the euro has come back a little, to $1.031. Lenders are pricing companies' money off how disciplined they've been with their own numbers, and that changes which project looks best. Work out what each one is worth at this quarter's cost of capital before you rank them.",
+    "story": {
+      "band_on": "projects",
+      "bands": [
+        {
+          "key": "none",
+          "title": "You kept the money in the bank",
+          "paragraphs": [
+            "You didn't go ahead with any of the three projects. Ingrid told the board Halden would wait. Marcus, Bjørn and Margrethe each asked you why, separately.",
+            "The hedges you set last quarter settled at {hedges}."
+          ]
+        },
+        {
+          "key": "refining",
+          "title": "The refineries get the money",
+          "paragraphs": [
+            "You committed {project_outlay} to refining upgrades. They start paying next quarter, at whatever they really deliver. Margrethe asked whether Halden had just decided what it wants to be.",
+            "The hedges you set last quarter settled at {hedges}."
+          ]
+        },
+        {
+          "key": "helix",
+          "title": "You bet on Helix",
+          "paragraphs": [
+            "You committed {project_outlay}, with Helix at its centre. It's slow to start, and most of its money comes in later years. Marcus called it a science project. Margrethe called you to say well done.",
+            "The hedges you set last quarter settled at {hedges}."
+          ]
+        }
+      ],
+      "closing": "Halden made {ebitda} before interest, tax and depreciation. Next quarter, a rival chain makes a move on prices, and you'll see how every measure compares with the rest of the class."
+    },
+    "news": [
+      {
+        "title": "Lenders are rewarding discipline",
+        "body": "Banks have started setting what they charge oil companies by how carefully those companies price their own internal deals. Last autumn's choices across your class are now in this quarter's cost of capital."
+      },
+      {
+        "title": "The euro steadied",
+        "body": "The euro recovered to about $1.031. Companies that sold euros forward at the bottom gave some of it back."
+      }
+    ],
+    "relations": {
+      "band_on": "projects",
+      "bands": {
+        "none": [
+          {
+            "who": "Ingrid Vestergaard",
+            "was": "Cooperative",
+            "now": "Watchful",
+            "why": "She prepared three projects and you sent her back to the board with none."
+          }
+        ],
+        "refining": [
+          {
+            "who": "Marcus Delacroix",
+            "was": "Cooperative",
+            "now": "Cooperative",
+            "why": "Refining got the money."
+          },
+          {
+            "who": "Margrethe Lund",
+            "was": "Cooperative",
+            "now": "Watchful",
+            "why": "She wanted to see Halden try something new."
+          }
+        ],
+        "helix": [
+          {
+            "who": "Margrethe Lund",
+            "was": "Cooperative",
+            "now": "Supportive",
+            "why": "You backed the new business she's been pushing for."
+          },
+          {
+            "who": "Marcus Delacroix",
+            "was": "Cooperative",
+            "now": "Guarded",
+            "why": "He thinks Helix took Baton Rouge's money."
+          }
         ]
       }
     }

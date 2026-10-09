@@ -99,15 +99,40 @@ final class DecisionBook
     /** @return array<string, string|float|int|null> what will run this quarter if nothing else changes */
     public function effective(Team $team, Quarter $quarter): array
     {
-        $out = $this->previousEffective($team, $quarter);
+        $previous = $this->previousEffective($team, $quarter);
+        $out = $previous;
         $tq = TeamQuarter::query()->where('team_id', $team->id)->where('quarter_id', $quarter->id)->first();
         foreach ($tq === null ? [] : ($tq->decisions ?? []) as $key => $value) {
             if ($this->isUnlocked($key, $quarter->number)) {
                 $out[$key] = $value;
             }
         }
+        // A project, once committed, stays committed.
+        foreach ($previous as $key => $value) {
+            if (str_starts_with($key, 'proj_') && $value === 'commit') {
+                $out[$key] = 'commit';
+            }
+        }
 
         return $out;
+    }
+
+    /**
+     * Money a team commits to new projects in this quarter: projects set to commit that weren't committed before.
+     *
+     * @param  array<string, mixed>  $decisions
+     * @param  array<string, mixed>  $previous
+     */
+    public function newProjectOutlay(array $decisions, array $previous): float
+    {
+        $sum = 0.0;
+        foreach ($this->data->projects as $key => $p) {
+            if (($decisions["proj_$key"] ?? 'hold') === 'commit' && ($previous["proj_$key"] ?? 'hold') !== 'commit') {
+                $sum += $p['outlay'];
+            }
+        }
+
+        return $sum;
     }
 
     /**
@@ -189,6 +214,10 @@ final class DecisionBook
             tpMethod: (string) ($d['tp_method'] ?? 'market'),
             tpValue: isset($d['tp_value']) ? (float) $d['tp_value'] : null,
             advisorAnswers: $advisorAnswers,
+            crudeHedgePct: (float) ($d['crude_hedge'] ?? 0),
+            eurHedge: (float) ($d['eur_hedge'] ?? 0),
+            nokHedge: (float) ($d['nok_hedge'] ?? 0),
+            projects: array_map(fn (string $k): string => (string) ($d["proj_$k"] ?? 'hold'), array_combine(array_keys($this->data->projects), array_keys($this->data->projects))),
         );
     }
 

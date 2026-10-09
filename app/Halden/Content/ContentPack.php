@@ -168,6 +168,19 @@ final class ContentPack
                 $key = abs($tp - $cost) <= 0.1 * $cost ? 'cost' : (($tp >= $market * 0.9) ? 'market' : 'between');
 
                 return ['key' => $key, 'value' => $tp];
+            case 'hedges':
+                $crude = (float) ($decisions['crude_hedge'] ?? 0);
+                $eur = (float) ($decisions['eur_hedge'] ?? 0);
+                $nok = (float) ($decisions['nok_hedge'] ?? 0);
+                $key = $crude + $eur + $nok <= 0 ? 'none' : (($crude >= 40 || $eur >= 450 || $nok >= 450) ? 'heavy' : 'measured');
+
+                return ['key' => $key, 'value' => $crude];
+            case 'projects':
+                $helix = ($decisions['proj_helix'] ?? 'hold') === 'commit';
+                $refining = ($decisions['proj_br_upgrade'] ?? 'hold') === 'commit' || ($decisions['proj_rot_upgrade'] ?? 'hold') === 'commit';
+                $key = $helix ? 'helix' : ($refining ? 'refining' : 'none');
+
+                return ['key' => $key, 'value' => (float) ($results['ops.project_outlay'] ?? 0)];
         }
         throw new RuntimeException("Unknown story band [$on].");
     }
@@ -190,6 +203,10 @@ final class ContentPack
             '{rotterdam}' => $money('line.rotterdam'),
             '{geneva}' => $money('line.geneva_gap_trading'),
             '{sg_accepted}' => number_format((float) ($r['ops.sg_accepted'] ?? 0)),
+            '{fx_effect}' => $money('ops.fx_effect'),
+            '{hedges}' => $money('line.hedges'),
+            '{project_outlay}' => $money('ops.project_outlay'),
+            '{nwe}' => '$'.number_format((float) ($r['ops.nwe'] ?? 0), 2),
         ];
     }
 

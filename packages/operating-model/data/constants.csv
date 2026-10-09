@@ -75,3 +75,12 @@ opening_asset_health,70,index,KPI package,
 total_production,1150000,boe_day,arc doc,for profit per barrel KPI
 industry_complexity,2.00,usd_bbl,new (provisional),refining benchmark
 industry_opex,5.50,usd_bbl,new (provisional),refining benchmark
+fx_ref_eurusd,1.085,rate,Wk5 package (pre-shock),currency effects are measured against these rates once fx_live = 1
+fx_ref_usdnok,10.20,rate,Wk5 package (pre-shock),Norwegian costs are in kroner; lifting 28.00 holds at this rate
+fx_ref_usdsgd,1.34,rate,Wk5 package (pre-shock),
+existing_eur_hedge_notional,300,usd_m,Wk5 existing_hedges.csv,euros sold forward before the shock; settles in the quarter marked existing_eur_hedge
+existing_eur_hedge_rate,1.085,rate,Wk5 existing_hedges.csv,
+window1_base_util,0.75,share,Wk3 window1_params.csv,class average European run rate at which the margin is unchanged
+window1_base_crack,4.60,usd_bbl,Wk3 window1_params.csv,
+window1_slope,9.0,usd_bbl_per_share,Wk3 window1_params.csv,each 10 points of average run rate moves the margin 0.90
+window1_floor,2.60,usd_bbl,Wk3 window1_params.csv,margin never falls below the shutdown point

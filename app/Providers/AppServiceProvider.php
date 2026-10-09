@@ -46,6 +46,7 @@ class AppServiceProvider extends ServiceProvider
             $app->make(ModelData::class),
             enabled: (string) config('halden.ai.anthropic_key') !== '' || ! $app->isProduction(),
             maxTokens: (int) config('halden.ai.max_tokens'),
+            runner: $app->make(QuarterRunner::class),
         ));
         $aiOn = fn ($app): bool => (string) config('halden.ai.anthropic_key') !== '' || ! $app->isProduction();
         $this->app->singleton(Carrying::class, fn ($app): Carrying => new Carrying(

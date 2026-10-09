@@ -1,4 +1,4 @@
-"""Builds the golden fixtures: three reference teams through Quarters 1-4 (Q1-Q4 2027)."""
+"""Builds the golden fixtures: three reference teams through Quarters 1-6 (Q1 2027 to Q2 2028)."""
 import csv
 import copy
 import json
@@ -19,7 +19,7 @@ def offsets(**kw):
     return o
 
 
-# Decisions per team per round. Round n is quarter 2027Qn. Unlocks follow data/levers.csv;
+# Decisions per team per round (round 1 = Q1 2027). Unlocks follow data/levers.csv;
 # a lever not yet unlocked keeps its history value.
 TEAMS = {
     "careful": [
@@ -27,8 +27,14 @@ TEAMS = {
         dict(rigs=11, br_run=96, rot_run=92, offsets=offsets(suburban=4.5, rural=7.0, interstate=3.5, nl=0.5, be=1.5, de=-1.5)),
         dict(rigs=11, br_run=96, rot_run=92, sg_request=95, offsets=offsets(suburban=4.5, rural=7.0, interstate=3.5, nl=0.5, be=1.5, de=-1.5)),
         dict(rigs=11, br_run=96, rot_run=92, sg_request=95, offsets=offsets(suburban=4.5, rural=7.0, interstate=3.5, nl=0.5, be=1.5, de=-1.5), tp_method="cost"),
+        dict(rigs=11, br_run=96, rot_run=92, sg_request=95, offsets=offsets(suburban=4.5, rural=7.0, interstate=3.5, nl=0.5, be=1.5, de=-1.5), tp_method="cost",
+             crude_hedge_pct=25, eur_hedge=100, nok_hedge=150),
+        dict(rigs=11, br_run=96, rot_run=92, sg_request=95, offsets=offsets(suburban=4.5, rural=7.0, interstate=3.5, nl=0.5, be=1.5, de=-1.5), tp_method="cost",
+             crude_hedge_pct=25, eur_hedge=100, nok_hedge=150, projects={"br_upgrade": "commit", "rot_upgrade": "commit", "helix": "hold"}),
     ],
     "average": [
+        dict(),
+        dict(),
         dict(),
         dict(),
         dict(),
@@ -39,6 +45,10 @@ TEAMS = {
         dict(rigs=26, norway="cut", br_run=99, rot_run=70, offsets=offsets(urban=-1.0, suburban=0.5, rural=2.0, interstate=0.0, nl=-3.0, be=-2.0, de=-4.0)),
         dict(rigs=26, norway="cut", br_run=99, rot_posture="idle", sg_request=100, offsets=offsets(urban=-1.0, suburban=0.5, rural=2.0, interstate=0.0, nl=-3.0, be=-2.0, de=-4.0)),
         dict(rigs=26, norway="cut", br_run=99, rot_posture="idle", sg_request=100, offsets=offsets(urban=-1.0, suburban=0.5, rural=2.0, interstate=0.0, nl=-3.0, be=-2.0, de=-4.0), tp_method="other", tp_value=46.20),
+        dict(rigs=26, norway="cut", br_run=99, rot_posture="idle", sg_request=100, offsets=offsets(urban=-1.0, suburban=0.5, rural=2.0, interstate=0.0, nl=-3.0, be=-2.0, de=-4.0), tp_method="other", tp_value=46.20,
+             crude_hedge_pct=50, eur_hedge=600),
+        dict(rigs=26, norway="cut", br_run=99, rot_posture="idle", sg_request=100, offsets=offsets(urban=-1.0, suburban=0.5, rural=2.0, interstate=0.0, nl=-3.0, be=-2.0, de=-4.0), tp_method="other", tp_value=46.20,
+             crude_hedge_pct=50, eur_hedge=600, projects={"helix": "commit"}),
     ],
 }
 
@@ -57,10 +67,27 @@ def main():
                      **{f"money.{a}": b for a, b in money.items()}, **{f"kpi.{a}": b for a, b in kpi.items()}}.items():
             rows.append(("history", m["quarter"], k, v))
 
+    plans = {t: [hm.Decisions(**p) for p in TEAMS[t]] for t in TEAMS}
+    class_effects = {}
     for rnd, m in enumerate(market, start=1):
+        m = dict(m)
+        if m["quarter"] == "2028Q1":   # Window 1 lands: Q3 2027 European run rates set this margin
+            avg_util = sum(hm.european_util(plans[t][2]) for t in TEAMS) / len(TEAMS)
+            m["nwe"] = hm.window1_nwe(avg_util)
+            class_effects["window1_avg_util"] = avg_util
+            class_effects["window1_nwe"] = m["nwe"]
+        if m["quarter"] == "2028Q2":   # capital terms from Q4 2027 crude-price discipline
+            q4_wti = next(x["wti"] for x in market if x["quarter"] == "2027Q4")
+            avg_d = sum(hm.crude_price_discipline(plans[t][3], q4_wti) for t in TEAMS) / len(TEAMS)
+            terms = hm.capital_terms(avg_d)
+            class_effects.update({"capital_discipline": avg_d, "capital_behaviour": terms["behaviour"],
+                                  "capital_rate": terms["rate"], "capital_envelope": terms["envelope"]})
+            for t in TEAMS:
+                outlay = sum(hm.PROJECTS[k]["outlay"] for k, v in plans[t][rnd - 1].projects.items() if v == "commit")
+                assert outlay <= terms["envelope"], f"{t} commits {outlay} over the envelope {terms['envelope']}"
         kpis, outs = {}, {}
-        for team, plan in TEAMS.items():
-            d = hm.Decisions(**plan[rnd - 1])
+        for team in TEAMS:
+            d = plans[team][rnd - 1]
             out = hm.step(states[team], d, m)
             outs[team] = (d, out)
             kpis[team] = out[3]
@@ -76,20 +103,22 @@ def main():
                 rows.append((team, q, f"money.{k}", v))
             for k, v in kpi.items():
                 rows.append((team, q, f"kpi.{k}", v))
-            for k in ("tp", "market_tp", "cost_tp", "permian_prod", "br_throughput", "rot_throughput", "sg_accepted"):
+            for k in ("tp", "market_tp", "cost_tp", "permian_prod", "br_throughput", "rot_throughput", "sg_accepted", "fx_effect", "project_outlay", "nwe"):
                 rows.append((team, q, f"ops.{k}", ops[k]))
             rows.append((team, q, "score.composite", scores[team]))
             rows.append((team, q, "score.rank", ranks[team]))
             dd = {"team": team, "round": rnd, "quarter": q, "rigs": d.rigs, "norway": d.norway, "br_run": d.br_run,
                   "rot_run": d.rot_run, "rot_posture": d.rot_posture, "sg_request": d.sg_request,
                   "tp_method": d.tp_method, "tp_value": "" if d.tp_value is None else d.tp_value,
-                  "advisor_answers": d.advisor_answers}
+                  "advisor_answers": d.advisor_answers, "crude_hedge_pct": d.crude_hedge_pct, "eur_hedge": d.eur_hedge,
+                  "nok_hedge": d.nok_hedge, **{f"proj_{k}": d.projects.get(k, "hold") for k in hm.PROJECTS}}
             dd.update({f"off_{k}": v for k, v in d.offsets.items()})
             decisions_rows.append(dd)
             state_rows.append({"team": team, "quarter_end": q, "permian_prod_next": st.permian_prod, "rot_status": st.rot_status,
                                "capital_employed": st.capital_employed, "net_debt": st.net_debt, "asset_health": st.asset_health,
                                "europe_volume_factor": st.europe_volume_factor,
-                               "held_up": json.dumps(st.held_up, sort_keys=True), "held_down": json.dumps(st.held_down, sort_keys=True)})
+                               "held_up": json.dumps(st.held_up, sort_keys=True), "held_down": json.dumps(st.held_down, sort_keys=True),
+                               "hedges": json.dumps(st.hedges, sort_keys=True), "projects": json.dumps(st.projects, sort_keys=True)})
             states[team] = st
             summary.setdefault(team, []).append((q, money["ebitda"], scores[team], ranks[team], seg, kpi))
 
@@ -106,6 +135,8 @@ def main():
         w = csv.DictWriter(f, fieldnames=list(state_rows[0].keys()), lineterminator="\n")
         w.writeheader()
         w.writerows(state_rows)
+    with open(FIX / "class_effects.json", "w") as f:
+        json.dump(class_effects, f, indent=2, sort_keys=True)
     with open(FIX / "calibration.json", "w") as f:
         json.dump({"gas_other_ebitda": gas_other,
                    "start_2027": {"permian_prod": start_state.permian_prod, "capital_employed": start_state.capital_employed,

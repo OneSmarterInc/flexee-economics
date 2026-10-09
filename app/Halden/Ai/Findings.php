@@ -116,7 +116,7 @@ final class Findings
         if ((float) ($d['br_run'] ?? 0) > $this->data->c('br_wear_threshold')) {
             $out[] = sprintf('Baton Rouge ran above %.0f%%, so the plant wore faster. Plant condition is now %.1f out of 100.', $this->data->c('br_wear_threshold'), (float) ($r['kpi.plant_condition'] ?? 0));
         }
-        $rotEarns = (float) $m['nwe'] + $this->data->c('rot_complexity');
+        $rotEarns = (float) ($r['ops.nwe'] ?? $m['nwe']) + $this->data->c('rot_complexity');
         $rotVar = $this->data->c('rot_variable_opex');
         $out[] = match ((string) ($r['ops.rot_status'] ?? 'running')) {
             'idle' => sprintf('Rotterdam was paused. It would have earned about $%.2f a barrel against $%.2f of per-barrel costs. Its result this quarter was %s.', $rotEarns, $rotVar, $this->money((float) ($r['line.rotterdam'] ?? 0))),

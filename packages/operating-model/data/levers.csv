@@ -13,3 +13,9 @@ off_nl,gas_stations,Halden · Netherlands,cents_gal_vs_going_rate,-10,10,0.5,0.0
 off_be,gas_stations,Halden · Belgium,cents_gal_vs_going_rate,-10,10,0.5,1.0,2,your_call
 off_de,gas_stations,Halden · Germany border,cents_gal_vs_going_rate,-10,10,0.5,-1.0,2,your_call
 tp,trading_finance,What Baton Rouge pays for Texas crude,usd_bbl,0,120,0.05,market,4,geneva_has_to_agree
+crude_hedge,trading_finance,Crude sold forward for next quarter,pct,0,50,5,0,5,cfo_has_to_agree
+eur_hedge,trading_finance,Euros sold forward for next quarter,usd_m,0,600,25,0,5,cfo_has_to_agree
+nok_hedge,trading_finance,Kroner bought forward for next quarter,usd_m,0,600,25,0,5,cfo_has_to_agree
+proj_br_upgrade,capital,Baton Rouge upgrade,choice hold|commit,,,,hold,6,your_call
+proj_rot_upgrade,capital,Rotterdam upgrade,choice hold|commit,,,,hold,6,your_call
+proj_helix,capital,Helix,choice hold|commit,,,,hold,6,your_call

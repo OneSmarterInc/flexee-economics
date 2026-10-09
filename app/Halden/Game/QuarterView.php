@@ -27,6 +27,7 @@ final class QuarterView
         'refineries' => 'Refineries',
         'gas_stations' => 'Gas stations',
         'trading_finance' => 'Trading & finance',
+        'capital' => 'Big projects',
     ];
 
     public const PAGE_SEAT = [
@@ -34,6 +35,7 @@ final class QuarterView
         'refineries' => 'refineries',
         'gas_stations' => 'gas_stations',
         'trading_finance' => 'trading_finance',
+        'capital' => 'evp',
     ];
 
     public function __construct(
@@ -46,6 +48,30 @@ final class QuarterView
         private readonly Carrying $carrying,
         private readonly HelpDesk $help,
     ) {}
+
+    /**
+     * The Big projects page: this quarter's envelope and cost of capital, and what's already under way.
+     *
+     * @param  array<string, mixed>  $previous
+     * @return array{envelope: float, rate: float, projects: list<array{key: string, label: string, outlay: float}>, committedBefore: list<string>}|null
+     */
+    private function capitalDesk(Quarter $quarter, array $previous): ?array
+    {
+        if (! in_array('capital', $this->book->openPages($quarter->number), true) || ! $this->runner->hasMarket($quarter)) {
+            return null;
+        }
+        $terms = $this->runner->capitalTerms($quarter);
+        $projects = [];
+        $committed = [];
+        foreach ($this->model->data->projects as $key => $p) {
+            $projects[] = ['key' => $key, 'label' => $p['label'], 'outlay' => $p['outlay']];
+            if (($previous["proj_$key"] ?? 'hold') === 'commit') {
+                $committed[] = $key;
+            }
+        }
+
+        return ['envelope' => $terms['envelope'], 'rate' => $terms['rate'], 'projects' => $projects, 'committedBefore' => $committed];
+    }
 
     /** @return array{title: string, text: string|null, reason: string|null}|null */
     private function carryingFor(?TeamQuarter $tq, bool $forFaculty): ?array
@@ -135,8 +161,9 @@ final class QuarterView
                 'rotCapacity' => $data->c('rot_capacity'),
                 'rotStatus' => $start?->rotStatus,
                 'genevaMaxVolume' => $data->c('geneva_max_volume'),
-                'marketTp' => $this->runner->hasMarket($quarter) ? $this->model->transferPrices($data->quarter($quarter->company_quarter)['wti'])[0] : null,
+                'marketTp' => $this->runner->hasMarket($quarter) ? $this->model->transferPrices((float) $this->runner->marketFor($quarter)['wti'])[0] : null,
                 'costTp' => $data->c('delivered_marginal_cost') + $data->c('sr_capital_charge'),
+                'capital' => $this->capitalDesk($quarter, $previous),
             ],
             'memo' => [
                 'text' => $tq->memo ?? '',
@@ -193,10 +220,15 @@ final class QuarterView
             return [];
         }
         $data = $this->model->data;
-        $now = $data->quarter($quarter->company_quarter);
-        $keys = array_column($data->market, 'quarter');
-        $i = array_search($quarter->company_quarter, $keys, true);
-        $last = $i > 0 ? $data->market[$i - 1] : null;
+        $now = $this->runner->marketFor($quarter);
+        $prev = $quarter->previous();
+        if ($prev !== null) {
+            $last = $this->runner->marketFor($prev);
+        } else {
+            $keys = array_column($data->market, 'quarter');
+            $i = array_search($quarter->company_quarter, $keys, true);
+            $last = is_int($i) && $i > 0 ? $data->market[$i - 1] : null;
+        }
         $row = fn (string $name, string $k, string $unit, string $what) => [
             'name' => $name, 'last' => $last[$k] ?? null, 'now' => $now[$k], 'unit' => $unit, 'what' => $what,
         ];
@@ -278,13 +310,29 @@ final class QuarterView
             $named[] = ['name' => 'Advisor time', 'amount' => (float) $r['line.advisor_time'],
                 'why' => sprintf('%d %s from your advisors, at $%sK each. Counted under Head office.', $n, $n === 1 ? 'answer' : 'answers', number_format($data->c('advisor_cost_per_answer') * 1000))];
         }
+        if (abs((float) ($r['line.hedges'] ?? 0)) > 0.05) {
+            $named[] = ['name' => 'Hedges settled', 'amount' => (float) $r['line.hedges'],
+                'why' => 'What hedges paid or cost when they settled this quarter. Counted under Head office.'];
+        }
+        if (abs((float) ($r['ops.fx_effect'] ?? 0)) > 0.05) {
+            $named[] = ['name' => 'Currency moves (already in the lines above)', 'amount' => (float) $r['ops.fx_effect'],
+                'why' => 'How much the euro, the krone and the Singapore dollar changed earnings compared with last year\'s rates.'];
+        }
+        $projectsPaying = (float) ($r['line.projects_refining'] ?? 0) + (float) ($r['line.projects_upstream'] ?? 0);
+        if (abs($projectsPaying) > 0.05) {
+            $named[] = ['name' => 'Big projects paying back', 'amount' => $projectsPaying, 'why' => 'This quarter\'s share of what your projects deliver.'];
+        }
+        if ((float) ($r['ops.project_outlay'] ?? 0) > 0) {
+            $named[] = ['name' => 'Big projects started (capital spending, not in EBITDA)', 'amount' => -(float) $r['ops.project_outlay'],
+                'why' => 'Paid up front this quarter. It adds to debt but not to your free cash flow score.'];
+        }
         $named[] = ['name' => 'Drilling in Texas (capital spending, not in EBITDA)', 'amount' => -(float) $d['rigs'] * $data->c('rig_capex_per_qtr'),
             'why' => sprintf('%d rigs at $%dM each this quarter.', (int) $d['rigs'], (int) $data->c('rig_capex_per_qtr'))];
 
         $kpiNames = [
             'profit_per_barrel' => ['Profit per barrel, whole company', '30%', 'usd2', 'What Halden makes on each barrel it produces, before head office costs'],
             'roace_pct' => ['Return on capital', '15%', 'pct', 'Profit after tax, compared with all the money invested in the business (yearly rate)'],
-            'free_cash_flow' => ['Free cash flow', '15%', 'musd', 'Cash left over after tax and the spending needed to keep things running'],
+            'free_cash_flow' => ['Free cash flow', '15%', 'musd', 'Cash left over after tax and the spending needed to keep things running, before any new big projects'],
             'refining_vs_industry' => ['Refining profit vs competitors', '10%', 'usd2', 'How much more (or less) your refineries make per barrel than a typical refinery'],
             'shop_profit_per_station_k' => ['Shop profit per gas station', '10%', 'kusd', 'What each Cordell station earns Halden from snacks, coffee and the car wash'],
             'debt_to_earnings' => ['Debt compared with earnings', '10%', 'x', 'Roughly how many years of earnings it would take to pay off debt. Lower is better.'],

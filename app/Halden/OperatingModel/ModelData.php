@@ -19,6 +19,12 @@ final class ModelData
     /** @var list<array{key: string, label: string, share: float, e: float, pt: float, base: float}> */
     public readonly array $cordell;
 
+    /** @var array<string, array{label: string, segment: string, haircut: float, outlay: float, cf: list<float>}> */
+    public readonly array $projects;
+
+    /** @var list<array{behaviour: string, rate: float, envelope: float}> */
+    public readonly array $cohortCapital;
+
     /** @var list<array{key: string, label: string, share: float, e: float, pt: float, base: float}> */
     public readonly array $europe;
 
@@ -47,7 +53,22 @@ final class ModelData
             'eurusd' => (float) $r['eurusd'],
             'usdnok' => (float) $r['usdnok'],
             'usdsgd' => (float) $r['usdsgd'],
+            'fx_live' => ($r['fx_live'] ?? '0') === '1',
+            'existing_eur_hedge' => ($r['existing_eur_hedge'] ?? '0') === '1',
         ], self::csv("$root/data/market_path.csv"));
+
+        $projects = [];
+        foreach (self::csv("$root/data/projects.csv") as $r) {
+            $cf = [];
+            for ($i = 1; $i <= 10; $i++) {
+                $cf[] = (float) $r["cf$i"];
+            }
+            $projects[$r['key']] = ['label' => $r['label'], 'segment' => $r['segment'], 'haircut' => (float) $r['haircut'], 'outlay' => (float) $r['outlay'], 'cf' => $cf];
+        }
+        $this->projects = $projects;
+        $this->cohortCapital = array_map(fn (array $r): array => [
+            'behaviour' => $r['behaviour'], 'rate' => (float) $r['discount_rate'], 'envelope' => (float) $r['capital_envelope'],
+        ], self::csv("$root/data/cohort_capital.csv"));
 
         $this->cordell = self::clusters("$root/data/cordell_clusters.csv", 'cluster');
         $this->europe = self::clusters("$root/data/europe_countries.csv", 'country');

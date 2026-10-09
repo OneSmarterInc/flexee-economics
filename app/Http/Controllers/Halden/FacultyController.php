@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Halden;
 
 use App\Halden\Ai\Carrying;
 use App\Halden\Ai\FacultyDrafts;
+use App\Halden\Content\ContentPack;
 use App\Halden\Game\DecisionBook;
 use App\Halden\Game\QuarterRunner;
 use App\Halden\Game\QuarterView;
@@ -26,7 +27,7 @@ use function Illuminate\Support\defer;
 
 class FacultyController extends Controller
 {
-    public function board(Request $request, DecisionBook $book, QuarterRunner $runner): Response
+    public function board(Request $request, DecisionBook $book, QuarterRunner $runner, ContentPack $content): Response
     {
         $section = $this->section($request);
         $quarter = $section->currentQuarter();
@@ -68,7 +69,7 @@ class FacultyController extends Controller
                 'deadlineText' => $quarter->deadline_at?->setTimezone('America/New_York')->format('l j M, g:i a'),
             ],
             'feedbackQuarter' => $fbQuarter === null ? null : ['id' => $fbQuarter->id, 'label' => $fbQuarter->label()],
-            'next' => $next === null ? null : ['id' => $next->id, 'label' => $next->label(), 'buildable' => $runner->hasMarket($next)],
+            'next' => $next === null ? null : ['id' => $next->id, 'label' => $next->label(), 'buildable' => $runner->hasMarket($next) && $content->hasQuarter($next->number)],
             'pages' => array_map(fn (string $p) => ['page' => $p, 'title' => QuarterView::PAGE_TITLES[$p]], $openPages),
             'teams' => $teams,
             'quarters' => $section->quarters()->get()->map(fn (Quarter $q) => ['number' => $q->number, 'label' => $q->label(), 'status' => $q->status])->values(),

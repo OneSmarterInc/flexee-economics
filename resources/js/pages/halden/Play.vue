@@ -25,6 +25,7 @@ type Section =
     | 'refineries'
     | 'gas_stations'
     | 'trading_finance'
+    | 'capital'
     | 'memo'
     | 'check'
     | 'story'
@@ -51,6 +52,7 @@ const allSections: Section[] = [
     'refineries',
     'gas_stations',
     'trading_finance',
+    'capital',
     'memo',
     'check',
     ...resultSections,
@@ -178,7 +180,14 @@ const pageKeys: Record<string, string[]> = {
         'off_be',
         'off_de',
     ],
-    trading_finance: ['tp_method', 'tp_value'],
+    trading_finance: [
+        'tp_method',
+        'tp_value',
+        'crude_hedge',
+        'eur_hedge',
+        'nok_hedge',
+    ],
+    capital: ['proj_br_upgrade', 'proj_rot_upgrade', 'proj_helix'],
 };
 
 function savePage(p: string): void {
@@ -318,6 +327,28 @@ const commitText = computed(() => {
 });
 
 const stationKeys = pageKeys.gas_stations;
+const hedgeKeys = ['crude_hedge', 'eur_hedge', 'nok_hedge'];
+
+function hedgeText(key: string, v: DecisionValue | undefined): string {
+    const n = num(v);
+
+    if (n === 0) {
+        return 'none';
+    }
+
+    return lever(key).unit === 'pct' ? `${fmt(n)}%` : `$${fmt(n)}M`;
+}
+
+const newOutlay = computed(() =>
+    (props.desk.capital?.projects ?? []).reduce(
+        (sum, pr) =>
+            draft[`proj_${pr.key}`] === 'commit' &&
+            !(props.desk.capital?.committedBefore ?? []).includes(pr.key)
+                ? sum + pr.outlay
+                : sum,
+        0,
+    ),
+);
 
 const groupOf: Partial<Record<Section, number>> = {
     briefing: 0,
@@ -330,6 +361,7 @@ const groupOf: Partial<Record<Section, number>> = {
     refineries: 3,
     gas_stations: 3,
     trading_finance: 3,
+    capital: 3,
 };
 
 const rail = computed(() => [
@@ -1559,13 +1591,101 @@ function quarterHref(id: number): string {
                                 {{ errors.tp_method }}
                             </div>
                         </div>
+                        <div
+                            v-for="k in hedgeKeys.filter((x) => isOpenLever(x))"
+                            :key="k"
+                            class="hx-lever"
+                        >
+                            <div class="flex flex-wrap items-center gap-2">
+                                <span class="text-[16px] font-semibold">{{
+                                    lever(k).label
+                                }}</span>
+                                <span class="hx-badge hx-badge-agree">{{
+                                    badge(k)
+                                }}</span>
+                                <span
+                                    v-if="lever(k).isNew"
+                                    class="hx-badge hx-badge-new"
+                                    >NEW</span
+                                >
+                            </div>
+                            <div class="hx-hint mt-1 mb-3">
+                                {{ leverText.help[k] }}
+                            </div>
+                            <div class="flex flex-wrap items-end gap-6">
+                                <div>
+                                    <div class="hx-hint">Last quarter</div>
+                                    <div
+                                        class="hx-mono py-2 text-[16px]"
+                                        style="color: var(--hx-muted)"
+                                    >
+                                        {{
+                                            hedgeText(k, decisions.previous[k])
+                                        }}
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="hx-hint" :for="`lv-${k}`"
+                                        >This quarter</label
+                                    >
+                                    <div>
+                                        <input
+                                            :id="`lv-${k}`"
+                                            v-model.number="draft[k]"
+                                            class="hx-in"
+                                            type="number"
+                                            :step="lever(k).step ?? undefined"
+                                            :min="lever(k).min ?? undefined"
+                                            :max="lever(k).max ?? undefined"
+                                            :disabled="!editable"
+                                        />
+                                        <span class="hx-hint ml-2"
+                                            >{{
+                                                lever(k).unit === 'pct'
+                                                    ? '%'
+                                                    : '$ million'
+                                            }}
+                                            · {{ rangeOf(k) }}</span
+                                        >
+                                    </div>
+                                    <div v-if="errors[k]" class="hx-error">
+                                        {{ errors[k] }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                         <div class="hx-desk">
                             <div>
                                 <span class="hx-eyebrow">What this means</span>
                                 <div class="hx-mono mt-1 text-[14px]">
                                     Geneva can trade on the gap for up to
                                     {{ fmt(desk.genevaMaxVolume) }} barrels a
-                                    day.
+                                    day.<template
+                                        v-if="isOpenLever('crude_hedge')"
+                                    >
+                                        Hedges settle next quarter:
+                                        {{
+                                            hedgeText(
+                                                'crude_hedge',
+                                                draft.crude_hedge,
+                                            )
+                                        }}
+                                        of next quarter's oil,
+                                        {{
+                                            hedgeText(
+                                                'eur_hedge',
+                                                draft.eur_hedge,
+                                            )
+                                        }}
+                                        of euros sold,
+                                        {{
+                                            hedgeText(
+                                                'nok_hedge',
+                                                draft.nok_hedge,
+                                            )
+                                        }}
+                                        of kroner bought.</template
+                                    >
                                 </div>
                             </div>
                             <button
@@ -1580,6 +1700,112 @@ function quarterHref(id: number): string {
                         </div>
                         <div class="hx-hint mt-2">
                             {{ savedNote.trading_finance }}
+                        </div>
+                    </div>
+                </template>
+
+                <!-- Big projects -->
+                <template v-if="section === 'capital' && desk.capital">
+                    <div class="hx-card">
+                        <div class="flex flex-wrap justify-between gap-2">
+                            <h1 class="hx-h1">Big projects</h1>
+                            <span class="hx-hint">{{
+                                decisions.savedPages.capital
+                                    ? `${decisions.savedPages.capital.by} last saved ${timeOf(decisions.savedPages.capital.at)}`
+                                    : 'Not changed this quarter'
+                            }}</span>
+                        </div>
+                        <p class="hx-p mt-2">
+                            {{ leverText.pages.capital?.intro }}
+                        </p>
+                        <p
+                            class="mt-2 rounded-md px-3 py-2 text-[15px]"
+                            style="background: var(--hx-teal-wash)"
+                        >
+                            This quarter Ingrid can take up to
+                            <strong>${{ fmt(desk.capital.envelope) }}M</strong>
+                            of new projects to the board, and Halden's cost of
+                            capital is
+                            <strong
+                                >{{ fmt(desk.capital.rate * 100, 1) }}%</strong
+                            >.
+                        </p>
+                        <div
+                            v-for="pr in desk.capital.projects"
+                            :key="pr.key"
+                            class="hx-lever"
+                        >
+                            <div class="flex flex-wrap items-center gap-2">
+                                <span class="text-[16px] font-semibold">{{
+                                    pr.label
+                                }}</span>
+                                <span class="hx-mono text-[14px]"
+                                    >${{ fmt(pr.outlay) }}M up front</span
+                                >
+                                <span
+                                    v-if="lever(`proj_${pr.key}`).isNew"
+                                    class="hx-badge hx-badge-new"
+                                    >NEW</span
+                                >
+                            </div>
+                            <div class="hx-hint mt-1 mb-3">
+                                {{ leverText.help[`proj_${pr.key}`] }}
+                            </div>
+                            <div
+                                v-if="
+                                    desk.capital.committedBefore.includes(
+                                        pr.key,
+                                    )
+                                "
+                                class="font-semibold"
+                                style="color: var(--hx-teal)"
+                            >
+                                Committed. It's under way.
+                            </div>
+                            <div v-else class="flex flex-wrap gap-2.5">
+                                <button
+                                    v-for="(label, choice) in leverText.choices
+                                        .project"
+                                    :key="choice"
+                                    type="button"
+                                    class="hx-opt"
+                                    :aria-pressed="
+                                        draft[`proj_${pr.key}`] === choice
+                                    "
+                                    :disabled="!editable"
+                                    @click="
+                                        draft[`proj_${pr.key}`] = String(choice)
+                                    "
+                                >
+                                    {{ label }}
+                                </button>
+                            </div>
+                        </div>
+                        <div v-if="errors.capital" class="hx-error mt-2">
+                            {{ errors.capital }}
+                        </div>
+                        <div class="hx-desk">
+                            <div>
+                                <span class="hx-eyebrow">What this means</span>
+                                <div class="hx-mono mt-1 text-[14px]">
+                                    ${{ fmt(newOutlay) }}M of new projects this
+                                    quarter, out of ${{
+                                        fmt(desk.capital.envelope)
+                                    }}M.
+                                </div>
+                            </div>
+                            <button
+                                v-if="editable"
+                                type="button"
+                                class="hx-btn hx-btn-primary"
+                                :disabled="saving === 'capital'"
+                                @click="savePage('capital')"
+                            >
+                                Save big projects
+                            </button>
+                        </div>
+                        <div class="hx-hint mt-2">
+                            {{ savedNote.capital }}
                         </div>
                     </div>
                 </template>

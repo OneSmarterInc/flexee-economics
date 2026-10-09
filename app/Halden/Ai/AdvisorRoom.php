@@ -3,6 +3,7 @@
 namespace App\Halden\Ai;
 
 use App\Halden\Content\ContentPack;
+use App\Halden\Game\QuarterRunner;
 use App\Halden\OperatingModel\ModelData;
 use App\Models\AdvisorMessage;
 use App\Models\AdvisorThread;
@@ -34,6 +35,7 @@ final class AdvisorRoom
         private readonly bool $enabled,
         private readonly int $maxTokens = 2000,
         ?string $root = null,
+        private readonly ?QuarterRunner $runner = null,
     ) {
         $root ??= base_path('packages/content');
         $this->book = json_decode((string) file_get_contents("$root/advisors.json"), true, flags: JSON_THROW_ON_ERROR);
@@ -292,6 +294,10 @@ final class AdvisorRoom
         if (($file['misdirection'] ?? '') !== '') {
             $know[] = 'Where your own view pulls you this quarter. Act on it naturally when it comes up, and never describe it as a bias: '.$file['misdirection'];
         }
+        $prices = $this->pricesLine($quarter);
+        if ($prices !== '') {
+            $know[] = $prices;
+        }
         if ($know === []) {
             $know[] = 'You have nothing particular on your desk about this quarter. If asked, say this one is mostly for someone else, and say who.';
         }
@@ -300,7 +306,7 @@ final class AdvisorRoom
         $record = $this->teamRecord($team, $quarter, array_values(array_filter((array) $who['sees'], 'is_string')));
         $parts[] = "What you know about this team:\n".$record;
 
-        return [implode("\n\n", $parts), [(string) ($file['facts'] ?? ''), $record]];
+        return [implode("\n\n", $parts), [(string) ($file['facts'] ?? ''), $record, $prices]];
     }
 
     /**
@@ -355,6 +361,23 @@ final class AdvisorRoom
         }
 
         return implode("\n", $lines);
+    }
+
+    /** This quarter's prices for this class, plus the capital terms once the projects page is open. */
+    private function pricesLine(Quarter $quarter): string
+    {
+        if ($this->runner === null || ! $this->runner->hasMarket($quarter)) {
+            return '';
+        }
+        $m = $this->runner->marketFor($quarter);
+        $line = sprintf('Prices everyone at Halden can see this quarter: US oil (WTI) $%.2f a barrel; refining margins $%.2f on the Gulf Coast, $%.2f in Europe and $%.2f in Asia; the euro at $%.4f; %.2f kroner and %.3f Singapore dollars to the US dollar.',
+            $m['wti'], $m['gc'], $m['nwe'], $m['sg'], $m['eurusd'], $m['usdnok'], $m['usdsgd']);
+        if ($quarter->company_quarter >= '2028Q2') {
+            $t = $this->runner->capitalTerms($quarter);
+            $line .= sprintf(' This quarter the board will let Ingrid spend up to $%sM on new projects, and Halden\'s cost of capital is %.1f%%.', number_format($t['envelope']), $t['rate'] * 100);
+        }
+
+        return $line;
     }
 
     private function money(float $m): string
