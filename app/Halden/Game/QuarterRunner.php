@@ -5,6 +5,7 @@ namespace App\Halden\Game;
 use App\Halden\OperatingModel\CompanyState;
 use App\Halden\OperatingModel\OperatingModel;
 use App\Halden\OperatingModel\Scoring;
+use App\Models\AdvisorMessage;
 use App\Models\Quarter;
 use App\Models\Team;
 use App\Models\TeamQuarter;
@@ -58,10 +59,12 @@ final class QuarterRunner
             $results = [];
             $effective = [];
             $bridges = [];
+            $answers = [];
             foreach ($quarter->section->teams()->orderBy('id')->get() as $team) {
                 $effective[$team->id] = $this->book->effective($team, $quarter);
+                $answers[$team->id] = AdvisorMessage::billable($team->id, $quarter->id);
                 $start = $this->startState($team, $quarter);
-                $results[$team->id] = $this->model->step(clone $start, $this->book->toEngine($effective[$team->id]), $market);
+                $results[$team->id] = $this->model->step(clone $start, $this->book->toEngine($effective[$team->id], $answers[$team->id]), $market);
                 $bridges[$team->id] = $this->bridge($team, $quarter, $start, $effective[$team->id], $market, $results[$team->id]->money['ebitda']);
             }
             $scores = Scoring::composite(array_map(fn ($r) => $r->kpi, $results));
@@ -72,7 +75,7 @@ final class QuarterRunner
                     ['team_id' => $teamId, 'quarter_id' => $quarter->id],
                     [
                         'effective_decisions' => $effective[$teamId],
-                        'results' => $result->metrics() + $bridges[$teamId] + ['ops.rot_status' => $result->ops['rot_status']],
+                        'results' => $result->metrics() + $bridges[$teamId] + ['ops.rot_status' => $result->ops['rot_status'], 'advisor.answers' => $answers[$teamId]],
                         'state_after' => $result->state->toArray(),
                         'score' => $scores[$teamId],
                         'rank' => $ranks[$teamId],
@@ -105,6 +108,7 @@ final class QuarterRunner
     {
         $prevQuarter = $quarter->previous();
         $prevDecisions = $this->book->previousEffective($team, $quarter);
+        $prevAnswers = 0;
         if ($prevQuarter === null) {
             $history = $this->model->runHistory()[1];
             $last = end($history);
@@ -117,9 +121,10 @@ final class QuarterRunner
             $prevMarket = $this->marketFor($prevQuarter);
             $tq = TeamQuarter::query()->where('team_id', $team->id)->where('quarter_id', $prevQuarter->id)->firstOrFail();
             $prevEbitda = (float) ($tq->results['money.ebitda'] ?? 0.0);
+            $prevAnswers = (int) ($tq->results['advisor.answers'] ?? 0);
         }
-        $a = $this->model->step(clone $start, $this->book->toEngine($prevDecisions), $prevMarket)->money['ebitda'];
-        $b = $this->model->step(clone $start, $this->book->toEngine($prevDecisions), $market)->money['ebitda'];
+        $a = $this->model->step(clone $start, $this->book->toEngine($prevDecisions, $prevAnswers), $prevMarket)->money['ebitda'];
+        $b = $this->model->step(clone $start, $this->book->toEngine($prevDecisions, $prevAnswers), $market)->money['ebitda'];
 
         return [
             'bridge.previous' => $prevEbitda,

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Halden;
 
+use App\Halden\Ai\AdvisorRoom;
 use App\Halden\Content\ContentPack;
 use App\Halden\Game\DecisionBook;
 use App\Halden\Game\QuarterView;
@@ -91,6 +92,29 @@ class PlayController extends Controller
         }
         $tq = TeamQuarter::query()->firstOrCreate(['team_id' => $team->id, 'quarter_id' => $quarter->id]);
         $tq->update($tq->ready_at === null ? ['ready_at' => now(), 'ready_by' => $user->id] : ['ready_at' => null, 'ready_by' => null]);
+
+        return back();
+    }
+
+    /** A teammate asks an advisor a question. The whole team shares the conversation. */
+    public function ask(Request $request, Quarter $quarter, string $advisor, AdvisorRoom $room): RedirectResponse
+    {
+        $user = $this->user($request);
+        $team = $this->teamOf($user);
+        abort_unless($quarter->section_id === $team->section_id, 404);
+        $data = $request->validate(
+            ['question' => ['required', 'string', 'max:4000']],
+            ['question.required' => 'Type a question first.', 'question.max' => 'That question is too long. Try asking it in two parts.'],
+        );
+        try {
+            $room->ask($team, $quarter, $advisor, $user, trim($data['question']));
+        } catch (\RuntimeException $e) {
+            // Out of answers or not allowed: refuse with 403 so a blocked team can't keep spending.
+            if ($request->header('X-Inertia')) {
+                throw ValidationException::withMessages(['question' => $e->getMessage()]);
+            }
+            abort(403, $e->getMessage());
+        }
 
         return back();
     }

@@ -6,6 +6,7 @@ use App\Halden\Game\DecisionBook;
 use App\Halden\Game\QuarterRunner;
 use App\Halden\Game\QuarterView;
 use App\Http\Controllers\Controller;
+use App\Models\AdvisorMessage;
 use App\Models\Quarter;
 use App\Models\Section;
 use App\Models\Team;
@@ -40,6 +41,7 @@ class FacultyController extends Controller
                 'pages' => array_map(fn (string $p) => ['page' => $p, 'title' => QuarterView::PAGE_TITLES[$p], 'changed' => isset($saved[$p])], $openPages),
                 'memoWords' => $words,
                 'ready' => $tq?->ready_at !== null,
+                'advisorAnswers' => $quarter === null ? 0 : AdvisorMessage::billable($team->id, $quarter->id),
                 'lastActivity' => $times[0] ?? null,
                 'score' => $tq?->score,
                 'rank' => $tq?->rank,

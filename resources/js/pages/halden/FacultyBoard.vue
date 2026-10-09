@@ -9,6 +9,7 @@ interface TeamRow {
     pages: { page: string; title: string; changed: boolean }[];
     memoWords: number;
     ready: boolean;
+    advisorAnswers: number;
     lastActivity: string | null;
     score: number | null;
     rank: number | null;
@@ -216,6 +217,7 @@ function teamHref(teamId: number): string {
                                     {{ p.title }}
                                 </th>
                                 <th scope="col">Memo</th>
+                                <th scope="col">Advisor answers</th>
                                 <th scope="col">Ready</th>
                                 <th scope="col">Last activity</th>
                                 <th
@@ -258,6 +260,7 @@ function teamHref(teamId: number): string {
                                         t.flag
                                     }}</span>
                                 </td>
+                                <td>{{ t.advisorAnswers }}</td>
                                 <td>
                                     <span
                                         v-if="t.ready"

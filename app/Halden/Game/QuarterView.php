@@ -2,6 +2,7 @@
 
 namespace App\Halden\Game;
 
+use App\Halden\Ai\AdvisorRoom;
 use App\Halden\Content\ContentPack;
 use App\Halden\OperatingModel\ModelData;
 use App\Halden\OperatingModel\OperatingModel;
@@ -37,6 +38,7 @@ final class QuarterView
         private readonly DecisionBook $book,
         private readonly OperatingModel $model,
         private readonly QuarterRunner $runner,
+        private readonly AdvisorRoom $room,
     ) {}
 
     /** @return array<string, mixed> */
@@ -95,7 +97,7 @@ final class QuarterView
             'content' => $this->content->hasQuarter($quarter->number) ? $this->contentFor($quarter) : null,
             'market' => $this->marketRows($quarter),
             'wti' => $this->wtiHistory($quarter),
-            'advisors' => $this->content->opening()['advisors'],
+            'advisors' => $this->room->view($team, $quarter, forFaculty: $readOnly && $me === null),
             'leverText' => $this->content->leverText(),
             'pages' => array_values(array_intersect(array_keys(self::PAGE_TITLES), $this->book->openPages($quarter->number))),
             'decisions' => [
@@ -246,6 +248,11 @@ final class QuarterView
         if (abs((float) $r['line.rotterdam_one_time']) > 0.05) {
             $named[] = ['name' => 'Rotterdam one-time cost', 'amount' => (float) $r['line.rotterdam_one_time'],
                 'why' => (float) $r['line.rotterdam_one_time'] <= -100 ? 'The cost of closing the refinery.' : 'The cost of restarting the refinery.'];
+        }
+        if (abs((float) ($r['line.advisor_time'] ?? 0)) > 0.0001) {
+            $n = (int) ($r['advisor.answers'] ?? 0);
+            $named[] = ['name' => 'Advisor time', 'amount' => (float) $r['line.advisor_time'],
+                'why' => sprintf('%d %s from your advisors, at $%sK each. Counted under Head office.', $n, $n === 1 ? 'answer' : 'answers', number_format($data->c('advisor_cost_per_answer') * 1000))];
         }
         $named[] = ['name' => 'Drilling in Texas (capital spending, not in EBITDA)', 'amount' => -(float) $d['rigs'] * $data->c('rig_capex_per_qtr'),
             'why' => sprintf('%d rigs at $%dM each this quarter.', (int) $d['rigs'], (int) $data->c('rig_capex_per_qtr'))];

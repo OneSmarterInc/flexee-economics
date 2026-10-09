@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Head, router, usePage } from '@inertiajs/vue3';
 import { computed, reactive, ref, watch } from 'vue';
+import AdvisorsPanel from '@/halden/AdvisorsPanel.vue';
 import type {
     DecisionMap,
     DecisionValue,
@@ -778,57 +779,13 @@ function quarterHref(id: number): string {
 
                 <!-- Advisors -->
                 <template v-if="section === 'advisors'">
-                    <div class="hx-card">
-                        <h1 class="hx-h1">Your advisors</h1>
-                        <p class="hx-p">
-                            Your six advisors and your chief of staff will be
-                            available here to talk with your team. Their time
-                            will cost Halden money, nothing you say to them is
-                            graded, and your instructor can read the
-                            conversations.
-                        </p>
-                        <p class="hx-hint">
-                            Conversations with advisors open in the next version
-                            of Halden. For now, here's who they are.
-                        </p>
-                    </div>
-                    <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
-                        <div
-                            v-for="a in advisors"
-                            :key="a.name"
-                            class="hx-card flex gap-3.5"
-                        >
-                            <div
-                                class="flex h-10 w-10 flex-none items-center justify-center rounded-full text-[13px] font-semibold"
-                                style="
-                                    background: var(--hx-teal-soft);
-                                    color: var(--hx-teal);
-                                "
-                            >
-                                {{ a.initials }}
-                            </div>
-                            <div>
-                                <div class="font-semibold">{{ a.name }}</div>
-                                <div class="hx-hint mb-2">{{ a.role }}</div>
-                                <div class="text-[14px] leading-snug">
-                                    <span
-                                        class="font-medium"
-                                        style="color: var(--hx-teal)"
-                                        >Good at:</span
-                                    >
-                                    {{ a.good_at }}
-                                </div>
-                                <div class="mt-1 text-[14px] leading-snug">
-                                    <span
-                                        class="font-medium"
-                                        style="color: var(--hx-amber-text)"
-                                        >Watch out for:</span
-                                    >
-                                    {{ a.watch_out }}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <AdvisorsPanel
+                        :advisors="advisors"
+                        :quarter-id="quarter.id"
+                        :can-ask="!readOnly && me !== null"
+                        :for-faculty="readOnly && me === null"
+                        @go-decide="go(pages[0] as Section)"
+                    />
                 </template>
 
                 <!-- The big question -->
