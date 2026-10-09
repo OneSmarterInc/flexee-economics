@@ -100,6 +100,9 @@ class AdvisorRoomTest extends TestCase
         $this->assertStringContainsString('Never mention a course, class, simulation', $system);
         $this->assertStringNotContainsString('This is your last answer', $system);
         $this->assertStringContainsString('No results yet', $system);
+        // The advisor is told which words get an answer dropped, and that Cordell is Halden's own brand.
+        $this->assertStringContainsString('Never use these words, even in passing, unless the team used them first: room, war room, lever,', $system);
+        $this->assertStringContainsString("Cordell is Halden's own brand, not a rival.", $system);
     }
 
     public function test_a_long_question_reaches_the_advisor_in_full(): void

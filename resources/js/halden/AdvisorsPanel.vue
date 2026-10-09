@@ -140,7 +140,7 @@ function timeOf(iso: string | null): string {
                     <span class="block truncate font-semibold">{{
                         c.name
                     }}</span>
-                    <span class="hx-hint block truncate">{{ c.role }}</span>
+                    <span class="hx-hint block">{{ c.role }}</span>
                     <span
                         class="hx-hint block"
                         :style="
