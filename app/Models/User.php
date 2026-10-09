@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\CarbonImmutable;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -14,6 +15,12 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
 
 /**
  * A person who signs in: an administrator, a faculty member or a student.
+ *
+ * @property int $id
+ * @property string $name
+ * @property string $email
+ * @property string $role
+ * @property CarbonImmutable|null $opening_seen_at
  */
 #[Fillable(['name', 'email', 'password', 'role'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
@@ -34,6 +41,7 @@ class User extends Authenticatable implements PasskeyUser
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'two_factor_confirmed_at' => 'datetime',
+            'opening_seen_at' => 'datetime',
         ];
     }
 

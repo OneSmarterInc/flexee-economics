@@ -15,7 +15,7 @@ use App\Models\TeamQuarter;
  */
 final class DecisionBook
 {
-    /** @var array<string, array{key: string, page: string, label: string, unit: string, min: ?float, max: ?float, step: ?float, choices: list<string>, default: string, unlock: int}> */
+    /** @var array<string, array{key: string, page: string, label: string, unit: string, min: ?float, max: ?float, step: ?float, choices: list<string>, default: string, unlock: int, tier: string}> */
     private array $levers = [];
 
     public function __construct(private readonly ModelData $data)
@@ -33,11 +33,12 @@ final class DecisionBook
                 'choices' => $choices,
                 'default' => $r['default_history'],
                 'unlock' => (int) $r['unlock_round'],
+                'tier' => $r['tier'],
             ];
         }
     }
 
-    /** @return array<string, array{key: string, page: string, label: string, unit: string, min: ?float, max: ?float, step: ?float, choices: list<string>, default: string, unlock: int}> */
+    /** @return array<string, array{key: string, page: string, label: string, unit: string, min: ?float, max: ?float, step: ?float, choices: list<string>, default: string, unlock: int, tier: string}> */
     public function levers(): array
     {
         return $this->levers;

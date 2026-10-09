@@ -1,0 +1,205 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Halden\Game\QuarterRunner;
+use App\Models\Quarter;
+use App\Models\Section;
+use App\Models\Team;
+use App\Models\TeamMember;
+use App\Models\TeamQuarter;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Inertia\Testing\AssertableInertia as Assert;
+use Tests\TestCase;
+
+class HaldenScreensTest extends TestCase
+{
+    use RefreshDatabase;
+
+    private User $faculty;
+
+    private Section $section;
+
+    private Team $team;
+
+    /** @var array<string, User> */
+    private array $students = [];
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->faculty = User::factory()->create(['role' => User::ROLE_FACULTY]);
+        $this->section = Section::query()->create(['name' => 'Test class', 'course_name' => 'Econ', 'weeks' => 14, 'faculty_user_id' => $this->faculty->id]);
+        $this->team = Team::query()->create(['section_id' => $this->section->id, 'name' => 'Alpha']);
+        foreach (array_keys(TeamMember::SEATS) as $seat) {
+            $user = User::factory()->create(['role' => User::ROLE_STUDENT, 'opening_seen_at' => now()]);
+            TeamMember::query()->create(['team_id' => $this->team->id, 'user_id' => $user->id, 'seat' => $seat]);
+            $this->students[$seat] = $user;
+        }
+        for ($n = 1; $n <= 14; $n++) {
+            Quarter::query()->create(['section_id' => $this->section->id, 'number' => $n, 'company_quarter' => Quarter::companyQuarterFor($n)]);
+        }
+    }
+
+    private function quarter(int $n): Quarter
+    {
+        return $this->section->quarters()->where('number', $n)->firstOrFail();
+    }
+
+    private function openFirst(): Quarter
+    {
+        app(QuarterRunner::class)->open($this->quarter(1));
+
+        return $this->quarter(1);
+    }
+
+    public function test_a_new_student_sees_the_opening_first_and_the_team_choice_is_kept(): void
+    {
+        $this->openFirst();
+        $student = $this->students['oil_fields'];
+        $student->forceFill(['opening_seen_at' => null])->save();
+
+        $this->actingAs($student)->get('/play')->assertRedirect(route('opening'));
+        $this->actingAs($student)->get('/opening')->assertInertia(fn (Assert $page) => $page
+            ->component('halden/Opening')
+            ->where('team.name', 'Alpha')
+            ->where('replay', false));
+
+        $this->actingAs($student)->post('/opening', ['first_meeting' => 'ingrid', 'become' => 'earns more per barrel', 'by' => 'running it as one'])
+            ->assertRedirect(route('play.home'));
+        $this->assertSame('ingrid', $this->team->refresh()->first_meeting);
+
+        // A teammate who finishes later can't change what the team already chose.
+        $other = $this->students['refineries'];
+        $other->forceFill(['opening_seen_at' => null])->save();
+        $this->actingAs($other)->post('/opening', ['first_meeting' => 'marcus', 'become' => 'x', 'by' => 'y']);
+        $this->team->refresh();
+        $this->assertSame('ingrid', $this->team->first_meeting);
+        $this->assertSame('earns more per barrel', $this->team->strategy_become);
+        $this->assertNotNull($other->refresh()->opening_seen_at);
+    }
+
+    public function test_the_quarter_screen_opens_for_the_team(): void
+    {
+        $q = $this->openFirst();
+        $this->actingAs($this->students['evp'])->get("/play/{$q->id}")->assertInertia(fn (Assert $page) => $page
+            ->component('halden/Play')
+            ->where('quarter.number', 1)
+            ->where('canEdit', true)
+            ->where('me.seat', 'evp')
+            ->has('content.briefing.headline')
+            ->has('content.exhibits', 2));
+    }
+
+    public function test_saving_a_page_keeps_good_values_and_explains_bad_ones_plainly(): void
+    {
+        $q = $this->openFirst();
+        $student = $this->students['oil_fields'];
+
+        $this->actingAs($student)->from("/play/{$q->id}")
+            ->post("/play/{$q->id}/page/oil_fields", ['rigs' => 55])
+            ->assertSessionHasErrors(['rigs' => 'Enter a number from 0 to 40.']);
+
+        $this->actingAs($student)->from("/play/{$q->id}")
+            ->post("/play/{$q->id}/page/oil_fields", ['rigs' => 11, 'norway' => 'run'])
+            ->assertSessionHasNoErrors();
+
+        $tq = TeamQuarter::query()->where('team_id', $this->team->id)->where('quarter_id', $q->id)->firstOrFail();
+        $this->assertSame(11, $tq->decisions['rigs'] ?? null);
+        $this->assertSame($student->name, $tq->saved_pages['oil_fields']['by'] ?? null);
+
+        $this->actingAs($student)->post("/play/{$q->id}/page/not_a_page", [])->assertNotFound();
+    }
+
+    public function test_the_memo_saves_in_full(): void
+    {
+        $q = $this->openFirst();
+        $memo = str_repeat('We cut rigs because the twelfth one costs more than it brings in. ', 60);
+        $this->actingAs($this->students['trading_finance'])->post("/play/{$q->id}/memo", ['memo' => $memo])->assertSessionHasNoErrors();
+
+        $tq = TeamQuarter::query()->where('team_id', $this->team->id)->where('quarter_id', $q->id)->firstOrFail();
+        $this->assertSame(trim($memo), $tq->memo, 'only the outer spaces are trimmed');
+    }
+
+    public function test_only_the_evp_can_mark_the_team_ready(): void
+    {
+        $q = $this->openFirst();
+        $this->actingAs($this->students['refineries'])->post("/play/{$q->id}/ready")
+            ->assertSessionHasErrors(['ready' => 'Only the EVP on your team can do this.']);
+
+        $this->actingAs($this->students['evp'])->post("/play/{$q->id}/ready")->assertSessionHasNoErrors();
+        $this->assertNotNull(TeamQuarter::query()->where('team_id', $this->team->id)->firstOrFail()->ready_at);
+    }
+
+    public function test_a_closed_quarter_cannot_be_changed(): void
+    {
+        $q = $this->openFirst();
+        app(QuarterRunner::class)->close($q);
+        $this->actingAs($this->students['oil_fields'])->post("/play/{$q->id}/page/oil_fields", ['rigs' => 9])
+            ->assertSessionHasErrors(['quarter']);
+    }
+
+    public function test_students_cannot_see_another_class(): void
+    {
+        $other = Section::query()->create(['name' => 'Other', 'course_name' => 'Econ', 'weeks' => 14, 'faculty_user_id' => $this->faculty->id]);
+        $q = Quarter::query()->create(['section_id' => $other->id, 'number' => 1, 'company_quarter' => Quarter::companyQuarterFor(1)]);
+        $this->actingAs($this->students['evp'])->get("/play/{$q->id}")->assertNotFound();
+        $this->actingAs($this->students['evp'])->get('/faculty')->assertForbidden();
+    }
+
+    public function test_reading_files_unlock_with_their_quarter(): void
+    {
+        $student = $this->students['evp'];
+        $this->actingAs($student)->get('/files/q1/halden-q1-asset-register.xlsx')->assertNotFound();
+
+        $this->openFirst();
+        $this->actingAs($student)->get('/files/q1/halden-q1-asset-register.xlsx')->assertOk();
+        $this->actingAs($student)->get('/files/q4/halden-q4-crude-price.xlsx')->assertNotFound();
+        $this->actingAs($student)->get('/files/../.env')->assertNotFound();
+        $this->actingAs($student)->get('/files/q1/../../operating-model/MANIFEST.json')->assertNotFound();
+
+        // Faculty can read any quarter's files ahead of time.
+        $this->actingAs($this->faculty)->get('/files/q1/halden-q1-asset-register.xlsx')->assertOk();
+    }
+
+    public function test_faculty_run_the_quarter_from_the_board(): void
+    {
+        $this->actingAs($this->faculty)->get('/faculty')->assertInertia(fn (Assert $page) => $page
+            ->component('halden/FacultyBoard')
+            ->where('quarter.number', 1)
+            ->where('quarter.status', 'upcoming')
+            ->has('teams', 1));
+
+        $q1 = $this->quarter(1);
+        $this->actingAs($this->faculty)->post("/faculty/quarters/{$q1->id}/open")->assertSessionHasNoErrors();
+        $this->assertSame(Quarter::OPEN, $q1->refresh()->status);
+
+        $this->actingAs($this->faculty)->post("/faculty/quarters/{$q1->id}/close")->assertSessionHasNoErrors();
+        $this->actingAs($this->faculty)->post("/faculty/quarters/{$q1->id}/publish")->assertSessionHasNoErrors();
+        $this->assertSame(Quarter::PUBLISHED, $q1->refresh()->status);
+
+        $q3 = $this->quarter(3);
+        $this->actingAs($this->faculty)->from('/faculty')->post("/faculty/quarters/{$q3->id}/open")->assertSessionHasErrors(['action']);
+
+        $this->actingAs($this->faculty)->get("/faculty/teams/{$this->team->id}/quarters/{$q1->id}")
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('halden/Play')
+                ->where('readOnly', true)
+                ->where('canEdit', false)
+                ->has('results.story.paragraphs'));
+
+        $this->actingAs($this->students['evp'])->get("/play/{$q1->id}")
+            ->assertInertia(fn (Assert $page) => $page->has('results.bridge.parts', 3));
+    }
+
+    public function test_faculty_cannot_run_another_instructors_class(): void
+    {
+        $stranger = User::factory()->create(['role' => User::ROLE_FACULTY]);
+        $theirs = Section::query()->create(['name' => 'Theirs', 'course_name' => 'Econ', 'weeks' => 14, 'faculty_user_id' => $stranger->id]);
+        Quarter::query()->create(['section_id' => $theirs->id, 'number' => 1, 'company_quarter' => Quarter::companyQuarterFor(1)]);
+
+        $this->actingAs($stranger)->post('/faculty/quarters/'.$this->quarter(1)->id.'/open')->assertNotFound();
+        $this->actingAs($stranger)->get("/faculty/teams/{$this->team->id}/quarters/".$this->quarter(1)->id)->assertNotFound();
+    }
+}

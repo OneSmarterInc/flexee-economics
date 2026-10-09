@@ -69,6 +69,9 @@ class QuarterFlowTest extends TestCase
                 $expected = $golden[$name]["2027Q$n"];
                 $this->assertEqualsWithDelta($expected['score.composite'], $tq->score, 1e-4, "$name Q$n score");
                 $this->assertSame((int) $expected['score.rank'], (int) $tq->rank, "$name Q$n rank");
+                $r = $tq->results;
+                $this->assertEqualsWithDelta($r['money.ebitda'] - $r['bridge.previous'],
+                    $r['bridge.prices'] + $r['bridge.decisions'] + $r['bridge.carried_over'], 1e-6, "$name Q$n bridge adds up");
                 foreach (['money.ebitda', 'money.fcf', 'segment.oil_fields', 'kpi.plant_condition', 'ops.permian_prod'] as $m) {
                     $this->assertEqualsWithDelta($expected[$m], $tq->results[$m], max(1e-4, abs($expected[$m]) * 1e-6), "$name Q$n $m");
                 }

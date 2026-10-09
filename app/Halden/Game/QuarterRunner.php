@@ -57,13 +57,12 @@ final class QuarterRunner
         DB::transaction(function () use ($quarter, $market): void {
             $results = [];
             $effective = [];
+            $bridges = [];
             foreach ($quarter->section->teams()->orderBy('id')->get() as $team) {
                 $effective[$team->id] = $this->book->effective($team, $quarter);
-                $results[$team->id] = $this->model->step(
-                    $this->startState($team, $quarter),
-                    $this->book->toEngine($effective[$team->id]),
-                    $market,
-                );
+                $start = $this->startState($team, $quarter);
+                $results[$team->id] = $this->model->step(clone $start, $this->book->toEngine($effective[$team->id]), $market);
+                $bridges[$team->id] = $this->bridge($team, $quarter, $start, $effective[$team->id], $market, $results[$team->id]->money['ebitda']);
             }
             $scores = Scoring::composite(array_map(fn ($r) => $r->kpi, $results));
             $ranks = Scoring::rank($scores);
@@ -73,7 +72,7 @@ final class QuarterRunner
                     ['team_id' => $teamId, 'quarter_id' => $quarter->id],
                     [
                         'effective_decisions' => $effective[$teamId],
-                        'results' => $result->metrics() + ['ops.rot_status' => $result->ops['rot_status']],
+                        'results' => $result->metrics() + $bridges[$teamId] + ['ops.rot_status' => $result->ops['rot_status']],
                         'state_after' => $result->state->toArray(),
                         'score' => $scores[$teamId],
                         'rank' => $ranks[$teamId],
@@ -90,6 +89,49 @@ final class QuarterRunner
             throw new RuntimeException('Close the quarter before publishing results.');
         }
         $quarter->update(['status' => Quarter::PUBLISHED, 'published_at' => now()]);
+    }
+
+    /**
+     * Splits the change in EBITDA from last quarter into three exact parts by rerunning this quarter:
+     * prices (last quarter's decisions at this quarter's prices vs last quarter's prices),
+     * decisions (this quarter's decisions vs last quarter's, at this quarter's prices), and
+     * carried over (everything earlier quarters left behind: output decline, earlier rigs, wear).
+     *
+     * @param  array<string, string|float|int|null>  $effective
+     * @param  array<string, mixed>  $market
+     * @return array<string, float>
+     */
+    private function bridge(Team $team, Quarter $quarter, CompanyState $start, array $effective, array $market, float $actual): array
+    {
+        $prevQuarter = $quarter->previous();
+        $prevDecisions = $this->book->previousEffective($team, $quarter);
+        if ($prevQuarter === null) {
+            $history = $this->model->runHistory()[1];
+            $last = end($history);
+            if ($last === false) {
+                throw new RuntimeException('The 2026 history is empty.');
+            }
+            $prevMarket = $last['quarter'];
+            $prevEbitda = $last['result']->money['ebitda'];
+        } else {
+            $prevMarket = $this->marketFor($prevQuarter);
+            $tq = TeamQuarter::query()->where('team_id', $team->id)->where('quarter_id', $prevQuarter->id)->firstOrFail();
+            $prevEbitda = (float) ($tq->results['money.ebitda'] ?? 0.0);
+        }
+        $a = $this->model->step(clone $start, $this->book->toEngine($prevDecisions), $prevMarket)->money['ebitda'];
+        $b = $this->model->step(clone $start, $this->book->toEngine($prevDecisions), $market)->money['ebitda'];
+
+        return [
+            'bridge.previous' => $prevEbitda,
+            'bridge.prices' => $b - $a,
+            'bridge.decisions' => $actual - $b,
+            'bridge.carried_over' => $a - $prevEbitda,
+        ];
+    }
+
+    public function hasMarket(Quarter $quarter): bool
+    {
+        return in_array($quarter->company_quarter, array_column($this->model->data->market, 'quarter'), true);
     }
 
     /** @return array<string, mixed> */

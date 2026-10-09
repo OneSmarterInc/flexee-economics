@@ -47,3 +47,4 @@ yarn-error.log
 /opencode.jsonc
 composer.local.json
 composer.local.lock
+__pycache__/
