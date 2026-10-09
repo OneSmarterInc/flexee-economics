@@ -1,0 +1,5 @@
+halden,pelican,halden_payoff_musd_per_year
+hold,builds,-40.0
+hold,bluffs,0.0
+match,builds,-140.0
+match,bluffs,60.0

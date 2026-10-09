@@ -1,4 +1,4 @@
-"""Builds the golden fixtures: three reference teams through Quarters 1-6 (Q1 2027 to Q2 2028)."""
+"""Builds the golden fixtures: three reference teams through Quarters 1-7 (Q1 2027 to Q3 2028)."""
 import csv
 import copy
 import json
@@ -31,8 +31,12 @@ TEAMS = {
              crude_hedge_pct=25, eur_hedge=100, nok_hedge=150),
         dict(rigs=11, br_run=96, rot_run=92, sg_request=95, offsets=offsets(suburban=4.5, rural=7.0, interstate=3.5, nl=0.5, be=1.5, de=-1.5), tp_method="cost",
              crude_hedge_pct=25, eur_hedge=100, nok_hedge=150, projects={"br_upgrade": "commit", "rot_upgrade": "commit", "helix": "hold"}),
+        dict(rigs=11, br_run=96, rot_run=92, sg_request=95, offsets=offsets(suburban=4.5, rural=7.0, interstate=3.5, nl=0.5, be=1.5, de=-1.5), tp_method="cost",
+             crude_hedge_pct=25, eur_hedge=100, nok_hedge=150, projects={"br_upgrade": "commit", "rot_upgrade": "commit", "helix": "hold"},
+             responses={}, capacity_response="hold"),
     ],
     "average": [
+        dict(),
         dict(),
         dict(),
         dict(),
@@ -49,6 +53,9 @@ TEAMS = {
              crude_hedge_pct=50, eur_hedge=600),
         dict(rigs=26, norway="cut", br_run=99, rot_posture="idle", sg_request=100, offsets=offsets(urban=-1.0, suburban=0.5, rural=2.0, interstate=0.0, nl=-3.0, be=-2.0, de=-4.0), tp_method="other", tp_value=46.20,
              crude_hedge_pct=50, eur_hedge=600, projects={"helix": "commit"}),
+        dict(rigs=26, norway="cut", br_run=99, rot_posture="idle", sg_request=100, offsets=offsets(urban=-1.0, suburban=0.5, rural=2.0, interstate=0.0, nl=-3.0, be=-2.0, de=-4.0), tp_method="other", tp_value=46.20,
+             crude_hedge_pct=50, eur_hedge=600, projects={"helix": "commit"},
+             responses={"urban": "match", "suburban": "match", "rural": "match", "interstate": "match"}, capacity_response="match"),
     ],
 }
 
@@ -85,6 +92,12 @@ def main():
             for t in TEAMS:
                 outlay = sum(hm.PROJECTS[k]["outlay"] for k, v in plans[t][rnd - 1].projects.items() if v == "commit")
                 assert outlay <= terms["envelope"], f"{t} commits {outlay} over the envelope {terms['envelope']}"
+        if m["quarter"] == "2028Q3":   # Window 3 opens: this quarter's price aggression lands in Q1 2029
+            avg_agg = sum(hm.price_aggression(plans[t][rnd - 1]) for t in TEAMS) / len(TEAMS)
+            class_effects["window3_avg_aggression"] = avg_agg
+            class_effects["window3_nonfuel"] = hm.window3_nonfuel(avg_agg)
+        if m["quarter"] == "2029Q1":   # Window 3 lands
+            m["cordell_nonfuel"] = class_effects["window3_nonfuel"]
         kpis, outs = {}, {}
         for team in TEAMS:
             d = plans[team][rnd - 1]
@@ -103,7 +116,8 @@ def main():
                 rows.append((team, q, f"money.{k}", v))
             for k, v in kpi.items():
                 rows.append((team, q, f"kpi.{k}", v))
-            for k in ("tp", "market_tp", "cost_tp", "permian_prod", "br_throughput", "rot_throughput", "sg_accepted", "fx_effect", "project_outlay", "nwe"):
+            for k in ("tp", "market_tp", "cost_tp", "permian_prod", "br_throughput", "rot_throughput", "sg_accepted", "fx_effect", "project_outlay", "nwe",
+                      "rival_match_cost", "rival_ignore_cost"):
                 rows.append((team, q, f"ops.{k}", ops[k]))
             rows.append((team, q, "score.composite", scores[team]))
             rows.append((team, q, "score.rank", ranks[team]))
@@ -111,7 +125,8 @@ def main():
                   "rot_run": d.rot_run, "rot_posture": d.rot_posture, "sg_request": d.sg_request,
                   "tp_method": d.tp_method, "tp_value": "" if d.tp_value is None else d.tp_value,
                   "advisor_answers": d.advisor_answers, "crude_hedge_pct": d.crude_hedge_pct, "eur_hedge": d.eur_hedge,
-                  "nok_hedge": d.nok_hedge, **{f"proj_{k}": d.projects.get(k, "hold") for k in hm.PROJECTS}}
+                  "nok_hedge": d.nok_hedge, **{f"proj_{k}": d.projects.get(k, "hold") for k in hm.PROJECTS},
+                  **{f"resp_{c['key']}": d.responses.get(c["key"], "ignore") for c in hm.CORDELL}, "capacity_response": d.capacity_response}
             dd.update({f"off_{k}": v for k, v in d.offsets.items()})
             decisions_rows.append(dd)
             state_rows.append({"team": team, "quarter_end": q, "permian_prod_next": st.permian_prod, "rot_status": st.rot_status,

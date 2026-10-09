@@ -53,7 +53,7 @@ final class QuarterView
      * The Big projects page: this quarter's envelope and cost of capital, and what's already under way.
      *
      * @param  array<string, mixed>  $previous
-     * @return array{envelope: float, rate: float, projects: list<array{key: string, label: string, outlay: float}>, committedBefore: list<string>}|null
+     * @return array{envelope: float, rate: float, projects: list<array{key: string, label: string, outlay: float}>, committedBefore: list<string>, capacityMatchedBefore: bool}|null
      */
     private function capitalDesk(Quarter $quarter, array $previous): ?array
     {
@@ -70,7 +70,28 @@ final class QuarterView
             }
         }
 
-        return ['envelope' => $terms['envelope'], 'rate' => $terms['rate'], 'projects' => $projects, 'committedBefore' => $committed];
+        return ['envelope' => $terms['envelope'], 'rate' => $terms['rate'], 'projects' => $projects, 'committedBefore' => $committed,
+            'capacityMatchedBefore' => ($previous['capacity_response'] ?? 'hold') === 'match'];
+    }
+
+    /**
+     * The Gas stations page once a rival has cut prices: the cut, and how much fuel each Cordell market sells.
+     *
+     * @return array{cut: float, clusters: list<array{key: string, label: string, gallons: float}>}|null
+     */
+    private function rivalDesk(Quarter $quarter): ?array
+    {
+        if (! $this->book->isUnlocked('resp_urban', $quarter->number) || ! $this->runner->hasMarket($quarter)) {
+            return null;
+        }
+        $cut = (float) ($this->runner->marketFor($quarter)['rival_cut'] ?? 0);
+        if ($cut <= 0) {
+            return null;
+        }
+        $data = $this->model->data;
+        $total = $data->c('cordell_sites') * $data->c('cordell_gal_per_site_qtr');
+
+        return ['cut' => $cut, 'clusters' => array_map(fn (array $c) => ['key' => $c['key'], 'label' => $c['label'], 'gallons' => $total * $c['share']], $data->cordell)];
     }
 
     /** @return array{title: string, text: string|null, reason: string|null}|null */
@@ -164,6 +185,7 @@ final class QuarterView
                 'marketTp' => $this->runner->hasMarket($quarter) ? $this->model->transferPrices((float) $this->runner->marketFor($quarter)['wti'])[0] : null,
                 'costTp' => $data->c('delivered_marginal_cost') + $data->c('sr_capital_charge'),
                 'capital' => $this->capitalDesk($quarter, $previous),
+                'rival' => $this->rivalDesk($quarter),
             ],
             'memo' => [
                 'text' => $tq->memo ?? '',
@@ -322,6 +344,18 @@ final class QuarterView
         if (abs($projectsPaying) > 0.05) {
             $named[] = ['name' => 'Big projects paying back', 'amount' => $projectsPaying, 'why' => 'This quarter\'s share of what your projects deliver.'];
         }
+        if (abs((float) ($r['line.cordell_price_match'] ?? 0)) > 0.05) {
+            $named[] = ['name' => 'Matching Pelican\'s price cut (already in Gas stations)', 'amount' => (float) $r['line.cordell_price_match'],
+                'why' => 'Six cents given up on every gallon Cordell sold in the markets where you matched.'];
+        }
+        if ((float) ($r['ops.rival_ignore_cost'] ?? 0) > 0.05) {
+            $named[] = ['name' => 'Drivers who drifted to Pelican (already in Gas stations)', 'amount' => -(float) $r['ops.rival_ignore_cost'],
+                'why' => 'Fuel and shop profit on the gallons that went to Pelican in the markets where you held your price.'];
+        }
+        if (abs((float) ($r['line.capacity_game'] ?? 0)) > 0.05) {
+            $named[] = ['name' => 'Pelican\'s new Gulf Coast unit', 'amount' => (float) $r['line.capacity_game'],
+                'why' => ($d['capacity_response'] ?? 'hold') === 'match' ? 'Two new units chasing the same barrels. Counted under Refineries.' : 'Margin Baton Rouge lost to the new unit. Counted under Refineries.'];
+        }
         if ((float) ($r['ops.project_outlay'] ?? 0) > 0) {
             $named[] = ['name' => 'Big projects started (capital spending, not in EBITDA)', 'amount' => -(float) $r['ops.project_outlay'],
                 'why' => 'Paid up front this quarter. It adds to debt but not to your free cash flow score.'];
@@ -338,10 +372,23 @@ final class QuarterView
             'debt_to_earnings' => ['Debt compared with earnings', '10%', 'x', 'Roughly how many years of earnings it would take to pay off debt. Lower is better.'],
             'plant_condition' => ['Plant condition', '10%', 'pts', 'How well your refineries and oil fields are holding up, out of 100'],
         ];
+        // The midterm and the end: every measure against the whole class (decision D4).
+        $total = (int) $team->section->weeks;
+        $compare = $quarter->number === (int) ceil($total / 2) || $quarter->number === $total;
+        $classValues = [];
+        if ($compare) {
+            foreach (TeamQuarter::query()->where('quarter_id', $quarter->id)->whereNotNull('results')->get() as $other) {
+                foreach (array_keys($kpiNames) as $k) {
+                    $classValues[$k][] = (float) ($other->results["kpi.$k"] ?? 0);
+                }
+            }
+        }
         $kpis = [];
         foreach ($kpiNames as $k => [$name, $weight, $unit, $def]) {
+            $vals = $classValues[$k] ?? [];
             $kpis[] = ['name' => $name, 'weight' => $weight, 'unit' => $unit, 'def' => $def,
-                'last' => isset($prev["kpi.$k"]) ? (float) $prev["kpi.$k"] : null, 'now' => (float) $r["kpi.$k"]];
+                'last' => isset($prev["kpi.$k"]) ? (float) $prev["kpi.$k"] : null, 'now' => (float) $r["kpi.$k"],
+                'class' => $vals === [] ? null : ['low' => min($vals), 'avg' => array_sum($vals) / count($vals), 'high' => max($vals)]];
         }
 
         $earlier = [];
@@ -377,6 +424,7 @@ final class QuarterView
                 ],
             ],
             'kpis' => $kpis,
+            'compare' => $compare,
             'score' => (float) $tq->score,
             'scoreLast' => $prevTq?->score,
             'rank' => (int) $tq->rank,

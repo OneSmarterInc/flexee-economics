@@ -1,4 +1,4 @@
-"""Halden Energy quarterly operating model, reference implementation v0.2 (Quarters 1-6).
+"""Halden Energy quarterly operating model, reference implementation v0.3 (Quarters 1-7).
 
 This is the authoritative economics for the quarterly play-through. The Laravel engine must
 reproduce fixtures/golden_quarters.csv within tolerance (rel 1e-6, abs 1e-4).
@@ -42,6 +42,7 @@ def load_market():
             "sg": float(r["sg_crack"]), "eurusd": float(r["eurusd"]), "usdnok": float(r["usdnok"]),
             "usdsgd": float(r["usdsgd"]), "fx_live": r["fx_live"] == "1",
             "existing_eur_hedge": r["existing_eur_hedge"] == "1",
+            "rival_cut": float(r.get("rival_cut") or 0.0), "rival_builds": r.get("rival_builds") == "1",
         })
     return rows
 
@@ -61,6 +62,14 @@ def load_projects():
     return out
 
 
+def load_capacity_game():
+    """Halden's yearly payoff (USD m) for each answer to the rival's Gulf Coast expansion."""
+    out = {}
+    for r in _read("capacity_game.csv"):
+        out[(r["halden_action"], r["rival_outcome"])] = float(r["payoff_musd_per_year"])
+    return out
+
+
 def load_cohort_capital():
     return [{"behaviour": r["behaviour"], "min": float(r["score_min"]), "max": float(r["score_max"]),
              "rate": float(r["discount_rate"]), "envelope": float(r["capital_envelope"])} for r in _read("cohort_capital.csv")]
@@ -69,6 +78,7 @@ def load_cohort_capital():
 C = load_constants()
 PROJECTS = load_projects()
 COHORT_CAPITAL = load_cohort_capital()
+CAPACITY_GAME = load_capacity_game()
 CORDELL = load_clusters("cordell_clusters.csv")
 EUROPE = load_clusters("europe_countries.csv")
 D = C["days_per_quarter"]
@@ -90,6 +100,8 @@ class Decisions:
     eur_hedge: float = 0.0         # USD m of euros sold forward for next quarter
     nok_hedge: float = 0.0         # USD m of kroner bought forward for next quarter
     projects: dict = field(default_factory=dict)  # project key -> "commit" | "hold"
+    responses: dict = field(default_factory=dict)  # Cordell cluster -> "ignore" | "match" the rival's street cut
+    capacity_response: str = "hold"  # hold | match the rival's Gulf Coast expansion
 
 
 @dataclass
@@ -177,6 +189,25 @@ def capital_terms(avg_discipline):
     else:
         b = "base"
     return next(c for c in COHORT_CAPITAL if c["behaviour"] == b)
+
+
+def window3_nonfuel(avg_aggression):
+    """Window 3: the class's Q3 2028 price aggression sets the Cordell shop margin in Q1 2029, within 15% of base."""
+    base = C["window3_base_nonfuel"]
+    v = base - C["window3_slope"] * (avg_aggression - C["window3_pivot"])
+    return min(base * (1 + C["window3_bound"]), max(base * (1 - C["window3_bound"]), v))
+
+
+def price_aggression(dec: Decisions):
+    """Share of the Cordell markets where a team matched the rival's cut (0 = held every price, 1 = matched everywhere)."""
+    return sum(1 for c in CORDELL if dec.responses.get(c["key"], "ignore") == "match") / len(CORDELL)
+
+
+def capacity_payoff(action, rival_builds):
+    """Quarterly payoff of Halden's answer to the rival's expansion once the rival has shown its hand."""
+    if not rival_builds:
+        return 0.0
+    return CAPACITY_GAME[(action, "builds")] / 4
 
 
 def step(state: State, dec: Decisions, mkt: dict):
@@ -278,7 +309,10 @@ def step(state: State, dec: Decisions, mkt: dict):
             commit_outlay += PROJECTS[key]["outlay"]
     lines["projects_refining"] = proj_lines["refineries"]
     lines["projects_upstream"] = proj_lines["oil_fields"]
-    refining = lines["baton_rouge"] + lines["rotterdam"] + lines["rotterdam_one_time"] + lines["singapore"] + lines["projects_refining"]
+    # The rival's Gulf Coast expansion: once it is built (from Q4 2028), Halden's answer sets a yearly payoff.
+    lines["capacity_game"] = capacity_payoff(dec.capacity_response, mkt.get("rival_builds", False))
+    refining = (lines["baton_rouge"] + lines["rotterdam"] + lines["rotterdam_one_time"] + lines["singapore"]
+                + lines["projects_refining"] + lines["capacity_game"])
 
     # ---------------- Trading ----------------
     lines["geneva_desk"] = C["geneva_base_desk"]
@@ -307,15 +341,30 @@ def step(state: State, dec: Decisions, mkt: dict):
             held_down[k] = 0
         return 1 + e * street / C["pump_base"], delta
 
+    # A rival's street cut (from Q3 2028): in a market where the team holds its price, drivers drift to the
+    # rival; where it matches, Cordell gives up the cut on every gallon and keeps the drivers.
     cord_gal_total = C["cordell_sites"] * C["cordell_gal_per_site_qtr"]
+    nonfuel_per_gal = mkt.get("cordell_nonfuel") or C["cordell_nonfuel_per_gal"]
+    rival_cut = mkt.get("rival_cut", 0.0)
     cord_fuel = cord_nonfuel = 0.0
+    match_cost = ignore_cost = 0.0
     for c in CORDELL:
         vf, delta = volume_factor(c, dec.offsets[c["key"]])
         gal = cord_gal_total * c["share"] * vf
-        cord_fuel += gal * (C["cordell_fuel_margin"] + delta)
-        cord_nonfuel += gal * C["cordell_nonfuel_per_gal"] * C["cordell_nonfuel_halden_share"]
+        cut_given = 0.0
+        if rival_cut > 0:
+            if dec.responses.get(c["key"], "ignore") == "match":
+                cut_given = rival_cut
+                match_cost += gal * rival_cut
+            else:
+                lost = gal * (-c["e"]) * rival_cut / C["pump_base"]
+                ignore_cost += lost * (C["cordell_fuel_margin"] + delta + nonfuel_per_gal * C["cordell_nonfuel_halden_share"])
+                gal -= lost
+        cord_fuel += gal * (C["cordell_fuel_margin"] + delta - cut_given)
+        cord_nonfuel += gal * nonfuel_per_gal * C["cordell_nonfuel_halden_share"]
     lines["cordell_fuel"] = cord_fuel / 1e6
     lines["cordell_shop"] = cord_nonfuel / 1e6
+    lines["cordell_price_match"] = -match_cost / 1e6   # already inside cordell_fuel; shown on its own
 
     eu_factor = state.europe_volume_factor * (1 - C["europe_volume_decline_qtr"])
     eu_gal_total = C["europe_sites"] * C["europe_gal_per_site_qtr"] * eu_factor
@@ -408,7 +457,8 @@ def step(state: State, dec: Decisions, mkt: dict):
              "capital_employed_end": new_ce, "net_debt_end": new_nd}
     ops = {"tp": tp, "market_tp": market_tp, "cost_tp": cost_tp, "permian_prod": prod,
            "br_throughput": br_tp_bbl, "rot_throughput": rot_tp, "sg_accepted": sg_run, "rot_status": rot_status,
-           "fx_effect": fx_effect, "project_outlay": commit_outlay, "nwe": mkt["nwe"]}
+           "fx_effect": fx_effect, "project_outlay": commit_outlay, "nwe": mkt["nwe"],
+           "rival_match_cost": match_cost / 1e6, "rival_ignore_cost": ignore_cost / 1e6}
     return lines, seg, money, kpi, ops, notes, new_state
 
 

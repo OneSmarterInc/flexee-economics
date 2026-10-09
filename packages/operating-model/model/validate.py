@@ -171,7 +171,46 @@ check("The score counts free cash flow before new projects; net debt still carri
       abs(p1[3]["free_cash_flow"] - p1[2]["fcf"] - 640) < 1e-9 and p1[2]["net_debt_end"] > hm.step(copy.deepcopy(start), hm.Decisions(), m6)[2]["net_debt_end"],
       f"score FCF {p1[3]['free_cash_flow']:.1f} vs cash FCF {p1[2]['fcf']:.1f}")
 
-# 16 Reference teams: careful > average > careless in every quarter
+# 16 Competitive response (Q3 2028, Week 7 package): a rival cuts 6c a gallon in every Cordell market
+m7 = q("2028Q3")
+held = hm.step(copy.deepcopy(start), hm.Decisions(), m7)
+matched = hm.step(copy.deepcopy(start), hm.Decisions(responses={c["key"]: "match" for c in hm.CORDELL}), m7)
+per_cluster = []
+ok = True
+for c in hm.CORDELL:
+    one = hm.step(copy.deepcopy(start), hm.Decisions(responses={c["key"]: "match"}), m7)
+    mc = one[4]["rival_match_cost"]
+    ic = held[4]["rival_ignore_cost"] - one[4]["rival_ignore_cost"]
+    ok &= ic < mc / 20
+    per_cluster.append(f"{c['key']}: hold {ic:.2f} vs match {mc:.1f}")
+check("Holding price against the rival's cut costs under a twentieth of matching it, in every Cordell market", ok, "; ".join(per_cluster) + " ($M a quarter)")
+check("Matching everywhere costs 6c on every Cordell gallon and shows as its own line",
+      abs(matched[0]["cordell_price_match"] + 0.06 * hm.C["cordell_sites"] * hm.C["cordell_gal_per_site_qtr"] / 1e6) < 1e-6
+      and matched[2]["ebitda"] < held[2]["ebitda"], f"{matched[0]['cordell_price_match']:.2f}")
+check("Before the rival moves, the answer levers change nothing", abs(hm.step(copy.deepcopy(start), hm.Decisions(responses={"urban": "match"}), m6)[2]["ebitda"]
+      - hm.step(copy.deepcopy(start), hm.Decisions(), m6)[2]["ebitda"]) < 1e-9, "Q2 2028 EBITDA equal")
+
+# 17 The capacity game (Week 7 package): hold beats match once the rival builds; breakeven build probability 0.375
+g = hm.CAPACITY_GAME
+p = hm.C["rival_build_probability"]
+ev_hold = p * g[("hold", "builds")] + (1 - p) * g[("hold", "bluffs")]
+ev_match = p * g[("match", "builds")] + (1 - p) * g[("match", "bluffs")]
+breakeven = (g[("match", "bluffs")] - g[("hold", "bluffs")]) / ((g[("match", "bluffs")] - g[("hold", "bluffs")]) + (g[("hold", "builds")] - g[("match", "builds")]))
+check("Capacity game: at a 70% chance the rival builds, holding (-$28M a year) beats matching (-$80M); breakeven is 37.5%",
+      abs(ev_hold + 28) < 1e-9 and abs(ev_match + 80) < 1e-9 and abs(breakeven - 0.375) < 1e-9, f"hold {ev_hold:.0f}, match {ev_match:.0f}, breakeven {breakeven:.3f}")
+mb = dict(m7, rival_builds=True)
+check("Once the rival builds, holding costs $10M a quarter and matching $35M, under Refineries",
+      abs(hm.step(copy.deepcopy(start), hm.Decisions(), mb)[0]["capacity_game"] + 10) < 1e-9
+      and abs(hm.step(copy.deepcopy(start), hm.Decisions(capacity_response="match"), mb)[0]["capacity_game"] + 35) < 1e-9
+      and hm.step(copy.deepcopy(start), hm.Decisions(), m7)[0]["capacity_game"] == 0.0, "-10 / -35; 0 before it builds")
+
+# 18 Window 3: the class's Q3 2028 price aggression sets the Q1 2029 shop margin
+check("Window 3 reproduces the ledger: a price war 0.38, base 0.42, disciplined 0.45 a fill, bounded within 15% of base",
+      abs(hm.window3_nonfuel(0.9) - 0.38) < 1e-9 and abs(hm.window3_nonfuel(0.5) - 0.42) < 1e-9 and abs(hm.window3_nonfuel(0.2) - 0.45) < 1e-9
+      and abs(hm.window3_nonfuel(1.0) - 0.37) < 1e-9 and abs(hm.window3_nonfuel(0.0) - 0.47) < 1e-9, "0.38 / 0.42 / 0.45; floor 0.357 at full aggression")
+check("A team that matches in two of four Cordell markets is half aggressive", hm.price_aggression(hm.Decisions(responses={"urban": "match", "rural": "match"})) == 0.5, "0.5")
+
+# 19 Reference teams: careful > average > careless in every quarter
 summary = rr.main()
 ok = True
 detail = []
@@ -179,16 +218,16 @@ for i in range(len(summary["careful"])):
     c, a, l = (summary[t][i][2] for t in ("careful", "average", "careless"))
     ok &= c > a > l
     detail.append(f"Q{i+1}: {c:.1f} / {a:.1f} / {l:.1f}")
-check("Score order careful > average > careless in all six quarters", ok, "; ".join(detail))
+check("Score order careful > average > careless in all seven quarters", ok, "; ".join(detail))
 
-# 17 Determinism: fixtures rebuild byte-identical
+# 20 Determinism: fixtures rebuild byte-identical
 h1 = hashlib.sha256((ROOT / "fixtures/golden_quarters.csv").read_bytes()).hexdigest()
 rr.main()
 h2 = hashlib.sha256((ROOT / "fixtures/golden_quarters.csv").read_bytes()).hexdigest()
 check("Fixtures rebuild identically", h1 == h2, h1[:16])
 
 passed = sum(1 for c in checks if c[1])
-lines = ["# Operating model validation (v0.2, Quarters 1-6)", "", f"**Result: {passed} of {len(checks)} checks pass.**", "",
+lines = ["# Operating model validation (v0.3, Quarters 1-7)", "", f"**Result: {passed} of {len(checks)} checks pass.**", "",
          "| # | Check | Result | Detail |", "| --- | --- | --- | --- |"]
 for i, (n, okk, d) in enumerate(checks, 1):
     lines.append(f"| {i} | {n} | {'PASS' if okk else 'FAIL'} | {d} |")

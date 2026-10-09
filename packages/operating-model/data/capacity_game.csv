@@ -1,0 +1,5 @@
+halden_action,rival_outcome,payoff_musd_per_year,note
+hold,builds,-40.0,"Wk7 capacity_payoffs.csv: the rival's new unit takes some of Baton Rouge's margin"
+hold,bluffs,0.0,"Wk7: nothing changes"
+match,builds,-140.0,"Wk7: two new units chase the same barrels"
+match,bluffs,60.0,"Wk7: Halden's unit has the Gulf Coast to itself"

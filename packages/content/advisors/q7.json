@@ -1,0 +1,45 @@
+{
+  "_about": "Quarter 7 (Q3 2028). Pelican Energy cuts street prices 6c a gallon in every Cordell market and announces a Gulf Coast refining unit. Advisors know the cut, the elasticities and the payoff table; none of them says what to do. Draft for Vikram's review.",
+  "marchetti": {
+    "facts": "WTI is $75. The Gulf Coast refining margin slipped to $21.40 a barrel; Europe's is $5.00. The euro is $1.045 and the krone 10.90.",
+    "stance": "A price cut and a capacity announcement in the same week are one move, not two. Pelican wants Halden distracted.",
+    "signal": "Steer them to cost each threat if Halden does nothing, before costing any response.",
+    "misdirection": "She'd like to watch Pelican's prices for another month before anyone answers."
+  },
+  "roy": {
+    "facts": "Pelican cut what drivers pay by 6 cents a gallon in all four kinds of Cordell market. Drivers switch most where stations are thick on the ground: in the cities about 0.11% of Cordell's volume moves for every 1% price gap, in the suburbs 0.06%, on the highways 0.05%, and in small towns 0.02%. Cordell makes about 11 cents a gallon on fuel, and the Cordell stations sell about 1.18 billion gallons a quarter between them. Drivers who come for price alone rarely buy anything in the shop.",
+    "stance": "Cordell's city share took years to build, and she doesn't want to watch it go to Pelican over six cents.",
+    "signal": "Nudge them to compare, market by market, what matching gives up on every gallon against what holding loses on the few gallons that leave.",
+    "misdirection": "She'll argue for matching in the cities on share alone, though the arithmetic doesn't support it."
+  },
+  "aasen": {
+    "facts": "Pelican's announced unit would add refining capacity on the Gulf Coast from late next year. Baton Rouge's upgrade, if the team went ahead with it, is already under way. A new unit at Baton Rouge takes two years to build.",
+    "stance": "Announcements are cheap. Pelican has announced two units in ten years and built one.",
+    "signal": "",
+    "misdirection": "He's sure Pelican is bluffing, which is a guess dressed up as experience."
+  },
+  "ruiz": {
+    "facts": "Ana's team has costed the refinery game. If Pelican builds and Halden does nothing, Baton Rouge loses about $40 million a year of margin. If both build, Halden loses about $140 million a year. If Halden builds and Pelican backs off, Halden gains about $60 million a year. If neither builds, nothing changes. Her team puts the chance Pelican really builds at 70%.",
+    "stance": "Grant wants the expected cost of each answer, not a story about who blinks first.",
+    "signal": "Prompt them to weigh each answer by how likely Pelican is to build, and to ask at what likelihood the answer would flip.",
+    "misdirection": "She leans toward building, because Grant hates being seen to do nothing."
+  },
+  "osei": {
+    "facts": "Matching a rival market by market reads as following. Matching everywhere reads as a price war, and state regulators on the Gulf Coast have opened inquiries into fuel price wars twice in the last decade.",
+    "stance": "How a move looks from outside matters as much as what it costs.",
+    "signal": "",
+    "misdirection": "He'd hold everywhere to stay out of the regulators' sight, even where matching might make sense."
+  },
+  "lund": {
+    "facts": "The board has asked, more than once, whether Halden is a company that fights for every gallon or one that keeps its nerve.",
+    "stance": "A company that matches every cut has let its rivals set its strategy.",
+    "signal": "Ask them what the sentence they wrote down says about answering Pelican.",
+    "misdirection": "She'd rather Halden looked calm than earned the extra margin, if the two ever conflict."
+  },
+  "priya": {
+    "facts": "Marcus Delacroix wants to match in the cities and suburbs. Grant Whitaker will not sign off on a new unit without a number. Danielle Roy's dealers are calling her directly. Pelican's CEO is new in the job and likes headlines.",
+    "stance": "Predictions: if the team matches in the cities, Marcus will be loyal through the winter. If it holds everywhere, the city dealers will complain to Marcus, not to the team. If the team builds, Grant will ask for the arithmetic in writing. Pelican's CEO will claim victory whatever the team does.",
+    "signal": "",
+    "misdirection": "She thinks the small-town dealers won't notice a six-cent gap. They will notice; they just won't lose many drivers."
+  }
+}

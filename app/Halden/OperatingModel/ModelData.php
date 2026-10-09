@@ -25,6 +25,9 @@ final class ModelData
     /** @var list<array{behaviour: string, rate: float, envelope: float}> */
     public readonly array $cohortCapital;
 
+    /** @var array<string, float> "action|outcome" => Halden's yearly payoff (USD m) in the capacity game */
+    public readonly array $capacityGame;
+
     /** @var list<array{key: string, label: string, share: float, e: float, pt: float, base: float}> */
     public readonly array $europe;
 
@@ -55,6 +58,8 @@ final class ModelData
             'usdsgd' => (float) $r['usdsgd'],
             'fx_live' => ($r['fx_live'] ?? '0') === '1',
             'existing_eur_hedge' => ($r['existing_eur_hedge'] ?? '0') === '1',
+            'rival_cut' => (float) ($r['rival_cut'] ?? 0),
+            'rival_builds' => ($r['rival_builds'] ?? '0') === '1',
         ], self::csv("$root/data/market_path.csv"));
 
         $projects = [];
@@ -69,6 +74,12 @@ final class ModelData
         $this->cohortCapital = array_map(fn (array $r): array => [
             'behaviour' => $r['behaviour'], 'rate' => (float) $r['discount_rate'], 'envelope' => (float) $r['capital_envelope'],
         ], self::csv("$root/data/cohort_capital.csv"));
+
+        $game = [];
+        foreach (self::csv("$root/data/capacity_game.csv") as $r) {
+            $game[$r['halden_action'].'|'.$r['rival_outcome']] = (float) $r['payoff_musd_per_year'];
+        }
+        $this->capacityGame = $game;
 
         $this->cordell = self::clusters("$root/data/cordell_clusters.csv", 'cluster');
         $this->europe = self::clusters("$root/data/europe_countries.csv", 'country');

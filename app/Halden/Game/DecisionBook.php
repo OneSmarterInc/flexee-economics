@@ -107,10 +107,10 @@ final class DecisionBook
                 $out[$key] = $value;
             }
         }
-        // A project, once committed, stays committed.
+        // A project, once committed, stays committed. Matching the rival's expansion is a build, so it sticks too.
         foreach ($previous as $key => $value) {
-            if (str_starts_with($key, 'proj_') && $value === 'commit') {
-                $out[$key] = 'commit';
+            if ((str_starts_with($key, 'proj_') && $value === 'commit') || ($key === 'capacity_response' && $value === 'match')) {
+                $out[$key] = $value;
             }
         }
 
@@ -203,6 +203,11 @@ final class DecisionBook
             }
         }
 
+        $responses = [];
+        foreach ($this->data->cordell as $cl) {
+            $responses[$cl['key']] = (string) ($d['resp_'.$cl['key']] ?? 'ignore');
+        }
+
         return new Decisions(
             rigs: (int) $d['rigs'],
             norway: (string) $d['norway'],
@@ -218,6 +223,8 @@ final class DecisionBook
             eurHedge: (float) ($d['eur_hedge'] ?? 0),
             nokHedge: (float) ($d['nok_hedge'] ?? 0),
             projects: array_map(fn (string $k): string => (string) ($d["proj_$k"] ?? 'hold'), array_combine(array_keys($this->data->projects), array_keys($this->data->projects))),
+            responses: $responses,
+            capacityResponse: (string) ($d['capacity_response'] ?? 'hold'),
         );
     }
 

@@ -1,0 +1,5 @@
+parameter,value,note
+base_shop_margin_usd_gal,0.42,shop margin when the industry neither wars nor holds back
+slope_usd_gal,0.1,how far the margin moves for each 1.0 of aggression
+pivot,0.5,industry aggression at which the margin is unchanged
+bound,0.15,the margin moves at most this share either way

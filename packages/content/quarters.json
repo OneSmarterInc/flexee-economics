@@ -663,5 +663,122 @@
         ]
       }
     }
+  },
+  "7": {
+    "briefing": {
+      "dateline": "Q3 2028 · Tuesday 4 July · Houston",
+      "headline": "Pelican cuts prices and announces a refinery",
+      "paragraphs": [
+        "Pelican Energy, the Gulf Coast refiner with its own chain of stations, cut what drivers pay by six cents a gallon on Friday, in every kind of market where Cordell has stations. Marcus had the city dealers on the phone by Saturday. They want Cordell to match.",
+        "On Monday Pelican announced a new refining unit on the Gulf Coast. Ana's team thinks it's a real plan. Bjørn thinks it's a bluff meant to make Halden think twice about its own Baton Rouge upgrade. Grant wants to know what it costs to be wrong either way.",
+        "It's also the midterm. When this quarter's results come in, you'll see how every one of your seven measures compares with the other teams in your class."
+      ],
+      "question": "Where, if anywhere, should Cordell match Pelican's price cut, and should Halden answer Pelican's refinery with one of its own?"
+    },
+    "rule": "Pelican has cut what drivers pay by six cents a gallon near Cordell stations in all four kinds of market. In any market where you hold your price, some drivers switch to Pelican: the more stations nearby, the more switch. Where you match, Cordell gives up six cents on every gallon it sells there and keeps its drivers. Pelican has also announced a new refining unit on the Gulf Coast. If Pelican builds and you don't, Baton Rouge loses some margin. If you both build, you both lose more. If you build and Pelican backs off, you gain. You'll find out next quarter what Pelican really does, and whatever you decide about building is for good.",
+    "new_pages_note": "New this quarter: how to answer Pelican's cut, market by market, on the Gas stations page, and whether to answer its refinery on the Big projects page.",
+    "exhibits": [
+      {
+        "title": "Pelican's price cut, market by market, and the refinery game",
+        "file": "q7/halden-q7-rival.xlsx"
+      },
+      {
+        "title": "Python notebook with the same data (optional)",
+        "file": "q7/halden-q7-analysis.ipynb"
+      },
+      {
+        "title": "Data files the notebook reads (unzip them next to it)",
+        "file": "q7/halden-q7-notebook-data.zip"
+      }
+    ],
+    "marchetti": "Oil is at $75, and the Gulf Coast refining margin has slipped to $21.40 a barrel. A price cut and a capacity announcement in the same week aren't a coincidence: Pelican wants Halden looking at two things at once. Work out what each one costs you if you do nothing, before you decide what to do.",
+    "story": {
+      "band_on": "rival",
+      "bands": [
+        {
+          "key": "held",
+          "title": "You held your prices",
+          "paragraphs": [
+            "Pelican cut six cents a gallon across Cordell's markets and you held every price. Some drivers drifted. It cost about {ignore_cost} of fuel and shop profit this quarter, less than most people in Houston expected. Marcus's city dealers called him all month anyway.",
+            "{capacity_answer}"
+          ]
+        },
+        {
+          "key": "mixed",
+          "title": "You matched in some markets and held in others",
+          "paragraphs": [
+            "Where you matched Pelican, Cordell gave up six cents on every gallon it sold: {match_cost} this quarter. Where you held, drivers drifting to Pelican cost about {ignore_cost}. Marcus says you picked the right markets. Danielle says you picked the wrong ones.",
+            "{capacity_answer}"
+          ]
+        },
+        {
+          "key": "matched",
+          "title": "You went to war",
+          "paragraphs": [
+            "You matched Pelican's cut in most or all of Cordell's markets. That kept the drivers and gave up {match_cost} of fuel margin this quarter. Pelican noticed. So did every other chain on the Gulf Coast, and the shop counters went quiet: drivers who shop on price don't stop for coffee.",
+            "{capacity_answer}"
+          ]
+        }
+      ],
+      "closing": "Halden made {ebitda} before interest, tax and depreciation. Your score page now shows where every measure sits against the rest of the class. Next quarter your team swaps seats, and OPEC+ meets in Vienna."
+    },
+    "news": [
+      {
+        "title": "Price cuts spread along the Gulf Coast",
+        "body": "Pelican's six-cent cut has some chains matching and others holding. Station owners say a price war empties the coffee counter: the drivers it wins are the ones who don't buy anything else. What the chains in your class did this quarter will show up in shop margins over the winter."
+      },
+      {
+        "title": "Refiners announce, analysts doubt",
+        "body": "Pelican's Gulf Coast unit is the third expansion announced on the coast this year. Analysts expect about two of every three such announcements to turn into steel. Each one that does trims the margin every Gulf Coast refinery earns."
+      }
+    ],
+    "relations": {
+      "band_on": "rival",
+      "bands": {
+        "held": [
+          {
+            "who": "Marcus Delacroix",
+            "was": "Cooperative",
+            "now": "Watchful",
+            "why": "His city dealers wanted a fight and you held the price."
+          },
+          {
+            "who": "Grant Whitaker",
+            "was": "Cooperative",
+            "now": "Supportive",
+            "why": "You didn't give away margin to win a quarter."
+          }
+        ],
+        "mixed": [
+          {
+            "who": "Marcus Delacroix",
+            "was": "Cooperative",
+            "now": "Cooperative",
+            "why": "You matched where his dealers were loudest and held elsewhere."
+          }
+        ],
+        "matched": [
+          {
+            "who": "Grant Whitaker",
+            "was": "Cooperative",
+            "now": "Guarded",
+            "why": "You gave up six cents on nearly every gallon. He's asking what it bought."
+          },
+          {
+            "who": "Marcus Delacroix",
+            "was": "Cooperative",
+            "now": "Supportive",
+            "why": "His dealers got the fight they asked for."
+          }
+        ]
+      }
+    },
+    "fills": {
+      "{capacity_answer}": {
+        "on": "capacity_response",
+        "hold": "On the refinery, you let Pelican's announcement stand and built nothing. You'll find out next quarter whether they meant it.",
+        "match": "On the refinery, you answered Pelican's announcement with a new unit of your own at Baton Rouge. You'll find out next quarter whether they meant it."
+      }
+    }
   }
 }

@@ -1,0 +1,7 @@
+parameter,value,note
+station_elasticity_switching,-20.0,one station on a corner with three rivals: drivers switch on pennies
+station_elasticity_loyal,-0.03,the only station for twenty miles
+cut_usd_gal,0.1,
+pump_usd_gal,3.2,
+margin_usd_gal,0.2,fuel and shop profit per gallon
+volume_m_gal,1000.0,gallons a year

@@ -1,8 +1,8 @@
-# Halden Energy · Quarterly Operating Model · v0.1 (Quarters 1–4)
+# Halden Energy · Quarterly Operating Model · v0.3 (Quarters 1–7)
 
-**What this is:** the economics engine for the quarterly play-through, for Quarters 1–4 (Q1–Q4 2027) plus the four history quarters of 2026. The Python model in `model/` is the reference. The Laravel engine has to reproduce `fixtures/golden_quarters.csv` (tolerance: relative 1e-6, absolute 1e-4).
+**What this is:** the economics engine for the quarterly play-through, for Quarters 1–7 (Q1 2027 to Q3 2028) plus the four history quarters of 2026. The Python model in `model/` is the reference. The Laravel engine has to reproduce `fixtures/golden_quarters.csv` (tolerance: relative 1e-6, absolute 1e-4).
 
-**Status:** provisional calibration. 22 of 22 validation checks pass (`VALIDATION.md`).
+**Status:** provisional calibration. 41 of 41 validation checks pass (`VALIDATION.md`).
 
 ---
 
@@ -27,7 +27,10 @@
    - Capital spending is $565M plus $40M per rig.
    - Free cash flow is EBITDA − tax − capital spending.
    - Net debt moves by −FCF + $1,750M paid to shareholders.
-7. **Plant condition:** loses 0.5 points for each point Baton Rouge runs above 97%. It loses another 0.5 for each quarter Rotterdam runs below 80%.
+7. **From Quarter 5 (2028 on): currency.** Norway's lifting cost moves with the krone, Rotterdam and the European stations with the euro, Singapore with its dollar, each against fixed reference rates (1.085, 10.20, 1.34). A hedge set this quarter settles next quarter: crude at this quarter's WTI, euros and kroner at today's rates. A $300M euro forward sold at 1.085 before the shock settles in Q1 2028.
+8. **From Quarter 6: big projects.** Going ahead costs the full outlay now (capital spending, in net debt) and pays a quarter of each year's forecast cash flow from the next quarter, cut to 88% (refining) or 61% (new business). The Rotterdam upgrade stops paying if Rotterdam is closed. The score's free cash flow adds the outlay back (decision S2).
+9. **From Quarter 7: the rival's moves.** A rival cuts street prices 6c a gallon in every Cordell market. Where a team holds its price, drivers drift to the rival by the cluster's elasticity × 6c ÷ $3.20 (a fraction of a percent). Where it matches, Cordell gives up 6c on every gallon there. The rival also announces a Gulf Coast expansion; once it builds (Q4 2028 on), holding costs Halden $40M a year and matching $140M, under Refineries (`data/capacity_game.csv`).
+10. **Plant condition:** loses 0.5 points for each point Baton Rouge runs above 97%. It loses another 0.5 for each quarter Rotterdam runs below 80%.
 8. **Score:** the seven published measures, weighted 30/15/15/10/10/10/10, each scaled 0–100 from the worst team to the best team in the section. Proposed change S1 applies (see below).
 
 ## What the reference teams show (Q4 2027)
@@ -60,18 +63,20 @@ These are the numbers the quarterly loop needed that the weekly design never fix
 - Station volumes and Halden's share of shop margin.
 - Fixed costs, head office cost and payout to shareholders.
 
+**What the whole class does (hidden until it lands).** Window 1: the class's average Q3 2027 Rotterdam run rate sets the Q1 2028 European margin, $4.60 + 9 × (0.75 − average), never below $2.60. Capital terms: each team's Q4 2027 crude price scores 1 at cost, 0.5 at market, 0 otherwise; a class average above two-thirds gives $1,520M at 6.5%, below one-third $950M at 11%, otherwise $1,150M at 8.5%. Window 3: the class's average Q3 2028 aggression (share of Cordell markets where a team matched the rival) sets the Q1 2029 shop margin per gallon, $0.42 − 0.10 × (average − 0.5), within 15% of $0.42.
+
 **Every constant from the ledger is used unchanged.** Gas and other EBITDA ($147M a quarter) is calibrated so Q4 2026 EBITDA = $3,750M. That matches the KPI package's opening state: return on capital 12.7% and debt to earnings 1.30x.
 
 ## Files
 
 | Path | What |
 | --- | --- |
-| `data/` | Prices by quarter, constants, Cordell clusters, European countries, decisions and their on-screen labels |
+| `data/` | Prices by quarter (with the rival's moves), constants, Cordell clusters, European countries, projects, capital terms by class behaviour, the capacity game, decisions and their on-screen labels |
 | `model/halden_model.py` | The reference model |
 | `model/run_reference.py` | Runs the three reference teams and writes the fixtures |
-| `model/validate.py` | 22 checks; writes `VALIDATION.md` |
+| `model/validate.py` | 41 checks; writes `VALIDATION.md` |
 | `fixtures/golden_quarters.csv` | Every line, segment, money figure, measure, score and rank, by team and quarter |
-| `fixtures/reference_decisions.csv`, `state_after_quarter.csv`, `calibration.json` | Inputs and carried state for the engine tests |
+| `fixtures/reference_decisions.csv`, `state_after_quarter.csv`, `calibration.json`, `class_effects.json` | Inputs, carried state and class effects for the engine tests |
 | `halden-operating-model-summary.xlsx` | The same results laid out for reading |
 | `MANIFEST.md` | SHA-256 for every file |
 
@@ -79,4 +84,4 @@ These are the numbers the quarterly loop needed that the weekly design never fix
 
 ## Next
 
-Quarters 5–8 add currency and hedging, the capital projects and the cost-of-capital consequence, the rival's moves and cohort windows 2 and 3, and the OPEC outcome. Each arrives as a module and its fixtures, the same way.
+Quarter 8 adds the OPEC planning case and lands Window 2 (the Gulf Coast margin, from the capacity the class added in Quarters 6 and 7). Quarter 9 lands Window 3 and adds the rebrand. Each arrives as a module and its fixtures, the same way.

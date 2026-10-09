@@ -1,0 +1,5 @@
+market,label,elasticity,pass_through,share_of_cordell_fuel,gallons_per_quarter_m
+urban,Cities,-0.11,0.82,0.3,354.75
+suburban,Suburbs,-0.06,0.62,0.35,413.875
+rural,Small towns,-0.02,0.42,0.2,236.5
+interstate,Highways,-0.05,0.55,0.15,177.375
