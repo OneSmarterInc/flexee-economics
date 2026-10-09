@@ -3,7 +3,9 @@
 namespace App\Halden\Game;
 
 use App\Halden\Ai\AdvisorRoom;
+use App\Halden\Ai\Carrying;
 use App\Halden\Ai\FacultyDrafts;
+use App\Halden\Ai\HelpDesk;
 use App\Halden\Content\ContentPack;
 use App\Halden\OperatingModel\ModelData;
 use App\Halden\OperatingModel\OperatingModel;
@@ -41,7 +43,22 @@ final class QuarterView
         private readonly QuarterRunner $runner,
         private readonly AdvisorRoom $room,
         private readonly FacultyDrafts $drafts,
+        private readonly Carrying $carrying,
+        private readonly HelpDesk $help,
     ) {}
+
+    /** @return array{title: string, text: string|null, reason: string|null}|null */
+    private function carryingFor(?TeamQuarter $tq, bool $forFaculty): ?array
+    {
+        if ($tq === null || $tq->carrying_status === null) {
+            return null;
+        }
+        if ($tq->carrying_status !== 'ok' && ! $forFaculty) {
+            return null;
+        }
+
+        return ['title' => $this->carrying->title(), 'text' => $tq->carrying, 'reason' => $forFaculty ? $tq->carrying_reason : null];
+    }
 
     /** @return array<string, mixed> */
     public function build(Team $team, Quarter $quarter, ?User $viewer, bool $readOnly = false): array
@@ -128,6 +145,8 @@ final class QuarterView
             'ready' => $tq?->ready_at?->toIso8601String(),
             'results' => $quarter->status === Quarter::PUBLISHED && $tq !== null && $tq->results !== null
                 ? $this->results($team, $quarter, $tq, $data) : null,
+            'carrying' => $this->carryingFor($tq, $readOnly && $me === null),
+            'help' => $this->help->view() + ['enabled' => $this->help->enabled()],
             'feedback' => $tq?->feedback_published_at !== null && trim((string) $tq->feedback) !== ''
                 ? ['title' => $this->drafts->screenText()['student_title'], 'text' => (string) $tq->feedback, 'at' => $tq->feedback_published_at->toIso8601String()]
                 : null,

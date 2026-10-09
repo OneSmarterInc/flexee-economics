@@ -18,6 +18,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('play/{quarter}/advisors/{advisor}', [PlayController::class, 'ask'])->whereAlpha('advisor')->middleware('throttle:20,1')->name('play.ask');
     Route::get('files/{path}', [PlayController::class, 'exhibit'])->where('path', '[A-Za-z0-9_\-/\.]+')->name('exhibits.show');
 
+    Route::post('help', [PlayController::class, 'help'])->middleware('throttle:10,1')->name('help');
     Route::get('opening', [OpeningController::class, 'show'])->name('opening');
     Route::post('opening', [OpeningController::class, 'finish'])->name('opening.finish');
 

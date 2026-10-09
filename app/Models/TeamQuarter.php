@@ -30,9 +30,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int|null $writing_score_ai
  * @property int $writing_adjustment
  * @property int|null $writing_score
+ * @property string|null $carrying
+ * @property string|null $carrying_status
+ * @property string|null $carrying_reason
  */
 #[Fillable(['team_id', 'quarter_id', 'decisions', 'effective_decisions', 'saved_pages', 'memo', 'memo_saved_by', 'memo_saved_at',
-    'ready_by', 'ready_at', 'results', 'state_after', 'score', 'rank', 'feedback', 'feedback_published_at', 'writing_score_ai', 'writing_adjustment', 'writing_score'])]
+    'ready_by', 'ready_at', 'results', 'state_after', 'score', 'rank', 'feedback', 'feedback_published_at', 'writing_score_ai', 'writing_adjustment', 'writing_score', 'carrying', 'carrying_status', 'carrying_reason'])]
 class TeamQuarter extends Model
 {
     /** The AI's proposal plus the instructor's adjustment, kept within the scale. Null until there is something to score. */

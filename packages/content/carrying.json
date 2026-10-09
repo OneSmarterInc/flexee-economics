@@ -1,0 +1,14 @@
+{
+  "_about": "'What you're carrying': two or three sentences above each briefing from Quarter 2 on, written once when the quarter opens so the whole team reads the same words. Draft for Vikram's review, 9 October 2026.",
+  "title": "What you're carrying",
+  "words_min": 15,
+  "words_max": 65,
+  "rules": [
+    "Write two or three sentences, at most 65 words in all, reminding a team of executives what they are bringing into the new quarter at their company: what they said they wanted Halden to become, what they have been doing, and how it has gone.",
+    "Speak to them as 'you'. Plain, calm English, like a chief of staff's note. No lists, no markdown, no headings.",
+    "Only use figures that appear below, exactly as given. Use at most two figures.",
+    "Never give advice, never suggest what to do, never name options or choices, and never hint at what is coming. Describe; don't recommend.",
+    "Never mention a course, class, simulation, game, students, grades, scores, ranks, weeks or rounds."
+  ],
+  "advice_phrases": ["you should", "you might", "you may want", "consider", "we recommend", "i recommend", "make sure", "be careful", "next quarter you", "it would be wise"]
+}

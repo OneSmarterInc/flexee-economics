@@ -2,6 +2,7 @@
 import { Head, router, usePage } from '@inertiajs/vue3';
 import { computed, reactive, ref, watch } from 'vue';
 import AdvisorsPanel from '@/halden/AdvisorsPanel.vue';
+import HelpPanel from '@/halden/HelpPanel.vue';
 import type {
     DecisionMap,
     DecisionValue,
@@ -476,20 +477,25 @@ function quarterHref(id: number): string {
                 >
                 <span style="color: #c9d4da">{{ quarter.deadlineText }}</span>
             </div>
-            <nav aria-label="Quarters" class="flex flex-wrap gap-1.5">
-                <a
-                    v-for="q in quarters.filter((q) => q.status !== 'upcoming')"
-                    :key="q.id"
-                    :href="quarterHref(q.id)"
-                    class="rounded px-2 py-1 text-[12px] no-underline"
-                    :style="
-                        q.id === quarter.id
-                            ? 'background: #2a3b47; color: #fff'
-                            : 'color: #c9d4da'
-                    "
-                    >Q{{ q.number }}</a
-                >
-            </nav>
+            <div class="flex flex-wrap items-center gap-3">
+                <nav aria-label="Quarters" class="flex flex-wrap gap-1.5">
+                    <a
+                        v-for="q in quarters.filter(
+                            (q) => q.status !== 'upcoming',
+                        )"
+                        :key="q.id"
+                        :href="quarterHref(q.id)"
+                        class="rounded px-2 py-1 text-[12px] no-underline"
+                        :style="
+                            q.id === quarter.id
+                                ? 'background: #2a3b47; color: #fff'
+                                : 'color: #c9d4da'
+                        "
+                        >Q{{ q.number }}</a
+                    >
+                </nav>
+                <HelpPanel :help="help" />
+            </div>
         </header>
         <div
             class="hx-serif px-7 py-2 text-[15px] italic"
@@ -598,7 +604,11 @@ function quarterHref(id: number): string {
                                 class="hx-eyebrow mb-1.5"
                                 style="color: var(--hx-teal)"
                             >
-                                Where you left off
+                                {{
+                                    quarter.number > 1 && carrying?.text
+                                        ? carrying.title
+                                        : 'Where you left off'
+                                }}
                             </div>
                             <p v-if="quarter.number === 1" class="hx-p m-0">
                                 This is your first quarter. Everything the old
@@ -607,6 +617,18 @@ function quarterHref(id: number): string {
                                     Your team's plan: {{ team.strategy }}</span
                                 >
                             </p>
+                            <template v-else-if="carrying">
+                                <p v-if="carrying.text" class="hx-p m-0">
+                                    {{ carrying.text }}
+                                </p>
+                                <p
+                                    v-if="carrying.reason"
+                                    class="mt-1 text-[13px]"
+                                    style="color: var(--hx-amber-text)"
+                                >
+                                    Not shown to the team: {{ carrying.reason }}
+                                </p>
+                            </template>
                             <p v-else class="hx-p m-0">
                                 {{
                                     team.strategy ??

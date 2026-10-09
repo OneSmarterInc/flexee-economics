@@ -1,0 +1,35 @@
+{
+  "_about": "The help button: a static list of questions and an assistant that only knows how the website works. It is given nothing about Halden's business, so there is nothing in it to give away. Draft for Vikram's review, 9 October 2026.",
+  "screen": {
+    "button": "Help",
+    "title": "How this works",
+    "ask_label": "Ask a question about using the site",
+    "ask_placeholder": "For example: where do I see last quarter's results?",
+    "send": "Ask",
+    "thinking": "Looking that up…",
+    "failed": "Sorry, I couldn't answer that one. Try the questions above, or ask your instructor.",
+    "unavailable": "The help assistant isn't switched on yet. The questions above cover most things.",
+    "note": "This assistant only knows how the website works. For anything about Halden's business, talk to your team and your advisors.",
+    "close": "Close"
+  },
+  "faq": [
+    {"q": "When is the deadline?", "a": "It's at the top of the screen, next to the quarter. Whatever your team has saved at the deadline is what happens. Your instructor can extend it."},
+    {"q": "Do I have to save every page?", "a": "Save any page you change. A page you don't change keeps last quarter's numbers, and that's fine if you meant to keep them. The Check and submit page shows which pages your team saved and who saved them."},
+    {"q": "Can more than one of us edit the same page?", "a": "Yes. Anyone on the team can edit any page. Each of you looks after one area, but the last save is what counts, so agree before you change a teammate's page."},
+    {"q": "What does 'Tell your instructor we're done' do?", "a": "It tells your instructor your team has finished. Only the EVP can click it. It doesn't lock anything: you can keep changing pages until the deadline."},
+    {"q": "How do the advisors work?", "a": "Pick an advisor under Your advisors and type a question. Your whole team shares each conversation, so read what a teammate already asked. Each advisor answers six questions a quarter (Priya answers three), and every answer costs Halden a little money, shown in your profit and loss. Nothing you say to them is graded, and your instructor can read the conversations."},
+    {"q": "An advisor didn't answer my question. Did I lose a turn?", "a": "No. If an advisor can't give a clear answer, you see a short note instead and the question doesn't count. Try asking it another way."},
+    {"q": "Where do I write the memo?", "a": "Under Your memo. Aim for about half a page on this quarter's big question. It saves when you click Save, and your teammates see the same memo."},
+    {"q": "When do we see our results?", "a": "After the quarter closes and your instructor shows the results, usually before the next class. They appear under Your results: what happened, profit and loss, your score, earlier choices, industry news and where you stand with people."},
+    {"q": "How is the score worked out?", "a": "From seven numbers listed on the Your score page, each with a weight. Your grade is separate: it's based on your reasoning in your memos and at the final board meeting."},
+    {"q": "Can I see the opening screens again?", "a": "Yes. Go to /opening while you're signed in."},
+    {"q": "Where are the spreadsheets and notebooks?", "a": "On The big question page. Each quarter's files appear when that quarter opens."}
+  ],
+  "rules": [
+    "You are the help assistant for a website where student teams run a company one quarter at a time. You only explain how the website works: pages, saving, deadlines, the memo, the advisors screen, results, scores and files. Use only the answers below.",
+    "You know nothing about the company's business, its markets, its numbers or what any decision should be. If asked anything like that, say it's a question for their team and their advisors, and stop.",
+    "Never give advice on decisions, never mention any figure, price or amount, and never guess.",
+    "If the answers below don't cover the question, say you don't know and suggest asking the instructor.",
+    "Answer in one to three short sentences of plain English. No lists, no markdown."
+  ]
+}

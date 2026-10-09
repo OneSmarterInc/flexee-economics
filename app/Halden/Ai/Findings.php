@@ -2,6 +2,7 @@
 
 namespace App\Halden\Ai;
 
+use App\Halden\Game\DecisionBook;
 use App\Halden\OperatingModel\ModelData;
 use App\Halden\OperatingModel\OperatingModel;
 use App\Models\Quarter;
@@ -13,7 +14,7 @@ use App\Models\TeamQuarter;
  */
 final class Findings
 {
-    public function __construct(private readonly OperatingModel $model, private readonly ModelData $data) {}
+    public function __construct(private readonly OperatingModel $model, private readonly ModelData $data, private readonly DecisionBook $book) {}
 
     /** @return list<string> what the team set this quarter, one line per decision */
     public function sheet(TeamQuarter $tq): array
@@ -21,9 +22,23 @@ final class Findings
         $d = $tq->effective_decisions ?? [];
         $q = $tq->quarter;
         $lines = [];
-        $lines[] = 'Drilling rigs in Texas: '.($d['rigs'] ?? '?');
+        $prev = $this->previousDecisions($tq);
+        $was = function (string $k, string $suffix = '') use ($prev, $d): string {
+            if (! isset($prev[$k], $d[$k]) || ! is_numeric($prev[$k]) || ! is_numeric($d[$k])) {
+                return '';
+            }
+            $before = (float) $prev[$k];
+            $now = (float) $d[$k];
+
+            return match (true) {
+                $now > $before => " (up from {$prev[$k]}$suffix the quarter before)",
+                $now < $before => " (down from {$prev[$k]}$suffix the quarter before)",
+                default => ' (same as the quarter before)',
+            };
+        };
+        $lines[] = 'Drilling rigs in Texas: '.($d['rigs'] ?? '?').$was('rigs');
         $lines[] = 'Norway fields Halden runs: '.(($d['norway'] ?? 'run') === 'cut' ? 'pump 10% less' : 'keep pumping as planned');
-        $lines[] = 'Baton Rouge run rate: '.($d['br_run'] ?? '?').'%';
+        $lines[] = 'Baton Rouge run rate: '.($d['br_run'] ?? '?').'%'.$was('br_run', '%');
         $lines[] = match ($d['rot_posture'] ?? 'run') {
             'idle' => 'Rotterdam: paused',
             'close' => 'Rotterdam: closed for good',
@@ -54,6 +69,21 @@ final class Findings
         }
 
         return $lines;
+    }
+
+    /**
+     * What ran the quarter before: the team's own, or the old presidents' settings before Quarter 1.
+     *
+     * @return array<string, mixed>
+     */
+    private function previousDecisions(TeamQuarter $tq): array
+    {
+        $prevQuarter = $tq->quarter->previous();
+        if ($prevQuarter === null) {
+            return $this->book->historyDefaults();
+        }
+
+        return TeamQuarter::query()->where('team_id', $tq->team_id)->where('quarter_id', $prevQuarter->id)->first()->effective_decisions ?? [];
     }
 
     /**

@@ -16,12 +16,19 @@ final class ReplyCheck
         'quarter 3', 'quarter 4', 'delve', 'leverage', 'synergy', 'paradigm', 'tapestry', 'moat',
     ];
 
+    /** Words that never reach a student's screen, whoever writes them (CLAUDE.md rule 1). */
+    public const SCREEN_BANNED = [
+        'room', 'war room', 'lever', 'levers', 'tier', 'tiers', 'converge', 'commit', 'segment', 'segments',
+        'cohort', 'cohorts', 'runtime', 'round', 'rounds', 'delve', 'leverage', 'synergy', 'paradigm', 'tapestry', 'moat',
+    ];
+
     /**
+     * @param  list<string>|null  $banned  defaults to BANNED, the list for anyone speaking from inside Halden
      * @param  list<string>  $sources  every text the writer was given (facts, the team's numbers, the team's own words)
      * @param  list<string>  $teamText  what the team wrote, whose words are exempt from the banned list
      * @return string|null the reason it failed, or null if it passed
      */
-    public static function failure(string $text, array $sources, array $teamText, int $minWords, int $maxWords): ?string
+    public static function failure(string $text, array $sources, array $teamText, int $minWords, int $maxWords, ?array $banned = null): ?string
     {
         $text = trim($text);
         $words = str_word_count(strip_tags($text));
@@ -32,7 +39,7 @@ final class ReplyCheck
             return 'Formatting: the reply used a list, heading or other markup.';
         }
         $team = mb_strtolower(implode(' ', $teamText));
-        foreach (self::BANNED as $word) {
+        foreach ($banned ?? self::BANNED as $word) {
             $pattern = '/\b'.preg_quote($word, '/').'\b/iu';
             if (preg_match($pattern, $text) === 1 && preg_match($pattern, $team) !== 1) {
                 return "Banned word: \"$word\".";

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Halden;
 
+use App\Halden\Ai\Carrying;
 use App\Halden\Ai\FacultyDrafts;
 use App\Halden\Game\DecisionBook;
 use App\Halden\Game\QuarterRunner;
@@ -20,6 +21,8 @@ use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 use RuntimeException;
+
+use function Illuminate\Support\defer;
 
 class FacultyController extends Controller
 {
@@ -78,7 +81,7 @@ class FacultyController extends Controller
         abort_unless($quarter->section_id === $section->id, 404);
         try {
             match ($action) {
-                'open' => $runner->open($quarter),
+                'open' => $this->openAndWriteNotes($runner, $quarter),
                 'close' => $runner->close($quarter),
                 'publish' => $runner->publish($quarter),
                 'extend' => $quarter->update(['deadline_at' => ($quarter->deadline_at ?? now())->addDay()]),
@@ -171,6 +174,13 @@ class FacultyController extends Controller
         $tq->save();
 
         return back();
+    }
+
+    /** Opens the quarter, then writes each team's "What you're carrying" note after the page has been sent. */
+    private function openAndWriteNotes(QuarterRunner $runner, Quarter $quarter): void
+    {
+        $runner->open($quarter);
+        defer(fn () => app(Carrying::class)->writeFor($quarter->refresh()));
     }
 
     private function teamQuarter(Request $request, Team $team, Quarter $quarter): TeamQuarter

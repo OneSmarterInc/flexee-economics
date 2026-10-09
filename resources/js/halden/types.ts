@@ -161,6 +161,16 @@ export interface PlayProps {
     ready: string | null;
     results: Results | null;
     feedback: { title: string; text: string; at: string } | null;
+    carrying: {
+        title: string;
+        text: string | null;
+        reason: string | null;
+    } | null;
+    help: {
+        enabled: boolean;
+        screen: Record<string, string>;
+        faq: { q: string; a: string }[];
+    };
 }
 
 export interface LeverText {

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Halden;
 
 use App\Halden\Ai\AdvisorRoom;
+use App\Halden\Ai\HelpDesk;
 use App\Halden\Content\ContentPack;
 use App\Halden\Game\DecisionBook;
 use App\Halden\Game\QuarterView;
@@ -12,6 +13,7 @@ use App\Models\Team;
 use App\Models\TeamMember;
 use App\Models\TeamQuarter;
 use App\Models\User;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
@@ -94,6 +96,15 @@ class PlayController extends Controller
         $tq->update($tq->ready_at === null ? ['ready_at' => now(), 'ready_by' => $user->id] : ['ready_at' => null, 'ready_by' => null]);
 
         return back();
+    }
+
+    /** The help button: one question, one answer, nothing stored. */
+    public function help(Request $request, HelpDesk $desk): JsonResponse
+    {
+        $this->user($request);
+        $data = $request->validate(['question' => ['required', 'string', 'max:2000']]);
+
+        return response()->json(['answer' => $desk->answer(trim($data['question']))]);
     }
 
     /** A teammate asks an advisor a question. The whole team shares the conversation. */
