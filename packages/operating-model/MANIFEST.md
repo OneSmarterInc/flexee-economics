@@ -1,0 +1,19 @@
+# MANIFEST · halden-operating-model v0.1
+
+| File | SHA-256 |
+| --- | --- |
+| `README.md` | `c6964f8e9c2803a44a8d981327e12eb35f7af3d67e495d98b1b0f2c150b2ee50` |
+| `VALIDATION.md` | `006da57ae35d217c7c20b086e8978b47f6b8e0b955479004752e368b68336041` |
+| `data/constants.csv` | `5324d52394cf70217d4c5a1c7edac0bf93caacc5da1faf92a2983ca07668bd52` |
+| `data/cordell_clusters.csv` | `6a2162e1a4080cab703860c82a564e87408245f74fb529da6f64d9d6a3e43997` |
+| `data/europe_countries.csv` | `fe07b68806381222e4d11f8a9ece204b096bd5d1e93acaf39ba7f5a5695603f5` |
+| `data/levers.csv` | `3e1ab6b2d5a0fc629c633cbf897b4703605e725c3f0faa97476e25d391fe1011` |
+| `data/market_path.csv` | `565282577cd64c04a49cf2e73d045cd4bb43552f8e6c70a366adffbe76e519fc` |
+| `fixtures/calibration.json` | `424fe598cba06049e4d85a1469728d650c7e2d966d78c0a2511ec5e395a681ff` |
+| `fixtures/golden_quarters.csv` | `7fb41c10b2f3a4ed6c6e46c33a5f78d1d89b2bc370220643f34d35ae55e0d158` |
+| `fixtures/reference_decisions.csv` | `c2629621b44efcc7b87882312e4962393c97d44da8006294ab793245074e38de` |
+| `fixtures/state_after_quarter.csv` | `0a6ceb28f5ae391d343f6787693de4daafa47461adcaf2de7c387369324134ba` |
+| `model/halden_model.py` | `db8d8f31b01b2fc28310d288088c89724bb45001360df22647d197c3d69e5327` |
+| `model/run_reference.py` | `b1063940eec205dc17ec2d569e3e7955a4b010ba348802c42d6a21e1f3b3cacc` |
+| `model/validate.py` | `4c3939d6b9e1bd2ee82a28415ebb7679ce35c4fb7a7341132815ab8e5f51033f` |
+| `model/write_manifest.py` | `70d76776022d1b8e10ed56ecca4ac12cadb6279e708a22d6309c875eb4ea3a9b` |

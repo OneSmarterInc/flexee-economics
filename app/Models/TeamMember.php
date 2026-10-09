@@ -2,61 +2,34 @@
 
 namespace App\Models;
 
-use App\Models\Concerns\BelongsToTenant;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use InvalidArgumentException;
 
-#[Fillable(['tenant_id', 'team_id', 'user_id', 'seat_id'])]
+/**
+ * A student's place on a team, and the part of the company they look after.
+ */
+#[Fillable(['team_id', 'user_id', 'seat'])]
 class TeamMember extends Model
 {
-    use BelongsToTenant;
+    /** Seat keys and the words students see for them. */
+    public const SEATS = [
+        'evp' => 'EVP (overall leadership)',
+        'oil_fields' => 'Oil fields',
+        'refineries' => 'Refineries',
+        'gas_stations' => 'Gas stations',
+        'trading_finance' => 'Trading & finance',
+    ];
 
-    protected static function booted(): void
-    {
-        static::saving(function (TeamMember $membership): void {
-            $team = Team::query()->findOrFail($membership->team_id);
-            $user = User::query()->findOrFail($membership->user_id);
-
-            if ($team->tenant_id !== $membership->tenant_id || $user->tenant_id !== $membership->tenant_id) {
-                throw new InvalidArgumentException('Team membership tenant does not match team and user.');
-            }
-
-            $isEnrolledInSection = Enrollment::query()
-                ->where('tenant_id', $membership->tenant_id)
-                ->where('section_id', $team->section_id)
-                ->where('user_id', $user->id)
-                ->where('status', 'active')
-                ->exists();
-
-            if (! $isEnrolledInSection) {
-                throw new InvalidArgumentException('Team member must be actively enrolled in the team section.');
-            }
-        });
-    }
-
-    /**
-     * @return BelongsTo<Team, $this>
-     */
+    /** @return BelongsTo<Team, $this> */
     public function team(): BelongsTo
     {
         return $this->belongsTo(Team::class);
     }
 
-    /**
-     * @return BelongsTo<User, $this>
-     */
+    /** @return BelongsTo<User, $this> */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
-    }
-
-    /**
-     * @return BelongsTo<Seat, $this>
-     */
-    public function seat(): BelongsTo
-    {
-        return $this->belongsTo(Seat::class);
     }
 }

@@ -2,10 +2,10 @@
 
 namespace App\Providers;
 
-use App\Domain\Capital\Week6\Week6CapitalReferencePackage;
-use App\Domain\Consequences\KpiConsequenceReferencePackage;
-use App\Domain\Interpretation\InterpretiveAssistantProvider;
-use App\Domain\Interpretation\StructuredPlaceholderInterpretiveAssistantProvider;
+use App\Halden\Game\DecisionBook;
+use App\Halden\Game\QuarterRunner;
+use App\Halden\OperatingModel\ModelData;
+use App\Halden\OperatingModel\OperatingModel;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
@@ -19,9 +19,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        $this->app->bind(InterpretiveAssistantProvider::class, StructuredPlaceholderInterpretiveAssistantProvider::class);
-        $this->app->singleton(KpiConsequenceReferencePackage::class, fn (): KpiConsequenceReferencePackage => KpiConsequenceReferencePackage::fromRepository());
-        $this->app->singleton(Week6CapitalReferencePackage::class, fn (): Week6CapitalReferencePackage => Week6CapitalReferencePackage::fromRepository());
+        $this->app->singleton(ModelData::class, fn (): ModelData => new ModelData);
+        $this->app->singleton(OperatingModel::class, fn ($app): OperatingModel => new OperatingModel($app->make(ModelData::class)));
+        $this->app->singleton(DecisionBook::class, fn ($app): DecisionBook => new DecisionBook($app->make(ModelData::class)));
+        $this->app->singleton(QuarterRunner::class, fn ($app): QuarterRunner => new QuarterRunner($app->make(OperatingModel::class), $app->make(DecisionBook::class)));
     }
 
     /**

@@ -2,45 +2,32 @@
 
 namespace App\Models;
 
-use App\Models\Concerns\BelongsToTenant;
-use App\Models\Concerns\HasUlidRouteKey;
-use Database\Factories\TeamFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['ulid', 'tenant_id', 'section_id', 'name', 'slug'])]
+/**
+ * Five students running one Halden.
+ */
+#[Fillable(['section_id', 'name', 'first_meeting', 'strategy_become', 'strategy_by'])]
 class Team extends Model
 {
-    /** @use HasFactory<TeamFactory> */
-    use BelongsToTenant, HasFactory, HasUlidRouteKey;
-
-    /**
-     * @return BelongsTo<Section, $this>
-     */
+    /** @return BelongsTo<Section, $this> */
     public function section(): BelongsTo
     {
         return $this->belongsTo(Section::class);
     }
 
-    /**
-     * @return BelongsToMany<User, $this>
-     */
-    public function members(): BelongsToMany
+    /** @return HasMany<TeamMember, $this> */
+    public function members(): HasMany
     {
-        return $this->belongsToMany(User::class, 'team_members')
-            ->withPivot(['tenant_id', 'seat_id'])
-            ->withTimestamps();
+        return $this->hasMany(TeamMember::class);
     }
 
-    /**
-     * @return HasMany<TeamSimulation, $this>
-     */
-    public function teamSimulations(): HasMany
+    /** @return HasMany<TeamQuarter, $this> */
+    public function teamQuarters(): HasMany
     {
-        return $this->hasMany(TeamSimulation::class);
+        return $this->hasMany(TeamQuarter::class);
     }
 }

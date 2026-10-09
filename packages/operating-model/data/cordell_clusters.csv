@@ -1,0 +1,5 @@
+cluster,label,volume_share,elasticity,pass_through,base_offset_cents
+urban,Cordell · cities,0.30,-0.11,0.82,2.0
+suburban,Cordell · suburbs,0.35,-0.06,0.62,3.5
+rural,Cordell · small towns,0.20,-0.02,0.42,5.0
+interstate,Cordell · highways,0.15,-0.05,0.55,3.0

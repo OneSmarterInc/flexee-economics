@@ -1,51 +1,28 @@
 <?php
 
-use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\Faculty\BoardDefenseAssessmentController;
-use App\Http\Controllers\Foundation\CourseController;
-use App\Http\Controllers\Foundation\SectionController;
-use App\Http\Controllers\Foundation\SectionSimulationController;
-use App\Http\Controllers\Foundation\SectionSimulationWeekController;
-use App\Http\Controllers\Foundation\TeamController;
-use App\Http\Controllers\Student\BoardDefenseController;
-use App\Http\Controllers\Student\DashboardController as StudentDashboardController;
-use App\Http\Controllers\Student\SubmissionController;
+use App\Http\Controllers\Halden\FacultyController;
+use App\Http\Controllers\Halden\OpeningController;
+use App\Http\Controllers\Halden\PlayController;
 use Illuminate\Support\Facades\Route;
 
 Route::inertia('/', 'Welcome')->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('dashboard', DashboardController::class)->name('dashboard');
+    Route::get('dashboard', [PlayController::class, 'home'])->name('dashboard');
 
-    Route::view('foundation', 'foundation')->name('foundation.overview');
-    Route::view('simulation-lifecycle', 'simulation-lifecycle')->name('simulation-lifecycle.overview');
-    Route::view('faculty/dashboard', 'faculty-dashboard')->name('faculty.dashboard');
-    Route::view('faculty/week-control', 'faculty-week-control')->name('faculty.week-control');
-    Route::view('faculty/causal-trace', 'faculty-causal-trace')->name('faculty.causal-trace');
-    Route::view('faculty/what-if', 'faculty-what-if-console')->name('faculty.what-if');
-    Route::get('student/dashboard', StudentDashboardController::class)->name('student.dashboard');
-    Route::get('student/week14/weeks/{sectionSimulationWeek}/defense', [BoardDefenseController::class, 'show'])->name('student.week14.defense.show');
-    Route::post('student/week14/weeks/{sectionSimulationWeek}/defense/draft', [BoardDefenseController::class, 'draft'])->name('student.week14.defense.draft');
-    Route::post('student/week14/weeks/{sectionSimulationWeek}/defense/submit', [BoardDefenseController::class, 'submit'])->name('student.week14.defense.submit');
-    Route::get('faculty/week14/weeks/{sectionSimulationWeek}/teams/{teamSimulation}/assessment', [BoardDefenseAssessmentController::class, 'show'])->name('faculty.week14.assessment.show');
-    Route::post('faculty/week14/weeks/{sectionSimulationWeek}/teams/{teamSimulation}/assessment', [BoardDefenseAssessmentController::class, 'save'])->name('faculty.week14.assessment.save');
-    Route::post('faculty/week14/assessments/{boardDefenseAssessment}/publish', [BoardDefenseAssessmentController::class, 'publish'])->name('faculty.week14.assessment.publish');
-    Route::get('foundation/courses/{course}', [CourseController::class, 'show'])->name('foundation.courses.show');
-    Route::patch('foundation/courses/{course}', [CourseController::class, 'update'])->name('foundation.courses.update');
-    Route::get('foundation/sections/{section}', [SectionController::class, 'show'])->name('foundation.sections.show');
-    Route::patch('foundation/sections/{section}', [SectionController::class, 'update'])->name('foundation.sections.update');
-    Route::get('foundation/teams/{team}', [TeamController::class, 'show'])->name('foundation.teams.show');
-    Route::patch('foundation/teams/{team}', [TeamController::class, 'update'])->name('foundation.teams.update');
-    Route::get('foundation/section-simulations/{sectionSimulation}', [SectionSimulationController::class, 'show'])->name('foundation.section-simulations.show');
-    Route::get('foundation/section-simulation-weeks/{sectionSimulationWeek}', [SectionSimulationWeekController::class, 'show'])->name('foundation.section-simulation-weeks.show');
-    Route::post('foundation/section-simulation-weeks/{sectionSimulationWeek}/transition', [SectionSimulationWeekController::class, 'transition'])->name('foundation.section-simulation-weeks.transition');
+    Route::get('play', [PlayController::class, 'home'])->name('play.home');
+    Route::get('play/{quarter}', [PlayController::class, 'show'])->name('play.show');
+    Route::post('play/{quarter}/page/{page}', [PlayController::class, 'savePage'])->name('play.page');
+    Route::post('play/{quarter}/memo', [PlayController::class, 'saveMemo'])->name('play.memo');
+    Route::post('play/{quarter}/ready', [PlayController::class, 'toggleReady'])->name('play.ready');
+    Route::get('files/{path}', [PlayController::class, 'exhibit'])->where('path', '[A-Za-z0-9_\-/\.]+')->name('exhibits.show');
 
-    Route::get('submissions/weeks/{sectionSimulationWeek}', [SubmissionController::class, 'show'])->name('student.submissions.show');
-    Route::post('submissions/weeks/{sectionSimulationWeek}/decisions/draft', [SubmissionController::class, 'saveDecisionDraft'])->name('student.submissions.decisions.draft');
-    Route::post('submissions/weeks/{sectionSimulationWeek}/decisions/submit', [SubmissionController::class, 'submitDecision'])->name('student.submissions.decisions.submit');
-    Route::post('submissions/weeks/{sectionSimulationWeek}/capital-allocation/submit', [SubmissionController::class, 'submitCapitalAllocation'])->name('student.submissions.capital-allocation.submit');
-    Route::post('submissions/weeks/{sectionSimulationWeek}/memo/draft', [SubmissionController::class, 'saveMemoDraft'])->name('student.submissions.memo.draft');
-    Route::post('submissions/weeks/{sectionSimulationWeek}/memo/submit', [SubmissionController::class, 'submitMemo'])->name('student.submissions.memo.submit');
+    Route::get('opening', [OpeningController::class, 'show'])->name('opening');
+    Route::post('opening', [OpeningController::class, 'finish'])->name('opening.finish');
+
+    Route::get('faculty', [FacultyController::class, 'board'])->name('faculty.board');
+    Route::post('faculty/quarters/{quarter}/{action}', [FacultyController::class, 'action'])->whereIn('action', ['open', 'close', 'publish', 'extend'])->name('faculty.quarter');
+    Route::get('faculty/teams/{team}/quarters/{quarter}', [FacultyController::class, 'viewTeam'])->name('faculty.team');
 });
 
 require __DIR__.'/settings.php';

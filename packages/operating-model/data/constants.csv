@@ -1,0 +1,77 @@
+key,value,unit,source,note
+days_per_quarter,91.25,days,new,
+brent_spread,4.50,usd_bbl,ledger Wk8,Brent = WTI + 4.50
+permian_wellhead_discount,3.50,usd_bbl,ledger Wk4,
+permian_lifting_avg,9.90,usd_bbl,new (avg of vintages 11.50/10.20/9.40/8.80),average not marginal
+permian_gathering,2.10,usd_bbl,ledger Wk4,
+transport_permian_br,3.20,usd_bbl,ledger Wk4,
+permian_decline_qtr,0.08,fraction,new (provisional),base production declines 8% a quarter
+permian_adds_per_rig,950,bbl_day,new (provisional),new production per rig-quarter at full productivity; arrives next quarter
+permian_productivity_slope,0.10,fraction_per_rig,new (provisional),each rig beyond the 8th is 10 points less productive than the one before
+permian_productivity_free_rigs,8,rigs,new (provisional),the first 8 rigs drill the best acreage
+permian_productivity_floor,0.10,fraction,new (provisional),no rig is less than 10% productive
+rig_capex_per_qtr,40,usd_m,new (provisional),capex per rig per quarter
+internal_volume_to_br,120000,bbl_day,new (provisional),Permian barrels shipped to Baton Rouge
+sr_capital_charge,4.60,usd_bbl,ledger Wk4,cost TP = delivered marginal cost + 4.60
+delivered_marginal_cost,14.10,usd_bbl,ledger Wk4,
+norway_op_volume,210000,boe_day,new (provisional),
+norway_nonop_volume,90000,boe_day,new (provisional),
+norway_discount_to_brent,1.00,usd_bbl,ledger Wk1,
+norway_lifting,28.00,usd_bbl,ledger Wk1,
+norway_lifting_variable_share,0.40,fraction,new (provisional),share of lifting that stops when output is cut
+norway_transport,2.50,usd_bbl,ledger Wk1,
+norway_cut_share,0.10,fraction,new,"Pump 10% less" option
+kessana_volume,150000,bbl_day,new (provisional),
+kessana_discount_to_brent,2.00,usd_bbl,ledger Wk1,
+kessana_lifting,9.50,usd_bbl,ledger Wk1,
+kessana_company_share_profit_oil,0.38,fraction,ledger Wk1 (1 - 0.62 govt take),
+gas_other_ebitda,0,usd_m,calibrated,set so Q4 2026 EBITDA = 3750 at history settings (see calibration)
+br_capacity,520000,bbl_day,new (provisional),
+br_complexity,4.75,usd_bbl,ledger Wk1,
+br_variable_opex,4.00,usd_bbl,new (split of ledger 5.90 opex),
+br_fixed_opex_per_bbl_capacity,1.90,usd_bbl,new (split of ledger 5.90 opex),charged on capacity whether used or not
+br_wear_threshold,97,pct,new (provisional),
+rot_capacity,330000,bbl_day,new (provisional),
+rot_complexity,1.50,usd_bbl,ledger Wk1,
+rot_variable_opex,4.10,usd_bbl,ledger Wk1,
+rot_fixed_opex_per_bbl_capacity,2.30,usd_bbl,ledger Wk1,
+rot_idle_care_cost,5,usd_m,new (provisional),per idle quarter
+rot_restart_cost,85,usd_m,ledger Wk1,one-time when restarting from idle
+rot_closure_cost,150,usd_m,new (provisional),one-time; closure is permanent
+rot_closed_cost,2,usd_m,new (provisional),per quarter after closure
+rot_sticky_threshold,80,pct,new (provisional),
+sg_capacity,580000,bbl_day,new (provisional),100% basis
+sg_halden_share,0.40,fraction,ledger Wk1,
+sg_complexity,2.00,usd_bbl,ledger Wk1,
+sg_opex,5.60,usd_bbl,ledger Wk1,
+sg_accept_min,80,pct,new (provisional),Straits Pacific accepts requests in 80-95
+sg_accept_max,95,pct,new (provisional),
+geneva_base_desk,45,usd_m,new (provisional),external trading per quarter
+geneva_capture_rate,0.35,fraction,ledger Wk4,
+geneva_max_volume,40000,bbl_day,ledger Wk4,
+geneva_band,0.10,fraction,Wk4 engine,no capture within 10% of cost or market TP or at/above market
+cordell_sites,4300,sites,ledger Wk1,
+cordell_gal_per_site_qtr,275000,gal,new (provisional),
+cordell_fuel_margin,0.11,usd_gal,ledger Wk1,
+cordell_nonfuel_per_gal,0.42,usd_gal,ledger Wk1,per fill-equivalent gallon
+cordell_nonfuel_halden_share,0.36,fraction,new (provisional),Halden's share of dealer shop margin
+pump_base,3.20,usd_gal,ledger Wk8,
+europe_sites,1100,sites,ledger Wk1,
+europe_gal_per_site_qtr,250000,gal,new (provisional),
+europe_volume_decline_qtr,0.01,fraction,new (provisional),
+europe_fuel_margin,0.14,usd_gal,ledger Wk1,
+europe_nonfuel_per_gal,0.19,usd_gal,ledger Wk1,
+retail_fixed_cost,60,usd_m,new (provisional),
+longrun_elasticity_step,0.5,fraction,new (provisional),elasticity grows 50% per quarter a price rise is held (max 4)
+corporate_ga,200,usd_m,new (provisional),
+advisor_cost_per_answer,0.12,usd_m,design D13 (provisional),
+other_sustaining_capex,565,usd_m,new,1125 sustaining per quarter minus 14 rigs x 40
+shareholder_payout,1750,usd_m,new (provisional),dividends and buybacks per quarter
+da_rate_annual,0.06,fraction,KPI package,
+tax_rate,0.30,fraction,KPI package,
+opening_capital_employed,62000,usd_m,KPI package,at start of Q1 2026
+opening_net_debt,19500,usd_m,KPI package,at start of Q1 2026
+opening_asset_health,70,index,KPI package,
+total_production,1150000,boe_day,arc doc,for profit per barrel KPI
+industry_complexity,2.00,usd_bbl,new (provisional),refining benchmark
+industry_opex,5.50,usd_bbl,new (provisional),refining benchmark

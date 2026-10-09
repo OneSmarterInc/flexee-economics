@@ -45,3 +45,6 @@ yarn-error.log
 /boost.json
 /opencode.json
 /opencode.jsonc
+composer.local.json
+composer.local.lock
+__pycache__/
