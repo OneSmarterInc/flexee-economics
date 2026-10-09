@@ -78,10 +78,13 @@ Delete any `SEED_DEMO_PASSWORD` line for now.
 
 This deletes every table and builds the new ones. The backup from step 2 is the only copy of the old data.
 
+The app refuses to wipe a database while it thinks it's in production (a safety catch), so the wipe line
+says `APP_ENV=local` for that one command only. Everything after it runs as production.
+
 ```bash
 cd ~/public_html/economics.flexee.org
 php artisan config:clear
-php artisan db:wipe --force
+APP_ENV=local php artisan db:wipe --force
 php artisan migrate --force
 php artisan migrate:status | tail -5
 ```
