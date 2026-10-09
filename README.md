@@ -1,92 +1,42 @@
 # Halden Energy
 
-Laravel foundation for the Halden Energy managerial economics simulation.
+A managerial economics simulation for MBA courses, part of Flexee. Teams of five run Halden
+Energy, an integrated oil company, one quarter per course week. Each quarter they set the
+company's numbers, talk to AI advisors, write a half-page memo, and see what happened.
 
-## Prerequisites
+This is version 2, rebuilt around the quarterly play-through approved on 9 October 2026.
+Working rules for contributors are in `CLAUDE.md`.
 
-- PHP 8.3 or newer
-- Composer
-- Node.js 18 or newer
-- npm
-- PostgreSQL for local development
+## Requirements
 
-The current scaffold was verified with Laravel 13, PHP 8.4, Node 18, and npm 10.
+- PHP 8.4 with pdo_sqlite (and pdo_mysql for MySQL)
+- Composer 2
+- Node.js 22 and npm
 
-## Installation
+## Set up
 
 ```bash
 composer install
-npm install
+npm ci
 cp .env.example .env
 php artisan key:generate
-```
-
-Configure `.env` for your local PostgreSQL database. Do not commit `.env`.
-
-## Database
-
-```bash
+touch database/database.sqlite   # with DB_CONNECTION=sqlite in .env
 php artisan migrate
-php artisan db:seed
-```
-
-The development seeder creates a fictional demo tenant:
-
-- Institution: Halden University Demo
-- Course: Managerial Economics
-- Sections: Section A and Section B
-- Users: demo administrator, faculty, and students
-- Teams: Team Alpha and Team Bravo
-- Simulation: Halden Energy, Fourteen-week flagship, 2026-demo
-- Runtime: Section A demo assignment with Week 1 open
-
-Development-only credentials:
-
-- `admin@example.test` / `password`
-- `faculty@example.test` / `password`
-- `student11@example.test` / `password`
-
-These credentials are for local development only.
-
-## Run Locally
-
-Backend:
-
-```bash
-php artisan serve
-```
-
-Frontend:
-
-```bash
-npm run dev
-```
-
-## Test And Build
-
-```bash
-php artisan test
-composer run lint:check
-composer run types:check
-npm run check
-npm run types:check
 npm run build
 ```
 
-## Batch 1 Scope
+## What's here so far
 
-Batch 1 establishes the Laravel application foundation: authentication, explicit tenant ownership, academic entities, team/seat structure, policies, development seed data, and isolation tests.
+| Part                                    | Where                        | Status                                       |
+| --------------------------------------- | ---------------------------- | -------------------------------------------- |
+| Economics (Python reference)            | `packages/operating-model/`  | Quarters 1–4, 22 checks pass                 |
+| Economics (PHP engine)                  | `app/Halden/OperatingModel/` | Matches the reference on every fixture value |
+| Sign-in, settings, two-factor, passkeys | Laravel starter kit          | Working                                      |
+| Student and faculty screens             | `resources/js/pages`         | Next (Phase 2)                               |
 
-Week 4 economics, simulation lifecycle, scoring, KPIs, rankings, Python artifact generation, and LLM integration are intentionally deferred.
+## Tests
 
-## Batch 2 Scope
-
-Batch 2 adds the reusable simulation definition hierarchy, section runtime lifecycle, runtime team/seat assignments, audit events, lifecycle policies, a faculty/admin lifecycle page at `/simulation-lifecycle`, and student dashboard visibility for released-or-later simulation weeks.
-
-Simulation submissions, Week 4 economics, scoring, KPIs, rankings, Python artifact generation, and LLM integration remain deferred.
-
-## Batch 3 Scope
-
-Batch 3 adds generic versioned decision form definitions, memo definitions, student draft/final submission flows, immutable submission revision history, team completeness status, a student submission page, and faculty lifecycle submission status.
-
-Week 4 economics, scoring, KPIs, rankings, Python artifact generation, LLM evaluation, and exact Halden Week 4 content remain deferred pending source materials.
+```bash
+php artisan test
+python3 packages/operating-model/model/validate.py
+```

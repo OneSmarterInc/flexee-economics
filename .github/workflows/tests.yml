@@ -10,6 +10,22 @@ permissions:
   contents: read
 
 jobs:
+  operating-model:
+    name: Operating model reference
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Rebuild fixtures and run the economic checks
+        run: python3 packages/operating-model/model/validate.py
+
+      - name: Committed fixtures must match the model
+        run: git diff --exit-code -- packages/operating-model/fixtures packages/operating-model/VALIDATION.md
+
   sqlite:
     name: SQLite CI
     runs-on: ubuntu-latest

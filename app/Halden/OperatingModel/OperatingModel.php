@@ -1,0 +1,301 @@
+<?php
+
+namespace App\Halden\OperatingModel;
+
+/**
+ * The quarterly operating model. A line-for-line port of packages/operating-model/model/halden_model.py.
+ * Any change here must be made in the Python reference first and the fixtures rebuilt;
+ * tests/Unit/OperatingModel/GoldenQuartersTest keeps the two in step.
+ *
+ * Money is USD millions per quarter; volumes are barrels (or boe) per day.
+ */
+final class OperatingModel
+{
+    private float $days;
+
+    public function __construct(public readonly ModelData $data)
+    {
+        $this->days = $data->c('days_per_quarter');
+    }
+
+    public function rigProductivity(int $k): float
+    {
+        $extra = max(0.0, $k - $this->data->c('permian_productivity_free_rigs'));
+
+        return max($this->data->c('permian_productivity_floor'), 1.0 - $this->data->c('permian_productivity_slope') * $extra);
+    }
+
+    /** New production (bbl/day) from one quarter of drilling with this many rigs. */
+    public function permianAdds(int $rigs): float
+    {
+        $sum = 0.0;
+        for ($k = 1; $k <= $rigs; $k++) {
+            $sum += $this->rigProductivity($k);
+        }
+
+        return $this->data->c('permian_adds_per_rig') * $sum;
+    }
+
+    public function openingState(): CompanyState
+    {
+        $rigs = 14;
+
+        return new CompanyState(
+            permianProd: $this->permianAdds($rigs) / $this->data->c('permian_decline_qtr'),
+            prevRigs: $rigs,
+            rotStatus: 'running',
+            capitalEmployed: $this->data->c('opening_capital_employed'),
+            netDebt: $this->data->c('opening_net_debt'),
+            assetHealth: $this->data->c('opening_asset_health'),
+        );
+    }
+
+    /** @return array{0: float, 1: float} [market price, cost price] for Texas crude delivered to Baton Rouge */
+    public function transferPrices(float $wti): array
+    {
+        $c = fn (string $k): float => $this->data->c($k);
+
+        return [
+            $wti - $c('permian_wellhead_discount') + $c('transport_permian_br'),
+            $c('delivered_marginal_cost') + $c('sr_capital_charge'),
+        ];
+    }
+
+    public function genevaCapturePerBbl(float $tp, float $market, float $cost): float
+    {
+        $band = $this->data->c('geneva_band');
+        $near = fn (float $v, float $a): bool => $a * (1 - $band) <= $v && $v <= $a * (1 + $band);
+        if ($near($tp, $cost) || $near($tp, $market) || $tp >= $market) {
+            return 0.0;
+        }
+
+        return $this->data->c('geneva_capture_rate') * ($market - $tp);
+    }
+
+    /** @param  array<string, mixed>  $mkt  one row of the market path */
+    public function step(CompanyState $state, Decisions $dec, array $mkt): QuarterResult
+    {
+        $c = fn (string $k): float => $this->data->c($k);
+        $D = $this->days;
+        $lines = [];
+        $notes = [];
+        $wti = $mkt['wti'];
+        $brent = $wti + $c('brent_spread');
+
+        // Oil fields
+        $prod = $state->permianProd;
+        $internal = min($c('internal_volume_to_br'), $prod);
+        [$marketTp, $costTp] = $this->transferPrices($wti);
+        $tp = match ($dec->tpMethod) {
+            'market' => $marketTp,
+            'cost' => $costTp,
+            default => (float) $dec->tpValue,
+        };
+        $wellhead = $wti - $c('permian_wellhead_discount');
+        $permianRev = ($internal * $tp + ($prod - $internal) * $wellhead) * $D / 1e6;
+        $permianCost = ($prod * ($c('permian_lifting_avg') + $c('permian_gathering'))
+            + $internal * $c('transport_permian_br')) * $D / 1e6;
+        $lines['permian'] = $permianRev - $permianCost;
+
+        $cut = $dec->norway === 'cut' ? $c('norway_cut_share') : 0.0;
+        $norMarginFull = $brent - $c('norway_discount_to_brent') - $c('norway_lifting') - $c('norway_transport');
+        $norVol = $c('norway_op_volume');
+        $norSavedPerBbl = $c('norway_lifting') * $c('norway_lifting_variable_share') + $c('norway_transport');
+        $lines['norway_operated'] = ($norVol * $norMarginFull
+            - $norVol * $cut * ($brent - $c('norway_discount_to_brent') - $norSavedPerBbl)) * $D / 1e6;
+        $lines['norway_cutback_effect'] = -$norVol * $cut * ($brent - $c('norway_discount_to_brent') - $norSavedPerBbl) * $D / 1e6;
+        $lines['norway_partner_run'] = $c('norway_nonop_volume') * $norMarginFull * $D / 1e6;
+        $kesNet = ($brent - $c('kessana_discount_to_brent') - $c('kessana_lifting')) * $c('kessana_company_share_profit_oil');
+        $lines['kessana'] = $c('kessana_volume') * $kesNet * $D / 1e6;
+        $lines['gas_other'] = $c('gas_other_ebitda');
+        $upstream = $lines['permian'] + $lines['norway_operated'] + $lines['norway_partner_run'] + $lines['kessana'] + $lines['gas_other'];
+
+        // Refineries
+        $brTpBbl = $c('br_capacity') * $dec->brRun / 100.0;
+        $brCrackMargin = $brTpBbl * ($mkt['gc'] + $c('br_complexity') - $c('br_variable_opex')) * $D / 1e6;
+        $brFixed = $c('br_capacity') * $c('br_fixed_opex_per_bbl_capacity') * $D / 1e6;
+        $internalShift = ($marketTp - $tp) * $internal * $D / 1e6;
+        $gBbl = $this->genevaCapturePerBbl($tp, $marketTp, $costTp);
+        $geneva = $gBbl > 0 ? $gBbl * $c('geneva_max_volume') * $D / 1e6 : 0.0;
+        $lines['internal_crude_shift'] = $internalShift;
+        $lines['geneva_gap_trading'] = $geneva;
+        $lines['baton_rouge'] = $brCrackMargin - $brFixed + $internalShift - $geneva;
+
+        $rotFixed = $c('rot_capacity') * $c('rot_fixed_opex_per_bbl_capacity') * $D / 1e6;
+        $oneTime = 0.0;
+        $rotStatus = $state->rotStatus;
+        if ($rotStatus === 'closed' || $dec->rotPosture === 'close') {
+            if ($rotStatus !== 'closed') {
+                $oneTime -= $c('rot_closure_cost');
+                $notes['rot_event'] = 'closed';
+            }
+            $rotStatus = 'closed';
+            $rotTp = 0.0;
+            $rot = -$c('rot_closed_cost');
+        } elseif ($dec->rotPosture === 'idle') {
+            $rotStatus = 'idle';
+            $rotTp = 0.0;
+            $rot = -$rotFixed - $c('rot_idle_care_cost');
+        } else {
+            if ($state->rotStatus === 'idle') {
+                $oneTime -= $c('rot_restart_cost');
+                $notes['rot_event'] = 'restarted';
+            }
+            $rotStatus = 'running';
+            $rotTp = $c('rot_capacity') * $dec->rotRun / 100.0;
+            $rot = $rotTp * ($mkt['nwe'] + $c('rot_complexity') - $c('rot_variable_opex')) * $D / 1e6 - $rotFixed;
+        }
+        $lines['rotterdam'] = $rot;
+        $lines['rotterdam_one_time'] = $oneTime;
+
+        $sgRun = min(max($dec->sgRequest, $c('sg_accept_min')), $c('sg_accept_max'));
+        $notes['sg_accepted'] = $sgRun;
+        $sgTp = $c('sg_capacity') * $c('sg_halden_share') * $sgRun / 100.0;
+        $lines['singapore'] = $sgTp * ($mkt['sg'] + $c('sg_complexity') - $c('sg_opex')) * $D / 1e6;
+        $refining = $lines['baton_rouge'] + $lines['rotterdam'] + $lines['rotterdam_one_time'] + $lines['singapore'];
+
+        // Geneva
+        $lines['geneva_desk'] = $c('geneva_base_desk');
+        $trading = $lines['geneva_desk'] + $geneva;
+
+        // Gas stations
+        $heldUp = $state->heldUp;
+        $heldDown = $state->heldDown;
+        $offsets = $dec->offsets + $this->data->baseOffsets();
+        $volumeFactor = function (array $cl, float $offset) use (&$heldUp, &$heldDown, $c): array {
+            $delta = ($offset - $cl['base']) / 100.0;
+            $street = $cl['pt'] * $delta;
+            $k = $cl['key'];
+            if ($delta > 1e-12) {
+                $n = $heldUp[$k] ?? 0;
+                $e = $cl['e'] * (1 + $c('longrun_elasticity_step') * min($n, 4));
+                $heldUp[$k] = $n + 1;
+                $heldDown[$k] = 0;
+            } elseif ($delta < -1e-12) {
+                $n = $heldDown[$k] ?? 0;
+                $e = $cl['e'] * max(0.0, 1 - $c('longrun_elasticity_step') * $n);
+                $heldDown[$k] = $n + 1;
+                $heldUp[$k] = 0;
+            } else {
+                $e = $cl['e'];
+                $heldUp[$k] = 0;
+                $heldDown[$k] = 0;
+            }
+
+            return [1 + $e * $street / $c('pump_base'), $delta];
+        };
+
+        $cordGalTotal = $c('cordell_sites') * $c('cordell_gal_per_site_qtr');
+        $cordFuel = 0.0;
+        $cordNonfuel = 0.0;
+        foreach ($this->data->cordell as $cl) {
+            [$vf, $delta] = $volumeFactor($cl, $offsets[$cl['key']]);
+            $gal = $cordGalTotal * $cl['share'] * $vf;
+            $cordFuel += $gal * ($c('cordell_fuel_margin') + $delta);
+            $cordNonfuel += $gal * $c('cordell_nonfuel_per_gal') * $c('cordell_nonfuel_halden_share');
+        }
+        $lines['cordell_fuel'] = $cordFuel / 1e6;
+        $lines['cordell_shop'] = $cordNonfuel / 1e6;
+
+        $euFactor = $state->europeVolumeFactor * (1 - $c('europe_volume_decline_qtr'));
+        $euGalTotal = $c('europe_sites') * $c('europe_gal_per_site_qtr') * $euFactor;
+        $eu = 0.0;
+        foreach ($this->data->europe as $cl) {
+            [$vf, $delta] = $volumeFactor($cl, $offsets[$cl['key']]);
+            $gal = $euGalTotal * $cl['share'] * $vf;
+            $eu += $gal * ($c('europe_fuel_margin') + $delta + $c('europe_nonfuel_per_gal'));
+        }
+        $lines['europe_stations'] = $eu / 1e6;
+        $lines['retail_fixed'] = -$c('retail_fixed_cost');
+        $retail = $lines['cordell_fuel'] + $lines['cordell_shop'] + $lines['europe_stations'] + $lines['retail_fixed'];
+
+        // Head office
+        $lines['head_office'] = -$c('corporate_ga');
+        $lines['advisor_time'] = -$c('advisor_cost_per_answer') * $dec->advisorAnswers;
+        $corporate = $lines['head_office'] + $lines['advisor_time'];
+
+        $seg = ['oil_fields' => $upstream, 'refineries' => $refining, 'geneva' => $trading, 'gas_stations' => $retail, 'head_office' => $corporate];
+        $ebitda = 0.0;
+        foreach ($seg as $v) {
+            $ebitda += $v;
+        }
+
+        // Money
+        $da = $state->capitalEmployed * $c('da_rate_annual') / 4;
+        $tax = $c('tax_rate') * max(0.0, $ebitda - $da);
+        $capex = $c('other_sustaining_capex') + $dec->rigs * $c('rig_capex_per_qtr');
+        $fcf = $ebitda - $tax - $capex;
+        $newCe = $state->capitalEmployed + $capex - $da;
+        $newNd = $state->netDebt - $fcf + $c('shareholder_payout');
+
+        // Plant condition
+        $health = $state->assetHealth;
+        $health -= 0.5 * max(0.0, $dec->brRun - $c('br_wear_threshold'));
+        if ($rotStatus === 'running' && $dec->rotRun < $c('rot_sticky_threshold')) {
+            $health -= 0.5;
+        }
+        $health = max(0.0, min(100.0, $health));
+
+        // Score inputs
+        $refinedBbl = ($brTpBbl + $rotTp + $sgTp) * $D;
+        $refiningExInternal = ($brCrackMargin - $brFixed) + $lines['rotterdam'] + $lines['singapore'];
+        $benchCrack = ($brTpBbl * $mkt['gc'] + $rotTp * $mkt['nwe'] + $sgTp * $mkt['sg']) / max(1.0, $brTpBbl + $rotTp + $sgTp);
+        $benchMargin = $benchCrack + $c('industry_complexity') - $c('industry_opex');
+        $kpi = [
+            'profit_per_barrel' => ($ebitda - $corporate) * 1e6 / ($c('total_production') * $D),
+            'roace_pct' => 100 * 4 * ($ebitda - $da) * (1 - $c('tax_rate')) / $state->capitalEmployed,
+            'free_cash_flow' => $fcf,
+            'refining_vs_industry' => $refinedBbl > 0 ? $refiningExInternal * 1e6 / $refinedBbl - $benchMargin : -$benchMargin,
+            'shop_profit_per_station_k' => $cordNonfuel / $c('cordell_sites') / 1e3,
+            'debt_to_earnings' => $ebitda > 0 ? $newNd / (4 * $ebitda) : 99.0,
+            'plant_condition' => $health,
+        ];
+
+        $nextProd = $prod * (1 - $c('permian_decline_qtr')) + $this->permianAdds($dec->rigs);
+
+        $newState = new CompanyState(
+            permianProd: $nextProd,
+            prevRigs: $dec->rigs,
+            rotStatus: $rotStatus,
+            capitalEmployed: $newCe,
+            netDebt: $newNd,
+            assetHealth: $health,
+            europeVolumeFactor: $euFactor,
+            heldUp: $heldUp,
+            heldDown: $heldDown,
+        );
+
+        return new QuarterResult(
+            lines: $lines,
+            segments: $seg,
+            money: ['ebitda' => $ebitda, 'da' => $da, 'tax' => $tax, 'capex' => $capex, 'fcf' => $fcf,
+                'capital_employed_end' => $newCe, 'net_debt_end' => $newNd],
+            kpi: $kpi,
+            ops: ['tp' => $tp, 'market_tp' => $marketTp, 'cost_tp' => $costTp, 'permian_prod' => $prod,
+                'br_throughput' => $brTpBbl, 'rot_throughput' => $rotTp, 'sg_accepted' => $sgRun, 'rot_status' => $rotStatus],
+            notes: $notes,
+            state: $newState,
+        );
+    }
+
+    /**
+     * Runs the four 2026 history quarters with the old presidents' settings.
+     *
+     * @return array{0: CompanyState, 1: list<array{quarter: array<string, mixed>, result: QuarterResult}>}
+     */
+    public function runHistory(): array
+    {
+        $state = $this->openingState();
+        $history = [];
+        foreach ($this->data->market as $m) {
+            if (! $m['is_history']) {
+                continue;
+            }
+            $result = $this->step($state, new Decisions(offsets: $this->data->baseOffsets()), $m);
+            $state = $result->state;
+            $history[] = ['quarter' => $m, 'result' => $result];
+        }
+
+        return [$state, $history];
+    }
+}

@@ -1,0 +1,4 @@
+country,label,volume_share,elasticity,pass_through,base_offset_cents
+nl,Halden · Netherlands,0.40,-0.07,1.00,0.0
+be,Halden · Belgium,0.25,-0.05,1.00,1.0
+de,Halden · Germany border,0.35,-0.13,1.00,-1.0
