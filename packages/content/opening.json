@@ -11,7 +11,8 @@
       ],
       "mandate_label": "WHAT THE CEO WANTS FROM YOU",
       "mandate_note": "You'll see this at the top of your screen for the rest of the course.",
-      "next": "Next: the company"
+      "next": "Next: the company",
+      "step": "Your new job"
     },
     "company": {
       "title": "Halden makes money in two ways that pull against each other",
@@ -19,78 +20,193 @@
       "box_title": "The one thing to understand",
       "box": "When oil prices go up, the oil fields make more money and the refineries make less. When prices drop, it flips. Halden owns both sides, so a lot of your job is figuring out where along the way each barrel makes the most money.",
       "assets": [
-        {"label": "OIL FIELDS", "items": ["Norway, offshore", "Permian Basin, Texas", "Kessana, off West Africa"]},
-        {"label": "REFINERIES", "items": ["Baton Rouge, Louisiana", "Rotterdam, Netherlands", "Singapore (Halden owns 40%)"]},
-        {"label": "TRADING", "items": ["A trading desk in Geneva that buys and sells oil and fuel around the world"]},
-        {"label": "GAS STATIONS", "items": ["4,300 Cordell stations in the US", "1,100 Halden stations in the Netherlands, Belgium and Germany"]}
+        {
+          "label": "OIL FIELDS",
+          "items": [
+            "Norway, offshore",
+            "Permian Basin, Texas",
+            "Kessana, off West Africa"
+          ]
+        },
+        {
+          "label": "REFINERIES",
+          "items": [
+            "Baton Rouge, Louisiana",
+            "Rotterdam, Netherlands",
+            "Singapore (Halden owns 40%)"
+          ]
+        },
+        {
+          "label": "TRADING",
+          "items": [
+            "A trading desk in Geneva that buys and sells oil and fuel around the world"
+          ]
+        },
+        {
+          "label": "GAS STATIONS",
+          "items": [
+            "4,300 Cordell stations in the US",
+            "1,100 Halden stations in the Netherlands, Belgium and Germany"
+          ]
+        }
       ],
-      "next": "Next: how you got this job"
+      "next": "Next: how you got this job",
+      "step": "The company"
     },
     "timeline": {
       "title": "How you got this job",
       "rows": [
-        {"when": "2011", "what": "Halden, a Norwegian oil producer, merges with Cordell Petroleum from Baton Rouge. The US gas stations keep the Cordell name."},
-        {"when": "2023", "what": "Halden moves its headquarters from Norway to Houston."},
-        {"when": "Last 10 qtrs", "what": "The Rotterdam refinery loses money in 7 of them. People there are worried the company wants to sell its European business."},
-        {"when": "Dec 2026", "what": "The board folds three president jobs into one. One president retires. Marcus Delacroix, who ran the refineries and gas stations, now reports to you. Ingrid Vestergaard, who ran the oil fields, moves over to Corporate Strategy but keeps her seat on the leadership team."},
-        {"when": "NOW", "what": "Monday, 4 January 2027, 7:40 a.m. Your first day.", "now": true}
+        {
+          "when": "2011",
+          "what": "Halden, a Norwegian oil producer, merges with Cordell Petroleum from Baton Rouge. The US gas stations keep the Cordell name."
+        },
+        {
+          "when": "2023",
+          "what": "Halden moves its headquarters from Norway to Houston."
+        },
+        {
+          "when": "Past 2½ years",
+          "what": "The Rotterdam refinery loses money in 7 of them. People there are worried the company wants to sell its European business."
+        },
+        {
+          "when": "Dec 2026",
+          "what": "The board folds three president jobs into one. One president retires. Marcus Delacroix, who ran the refineries and gas stations, now reports to you. Ingrid Vestergaard, who ran the oil fields, moves over to Corporate Strategy but keeps her seat on the leadership team."
+        },
+        {
+          "when": "NOW",
+          "what": "Monday, 4 January 2027, 7:40 a.m. Your first day.",
+          "now": true
+        }
       ],
       "card_title": "Your job, in plain terms",
       "card": [
         "You're the Executive Vice President of Integrated Operations. You run the oil fields, the refineries, crude supply and the gas stations as one business, and you're judged on what the whole company earns.",
         "Here's the catch: the people who report to you are still paid on how their own piece does. Nobody updated their pay plans when your job was created."
       ],
-      "next": "Next: the executives you'll work with"
+      "next": "Next: the executives you'll work with",
+      "step": "How you got this job"
     },
     "executives": {
       "title": "The executives you'll work with",
       "intro": "They're all good at their jobs. But each one is paid or judged on something different from you, and that shapes what they'll tell you.",
       "people": [
-        {"initials": "MD", "name": "Marcus Delacroix", "role": "Runs the refineries and gas stations · reports to you", "wants": "His bonus depends on how much money the Baton Rouge refinery makes. So he wants the cheapest crude he can get, even if that hurts the rest of Halden.", "shows_up": "WHAT BATON ROUGE PAYS FOR CRUDE · HOW HARD BATON ROUGE RUNS"},
-        {"initials": "IV", "name": "Ingrid Vestergaard", "role": "Head of Corporate Strategy", "wants": "She used to run the oil fields. Now she reviews every big project before it goes to the board, including projects on the fields she used to run.", "shows_up": "BIG SPENDING DECISIONS"},
-        {"initials": "GW", "name": "Grant Whitaker", "role": "Chief Financial Officer", "wants": "He decides how much protection you can buy against price swings. He gives more leeway to people who deliver steady quarters.", "shows_up": "PROTECTION AGAINST PRICE SWINGS"},
-        {"initials": "LK", "name": "Lorenz Kuhn", "role": "Runs the trading desk in Geneva", "wants": "His Geneva desk can make money when the price Halden charges itself for crude is set badly. That's allowed, and the profit shows up in his results, not yours.", "shows_up": "WHAT BATON ROUGE PAYS FOR CRUDE"},
-        {"initials": "SP", "name": "Straits Pacific Energy", "role": "Owns 60% of the Singapore refinery", "wants": "Because they own most of it, they decide how hard it runs and when it shuts for repairs. You can ask. You can't order.", "shows_up": "WHAT YOU ASK SINGAPORE FOR"},
-        {"initials": "ML", "name": "Margrethe Lund", "role": "Board member", "wants": "She cares about what Halden looks like in ten years, not just what it earns this quarter.", "shows_up": "YOUR FINAL BOARD MEETING"}
+        {
+          "initials": "MD",
+          "name": "Marcus Delacroix",
+          "role": "Runs the refineries and gas stations · reports to you",
+          "wants": "His bonus depends on how much money the Baton Rouge refinery makes. So he wants the cheapest crude he can get, even if that hurts the rest of Halden.",
+          "comes_in": "what Baton Rouge pays for crude, and how hard it runs"
+        },
+        {
+          "initials": "IV",
+          "name": "Ingrid Vestergaard",
+          "role": "Head of Corporate Strategy",
+          "wants": "She used to run the oil fields. Now she reviews every big project before it goes to the board, including projects on the fields she used to run.",
+          "comes_in": "big spending decisions"
+        },
+        {
+          "initials": "GW",
+          "name": "Grant Whitaker",
+          "role": "Chief Financial Officer",
+          "wants": "He decides how much protection you can buy against price swings. He gives more leeway to people who deliver steady quarters.",
+          "comes_in": "how much protection you buy against price swings"
+        },
+        {
+          "initials": "LK",
+          "name": "Lorenz Kuhn",
+          "role": "Runs the trading desk in Geneva",
+          "wants": "His Geneva desk can make money when the price Halden charges itself for crude is set badly. That's allowed, and the profit shows up in his results, not yours.",
+          "comes_in": "what Baton Rouge pays for crude"
+        },
+        {
+          "initials": "SP",
+          "name": "Straits Pacific Energy",
+          "role": "Owns 60% of the Singapore refinery",
+          "wants": "Because they own most of it, they decide how hard it runs and when it shuts for repairs. You can ask. You can't order.",
+          "comes_in": "what you ask Singapore to run at"
+        },
+        {
+          "initials": "ML",
+          "name": "Margrethe Lund",
+          "role": "Board member",
+          "wants": "She cares about what Halden looks like in ten years, not just what it earns this quarter.",
+          "comes_in": "your final board meeting"
+        }
       ],
       "closing": "Notice something? None of them is paid on what the whole company earns. Only you are.",
-      "next": "Next: your advisors"
+      "next": "Next: your advisors",
+      "step": "The executives",
+      "comes_in_label": "Where they come in:"
     },
     "advisors": {
       "title": "Your advisors",
-      "intro": "These six people work for you and want Halden to do well. Each one really knows their area, and each one has a blind spot. Don't look for the one who's always right. Listen to all of them, then make the call yourself.",
-      "next": "Next: how each quarter works"
+      "intro": "These six advisors want Halden to do well, and Priya, your chief of staff, can tell you how people are likely to react. Each advisor really knows their area, and each one has a blind spot. Don't look for the one who's always right. Listen to all of them, then make the call yourself.",
+      "next": "Next: how each quarter works",
+      "step": "Your advisors"
     },
     "quarter": {
       "title": "How each quarter works",
-      "intro": "Every week of the course is one quarter (three months) at Halden. Each quarter, your team does the same four things.",
       "steps": [
-        {"label": "01 · READ UP", "text": "Read the quarter's news and prices. What you need to know is in there, but nobody's going to point it out for you."},
-        {"label": "02 · ASK YOUR ADVISORS", "text": "Meet with your advisors. Their time costs Halden money, so pick your questions. Nothing you say to them is graded, and your instructor can read the conversations."},
-        {"label": "03 · AGREE AS A TEAM", "text": "Talk it through, and argue if you need to, until all five of you can sign the same plan."},
-        {"label": "04 · MAKE YOUR DECISIONS", "text": "Enter your numbers, write a half-page memo, and save before the deadline. Whatever's saved at the deadline is what happens. Anything you don't change stays the same as last quarter."}
+        {
+          "label": "01 · READ UP",
+          "text": "Read the quarter's news and prices. What you need to know is in there, but nobody's going to point it out for you."
+        },
+        {
+          "label": "02 · ASK YOUR ADVISORS",
+          "text": "Meet with your advisors. Their time costs Halden money, so pick your questions. Nothing you say to them is graded, and your instructor can read the conversations."
+        },
+        {
+          "label": "03 · AGREE AS A TEAM",
+          "text": "Talk it through, and argue if you need to, until all five of you can sign the same plan."
+        },
+        {
+          "label": "04 · MAKE YOUR DECISIONS",
+          "text": "Enter your numbers, write a half-page memo, and save before the deadline. Whatever's saved at the deadline is what happens. Anything you don't change stays the same as last quarter."
+        }
       ],
       "team_title": "Five of you, one company.",
       "team": "Each of you looks after one area: the oil fields, the refineries, the gas stations, trading and finance, or overall leadership as the EVP. But Halden only gets one set of decisions, and you all sign it.",
       "ranked_title": "How you're ranked",
-      "ranked": "Each quarter your team gets a score out of 100, built from seven numbers we tell you up front. The biggest, at 30%, is how much the whole company earns on each barrel. Return on capital and free cash flow count 15% each. Four more count 10% each: refining profit compared with competitors, shop sales at your gas stations, debt compared with earnings, and the condition of your plants.",
+      "ranked": "Each quarter your team gets a score out of 100, built from seven numbers we tell you up front. The biggest, at 30%, is how much the whole company earns on each barrel. Return on capital and free cash flow count 15% each. Four more count 10% each: refining profit compared with competitors, shop profit at each Cordell station, debt compared with earnings, and the condition of your plants.",
       "graded_title": "How you're graded",
       "graded": "Your grade isn't your rank. It's based on how well you reason in your memos and at the final board meeting. A team can rank low and still get a great grade. A team that ranks high by luck will have to explain how it got there.",
-      "next": "Next: how it could end"
+      "next": "Next: how it could end",
+      "step": "How each quarter works",
+      "intro_by_weeks": {
+        "14": "Every week of the course is one quarter (three months) at Halden. Each quarter, your team does the same four things.",
+        "7": "Every week of the course covers two quarters (six months) at Halden. Each quarter, your team does the same four things."
+      }
     },
     "endings": {
       "title": "In 14 quarters, the board decides what happens to your job",
       "cards": [
-        {"title": "They keep the job and give you more.", "text": "Halden runs as one company, and the board trusts you with more of it."},
-        {"title": "They keep the job, with conditions.", "text": "Your results are fine, but you haven't convinced them why they happened."},
-        {"title": "They split the job back into three.", "text": "The board decides one person can't run all of it."},
-        {"title": "They sell the European business without asking you.", "text": "Someone else decides what Halden becomes."}
+        {
+          "title": "They keep the job and give you more.",
+          "text": "Halden runs as one company, and the board trusts you with more of it."
+        },
+        {
+          "title": "They keep the job, with conditions.",
+          "text": "Your results are fine, but you haven't convinced them why they happened."
+        },
+        {
+          "title": "They split the job back into three.",
+          "text": "The board decides one person can't run all of it."
+        },
+        {
+          "title": "They sell the European business without asking you.",
+          "text": "Someone else decides what Halden becomes."
+        }
       ],
       "closing": "Which ending you get starts with your very first quarter.",
-      "next": "Next: a note from your chief of staff"
+      "next": "Next: a note from your chief of staff",
+      "step": "How it could end"
     },
     "note": {
-      "header": ["TO: EVP, Integrated Operations", "FROM: Priya Venkatesan, Chief of Staff", "RE: Your first week"],
+      "header": [
+        "TO: EVP, Integrated Operations",
+        "FROM: Priya Venkatesan, Chief of Staff",
+        "RE: Your first week"
+      ],
       "body": [
         "Welcome! The 2026 results are in your briefing packet. Short version: Baton Rouge carried the year, and Rotterdam lost money in three of the four quarters.",
         "Everything the old presidents set up is still running: how many drilling rigs work in Texas, how hard each refinery runs, and what Cordell charges its gas station owners. You'll see their numbers next to every box you fill in. Keep them or change them. It's up to you."
@@ -98,26 +214,89 @@
       "handwritten": "Marcus and Ingrid both want to see you first. You can only see one of them first! — P.",
       "choice_title": "Who do you meet first?",
       "choices": [
-        {"key": "marcus", "name": "Marcus Delacroix", "quote": "\"Come to Baton Rouge. I'll show you the best refinery on the Gulf and tell you what Houston keeps getting wrong.\""},
-        {"key": "ingrid", "name": "Ingrid Vestergaard", "quote": "\"I can save you a month. I know every field you now run, and I know what the board is going to ask you.\""}
+        {
+          "key": "marcus",
+          "name": "Marcus Delacroix",
+          "quote": "\"Come to Baton Rouge. I'll show you the best refinery on the Gulf and tell you what Houston keeps getting wrong.\""
+        },
+        {
+          "key": "ingrid",
+          "name": "Ingrid Vestergaard",
+          "quote": "\"I can save you a month. I know every field you now run, and I know what the board is going to ask you.\""
+        }
       ],
       "choice_note": "Whoever you meet first, the other one will notice. There's no wrong answer, but it changes how each of them starts off with you.",
       "sentence_title": "Finish this sentence together",
       "sentence_note": "You'll see it again at your final board meeting, and your advisors will read it too.",
       "sentence_start": "Halden should become a company that",
       "sentence_mid": "by",
-      "placeholder_become": "earns more from every barrel it touches",
-      "placeholder_by": "running the chain as one business",
-      "start": "Start your first quarter"
+      "start": "Start your first quarter",
+      "step": "Your first week",
+      "example_label": "For example:",
+      "example_become": "earns more from every barrel it touches",
+      "example_by": "running the chain as one business",
+      "evp_note": "You're the EVP, so you record what your team agrees here. Talk it through with them first. You can change it until Quarter 1 closes.",
+      "others_note": "Your EVP records your team's choice and sentence once you've talked them through. Here's what's recorded so far.",
+      "nothing_yet": "Nothing recorded yet.",
+      "empty_confirm": "Your team's sentence isn't finished yet. Start anyway? You can come back and finish it until Quarter 1 closes."
     }
   },
   "advisors": [
-    {"key": "marchetti", "initials": "EM", "name": "Dr. Elena Marchetti", "role": "Chief Economist", "good_at": "Reading what oil prices, currencies and the economy are telling you.", "watch_out": "She'll want more data than you have time to wait for."},
-    {"key": "roy", "initials": "DR", "name": "Danielle Roy", "role": "Head of Sales and Marketing", "good_at": "Knowing where your customers are and how they react to price changes.", "watch_out": "She'll fight for market share even when it's costing you money."},
-    {"key": "aasen", "initials": "BA", "name": "Bjørn Aasen", "role": "Head of Operations", "good_at": "Knowing what the refineries and oil fields can actually do, and what breaks if you push them.", "watch_out": "He hates shutting anything down, even when it's the right call."},
-    {"key": "ruiz", "initials": "AR", "name": "Ana Ruiz", "role": "VP Finance", "good_at": "Returns, cash, and what the CFO will approve.", "watch_out": "She also reports to the CFO, so her advice has to keep him happy too."},
-    {"key": "osei", "initials": "KO", "name": "Dr. Kwame Osei", "role": "VP Political Risk", "good_at": "Governments, regulators, and how a decision will look in five years.", "watch_out": "He'll give up money today to avoid risks that might never happen."},
-    {"key": "lund", "initials": "ML", "name": "Margrethe Lund", "role": "Board member", "good_at": "The big question of what Halden should become.", "watch_out": "She'd move into clean energy faster than the numbers support."},
-    {"key": "priya", "initials": "PV", "name": "Priya Venkatesan", "role": "Your chief of staff", "good_at": "Predicting how people will react: will Marcus push back, will Singapore say yes.", "watch_out": "It's her best guess, and sometimes she's wrong."}
+    {
+      "key": "marchetti",
+      "initials": "EM",
+      "name": "Dr. Elena Marchetti",
+      "role": "Chief Economist",
+      "good_at": "Reading what oil prices, currencies and the economy are telling you.",
+      "watch_out": "She'll want more data than you have time to wait for."
+    },
+    {
+      "key": "roy",
+      "initials": "DR",
+      "name": "Danielle Roy",
+      "role": "Head of Sales and Marketing",
+      "good_at": "Knowing where your customers are and how they react to price changes.",
+      "watch_out": "She'll fight for market share even when it's costing you money."
+    },
+    {
+      "key": "aasen",
+      "initials": "BA",
+      "name": "Bjørn Aasen",
+      "role": "Head of Operations",
+      "good_at": "Knowing what the refineries and oil fields can actually do, and what breaks if you push them.",
+      "watch_out": "He hates shutting anything down, even when it's the right call."
+    },
+    {
+      "key": "ruiz",
+      "initials": "AR",
+      "name": "Ana Ruiz",
+      "role": "VP Finance",
+      "good_at": "Returns, cash, and what the CFO will approve.",
+      "watch_out": "She also reports to the CFO, so her advice has to keep him happy too."
+    },
+    {
+      "key": "osei",
+      "initials": "KO",
+      "name": "Dr. Kwame Osei",
+      "role": "VP Political Risk",
+      "good_at": "Governments, regulators, and how a decision will look in five years.",
+      "watch_out": "He'll give up money today to avoid risks that might never happen."
+    },
+    {
+      "key": "lund",
+      "initials": "ML",
+      "name": "Margrethe Lund",
+      "role": "Board member, happy to talk with you",
+      "good_at": "The big question of what Halden should become.",
+      "watch_out": "She'd move into clean energy faster than the numbers support."
+    },
+    {
+      "key": "priya",
+      "initials": "PV",
+      "name": "Priya Venkatesan",
+      "role": "Your chief of staff",
+      "good_at": "Predicting how people will react: will Marcus push back, will Singapore say yes.",
+      "watch_out": "It's her best guess, and sometimes she's wrong."
+    }
   ]
 }

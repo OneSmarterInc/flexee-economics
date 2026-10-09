@@ -8,7 +8,7 @@ interface Person {
     name: string;
     role: string;
     wants: string;
-    shows_up: string;
+    comes_in: string;
 }
 
 interface OpeningContent {
@@ -16,6 +16,7 @@ interface OpeningContent {
     advisors: Advisor[];
     screens: {
         appointment: {
+            step: string;
             memo_header: string;
             memo: string[];
             mandate_label: string;
@@ -23,6 +24,7 @@ interface OpeningContent {
             next: string;
         };
         company: {
+            step: string;
             title: string;
             body: string;
             box_title: string;
@@ -31,6 +33,7 @@ interface OpeningContent {
             next: string;
         };
         timeline: {
+            step: string;
             title: string;
             rows: { when: string; what: string; now?: boolean }[];
             card_title: string;
@@ -38,14 +41,22 @@ interface OpeningContent {
             next: string;
         };
         executives: {
+            step: string;
+            comes_in_label: string;
             title: string;
             intro: string;
             people: Person[];
             closing: string;
             next: string;
         };
-        advisors: { title: string; intro: string; next: string };
+        advisors: {
+            step: string;
+            title: string;
+            intro: string;
+            next: string;
+        };
         quarter: {
+            step: string;
             title: string;
             intro: string;
             steps: { label: string; text: string }[];
@@ -58,12 +69,14 @@ interface OpeningContent {
             next: string;
         };
         endings: {
+            step: string;
             title: string;
             cards: { title: string; text: string }[];
             closing: string;
             next: string;
         };
         note: {
+            step: string;
             header: string[];
             body: string[];
             handwritten: string;
@@ -74,8 +87,13 @@ interface OpeningContent {
             sentence_note: string;
             sentence_start: string;
             sentence_mid: string;
-            placeholder_become: string;
-            placeholder_by: string;
+            example_label: string;
+            example_become: string;
+            example_by: string;
+            evp_note: string;
+            others_note: string;
+            nothing_yet: string;
+            empty_confirm: string;
             start: string;
         };
     };
@@ -89,6 +107,8 @@ const props = defineProps<{
         become: string | null;
         by: string | null;
     } | null;
+    isEvp: boolean;
+    canChange: boolean;
     replay: boolean;
 }>();
 
@@ -103,17 +123,15 @@ const steps = [
     'endings',
     'note',
 ] as const;
-const stepNames = [
-    'Your new job',
-    'The company',
-    'How you got here',
-    'The executives',
-    'Your advisors',
-    'How a quarter works',
-    'How it could end',
-    'Your first week',
-];
-const at = ref(0);
+const stepNames = computed(() => steps.map((k) => s.value[k].step));
+const startAt = Number(
+    new URLSearchParams(window.location.search).get('step') ?? '1',
+);
+const at = ref(
+    Number.isInteger(startAt) && startAt >= 1 && startAt <= steps.length
+        ? startAt - 1
+        : 0,
+);
 const nextLabel = computed(() => {
     const screen = s.value[steps[at.value]];
 
@@ -123,8 +141,8 @@ const nextLabel = computed(() => {
 const firstMeeting = ref<string | null>(props.team?.firstMeeting ?? null);
 const become = ref(props.team?.become ?? '');
 const by = ref(props.team?.by ?? '');
-const meetingLocked = computed(() => props.team?.firstMeeting != null);
-const sentenceLocked = computed(() => props.team?.become != null);
+const meetingLocked = computed(() => !props.canChange);
+const sentenceLocked = computed(() => !props.canChange);
 const sending = ref(false);
 const errors = computed(
     () => (usePage().props.errors ?? {}) as Record<string, string>,
@@ -136,6 +154,14 @@ function go(n: number) {
 }
 
 function finish() {
+    if (
+        props.canChange &&
+        (become.value.trim() === '' || by.value.trim() === '') &&
+        !window.confirm(s.value.note.empty_confirm)
+    ) {
+        return;
+    }
+
     sending.value = true;
     router.post(
         '/opening',
@@ -219,7 +245,9 @@ function finish() {
             <!-- 2. Company -->
             <section v-else-if="steps[at] === 'company'">
                 <h1 class="hx-h1">{{ s.company.title }}</h1>
-                <p class="hx-p mt-3">{{ s.company.body }}</p>
+                <p class="hx-p mt-3 text-[17px]" style="color: var(--hx-ink)">
+                    {{ s.company.body }}
+                </p>
                 <div class="mt-5 grid gap-3 sm:grid-cols-2">
                     <div
                         v-for="a in s.company.assets"
@@ -279,7 +307,9 @@ function finish() {
             <!-- 4. Executives -->
             <section v-else-if="steps[at] === 'executives'">
                 <h1 class="hx-h1">{{ s.executives.title }}</h1>
-                <p class="hx-p mt-3">{{ s.executives.intro }}</p>
+                <p class="hx-p mt-3 text-[17px]" style="color: var(--hx-ink)">
+                    {{ s.executives.intro }}
+                </p>
                 <div class="mt-5 grid gap-3 sm:grid-cols-2">
                     <div
                         v-for="p in s.executives.people"
@@ -303,10 +333,13 @@ function finish() {
                         </div>
                         <p class="mt-3">{{ p.wants }}</p>
                         <p
-                            class="hx-mono mt-3 text-[11px] tracking-[0.08em]"
+                            class="mt-3 text-[14px]"
                             style="color: var(--hx-muted)"
                         >
-                            YOU'LL SEE THEM AT: {{ p.shows_up }}
+                            <span class="font-semibold">{{
+                                s.executives.comes_in_label
+                            }}</span>
+                            {{ p.comes_in }}
                         </p>
                     </div>
                 </div>
@@ -318,7 +351,9 @@ function finish() {
             <!-- 5. Advisors -->
             <section v-else-if="steps[at] === 'advisors'">
                 <h1 class="hx-h1">{{ s.advisors.title }}</h1>
-                <p class="hx-p mt-3">{{ s.advisors.intro }}</p>
+                <p class="hx-p mt-3 text-[17px]" style="color: var(--hx-ink)">
+                    {{ s.advisors.intro }}
+                </p>
                 <div class="mt-5 grid gap-3 sm:grid-cols-2">
                     <div
                         v-for="a in opening.advisors"
@@ -355,7 +390,9 @@ function finish() {
             <!-- 6. How a quarter works -->
             <section v-else-if="steps[at] === 'quarter'">
                 <h1 class="hx-h1">{{ s.quarter.title }}</h1>
-                <p class="hx-p mt-3">{{ s.quarter.intro }}</p>
+                <p class="hx-p mt-3 text-[17px]" style="color: var(--hx-ink)">
+                    {{ s.quarter.intro }}
+                </p>
                 <div class="mt-5 grid gap-3 sm:grid-cols-2">
                     <div
                         v-for="st in s.quarter.steps"
@@ -432,8 +469,12 @@ function finish() {
                     You're not on a team yet, so your instructor will set this
                     up.
                 </p>
-                <p v-else-if="meetingLocked" class="hx-hint mt-1">
-                    Your team already chose this.
+                <p
+                    v-else
+                    class="mt-2 rounded-md px-3 py-2 text-[14px]"
+                    style="background: var(--hx-teal-wash)"
+                >
+                    {{ canChange ? s.note.evp_note : s.note.others_note }}
                 </p>
                 <div
                     class="mt-3 grid gap-3 sm:grid-cols-2"
@@ -458,13 +499,7 @@ function finish() {
                 <p class="hx-hint mt-2">{{ s.note.choice_note }}</p>
 
                 <h2 class="hx-h2 mt-7">{{ s.note.sentence_title }}</h2>
-                <p class="hx-hint mt-1">
-                    {{
-                        sentenceLocked
-                            ? 'Your team already wrote this.'
-                            : s.note.sentence_note
-                    }}
-                </p>
+                <p class="hx-hint mt-1">{{ s.note.sentence_note }}</p>
                 <div
                     class="hx-serif mt-3 flex flex-wrap items-center gap-2 text-[18px]"
                 >
@@ -476,7 +511,6 @@ function finish() {
                         id="become"
                         v-model="become"
                         class="hx-in hx-in-wide min-w-[260px] flex-1"
-                        :placeholder="s.note.placeholder_become"
                         :disabled="sentenceLocked || team === null"
                         maxlength="300"
                     />
@@ -486,11 +520,18 @@ function finish() {
                         id="by"
                         v-model="by"
                         class="hx-in hx-in-wide min-w-[260px] flex-1"
-                        :placeholder="s.note.placeholder_by"
                         :disabled="sentenceLocked || team === null"
                         maxlength="300"
                     />
                 </div>
+                <p v-if="canChange" class="hx-hint mt-2">
+                    {{ s.note.example_label }} “{{ s.note.sentence_start }}
+                    {{ s.note.example_become }} {{ s.note.sentence_mid }}
+                    {{ s.note.example_by }}.”
+                </p>
+                <p v-else-if="team && !team.become" class="hx-hint mt-2">
+                    {{ s.note.nothing_yet }}
+                </p>
                 <p v-for="(e, k) in errors" :key="k" class="hx-error mt-2">
                     {{ e }}
                 </p>

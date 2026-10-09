@@ -616,6 +616,20 @@ function quarterHref(id: number): string {
                                 <span v-if="team.strategy">
                                     Your team's plan: {{ team.strategy }}</span
                                 >
+                                <span v-else-if="me?.seat === 'evp'">
+                                    Your team's sentence isn't recorded yet.
+                                    <a href="/opening?step=8">Record it now</a>.</span
+                                >
+                                <span v-else>
+                                    Your EVP hasn't recorded your team's
+                                    sentence yet.</span
+                                >
+                                <a
+                                    v-if="team.strategy && me?.seat === 'evp' && quarter.status === 'open'"
+                                    href="/opening?step=8"
+                                    class="ml-1"
+                                    >Change it</a
+                                >
                             </p>
                             <template v-else-if="carrying">
                                 <p v-if="carrying.text" class="hx-p m-0">
