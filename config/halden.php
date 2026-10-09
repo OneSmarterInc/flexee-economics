@@ -14,6 +14,6 @@ return [
     'ai' => [
         'anthropic_key' => env('ANTHROPIC_API_KEY', ''),
         'model' => env('HALDEN_AI_MODEL', 'claude-sonnet-5-5'),
-        'max_tokens' => (int) env('HALDEN_AI_MAX_TOKENS', 600),
+        'max_tokens' => (int) env('HALDEN_AI_MAX_TOKENS', 2000),
     ],
 ];

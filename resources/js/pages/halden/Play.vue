@@ -1744,6 +1744,21 @@ function quarterHref(id: number): string {
 
                 <!-- Results -->
                 <template v-if="showResults && results">
+                    <div
+                        v-if="section === 'story' && feedback"
+                        class="hx-card"
+                        style="
+                            border-color: var(--hx-teal);
+                            background: var(--hx-teal-wash);
+                        "
+                    >
+                        <div class="hx-eyebrow mb-1.5">
+                            {{ feedback.title }}
+                        </div>
+                        <p class="hx-p whitespace-pre-line">
+                            {{ feedback.text }}
+                        </p>
+                    </div>
                     <div v-if="section === 'story'" class="hx-card">
                         <div class="hx-eyebrow mb-2">
                             {{ quarter.label }} · What happened

@@ -3,6 +3,7 @@
 namespace App\Halden\Game;
 
 use App\Halden\Ai\AdvisorRoom;
+use App\Halden\Ai\FacultyDrafts;
 use App\Halden\Content\ContentPack;
 use App\Halden\OperatingModel\ModelData;
 use App\Halden\OperatingModel\OperatingModel;
@@ -39,6 +40,7 @@ final class QuarterView
         private readonly OperatingModel $model,
         private readonly QuarterRunner $runner,
         private readonly AdvisorRoom $room,
+        private readonly FacultyDrafts $drafts,
     ) {}
 
     /** @return array<string, mixed> */
@@ -126,6 +128,9 @@ final class QuarterView
             'ready' => $tq?->ready_at?->toIso8601String(),
             'results' => $quarter->status === Quarter::PUBLISHED && $tq !== null && $tq->results !== null
                 ? $this->results($team, $quarter, $tq, $data) : null,
+            'feedback' => $tq?->feedback_published_at !== null && trim((string) $tq->feedback) !== ''
+                ? ['title' => $this->drafts->screenText()['student_title'], 'text' => (string) $tq->feedback, 'at' => $tq->feedback_published_at->toIso8601String()]
+                : null,
         ];
     }
 

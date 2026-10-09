@@ -160,6 +160,7 @@ export interface PlayProps {
     memo: { text: string; savedAt: string | null };
     ready: string | null;
     results: Results | null;
+    feedback: { title: string; text: string; at: string } | null;
 }
 
 export interface LeverText {

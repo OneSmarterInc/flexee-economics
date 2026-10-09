@@ -10,6 +10,7 @@ interface TeamRow {
     memoWords: number;
     ready: boolean;
     advisorAnswers: number;
+    feedback: 'none' | 'drafted' | 'published';
     lastActivity: string | null;
     score: number | null;
     rank: number | null;
@@ -27,6 +28,7 @@ const props = defineProps<{
         deadlineText: string | null;
     } | null;
     next: { id: number; label: string; buildable: boolean } | null;
+    feedbackQuarter: { id: number; label: string } | null;
     pages: { page: string; title: string }[];
     teams: TeamRow[];
     quarters: { number: number; label: string; status: string }[];
@@ -288,6 +290,20 @@ function teamHref(teamId: number): string {
                                 <td>
                                     <a :href="teamHref(t.id)"
                                         >See their screens</a
+                                    >
+
+                                    <a
+                                        v-if="feedbackQuarter"
+                                        class="mt-1 block"
+                                        :href="`/faculty/teams/${t.id}/quarters/${feedbackQuarter.id}/feedback?section=${section.id}`"
+                                        >{{
+                                            t.feedback === 'published'
+                                                ? 'Feedback sent'
+                                                : t.feedback === 'drafted'
+                                                  ? 'Finish feedback'
+                                                  : 'Write feedback'
+                                        }}
+                                        · {{ feedbackQuarter.label }}</a
                                     >
                                 </td>
                             </tr>

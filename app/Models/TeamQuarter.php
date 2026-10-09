@@ -25,9 +25,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property array<string, mixed>|null $state_after
  * @property float|null $score
  * @property int|null $rank
+ * @property string|null $feedback
+ * @property CarbonImmutable|null $feedback_published_at
+ * @property int|null $writing_score
  */
 #[Fillable(['team_id', 'quarter_id', 'decisions', 'effective_decisions', 'saved_pages', 'memo', 'memo_saved_by', 'memo_saved_at',
-    'ready_by', 'ready_at', 'results', 'state_after', 'score', 'rank'])]
+    'ready_by', 'ready_at', 'results', 'state_after', 'score', 'rank', 'feedback', 'feedback_published_at', 'writing_score'])]
 class TeamQuarter extends Model
 {
     protected function casts(): array
@@ -40,6 +43,7 @@ class TeamQuarter extends Model
             'state_after' => 'array',
             'memo_saved_at' => 'datetime',
             'ready_at' => 'datetime',
+            'feedback_published_at' => 'datetime',
             'score' => 'float',
         ];
     }

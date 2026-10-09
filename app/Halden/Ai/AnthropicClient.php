@@ -35,6 +35,7 @@ final class AnthropicClient implements LlmClient
             (int) $response->json('usage.input_tokens', 0),
             (int) $response->json('usage.output_tokens', 0),
             (string) $response->json('model', $this->model),
+            $response->json('stop_reason') === 'max_tokens',
         );
     }
 }

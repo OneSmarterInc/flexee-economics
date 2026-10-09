@@ -4,6 +4,8 @@ namespace App\Providers;
 
 use App\Halden\Ai\AdvisorRoom;
 use App\Halden\Ai\AnthropicClient;
+use App\Halden\Ai\FacultyDrafts;
+use App\Halden\Ai\Findings;
 use App\Halden\Ai\LlmClient;
 use App\Halden\Ai\StubClient;
 use App\Halden\Content\ContentPack;
@@ -41,6 +43,12 @@ class AppServiceProvider extends ServiceProvider
             $app->make(ModelData::class),
             enabled: (string) config('halden.ai.anthropic_key') !== '' || ! $app->isProduction(),
             maxTokens: (int) config('halden.ai.max_tokens'),
+        ));
+        $this->app->singleton(FacultyDrafts::class, fn ($app): FacultyDrafts => new FacultyDrafts(
+            $app->make(LlmClient::class),
+            new Findings($app->make(OperatingModel::class), $app->make(ModelData::class)),
+            $app->make(AdvisorRoom::class),
+            enabled: (string) config('halden.ai.anthropic_key') !== '' || ! $app->isProduction(),
         ));
     }
 

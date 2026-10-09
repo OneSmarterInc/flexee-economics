@@ -32,7 +32,7 @@ final class AdvisorRoom
         private readonly ContentPack $content,
         private readonly ModelData $data,
         private readonly bool $enabled,
-        private readonly int $maxTokens = 600,
+        private readonly int $maxTokens = 2000,
         ?string $root = null,
     ) {
         $root ??= base_path('packages/content');
@@ -201,7 +201,7 @@ final class AdvisorRoom
             try {
                 $reply = $this->llm->complete($system, $history, $this->maxTokens);
                 $limits = (array) $this->book['limits'];
-                $reason = ReplyCheck::failure($reply->text, [...$sources, ...$teamText], $teamText, (int) $limits['words_min'], (int) $limits['words_max']);
+                $reason = $reply->cutOff ? 'The reply was cut off before it finished.' : ReplyCheck::failure($reply->text, [...$sources, ...$teamText], $teamText, (int) $limits['words_min'], (int) $limits['words_max']);
             } catch (Throwable $e) {
                 Log::warning('Advisor call failed', ['advisor' => $advisor, 'team' => $team->id, 'error' => $e->getMessage()]);
                 $reply = new LlmReply('');
