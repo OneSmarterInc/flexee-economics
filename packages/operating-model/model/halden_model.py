@@ -372,7 +372,7 @@ def step(state: State, dec: Decisions, mkt: dict):
     kpi = {
         "profit_per_barrel": (ebitda - corporate) * 1e6 / (C["total_production"] * D),
         "roace_pct": 100 * 4 * (ebitda - da) * (1 - C["tax_rate"]) / state.capital_employed,
-        # Before growth projects (decision S2, proposed): sustaining cash generation, so a sound project
+        # Before growth projects (decision S2, Vikram 9 Oct 2026): sustaining cash generation, so a sound project
         # isn't punished in the score in the quarter its money goes out. Net debt still carries it.
         "free_cash_flow": fcf + commit_outlay,
         "refining_vs_industry": (refining_ex_internal * 1e6 / refined_bbl - bench_margin) if refined_bbl > 0 else -bench_margin,

@@ -337,7 +337,7 @@ final class OperatingModel
         $kpi = [
             'profit_per_barrel' => ($ebitda - $corporate) * 1e6 / ($c('total_production') * $D),
             'roace_pct' => 100 * 4 * ($ebitda - $da) * (1 - $c('tax_rate')) / $state->capitalEmployed,
-            // Before growth projects (decision S2): a sound project isn't punished in the quarter its money goes out.
+            // Before growth projects (decision S2, Vikram 9 Oct 2026): a sound project isn't punished in the quarter its money goes out.
             'free_cash_flow' => $fcf + $commitOutlay,
             'refining_vs_industry' => $refinedBbl > 0 ? $refiningExInternal * 1e6 / $refinedBbl - $benchMargin : -$benchMargin,
             'shop_profit_per_station_k' => $cordNonfuel / $c('cordell_sites') / 1e3,
