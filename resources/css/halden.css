@@ -45,6 +45,7 @@
         text-transform: uppercase;
     }
     .hx-h1 {
+        text-wrap: balance;
         margin: 0 0 6px;
         font-family: 'Source Serif 4', Georgia, serif;
         font-weight: 600;
@@ -53,6 +54,7 @@
         color: var(--hx-ink);
     }
     .hx-h2 {
+        text-wrap: balance;
         margin: 0 0 10px;
         font-family: 'Source Serif 4', Georgia, serif;
         font-weight: 600;

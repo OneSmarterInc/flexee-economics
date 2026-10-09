@@ -54,9 +54,9 @@ class HaldenScreensTest extends TestCase
         return $this->quarter(1);
     }
 
-    public function test_a_new_student_sees_the_opening_first_and_the_team_choice_is_kept(): void
+    public function test_a_new_student_sees_the_opening_first_and_only_the_evp_records_the_teams_choice(): void
     {
-        $this->openFirst();
+        $q1 = $this->openFirst();
         $student = $this->students['oil_fields'];
         $student->forceFill(['opening_seen_at' => null])->save();
 
@@ -64,20 +64,42 @@ class HaldenScreensTest extends TestCase
         $this->actingAs($student)->get('/opening')->assertInertia(fn (Assert $page) => $page
             ->component('halden/Opening')
             ->where('team.name', 'Alpha')
+            ->where('isEvp', false)
+            ->where('canChange', false)
+            ->where('opening.screens.quarter.intro', 'Every week of the course is one quarter (three months) at Halden. Each quarter, your team does the same four things.')
             ->where('replay', false));
 
-        $this->actingAs($student)->post('/opening', ['first_meeting' => 'ingrid', 'become' => 'earns more per barrel', 'by' => 'running it as one'])
+        // A teammate who isn't the EVP finishes the opening but doesn't decide for the team.
+        $this->actingAs($student)->post('/opening', ['first_meeting' => 'marcus', 'become' => 'x', 'by' => 'y'])
             ->assertRedirect(route('play.home'));
-        $this->assertSame('ingrid', $this->team->refresh()->first_meeting);
+        $this->assertNull($this->team->refresh()->first_meeting);
+        $this->assertNotNull($student->refresh()->opening_seen_at);
 
-        // A teammate who finishes later can't change what the team already chose.
-        $other = $this->students['refineries'];
-        $other->forceFill(['opening_seen_at' => null])->save();
-        $this->actingAs($other)->post('/opening', ['first_meeting' => 'marcus', 'become' => 'x', 'by' => 'y']);
+        // The EVP records it, and can change it while Quarter 1 is open.
+        $evp = $this->students['evp'];
+        $this->actingAs($evp)->get('/opening')->assertInertia(fn (Assert $page) => $page->where('canChange', true));
+        $this->actingAs($evp)->post('/opening', ['first_meeting' => 'ingrid', 'become' => 'earns more per barrel', 'by' => 'running it as one']);
+        $this->actingAs($evp)->post('/opening', ['first_meeting' => 'marcus', 'become' => '', 'by' => '']);
         $this->team->refresh();
-        $this->assertSame('ingrid', $this->team->first_meeting);
-        $this->assertSame('earns more per barrel', $this->team->strategy_become);
-        $this->assertNotNull($other->refresh()->opening_seen_at);
+        $this->assertSame('marcus', $this->team->first_meeting);
+        $this->assertSame('earns more per barrel', $this->team->strategy_become, 'an empty sentence never wipes a recorded one');
+
+        // Once Quarter 1 has been run, nothing changes.
+        app(QuarterRunner::class)->close($q1);
+        $this->actingAs($evp)->post('/opening', ['first_meeting' => 'ingrid', 'become' => 'a', 'by' => 'b']);
+        $this->assertSame('marcus', $this->team->refresh()->first_meeting);
+    }
+
+    public function test_quarters_close_on_their_own_at_the_deadline(): void
+    {
+        $q1 = $this->openFirst();
+        $q1->update(['deadline_at' => now()->addMinute()]);
+        $this->artisan('halden:close-due')->assertSuccessful();
+        $this->assertSame(Quarter::OPEN, $q1->refresh()->status);
+
+        $q1->update(['deadline_at' => now()->subMinute()]);
+        $this->artisan('halden:close-due')->assertSuccessful();
+        $this->assertSame(Quarter::CLOSED, $q1->refresh()->status, 'closed and run, results still hidden');
     }
 
     public function test_the_quarter_screen_opens_for_the_team(): void
