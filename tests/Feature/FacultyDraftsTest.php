@@ -82,7 +82,17 @@ class FacultyDraftsTest extends TestCase
             ->where('drafts.writing.data.score', 4)
             ->where('drafts.mismatch.data.mismatch', false)
             ->where('feedback.text', '')
-            ->where('feedback.writingScore', null));
+            ->where('feedback.writingScoreAi', 4)
+            ->where('feedback.writingAdjustment', 0)
+            ->where('feedback.writingScore', 4));
+
+        // Faculty adjust the AI's score; the adjustment is added once and the result stays within 1 to 5.
+        $this->actingAs($this->faculty)->post($this->url(), ['feedback' => 'x', 'writing_adjustment' => -1])->assertSessionHasNoErrors();
+        $this->assertSame(3, TeamQuarter::query()->firstOrFail()->writing_score);
+        $this->actingAs($this->faculty)->post($this->url(), ['feedback' => 'x', 'writing_adjustment' => 0])->assertSessionHasNoErrors();
+        $this->assertSame(4, TeamQuarter::query()->firstOrFail()->writing_score);
+        $this->actingAs($this->faculty)->post($this->url(), ['feedback' => 'x', 'writing_adjustment' => 3])->assertSessionHasNoErrors();
+        $this->assertSame(5, TeamQuarter::query()->firstOrFail()->writing_score);
     }
 
     public function test_a_draft_that_fails_a_check_is_kept_for_faculty_with_the_reason(): void

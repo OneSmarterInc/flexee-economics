@@ -123,6 +123,8 @@ class FacultyController extends Controller
             'drafts' => $latest,
             'feedback' => [
                 'text' => (string) $tq->feedback,
+                'writingScoreAi' => $tq->writing_score_ai,
+                'writingAdjustment' => $tq->writing_adjustment,
                 'writingScore' => $tq->writing_score,
                 'publishedAt' => $tq->feedback_published_at?->toIso8601String(),
             ],
@@ -148,11 +150,18 @@ class FacultyController extends Controller
         $tq = $this->teamQuarter($request, $team, $quarter);
         $data = $request->validate([
             'feedback' => ['nullable', 'string', 'max:20000'],
+            'writing_adjustment' => ['nullable', 'integer', 'min:-4', 'max:4'],
             'writing_score' => ['nullable', 'integer', 'min:1', 'max:5'],
             'publish' => ['boolean'],
         ]);
         $tq->feedback = $data['feedback'] ?? null;
-        $tq->writing_score = $data['writing_score'] ?? null;
+        // With an AI proposal, faculty adjust it up or down (starting at zero). Without one, they score it themselves.
+        if ($tq->writing_score_ai !== null) {
+            $tq->writing_adjustment = (int) ($data['writing_adjustment'] ?? 0);
+        } else {
+            $tq->writing_score = $data['writing_score'] ?? null;
+        }
+        $tq->writing_score = $tq->finalWritingScore();
         if ($request->boolean('publish')) {
             if (trim((string) $tq->feedback) === '') {
                 throw ValidationException::withMessages(['feedback' => 'Write or paste the feedback before publishing it.']);

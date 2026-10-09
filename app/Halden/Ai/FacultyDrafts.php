@@ -138,6 +138,12 @@ final class FacultyDrafts
             $reason = 'The AI service did not answer: '.$e->getMessage();
         }
 
+        if ($kind === 'writing' && $reason === null && is_int($data['score'] ?? null)) {
+            $tq->writing_score_ai = $data['score'];
+            $tq->writing_score = $tq->finalWritingScore();
+            $tq->save();
+        }
+
         return FacultyDraft::query()->create([
             'team_quarter_id' => $tq->id,
             'kind' => $kind,

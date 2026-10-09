@@ -28,6 +28,9 @@ return new class extends Migration
         Schema::table('team_quarters', function (Blueprint $table) {
             $table->longText('feedback')->nullable();
             $table->timestamp('feedback_published_at')->nullable();
+            // Writing score: the AI's proposal, the instructor's adjustment (starts at zero, added once), and the result.
+            $table->unsignedTinyInteger('writing_score_ai')->nullable();
+            $table->smallInteger('writing_adjustment')->default(0);
             $table->unsignedTinyInteger('writing_score')->nullable();
         });
     }
@@ -35,7 +38,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('team_quarters', function (Blueprint $table) {
-            $table->dropColumn(['feedback', 'feedback_published_at', 'writing_score']);
+            $table->dropColumn(['feedback', 'feedback_published_at', 'writing_score_ai', 'writing_adjustment', 'writing_score']);
         });
         Schema::dropIfExists('faculty_drafts');
     }

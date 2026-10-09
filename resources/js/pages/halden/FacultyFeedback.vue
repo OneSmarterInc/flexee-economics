@@ -28,6 +28,8 @@ const props = defineProps<{
     drafts: Record<Kind, Draft | null>;
     feedback: {
         text: string;
+        writingScoreAi: number | null;
+        writingAdjustment: number;
         writingScore: number | null;
         publishedAt: string | null;
     };
@@ -44,8 +46,27 @@ const base = computed(
 const qs = computed(() => `?section=${props.section.id}`);
 
 const feedbackText = ref(props.feedback.text);
-// The score box starts empty. The proposal sits beside it and is never added on its own.
+// With an AI score, faculty adjust it up or down from zero. Without one, they score it themselves.
 const writingScore = ref<number | null>(props.feedback.writingScore);
+const adjustment = ref<number>(props.feedback.writingAdjustment);
+const aiScore = computed(() => props.feedback.writingScoreAi);
+const finalScore = computed(() =>
+    aiScore.value === null
+        ? writingScore.value
+        : Math.max(1, Math.min(5, aiScore.value + adjustment.value)),
+);
+
+function adjust(by: number) {
+    if (aiScore.value === null) {
+        return;
+    }
+
+    const next = adjustment.value + by;
+
+    if (aiScore.value + next >= 1 && aiScore.value + next <= 5) {
+        adjustment.value = next;
+    }
+}
 const drafting = ref(false);
 const saving = ref(false);
 const hasDrafts = computed(() =>
@@ -104,6 +125,7 @@ function save(publish: boolean) {
         {
             feedback: feedbackText.value,
             writing_score: writingScore.value,
+            writing_adjustment: adjustment.value,
             publish,
         },
         { preserveScroll: true, onFinish: () => (saving.value = false) },
@@ -294,7 +316,47 @@ function when(iso: string | null): string {
                     <p v-if="errors.feedback" class="hx-error mt-1">
                         {{ errors.feedback }}
                     </p>
-                    <div class="mt-3 flex flex-wrap items-center gap-3">
+                    <div
+                        v-if="aiScore !== null"
+                        class="mt-3 flex flex-wrap items-center gap-3"
+                    >
+                        <span class="text-[14px]">Writing score</span>
+                        <span
+                            class="hx-mono rounded px-2 py-1"
+                            style="background: var(--hx-soft)"
+                            >AI {{ aiScore }}</span
+                        >
+                        <span class="text-[14px]">Adjustment</span>
+                        <button
+                            type="button"
+                            class="hx-btn hx-btn-outline px-3"
+                            aria-label="Adjust down"
+                            :disabled="aiScore + adjustment <= 1"
+                            @click="adjust(-1)"
+                        >
+                            −
+                        </button>
+                        <span
+                            class="hx-mono w-8 text-center"
+                            aria-live="polite"
+                            >{{
+                                adjustment > 0 ? `+${adjustment}` : adjustment
+                            }}</span
+                        >
+                        <button
+                            type="button"
+                            class="hx-btn hx-btn-outline px-3"
+                            aria-label="Adjust up"
+                            :disabled="aiScore + adjustment >= 5"
+                            @click="adjust(1)"
+                        >
+                            +
+                        </button>
+                        <span class="text-[14px] font-semibold"
+                            >= {{ finalScore }} of 5</span
+                        >
+                    </div>
+                    <div v-else class="mt-3 flex flex-wrap items-center gap-3">
                         <label for="ws" class="text-[14px]"
                             >Writing score (1–5)</label
                         >
@@ -308,8 +370,7 @@ function when(iso: string | null): string {
                             class="hx-in w-20"
                         />
                         <span class="hx-hint"
-                            >Yours to set. The proposal above is only a
-                            suggestion.</span
+                            >No AI score yet, so this one is yours to set.</span
                         >
                     </div>
                     <p v-if="errors.writing_score" class="hx-error mt-1">
