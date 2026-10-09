@@ -2,8 +2,6 @@
 
 namespace Database\Factories;
 
-use App\Enums\PlatformRole;
-use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
@@ -27,12 +25,11 @@ class UserFactory extends Factory
     public function definition(): array
     {
         return [
-            'tenant_id' => Tenant::factory(),
             'name' => fake()->name(),
             'email' => fake()->unique()->safeEmail(),
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
-            'global_role' => PlatformRole::Student,
+            'role' => User::ROLE_STUDENT,
             'remember_token' => Str::random(10),
             'two_factor_secret' => null,
             'two_factor_recovery_codes' => null,
@@ -65,21 +62,21 @@ class UserFactory extends Factory
     public function administrator(): static
     {
         return $this->state(fn (array $attributes) => [
-            'global_role' => PlatformRole::Administrator,
+            'role' => User::ROLE_ADMIN,
         ]);
     }
 
     public function faculty(): static
     {
         return $this->state(fn (array $attributes) => [
-            'global_role' => PlatformRole::Faculty,
+            'role' => User::ROLE_FACULTY,
         ]);
     }
 
     public function student(): static
     {
         return $this->state(fn (array $attributes) => [
-            'global_role' => PlatformRole::Student,
+            'role' => User::ROLE_STUDENT,
         ]);
     }
 }
