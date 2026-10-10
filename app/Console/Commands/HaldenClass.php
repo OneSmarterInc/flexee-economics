@@ -2,14 +2,11 @@
 
 namespace App\Console\Commands;
 
-use App\Models\Quarter;
+use App\Halden\Admin\ClassFactory;
 use App\Models\Section;
-use App\Models\Team;
-use App\Models\TeamMember;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
 /**
@@ -30,7 +27,7 @@ class HaldenClass extends Command
 
     protected $description = 'Create a class with its fourteen quarters and weekly deadlines';
 
-    public function handle(): int
+    public function handle(ClassFactory $factory): int
     {
         $weeks = (int) $this->option('weeks');
         if (! in_array($weeks, [7, 14], true)) {
@@ -52,19 +49,7 @@ class HaldenClass extends Command
         }
         $first = $this->option('first-deadline')
             ? CarbonImmutable::parse((string) $this->option('first-deadline'), 'America/New_York')->utc()
-            : CarbonImmutable::now('America/New_York')->next('Thursday')->setTime(17, 0)->utc();
-
-        $section = Section::query()->create(['name' => $name, 'course_name' => (string) $this->option('course'), 'weeks' => $weeks, 'faculty_user_id' => $faculty->id]);
-        $perWeek = intdiv(Quarter::COMPANY_QUARTERS, $weeks);
-        for ($n = 1; $n <= Quarter::COMPANY_QUARTERS; $n++) {
-            $week = intdiv($n - 1, $perWeek);
-            $firstOfWeek = ($n - 1) % $perWeek === 0;
-            Quarter::query()->create([
-                'section_id' => $section->id, 'number' => $n, 'company_quarter' => Quarter::companyQuarterFor($n),
-                'status' => Quarter::UPCOMING, 'deadline_at' => $firstOfWeek ? $first->addWeeks($week) : null,
-            ]);
-        }
-
+            : ClassFactory::defaultFirstDeadline();
         $demo = (string) $this->option('demo-password');
         if ($demo !== '' && app()->isProduction() && strlen($demo) < 16) {
             $this->error('In production a demo password must be 16 characters or more.');
@@ -72,18 +57,9 @@ class HaldenClass extends Command
             return self::FAILURE;
         }
         $teams = max(0, (int) $this->option('teams'));
-        for ($i = 0; $i < $teams; $i++) {
-            $letter = chr(ord('A') + $i);
-            $team = Team::query()->create(['section_id' => $section->id, 'name' => "Team $letter"]);
-            if ($demo === '') {
-                continue;
-            }
-            $slug = Str::slug($name).strtolower($letter);
-            foreach (array_keys(TeamMember::SEATS) as $k => $seat) {
-                $student = User::query()->updateOrCreate(['email' => "$slug".($k + 1).'@example.test'],
-                    ['name' => "Team $letter student ".($k + 1), 'password' => Hash::make($demo), 'role' => User::ROLE_STUDENT, 'email_verified_at' => now()]);
-                TeamMember::query()->create(['team_id' => $team->id, 'user_id' => $student->id, 'seat' => $seat]);
-            }
+        $section = $factory->create($name, (string) $this->option('course'), $weeks, $faculty, $first, $teams);
+        if ($demo !== '') {
+            $factory->fillWithDemoStudents($section, $demo);
         }
 
         $this->info("Created \"$name\" ($weeks weeks, {$teams} teams) for {$faculty->email}. Quarter 1 is not open yet; open it from the faculty board.");
