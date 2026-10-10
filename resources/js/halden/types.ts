@@ -68,12 +68,20 @@ export interface Advisor {
 }
 
 export interface AdvisorMessageView {
-    id: number;
+    id: number | string;
     from: 'team' | 'advisor' | 'notice' | 'dropped';
     who: string;
     body: string;
     reason?: string | null;
+    invited?: string[];
     at: string | null;
+}
+
+export interface MeetingView {
+    messages: AdvisorMessageView[];
+    invited: string[];
+    min: number;
+    max: number;
 }
 
 export interface AdvisorCard extends Advisor {
@@ -89,6 +97,7 @@ export interface AdvisorsView {
     open: boolean;
     text: Record<string, string>;
     cards: AdvisorCard[];
+    meeting: MeetingView;
 }
 
 export interface Results {

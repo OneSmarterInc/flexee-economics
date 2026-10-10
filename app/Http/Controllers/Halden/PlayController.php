@@ -202,6 +202,28 @@ class PlayController extends Controller
         return back();
     }
 
+    /** A meeting: one question to two to four advisors at once. */
+    public function meet(Request $request, Quarter $quarter, AdvisorRoom $room): RedirectResponse
+    {
+        $user = $this->user($request);
+        $team = $this->teamOf($user);
+        abort_unless($quarter->section_id === $team->section_id, 404);
+        $data = $request->validate(
+            ['question' => ['required', 'string', 'max:4000'], 'invited' => ['required', 'array'], 'invited.*' => ['string', 'max:40']],
+            ['question.required' => 'Type a question first.', 'question.max' => 'That question is too long. Try asking it in two parts.', 'invited.required' => 'Pick who is in the meeting first.'],
+        );
+        try {
+            $room->meet($team, $quarter, array_values(array_filter($data['invited'], 'is_string')), $user, trim($data['question']));
+        } catch (\RuntimeException $e) {
+            if ($request->header('X-Inertia')) {
+                throw ValidationException::withMessages(['question' => $e->getMessage()]);
+            }
+            abort(403, $e->getMessage());
+        }
+
+        return back();
+    }
+
     /** Students only get a quarter's reading once that quarter has opened for their class. */
     public function exhibit(Request $request, string $path, ContentPack $content): BinaryFileResponse
     {

@@ -186,6 +186,70 @@ class AdvisorRoomTest extends TestCase
         $this->assertStringContainsString('Q1 2027: earnings before interest, tax and depreciation $', end($this->llm->calls)['system']);
     }
 
+    private function meet(array $invited, string $question, ?User $as = null): TestResponse
+    {
+        $response = $this->actingAs($as ?? $this->student)->withHeader('X-Inertia', 'true')->from('/play/'.$this->q(1)->id)
+            ->post('/play/'.$this->q(1)->id.'/meeting', ['question' => $question, 'invited' => $invited]);
+        $this->flushHeaders();
+
+        return $response;
+    }
+
+    public function test_a_meeting_lets_the_director_pick_who_answers_and_each_answer_counts_for_that_advisor(): void
+    {
+        $this->llm->queue('{"speakers": ["aasen", "ruiz"]}', self::GOOD, 'Bjørn is right about the ground, but I would want to see what the last rig does to cash before I agreed with him.');
+        $this->meet(['aasen', 'ruiz', 'roy'], 'Should we keep all fourteen rigs?')->assertSessionHasNoErrors();
+
+        $this->assertCount(3, $this->llm->calls, 'the director, then two advisors');
+        $director = $this->llm->calls[0];
+        $this->assertStringContainsString('You never speak yourself', $director['system']);
+        $this->assertStringContainsString('aasen: Bjørn, Head of Operations', $director['messages'][0]['content']);
+        $this->assertStringContainsString('Raj (the team): Should we keep all fourteen rigs?', $director['messages'][0]['content']);
+        $aasen = $this->llm->calls[1];
+        $this->assertStringContainsString("You're in a meeting:", $aasen['system']);
+        $this->assertStringContainsString('In the meeting with you: Bjørn (Head of Operations), Ana (VP Finance), Danielle (Head of Sales and Marketing).', $aasen['system']);
+        $this->assertStringContainsString("It's your turn, Bjørn. Speak.", $aasen['messages'][0]['content']);
+        $ruiz = $this->llm->calls[2];
+        $this->assertStringContainsString('Bjørn: '.self::GOOD, $ruiz['messages'][0]['content'], 'the second speaker hears the first');
+        $this->assertStringContainsString("It's your turn, Ana. Speak.", $ruiz['messages'][0]['content']);
+
+        $view = $this->actingAs($this->student)->get('/play/'.$this->q(1)->id);
+        $view->assertInertia(fn (Assert $p) => $p
+            ->has('advisors.meeting.messages', 3)
+            ->where('advisors.meeting.messages.0.from', 'team')
+            ->where('advisors.meeting.messages.0.invited', ['aasen', 'ruiz', 'roy'])
+            ->where('advisors.meeting.messages.1.who', 'Bjørn')
+            ->where('advisors.meeting.messages.2.who', 'Ana')
+            ->where('advisors.meeting.invited', ['aasen', 'ruiz', 'roy'])
+            ->where('advisors.cards', fn ($cards) => collect($cards)->firstWhere('key', 'aasen')['used'] === 1
+                && collect($cards)->firstWhere('key', 'ruiz')['used'] === 1
+                && collect($cards)->firstWhere('key', 'roy')['used'] === 0));
+
+        // The meeting answers count against the one-to-one limit, and are billed with the rest.
+        for ($i = 1; $i <= 5; $i++) {
+            $this->llm->queue(self::GOOD);
+            $this->ask('aasen', "Question $i")->assertSessionHasNoErrors();
+        }
+        $this->ask('aasen', 'One more?')->assertSessionHasErrors(['question' => 'Bjørn is done for this quarter.']);
+        $this->meet(['aasen', 'ruiz'], 'Bjørn, anything else?')->assertSessionHasErrors(['question' => 'Bjørn is done for this quarter, so leave Bjørn out of the meeting.']);
+        $this->meet(['ruiz'], 'Just you, Ana')->assertSessionHasErrors(['question' => 'Pick at least two advisors for a meeting.']);
+        $this->meet(['ruiz', 'roy', 'marchetti', 'osei', 'lund'], 'Everyone?')->assertSessionHasErrors(['question' => 'Four at most in one meeting.']);
+        $this->assertSame(7, AdvisorMessage::billable($this->team->id, $this->q(1)->id));
+
+        // When the director's pick can't be read, the first advisor invited answers; a dropped answer leaves a notice and is not billed.
+        $this->llm->queue('I think Ana should go first.', 'The twelfth rig makes $95 million a year, easily, and I would not touch it until someone shows me a reason to.');
+        $this->meet(['ruiz', 'roy'], 'What about Cordell?')->assertSessionHasNoErrors();
+        $this->assertSame(7, AdvisorMessage::billable($this->team->id, $this->q(1)->id));
+        $this->actingAs($this->student)->get('/play/'.$this->q(1)->id)->assertInertia(fn (Assert $p) => $p
+            ->has('advisors.meeting.messages', 5)
+            ->where('advisors.meeting.messages.4.from', 'notice'));
+        $this->actingAs($this->faculty)->get("/faculty/teams/{$this->team->id}/quarters/{$this->q(1)->id}?section={$this->section->id}")->assertInertia(fn (Assert $p) => $p
+            ->has('advisors.meeting.messages', 5)
+            ->where('advisors.meeting.messages.4.from', 'dropped')
+            ->where('advisors.meeting.messages.4.who', 'Ana')
+            ->where('advisors.meeting.messages.4.reason', 'Dollar figure not in its inputs: $95 million.'));
+    }
+
     public function test_switched_off_without_a_key_on_the_live_site(): void
     {
         $room = new AdvisorRoom($this->llm, app(ContentPack::class), app(ModelData::class), enabled: false);

@@ -4,7 +4,6 @@ namespace App\Halden\Ai;
 
 use App\Halden\Content\ContentPack;
 use App\Halden\Game\BoardRecord;
-use App\Models\AdvisorThread;
 use App\Models\FacultyDraft;
 use App\Models\Quarter;
 use App\Models\TeamQuarter;
@@ -81,9 +80,7 @@ final class FacultyDrafts
      */
     public function inputs(TeamQuarter $tq): array
     {
-        $consulted = AdvisorThread::query()->where('team_id', $tq->team_id)->where('quarter_id', $tq->quarter_id)
-            ->whereHas('messages', fn ($q) => $q->where('role', 'advisor')->where('status', 'shown'))
-            ->pluck('advisor')->all();
+        $consulted = $this->room->consulted($tq->team, $tq->quarter);
         $names = [];
         foreach ($this->room->cards() as $c) {
             $names[$c['key']] = $c['name'];
@@ -94,7 +91,7 @@ final class FacultyDrafts
         return [
             'memo' => (string) $tq->memo,
             'sheet' => $board ? $this->boardSheet($tq) : $this->findings->sheet($tq),
-            'found' => $this->findings->found($tq, array_values(array_map('strval', $consulted)), $key, $names),
+            'found' => $this->findings->found($tq, $consulted, $key, $names),
             'record' => $board ? $this->record->recordLines($tq->team, $tq->quarter) : [],
         ];
     }

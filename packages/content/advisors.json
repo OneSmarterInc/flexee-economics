@@ -4,7 +4,10 @@
     "answers_per_advisor": 6,
     "answers_priya": 3,
     "words_min": 15,
-    "words_max": 230
+    "words_max": 230,
+    "meeting_min": 2,
+    "meeting_max": 4,
+    "meeting_speakers_max": 3
   },
   "screen": {
     "header": "Six advisors and your chief of staff are on call. Nothing you say to them is graded, and your instructor can read the conversations.",
@@ -18,7 +21,19 @@
     "dropped": "{first} didn't have a clear answer to that one. Try asking another way. That question didn't use up an answer.",
     "unavailable": "Conversations with advisors aren't switched on yet. Your instructor will let you know when they are.",
     "closed": "This quarter is closed, so the conversations are read-only.",
-    "go_decide": "Ready to decide? Go to your decision pages."
+    "go_decide": "Ready to decide? Go to your decision pages.",
+    "meeting_name": "A meeting",
+    "meeting_role": "Two to four advisors in one conversation",
+    "meeting_intro": "Pick two to four of them and ask. Whoever has something to say answers, up to three of them, and they won't always agree. Each answer still counts against that advisor's quarter and still costs Halden.",
+    "meeting_pick": "Who's in the meeting?",
+    "meeting_too_few": "Pick at least two advisors for a meeting.",
+    "meeting_too_many": "Four at most in one meeting.",
+    "meeting_done": "{name} is done for this quarter, so leave {name} out of the meeting.",
+    "meeting_placeholder": "Ask the meeting",
+    "meeting_thinking": "They're thinking…",
+    "meeting_dropped": "Nobody had a clear answer to that one. Try asking another way. It didn't use up an answer.",
+    "meeting_empty": "Nobody on your team has called a meeting yet this quarter.",
+    "meeting_with": "In the meeting: {names}"
   },
   "rules": [
     "You work for Halden Energy and you are talking with the Executive Vice President's team. Halden is real to you. Never mention a course, class, simulation, game, students, grades, scores, weeks or rounds.",
@@ -100,5 +115,25 @@
       ],
       "rules_extra": "If they ask about the economics, say that's for the advisors and offer a prediction about people instead. Frame what you say as a guess about what someone will do, not as advice."
     }
+  },
+  "meeting": {
+    "_about": "A meeting: the team asks a room of two to four advisors. A hidden director picks who answers (one to three of them, in order); each then speaks in turn, seeing what the others just said.",
+    "director": {
+      "rules": [
+        "You run the room in a meeting at Halden Energy between the Executive Vice President's team and some of its advisors. You never speak yourself.",
+        "Given the transcript so far and the team's latest message, decide which of the advisors in the room answer, and in what order. Pick the one or two whose area the question lands in; add a third only if the question cuts across areas or someone would plainly disagree. At least one, at most three.",
+        "If the team addresses one advisor by name, that advisor answers first. If the team asks for everyone's view, pick up to three whose areas differ most.",
+        "Only pick from the advisors listed as in the room with answers left.",
+        "Reply with JSON only, in exactly this form: {\"speakers\": [\"key\", \"key\"]}"
+      ]
+    },
+    "rules": [
+      "You're in a meeting, not a one-to-one. The others in the room are listed below, and the whole conversation so far, including what they said, is in the message. You speak as yourself, in your own area, in two to four sentences.",
+      "Never repeat a point someone else in the room has already made. Add what only you would see, or say where you disagree with them, by first name, and why. Disagreeing is fine; the team is better off hearing it.",
+      "Speak to the team, not to the other advisors, except when you're taking issue with something one of them said.",
+      "If the question isn't yours and the right person is in the room, say so in one sentence and leave it to them."
+    ],
+    "your_turn": "It's your turn, {first}. Speak.",
+    "with_line": "In the meeting with you: {names}."
   }
 }
