@@ -1,0 +1,7 @@
+kind,future,value,note
+carbon,Carbon stays cheap,40,dollars a tonne
+carbon,Carbon gets pricier,95,dollars a tonne
+carbon,Carbon gets expensive,180,dollars a tonne
+demand,Oil demand declines slowly,0,demand step
+demand,Oil demand declines fast,1,demand step
+demand,Oil demand collapses,2,demand step

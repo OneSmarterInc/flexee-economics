@@ -1,4 +1,4 @@
-"""Halden Energy quarterly operating model, reference implementation v0.7 (Quarters 1-11).
+"""Halden Energy quarterly operating model, reference implementation v0.8 (Quarters 1-12).
 
 This is the authoritative economics for the quarterly play-through. The Laravel engine must
 reproduce fixtures/golden_quarters.csv within tolerance (rel 1e-6, abs 1e-4).
@@ -44,7 +44,7 @@ def load_market():
             "existing_eur_hedge": r["existing_eur_hedge"] == "1",
             "rival_cut": float(r.get("rival_cut") or 0.0), "rival_builds": r.get("rival_builds") == "1",
             "opec": r.get("opec") == "1", "recession": r.get("recession") == "1",
-            "kessana": r.get("kessana") == "1",
+            "kessana": r.get("kessana") == "1", "carbon": float(r.get("carbon") or 0.0),
         })
     return rows
 
@@ -104,6 +104,27 @@ def load_kessana_comparables():
     return {r["regime"]: float(r["government_take"]) for r in _read("kessana_comparables.csv")}
 
 
+def load_portfolio_projects():
+    """The Q4 2029 portfolio: five things Halden could do with its five-year envelope (one of them brings money in)."""
+    out = {}
+    for r in _read("portfolio_projects.csv"):
+        out[r["key"]] = {"label": r["label"], "bucket": r["bucket"], "cost": float(r["cost"]), "npv_base": float(r["npv_base"]),
+                         "carbon_sens": float(r["carbon_sens"]), "demand_sens": float(r["demand_sens"]),
+                         "needs_rotterdam": r["needs_rotterdam"] == "1"}
+    return out
+
+
+def load_portfolio_buckets():
+    return {r["bucket"]: {"label": r["label"], "floor": float(r["floor"]), "ceiling": float(r["ceiling"])} for r in _read("portfolio_buckets.csv")}
+
+
+def load_portfolio_scenarios():
+    out = {"carbon": {}, "demand": {}}
+    for r in _read("portfolio_scenarios.csv"):
+        out[r["kind"]][r["key"]] = {"label": r["label"], "value": float(r["value"])}
+    return out
+
+
 def load_cohort_capital():
     return [{"behaviour": r["behaviour"], "min": float(r["score_min"]), "max": float(r["score_max"]),
              "rate": float(r["discount_rate"]), "envelope": float(r["capital_envelope"])} for r in _read("cohort_capital.csv")]
@@ -117,6 +138,9 @@ OPEC = load_opec_scenarios()
 REBRAND = load_rebrand_markets()
 ELASTICITY = load_product_elasticities()
 YIELDS = load_refinery_yields()
+PORTFOLIO = load_portfolio_projects()
+BUCKETS = load_portfolio_buckets()
+SCENARIOS = load_portfolio_scenarios()
 KESSANA_TAKES = load_kessana_takes()
 KESSANA_COMPARABLES = load_kessana_comparables()
 # Where each negotiating position lands (structure, not numbers): signing takes the demand, a reasoned counter
@@ -149,6 +173,7 @@ class Decisions:
     rebrand: dict = field(default_factory=dict)  # Cordell region -> "keep" | "rebrand" (put the Halden name on the stations)
     # Carried from the team's own history, not set on a page (the runner works them out):
     kessana_position: str = "none"  # none | accept | counter | threaten | exit: Halden's one-time answer to the Kessana government (Q3 2029)
+    portfolio: dict = field(default_factory=dict)  # Q4 2029 portfolio: project key -> "go" | "hold" (one-time; the money goes out over five years)
     delacroix_cover: bool = False   # the Q4 2027 crude price left Baton Rouge reporting strong, so Marcus can resist run cuts
     straits_strained: bool = False  # the team kept asking Singapore for more than Straits Pacific allows
 
@@ -170,6 +195,8 @@ class State:
     prev_br_run: float = 96.0                      # how hard Baton Rouge ran last quarter (a run cut in a recession can be resisted)
     kessana_take: float = 0.62                     # the government's share of Kessana profit oil (opening_state sets it from the data)
     kessana_exited: bool = False                   # Halden handed the Kessana block back
+    portfolio: dict = field(default_factory=dict)  # portfolio project key -> quarters since the go-ahead
+    europe_sold: bool = False                      # the European stations have been sold (the line stops the quarter after)
 
 
 def rig_productivity(k):
@@ -349,6 +376,43 @@ def kessana_pv_stay(take):
 def kessana_indifference_take():
     """The take at which staying is worth exactly the exit value: how far the government could push on economics alone."""
     return 1 - C["kessana_exit_value"] / (kessana_profit_oil() * kessana_annual_mbbl() * kessana_annuity_factor())
+
+
+def portfolio_discretionary():
+    """What is left of the five-year envelope after the sustaining floor."""
+    return C["portfolio_envelope"] - C["portfolio_sustaining_floor"]
+
+
+def portfolio_npv(key, carbon, demand_code):
+    """A project's value in one world: its base value at $40 carbon, moved by the carbon price and by how fast oil demand falls."""
+    p = PORTFOLIO[key]
+    return p["npv_base"] + p["carbon_sens"] * (carbon - C["portfolio_carbon_base"]) + p["demand_sens"] * demand_code
+
+
+def portfolio_check(chosen, rotterdam_closed=False):
+    """Why a set of projects can't be funded, in order: [] when it can. The divestment's proceeds widen the envelope."""
+    problems = []
+    cost = sum(PORTFOLIO[k]["cost"] for k in chosen)
+    if cost > portfolio_discretionary() + 1e-9:
+        problems.append("envelope")
+    for b in BUCKETS:
+        spend = sum(PORTFOLIO[k]["cost"] for k in chosen if PORTFOLIO[k]["bucket"] == b and PORTFOLIO[k]["cost"] > 0)
+        if spend > BUCKETS[b]["ceiling"] + 1e-9:
+            problems.append(f"bucket:{b}")
+    if rotterdam_closed and any(PORTFOLIO[k]["needs_rotterdam"] for k in chosen):
+        problems.append("rotterdam_closed")
+    return problems
+
+
+def portfolio_feasible_sets(rotterdam_closed=False):
+    """Every non-empty set of projects that can be funded."""
+    keys = list(PORTFOLIO)
+    out = []
+    for mask in range(1, 1 << len(keys)):
+        chosen = [k for i, k in enumerate(keys) if mask >> i & 1]
+        if not portfolio_check(chosen, rotterdam_closed):
+            out.append(chosen)
+    return out
 
 
 def kessana_outcome(position, state: State):
@@ -577,6 +641,22 @@ def step(state: State, dec: Decisions, mkt: dict):
     lines["cordell_price_match"] = -match_cost / 1e6   # already inside cordell_fuel; shown on its own
     lines["rebrand_gain"] = rebrand_gain                # already inside cordell_shop; shown on its own
 
+    # The Q4 2029 portfolio (one-time): what the team went ahead with. Its money goes out evenly over five years from the
+    # quarter after the go-ahead; selling the European stations brings the proceeds in now and ends their line next quarter.
+    portfolio_age = {}
+    for key, age in state.portfolio.items():
+        portfolio_age[key] = age + 1
+    portfolio_new = []
+    if mkt.get("carbon", 0.0) > 0 and not state.portfolio:
+        for key, choice in dec.portfolio.items():
+            if choice == "go" and key in PORTFOLIO:
+                portfolio_age[key] = 0
+                portfolio_new.append(key)
+    europe_sold = state.europe_sold or "euro_retail_divest" in portfolio_new
+    divest_proceeds = -PORTFOLIO["euro_retail_divest"]["cost"] if "euro_retail_divest" in portfolio_new else 0.0
+    portfolio_capex = sum(PORTFOLIO[k]["cost"] / (C["portfolio_years"] * 4) for k, age in portfolio_age.items()
+                          if PORTFOLIO[k]["cost"] > 0 and 1 <= age <= C["portfolio_years"] * 4)
+
     eu_factor = state.europe_volume_factor * (1 - C["europe_volume_decline_qtr"])
     eu_gal_total = C["europe_sites"] * C["europe_gal_per_site_qtr"] * eu_factor * crude_vf
     eu = 0.0
@@ -584,8 +664,10 @@ def step(state: State, dec: Decisions, mkt: dict):
         vf, delta = volume_factor(c, dec.offsets[c["key"]])
         gal = eu_gal_total * c["share"] * vf
         eu += gal * (C["europe_fuel_margin"] + delta + C["europe_nonfuel_per_gal"])
-    lines["europe_stations"] = eu / 1e6 * eur_f
-    lines["retail_fixed"] = -C["retail_fixed_cost"]
+    europe_gone = state.europe_sold   # sold in an earlier quarter: the stations are someone else's now
+    europe_share_fixed = C["europe_sites"] / (C["europe_sites"] + C["cordell_sites"])
+    lines["europe_stations"] = 0.0 if europe_gone else eu / 1e6 * eur_f
+    lines["retail_fixed"] = -C["retail_fixed_cost"] * (1 - europe_share_fixed if europe_gone else 1.0)
     retail = lines["cordell_fuel"] + lines["cordell_shop"] + lines["europe_stations"] + lines["retail_fixed"]
 
     # ---------------- Head office ----------------
@@ -612,11 +694,11 @@ def step(state: State, dec: Decisions, mkt: dict):
     # ---------------- Money ----------------
     da = state.capital_employed * C["da_rate_annual"] / 4
     tax = C["tax_rate"] * max(0.0, ebitda - da)
-    new_capital = commit_outlay + rebrand_outlay   # the rebrand is capital spending, treated like a project (decision S2)
+    new_capital = commit_outlay + rebrand_outlay + portfolio_capex   # the rebrand and the portfolio are capital spending, treated like projects (decision S2)
     capex = C["other_sustaining_capex"] + dec.rigs * C["rig_capex_per_qtr"] + new_capital
     fcf = ebitda - tax - capex
     new_ce = state.capital_employed + capex - da - (C["kessana_book_value"] if kes_exit_proceeds > 0 else 0.0)
-    new_nd = state.net_debt - fcf + C["shareholder_payout"] - kes_exit_proceeds   # exit proceeds pay down debt; the write-down is non-cash
+    new_nd = state.net_debt - fcf + C["shareholder_payout"] - kes_exit_proceeds - divest_proceeds   # sale proceeds pay down debt; write-downs are non-cash
 
     # ---------------- Plant condition ----------------
     health = state.asset_health
@@ -665,7 +747,7 @@ def step(state: State, dec: Decisions, mkt: dict):
                       capital_employed=new_ce, net_debt=new_nd, asset_health=health,
                       europe_volume_factor=eu_factor, held_up=held_up, held_down=held_down,
                       hedges=new_hedges, projects=proj_age, rebranded=rebrand_age, prev_br_run=br_run,
-                      kessana_take=kes_take, kessana_exited=kes_exited)
+                      kessana_take=kes_take, kessana_exited=kes_exited, portfolio=portfolio_age, europe_sold=europe_sold)
     money = {"ebitda": ebitda, "da": da, "tax": tax, "capex": capex, "fcf": fcf,
              "capital_employed_end": new_ce, "net_debt_end": new_nd}
     ops = {"tp": tp, "market_tp": market_tp, "cost_tp": cost_tp, "permian_prod": prod,
@@ -674,7 +756,8 @@ def step(state: State, dec: Decisions, mkt: dict):
            "rival_match_cost": match_cost / 1e6, "rival_ignore_cost": ignore_cost / 1e6,
            "wti_shock": shock, "gc": mkt["gc"], "wti": wti, "rebrand_outlay": rebrand_outlay,
            "nonfuel_per_gal": nonfuel_per_gal, "br_run": br_run,
-           "kessana_take": kes_take, "kessana_exit_proceeds": kes_exit_proceeds, "kessana_forgone": kes_forgone}
+           "kessana_take": kes_take, "kessana_exit_proceeds": kes_exit_proceeds, "kessana_forgone": kes_forgone,
+           "portfolio_capex": portfolio_capex, "divest_proceeds": divest_proceeds, "carbon": mkt.get("carbon", 0.0)}
     return lines, seg, money, kpi, ops, notes, new_state
 
 

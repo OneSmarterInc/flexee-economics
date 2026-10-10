@@ -43,6 +43,15 @@ final class ModelData
     /** @var array<string, float> comparable fiscal regime => government take */
     public readonly array $kessanaComparables;
 
+    /** @var array<string, array{label: string, bucket: string, cost: float, npv_base: float, carbon_sens: float, demand_sens: float, needs_rotterdam: bool}> the Q4 2029 portfolio projects */
+    public readonly array $portfolio;
+
+    /** @var array<string, array{label: string, floor: float, ceiling: float}> */
+    public readonly array $buckets;
+
+    /** @var array{carbon: array<string, array{label: string, value: float}>, demand: array<string, array{label: string, value: float}>} */
+    public readonly array $scenarios;
+
     /** @var array<string, array<string, float>> refinery => product => yield */
     public readonly array $yields;
 
@@ -81,6 +90,7 @@ final class ModelData
             'opec' => ($r['opec'] ?? '0') === '1',
             'recession' => ($r['recession'] ?? '0') === '1',
             'kessana' => ($r['kessana'] ?? '0') === '1',
+            'carbon' => (float) ($r['carbon'] ?? 0),
         ], self::csv("$root/data/market_path.csv"));
 
         $projects = [];
@@ -132,6 +142,22 @@ final class ModelData
             $comparables[$r['regime']] = (float) $r['government_take'];
         }
         $this->kessanaComparables = $comparables;
+        $portfolio = [];
+        foreach (self::csv("$root/data/portfolio_projects.csv") as $r) {
+            $portfolio[$r['key']] = ['label' => $r['label'], 'bucket' => $r['bucket'], 'cost' => (float) $r['cost'], 'npv_base' => (float) $r['npv_base'],
+                'carbon_sens' => (float) $r['carbon_sens'], 'demand_sens' => (float) $r['demand_sens'], 'needs_rotterdam' => $r['needs_rotterdam'] === '1'];
+        }
+        $this->portfolio = $portfolio;
+        $buckets = [];
+        foreach (self::csv("$root/data/portfolio_buckets.csv") as $r) {
+            $buckets[$r['bucket']] = ['label' => $r['label'], 'floor' => (float) $r['floor'], 'ceiling' => (float) $r['ceiling']];
+        }
+        $this->buckets = $buckets;
+        $scenarios = ['carbon' => [], 'demand' => []];
+        foreach (self::csv("$root/data/portfolio_scenarios.csv") as $r) {
+            $scenarios[$r['kind'] === 'carbon' ? 'carbon' : 'demand'][$r['key']] = ['label' => $r['label'], 'value' => (float) $r['value']];
+        }
+        $this->scenarios = $scenarios;
 
         $this->cordell = self::clusters("$root/data/cordell_clusters.csv", 'cluster');
         $this->europe = self::clusters("$root/data/europe_countries.csv", 'country');

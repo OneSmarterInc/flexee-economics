@@ -195,6 +195,25 @@ export interface PlayProps {
             exitValue: number;
             bookValue: number;
         } | null;
+        portfolio: {
+            open: boolean;
+            envelope: number;
+            floor: number;
+            discretionary: number;
+            years: number;
+            carbon: number;
+            rotterdamClosed: boolean;
+            buckets: { key: string; label: string; ceiling: number }[];
+            projects: {
+                key: string;
+                label: string;
+                bucket: string;
+                bucketLabel: string;
+                cost: number;
+                available: boolean;
+                before: string;
+            }[];
+        } | null;
     };
     memo: { text: string; savedAt: string | null };
     ready: string | null;
@@ -233,6 +252,20 @@ export interface LeverText {
         settled: { title: string; badge: string; text: string };
         exited: { title: string; badge: string; text: string };
         means: Record<string, string>;
+    };
+    portfolio: {
+        intro: string;
+        old_list_closed: string;
+        under_way: string;
+        not_taken: string;
+        going: string;
+        sold: string;
+        held: string;
+        not_possible: string;
+        means: string;
+        means_none: string;
+        sale_note: string;
+        over: string;
     };
     badges: Record<string, string>;
     station_notes: Record<string, string>;

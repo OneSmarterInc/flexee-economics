@@ -8,6 +8,7 @@ use App\Halden\Content\ContentPack;
 use App\Halden\Game\DecisionBook;
 use App\Halden\Game\QuarterRunner;
 use App\Halden\Game\QuarterView;
+use App\Halden\OperatingModel\OperatingModel;
 use App\Http\Controllers\Controller;
 use App\Models\Quarter;
 use App\Models\Team;
@@ -52,7 +53,7 @@ class PlayController extends Controller
         return Inertia::render('halden/Play', $view->build($team, $quarter, $user) + ['startPage' => (string) $request->query('page', '')]);
     }
 
-    public function savePage(Request $request, Quarter $quarter, string $page, DecisionBook $book, QuarterRunner $runner): RedirectResponse
+    public function savePage(Request $request, Quarter $quarter, string $page, DecisionBook $book, QuarterRunner $runner, OperatingModel $model): RedirectResponse
     {
         $user = $this->user($request);
         $team = $this->teamOf($user);
@@ -80,12 +81,36 @@ class PlayController extends Controller
                     number_format($outlay), number_format($envelope),
                 )]);
             }
+            if ($book->isOpen('port_helix_rotterdam', $quarter->number)) {
+                $chosen = $book->portfolioChosen(array_merge($tq->decisions ?? [], $clean));
+                $closed = $runner->startState($team, $quarter)->rotStatus === 'closed';
+                $problems = $model->portfolioCheck($chosen, $closed);
+                if ($problems !== []) {
+                    throw ValidationException::withMessages(['capital' => $this->portfolioProblem($problems[0], $model)]);
+                }
+            }
         }
         $tq->decisions = array_merge($tq->decisions ?? [], $clean);
         $tq->saved_pages = array_merge($tq->saved_pages ?? [], [$page => ['by' => $user->name, 'at' => now()->toIso8601String()]]);
         $tq->save();
 
         return back()->with('saved', $page);
+    }
+
+    private function portfolioProblem(string $problem, OperatingModel $model): string
+    {
+        $data = $model->data;
+        if ($problem === 'envelope') {
+            return sprintf('That adds up to more than the $%sM you have to place. Selling the European stations adds $%sM; otherwise hold something.',
+                number_format($model->portfolioDiscretionary()), number_format(-$data->portfolio['euro_retail_divest']['cost']));
+        }
+        if ($problem === 'rotterdam_closed') {
+            return "Rotterdam is closed for good, so there's nothing there to convert to biofuels.";
+        }
+        $bucket = substr($problem, strlen('bucket:'));
+
+        return sprintf("The board caps \"%s\" at \$%sM, and that's over it. Hold one of the projects in that group.",
+            strtolower($data->buckets[$bucket]['label']), number_format($data->buckets[$bucket]['ceiling']));
     }
 
     public function saveMemo(Request $request, Quarter $quarter): RedirectResponse

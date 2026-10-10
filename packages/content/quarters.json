@@ -1270,5 +1270,148 @@
         ]
       }
     }
+  },
+  "12": {
+    "briefing": {
+      "dateline": "Q4 2029 · Monday 1 October · Houston",
+      "headline": "What should Halden become?",
+      "paragraphs": [
+        "Margrethe Lund called on Friday, which she never does. The board wants a five-year plan before the January meeting, and it wants it from you, not from Ingrid. Here's the shape of it: $1.8 billion to spend over five years. $600 million of that has to go on keeping what Halden already has running. The other $1.2 billion is yours to place.",
+        "Ingrid's team has five things on the table. Drill more in the Permian. Build Helix at Rotterdam, the European end of the business you were offered in 2028. Convert part of Rotterdam to make biofuels. Build offshore wind off the Norwegian coast. Or sell the 1,100 stations in Europe, which would bring in $550 million and widen what you can afford.",
+        "None of them is a sure thing. Each one is worth money in some futures and loses money in others, depending on where the price of carbon goes and how fast the world stops wanting oil. A carbon price has appeared on the Prices page this quarter, at $40 a tonne. Nobody knows where it will be in 2034. The board isn't asking you to know. It's asking you to choose, and to defend the choice."
+      ],
+      "question": "What should Halden spend its next five years becoming, and why does your choice hold up in a world you can't predict?"
+    },
+    "rule": "The board gives you $1,800M to spend over five years. $600M must keep what Halden has running, so $1,200M is free to place. Five things are on the Big projects page: expand in the Permian ($650M), Helix at Rotterdam ($1,200M), convert part of Rotterdam to biofuels ($480M; not possible if Rotterdam is closed for good), offshore wind off Norway ($550M), and selling the European stations, which brings in $550M and widens what you can afford. The board caps each group: more oil $800M, next to what we do $1,200M, clean energy $700M, so Helix and biofuels can't both go. You decide once, this quarter. The money goes out evenly over five years from next quarter, as capital spending (it adds to debt, not to your free cash flow score). If you sell the stations, the $550M pays down debt now and their earnings leave Gas stations from next quarter. Each project's value depends on the future: the exhibit shows every project in nine futures, three carbon prices against three paths for oil demand, and every one of them is worth money in some futures and loses it in others. Which future arrives is for the board meeting.",
+    "new_pages_note": "New this quarter: the five-year portfolio, on the Big projects page. The old project list is closed; what you went ahead with is under way.",
+    "exhibits": [
+      {
+        "title": "The five-year portfolio: what each project is worth in nine futures, and which sets of projects the envelope allows",
+        "file": "q12/halden-q12-portfolio.xlsx"
+      },
+      {
+        "title": "Python notebook with the same data (optional)",
+        "file": "q12/halden-q12-analysis.ipynb"
+      },
+      {
+        "title": "Data files the notebook reads (unzip them next to it)",
+        "file": "q12/halden-q12-notebook-data.zip"
+      }
+    ],
+    "marchetti": "There's a new line on this page: carbon, at $40 a tonne. Oil is $70 and the margins are steady, and none of that matters much for a five-year plan. What matters is that the carbon price and the demand for oil could each go three ways from here, and the projects on the table don't all point the same way. Don't look for the project that wins everywhere. There isn't one.",
+    "story": {
+      "band_on": "portfolio",
+      "bands": [
+        {
+          "key": "transition",
+          "title": "A different company",
+          "paragraphs": [
+            "You placed the money on the far side of oil: {portfolio_list}, {portfolio_cost} over five years. {sale_line} Margrethe read the plan twice and called Erik. Marcus read it once and asked whether anybody still remembered that Baton Rouge pays for all of this.",
+            "The money starts going out next quarter, a twentieth of it every quarter for five years. Whether it was the right call depends on a carbon price and a demand curve that nobody in the building can see from here. That's the job."
+          ]
+        },
+        {
+          "key": "oil",
+          "title": "More of what works",
+          "paragraphs": [
+            "You placed the money on what Halden knows: {portfolio_list}, {portfolio_cost} over five years. {sale_line} Marcus approved. Bjørn approved. Margrethe asked, in her mildest voice, whether the board had asked what the company should become or how it should stay the same.",
+            "It's a defensible answer in a world where carbon stays cheap and people keep driving. The money starts going out next quarter, a twentieth of it every quarter for five years."
+          ]
+        },
+        {
+          "key": "both",
+          "title": "A foot in each world",
+          "paragraphs": [
+            "You split the money: {portfolio_list}, {portfolio_cost} over five years. {sale_line} Nobody at the table loved it and nobody could knock it down, which Grant says is what a portfolio is supposed to look like.",
+            "The money starts going out next quarter, a twentieth of it every quarter for five years. Some of it will look clever in 2034 and some of it won't, and the point was never to be right about all of it."
+          ]
+        },
+        {
+          "key": "none",
+          "title": "Nothing, for now",
+          "paragraphs": [
+            "You placed nothing. {sale_line} The $1.2 billion stays unspent, the debt stays where it is, and Margrethe told the board that the EVP had answered the question of what Halden should become by declining to answer it.",
+            "There's a case for waiting: every project on the table loses money in some future. There's also a board meeting in two quarters, and waiting is the one answer it hasn't heard before."
+          ]
+        }
+      ],
+      "closing": "Halden made {ebitda} before interest, tax and depreciation. Next quarter, the contractors and the Norwegian unions come to the table."
+    },
+    "fills": {
+      "{sale_line}": {
+        "on": "band:sale",
+        "sold": "You also sold the European stations: {divest_proceeds} came in and paid down debt, and from next quarter the 1,100 stations in the Netherlands, Belgium and Germany are someone else's.",
+        "kept": "You kept the European stations."
+      }
+    },
+    "news": [
+      {
+        "title": "A price on carbon, at last",
+        "body": "The carbon price that Europe has had for years is spreading. At $40 a tonne it barely registers in a refinery's costs. At $180 it would reshape every oil company's plans. Analysts' five-year forecasts run from one end of that range to the other, which tells you how much anybody knows."
+      },
+      {
+        "title": "Oil companies pick sides",
+        "body": "Three of Halden's rivals announced five-year plans this quarter. One is doubling down on shale. One is building wind farms and selling refineries. One is doing a little of each and being called unfocused by the analysts who called the other two reckless."
+      },
+      {
+        "title": "Who wants gas stations in Europe",
+        "body": "Buyers have appeared for European station networks: convenience retailers and charging companies that want the sites more than the fuel. Prices paid this year have been about two years of a network's earnings, and sellers have taken them."
+      }
+    ],
+    "relations": {
+      "band_on": "portfolio",
+      "bands": {
+        "transition": [
+          {
+            "who": "Margrethe Lund",
+            "was": "Cooperative",
+            "now": "Supportive",
+            "why": "You answered the board's question with a company that looks different in five years."
+          },
+          {
+            "who": "Marcus Delacroix",
+            "was": "Cooperative",
+            "now": "Guarded",
+            "why": "Baton Rouge pays for a plan that puts nothing into refining."
+          }
+        ],
+        "oil": [
+          {
+            "who": "Margrethe Lund",
+            "was": "Cooperative",
+            "now": "Guarded",
+            "why": "The board asked what Halden should become, and you said: the same, with more rigs."
+          },
+          {
+            "who": "Marcus Delacroix",
+            "was": "Cooperative",
+            "now": "Supportive",
+            "why": "He got the company he recognises."
+          }
+        ],
+        "both": [
+          {
+            "who": "Margrethe Lund",
+            "was": "Cooperative",
+            "now": "Cooperative",
+            "why": "She'll want to hear the argument for the split at the board meeting, and she thinks there is one."
+          }
+        ],
+        "none": [
+          {
+            "who": "Margrethe Lund",
+            "was": "Cooperative",
+            "now": "Guarded",
+            "why": "The board asked a question and got a shrug."
+          },
+          {
+            "who": "Grant Whitaker",
+            "was": "Cooperative",
+            "now": "Supportive",
+            "why": "No new debt. He's happy, which worries you a little."
+          }
+        ]
+      }
+    }
   }
 }

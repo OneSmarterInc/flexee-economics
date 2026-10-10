@@ -13,6 +13,7 @@ final class CompanyState
      * @param  array<string, float>  $hedges  hedges opened last quarter, settled this quarter
      * @param  array<string, int>  $projects  committed project key => quarters since commitment
      * @param  array<string, int>  $rebranded  rebranded Cordell region => quarters since the rebrand
+     * @param  array<string, int>  $portfolio  Q4 2029 portfolio project key => quarters since the go-ahead
      */
     public function __construct(
         public float $permianProd,
@@ -30,6 +31,8 @@ final class CompanyState
         public float $prevBrRun = 96.0,    // how hard Baton Rouge ran last quarter (a run cut in a recession can be resisted)
         public float $kessanaTake = 0.62,  // the government's share of Kessana profit oil (the opening state sets it from the data)
         public bool $kessanaExited = false, // Halden handed the Kessana block back
+        public array $portfolio = [],       // Q4 2029 portfolio project key => quarters since the go-ahead
+        public bool $europeSold = false,    // the European stations have been sold (the line stops the quarter after)
     ) {}
 
     /** @return array<string, mixed> */
@@ -57,6 +60,8 @@ final class CompanyState
             prevBrRun: (float) ($a['prevBrRun'] ?? 96.0),
             kessanaTake: (float) ($a['kessanaTake'] ?? 0.62),
             kessanaExited: (bool) ($a['kessanaExited'] ?? false),
+            portfolio: array_map('intval', (array) ($a['portfolio'] ?? [])),
+            europeSold: (bool) ($a['europeSold'] ?? false),
         );
     }
 }

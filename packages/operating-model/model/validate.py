@@ -343,7 +343,47 @@ check("Over ten years signing at 74% is worth $2,909M more than leaving, and set
       abs(pv["demanded"] - hm.C["kessana_exit_value"] - 2909.400975) < 1e-5 and abs(pv["mid"] - pv["demanded"] - 712.938687) < 1e-5,
       f"{pv['demanded'] - 180:.1f}; {pv['mid'] - pv['demanded']:.1f}")
 
-# 27 Reference teams: careful > average > careless in every quarter
+# 27 Quarter 12: what the company should become (Week 12 package)
+m12 = q("2029Q4")
+grid = {k: {(c, d): hm.portfolio_npv(k, hm.SCENARIOS["carbon"][c]["value"], hm.SCENARIOS["demand"][d]["value"])
+            for c in hm.SCENARIOS["carbon"] for d in hm.SCENARIOS["demand"]} for k in hm.PORTFOLIO}
+pkg = {"helix_rotterdam": (-180, 308), "permian_expansion": (-126, 220), "biofuel_conversion": (-40, 136), "offshore_wind": (-90, 120), "euro_retail_divest": (-60, 102)}
+check("Project values across the nine worlds reproduce the Week 12 package (Helix at Rotterdam -180 to +308, Permian +220 to -126, biofuels -40 to +136, wind -90 to +120, selling Europe -60 to +102)",
+      all(abs(min(grid[k].values()) - lo) < 1e-9 and abs(max(grid[k].values()) - hi) < 1e-9 for k, (lo, hi) in pkg.items()),
+      "; ".join(f"{k} {min(v.values()):.0f}..{max(v.values()):.0f}" for k, v in grid.items()))
+check("Every project swings sign across the worlds: there is no portfolio that wins everywhere",
+      all(min(v.values()) < 0 < max(v.values()) for v in grid.values()) and
+      grid["permian_expansion"][("low", "slow")] > 0 > grid["helix_rotterdam"][("low", "slow")] and grid["permian_expansion"][("high", "collapse")] < 0 < grid["helix_rotterdam"][("high", "collapse")],
+      "Permian wins when carbon stays cheap and demand holds; Helix at Rotterdam wins when carbon is dear and demand collapses")
+feas = hm.portfolio_feasible_sets()
+with_hr = [f for f in feas if "helix_rotterdam" in f]
+unlocked = [f for f in feas if "euro_retail_divest" in f and hm.portfolio_check([k for k in f if k != "euro_retail_divest"]) != []]
+check("After the $600M sustaining floor, $1,200M is free; 17 sets of projects can be funded, 3 of them with Helix at Rotterdam, and 2 only because the European stations are sold",
+      abs(hm.portfolio_discretionary() - 1200) < 1e-9 and len(feas) == 17 and len(with_hr) == 3 and len(unlocked) == 2,
+      f"{len(feas)} fundable, {len(with_hr)} with Helix at Rotterdam, {len(unlocked)} unlocked by the sale")
+check("The full transition bet (Helix at Rotterdam plus offshore wind, $1,750M) is affordable only with the $550M from selling the European stations; Helix and biofuels together break the $1,200M adjacent ceiling",
+      hm.portfolio_check(["helix_rotterdam", "offshore_wind"]) == ["envelope"] and hm.portfolio_check(["helix_rotterdam", "offshore_wind", "euro_retail_divest"]) == []
+      and "bucket:adjacent" in hm.portfolio_check(["helix_rotterdam", "biofuel_conversion", "euro_retail_divest"]),
+      "envelope; ok with the sale; adjacent ceiling")
+check("A closed Rotterdam cannot be converted to biofuels (the Q3 2027 call reaches Q4 2029)",
+      hm.portfolio_check(["biofuel_conversion"], rotterdam_closed=True) == ["rotterdam_closed"] and len(hm.portfolio_feasible_sets(rotterdam_closed=True)) < len(feas),
+      f"{len(hm.portfolio_feasible_sets(rotterdam_closed=True))} fundable sets with Rotterdam closed")
+go = hm.step(copy.deepcopy(start), hm.Decisions(portfolio={"helix_rotterdam": "go", "euro_retail_divest": "go"}), m12)
+hold = hm.step(copy.deepcopy(start), hm.Decisions(), m12)
+nxt_go = hm.step(go[6], hm.Decisions(), q("2029Q3"))
+nxt_hold = hm.step(hold[6], hm.Decisions(), q("2029Q3"))
+check("Selling the European stations brings $550M in now (off the debt, not into EBITDA) and the stations' line is gone from the next quarter, with Europe's share of the retail fixed cost",
+      abs(go[4]["divest_proceeds"] - 550) < 1e-9 and abs(go[2]["ebitda"] - hold[2]["ebitda"]) < 1e-9 and abs((hold[2]["net_debt_end"] - go[2]["net_debt_end"]) - 550) < 1e-9
+      and nxt_go[0]["europe_stations"] == 0 and nxt_hold[0]["europe_stations"] > 50 and abs(nxt_go[0]["retail_fixed"] - nxt_hold[0]["retail_fixed"] * (1 - 1100 / 5400)) < 1e-9,
+      f"next quarter Europe {nxt_hold[0]['europe_stations']:.1f} -> 0; fixed {nxt_hold[0]['retail_fixed']:.1f} -> {nxt_go[0]['retail_fixed']:.1f}")
+check("Helix at Rotterdam's $1,200M goes out evenly over five years from the quarter after the go-ahead ($60M a quarter, added back in the score); nothing goes out in the go-ahead quarter",
+      abs(go[4]["portfolio_capex"]) < 1e-9 and abs(nxt_go[4]["portfolio_capex"] - 60) < 1e-9 and abs(nxt_go[2]["capex"] - nxt_hold[2]["capex"] - 60) < 1e-9
+      and abs(nxt_go[3]["free_cash_flow"] - (nxt_go[2]["fcf"] + 60)) < 1e-9,
+      f"{nxt_go[4]['portfolio_capex']:.0f} a quarter")
+check("Outside Q4 2029 the portfolio page does nothing", abs(hm.step(copy.deepcopy(start), hm.Decisions(portfolio={"helix_rotterdam": "go"}), m11)[2]["net_debt_end"]
+      - hm.step(copy.deepcopy(start), hm.Decisions(), m11)[2]["net_debt_end"]) < 1e-9, "same net debt")
+
+# 28 Reference teams: careful > average > careless in every quarter
 summary = rr.main()
 ok = True
 detail = []
@@ -351,16 +391,16 @@ for i in range(len(summary["careful"])):
     c, a, l = (summary[t][i][2] for t in ("careful", "average", "careless"))
     ok &= c > a > l
     detail.append(f"Q{i+1}: {c:.1f} / {a:.1f} / {l:.1f}")
-check("Score order careful > average > careless in all eleven quarters", ok, "; ".join(detail))
+check("Score order careful > average > careless in all twelve quarters", ok, "; ".join(detail))
 
-# 28 Determinism: fixtures rebuild byte-identical
+# 29 Determinism: fixtures rebuild byte-identical
 h1 = hashlib.sha256((ROOT / "fixtures/golden_quarters.csv").read_bytes()).hexdigest()
 rr.main()
 h2 = hashlib.sha256((ROOT / "fixtures/golden_quarters.csv").read_bytes()).hexdigest()
 check("Fixtures rebuild identically", h1 == h2, h1[:16])
 
 passed = sum(1 for c in checks if c[1])
-lines = ["# Operating model validation (v0.7, Quarters 1-11)", "", f"**Result: {passed} of {len(checks)} checks pass.**", "",
+lines = ["# Operating model validation (v0.8, Quarters 1-12)", "", f"**Result: {passed} of {len(checks)} checks pass.**", "",
          "| # | Check | Result | Detail |", "| --- | --- | --- | --- |"]
 for i, (n, okk, d) in enumerate(checks, 1):
     lines.append(f"| {i} | {n} | {'PASS' if okk else 'FAIL'} | {d} |")

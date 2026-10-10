@@ -213,6 +213,17 @@ final class ContentPack
                 $position = (string) ($decisions['kessana_position'] ?? 'accept');
 
                 return ['key' => in_array($position, ['accept', 'counter', 'threaten', 'exit'], true) ? $position : 'accept', 'value' => (float) ($results['ops.kessana_take'] ?? 0)];
+            case 'portfolio':
+                $oil = ($decisions['port_permian_expansion'] ?? 'hold') === 'go';
+                $transition = 0;
+                foreach (['helix_rotterdam', 'biofuel_conversion', 'offshore_wind'] as $k) {
+                    $transition += ($decisions["port_$k"] ?? 'hold') === 'go' ? 1 : 0;
+                }
+                $key = $oil && $transition > 0 ? 'both' : ($oil ? 'oil' : ($transition > 0 ? 'transition' : 'none'));
+
+                return ['key' => $key, 'value' => (float) $transition];
+            case 'sale':
+                return ['key' => ($decisions['port_euro_retail_divest'] ?? 'hold') === 'go' ? 'sold' : 'kept', 'value' => (float) ($results['ops.divest_proceeds'] ?? 0)];
             case 'projects':
                 $helix = ($decisions['proj_helix'] ?? 'hold') === 'commit';
                 $refining = ($decisions['proj_br_upgrade'] ?? 'hold') === 'commit' || ($decisions['proj_rot_upgrade'] ?? 'hold') === 'commit';
@@ -281,6 +292,8 @@ final class ContentPack
             '{kessana_take}' => number_format((float) ($r['ops.kessana_take'] ?? 0) * 100).'%',
             '{kessana_cost}' => self::money(abs((float) ($r['line.kessana_take_change'] ?? 0))),   // always a cost, so shown without a sign
             '{kessana_forgone}' => $money('ops.kessana_forgone'),
+            '{carbon}' => '$'.number_format((float) ($r['ops.carbon'] ?? 0), 0),
+            '{divest_proceeds}' => $money('ops.divest_proceeds'),
         ];
     }
 

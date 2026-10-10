@@ -149,6 +149,47 @@ class EconomicRulesTest extends TestCase
         $this->assertSame(0.0, $this->play(['kessanaPosition' => 'exit'], '2029Q2', $exit->state)->lines['kessana']);
     }
 
+    public function test_the_portfolio_matches_the_week_12_package_and_every_project_swings_sign(): void
+    {
+        $pkg = ['helix_rotterdam' => [-180, 308], 'permian_expansion' => [-126, 220], 'biofuel_conversion' => [-40, 136], 'offshore_wind' => [-90, 120], 'euro_retail_divest' => [-60, 102]];
+        foreach ($pkg as $key => [$lo, $hi]) {
+            $values = [];
+            foreach ($this->data->scenarios['carbon'] as $c) {
+                foreach ($this->data->scenarios['demand'] as $d) {
+                    $values[] = $this->model->portfolioNpv($key, $c['value'], $d['value']);
+                }
+            }
+            $this->assertEqualsWithDelta($lo, min($values), 1e-9, $key);
+            $this->assertEqualsWithDelta($hi, max($values), 1e-9, $key);
+            $this->assertTrue(min($values) < 0 && max($values) > 0, "$key swings sign");
+        }
+        $this->assertEqualsWithDelta(1200.0, $this->model->portfolioDiscretionary(), 1e-9);
+        $feasible = $this->model->portfolioFeasibleSets();
+        $this->assertCount(17, $feasible);
+        $this->assertCount(3, array_filter($feasible, fn (array $f) => in_array('helix_rotterdam', $f, true)));
+        $this->assertSame(['envelope'], $this->model->portfolioCheck(['helix_rotterdam', 'offshore_wind']));
+        $this->assertSame([], $this->model->portfolioCheck(['helix_rotterdam', 'offshore_wind', 'euro_retail_divest']));
+        $this->assertContains('bucket:adjacent', $this->model->portfolioCheck(['helix_rotterdam', 'biofuel_conversion', 'euro_retail_divest']));
+        $this->assertSame(['rotterdam_closed'], $this->model->portfolioCheck(['biofuel_conversion'], true));
+    }
+
+    public function test_the_portfolio_spends_over_five_years_and_the_sale_ends_the_european_line(): void
+    {
+        $go = $this->play(['portfolio' => ['helix_rotterdam' => 'go', 'euro_retail_divest' => 'go']], '2029Q4');
+        $hold = $this->play([], '2029Q4');
+        $this->assertEqualsWithDelta(550.0, $go->ops['divest_proceeds'], 1e-9);
+        $this->assertEqualsWithDelta($hold->money['ebitda'], $go->money['ebitda'], 1e-9, 'the sale is not in EBITDA');
+        $this->assertEqualsWithDelta(550.0, $hold->money['net_debt_end'] - $go->money['net_debt_end'], 1e-9);
+        $this->assertSame(0.0, $go->ops['portfolio_capex'], 'nothing goes out in the go-ahead quarter');
+        $nextGo = $this->play([], '2029Q3', $go->state);
+        $nextHold = $this->play([], '2029Q3', $hold->state);
+        $this->assertSame(0.0, $nextGo->lines['europe_stations']);
+        $this->assertGreaterThan(50, $nextHold->lines['europe_stations']);
+        $this->assertEqualsWithDelta(60.0, $nextGo->ops['portfolio_capex'], 1e-9, '$1,200M over twenty quarters');
+        $this->assertEqualsWithDelta($nextGo->money['fcf'] + 60.0, $nextGo->kpi['free_cash_flow'], 1e-9, 'added back in the score');
+        $this->assertSame(0.0, $this->play(['portfolio' => ['helix_rotterdam' => 'go']], '2029Q3')->ops['portfolio_capex'], 'outside Q4 2029 the page does nothing');
+    }
+
     public function test_tiny_differences_do_not_swing_the_score(): void
     {
         $base = ['profit_per_barrel' => 37.0, 'roace_pct' => 12.0, 'free_cash_flow' => 1800.0, 'refining_vs_industry' => 0.6,

@@ -1,0 +1,6 @@
+parameter,value,note
+five_year_envelope_musd,1800,what the board lets Halden spend over five years
+must_keep_running_musd,600,the floor: keeping what Halden has running
+free_to_place_musd,1200,the envelope minus the floor
+sale_of_european_stations_musd,550,what selling the stations brings in; it widens what you can place
+carbon_price_today_usd_tonne,40,the price the project values are quoted at

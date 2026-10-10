@@ -307,6 +307,84 @@ final class OperatingModel
         return 1 - $this->data->c('kessana_exit_value') / ($this->kessanaProfitOil() * $this->kessanaAnnualMbbl() * $this->kessanaAnnuityFactor());
     }
 
+    /** What is left of the five-year envelope after the sustaining floor. */
+    public function portfolioDiscretionary(): float
+    {
+        return $this->data->c('portfolio_envelope') - $this->data->c('portfolio_sustaining_floor');
+    }
+
+    /** A project's value in one world: its base value at $40 carbon, moved by the carbon price and by how fast oil demand falls. */
+    public function portfolioNpv(string $key, float $carbon, float $demandCode): float
+    {
+        $p = $this->data->portfolio[$key];
+
+        return $p['npv_base'] + $p['carbon_sens'] * ($carbon - $this->data->c('portfolio_carbon_base')) + $p['demand_sens'] * $demandCode;
+    }
+
+    /**
+     * Why a set of projects can't be funded, in order: [] when it can. The sale's proceeds widen the envelope.
+     *
+     * @param  list<string>  $chosen
+     * @return list<string>
+     */
+    public function portfolioCheck(array $chosen, bool $rotterdamClosed = false): array
+    {
+        $problems = [];
+        $cost = 0.0;
+        foreach ($chosen as $k) {
+            $cost += $this->data->portfolio[$k]['cost'];
+        }
+        if ($cost > $this->portfolioDiscretionary() + 1e-9) {
+            $problems[] = 'envelope';
+        }
+        foreach ($this->data->buckets as $b => $bucket) {
+            $spend = 0.0;
+            foreach ($chosen as $k) {
+                if ($this->data->portfolio[$k]['bucket'] === $b && $this->data->portfolio[$k]['cost'] > 0) {
+                    $spend += $this->data->portfolio[$k]['cost'];
+                }
+            }
+            if ($spend > $bucket['ceiling'] + 1e-9) {
+                $problems[] = "bucket:$b";
+            }
+        }
+        if ($rotterdamClosed) {
+            foreach ($chosen as $k) {
+                if ($this->data->portfolio[$k]['needs_rotterdam']) {
+                    $problems[] = 'rotterdam_closed';
+                    break;
+                }
+            }
+        }
+
+        return $problems;
+    }
+
+    /**
+     * Every non-empty set of projects that can be funded.
+     *
+     * @return list<list<string>>
+     */
+    public function portfolioFeasibleSets(bool $rotterdamClosed = false): array
+    {
+        $keys = array_keys($this->data->portfolio);
+        $out = [];
+        $n = count($keys);
+        for ($mask = 1; $mask < (1 << $n); $mask++) {
+            $chosen = [];
+            foreach ($keys as $i => $k) {
+                if (($mask >> $i) & 1) {
+                    $chosen[] = $k;
+                }
+            }
+            if ($this->portfolioCheck($chosen, $rotterdamClosed) === []) {
+                $out[] = $chosen;
+            }
+        }
+
+        return $out;
+    }
+
     /**
      * Where each negotiating position lands: signing takes the demand, a reasoned counter settles in the middle,
      * a threat Halden cannot carry out is called and the government goes harsh. Handing the block back exits.
@@ -569,6 +647,32 @@ final class OperatingModel
         $lines['cordell_price_match'] = -$matchCost / 1e6;   // already inside cordell_fuel; shown on its own
         $lines['rebrand_gain'] = $rebrandGain;                // already inside cordell_shop; shown on its own
 
+        // The Q4 2029 portfolio (one-time): what the team went ahead with. Its money goes out evenly over five years from the
+        // quarter after the go-ahead; selling the European stations brings the proceeds in now and ends their line next quarter.
+        $portfolioAge = [];
+        foreach ($state->portfolio as $key => $age) {
+            $portfolioAge[$key] = $age + 1;
+        }
+        $portfolioNew = [];
+        if ((float) ($mkt['carbon'] ?? 0) > 0 && $state->portfolio === []) {
+            foreach ($dec->portfolio as $key => $choice) {
+                if ($choice === 'go' && isset($this->data->portfolio[$key])) {
+                    $portfolioAge[$key] = 0;
+                    $portfolioNew[] = $key;
+                }
+            }
+        }
+        $europeSold = $state->europeSold || in_array('euro_retail_divest', $portfolioNew, true);
+        $divestProceeds = in_array('euro_retail_divest', $portfolioNew, true) ? -$this->data->portfolio['euro_retail_divest']['cost'] : 0.0;
+        $portfolioCapex = 0.0;
+        $portfolioQuarters = $c('portfolio_years') * 4;
+        foreach ($portfolioAge as $key => $age) {
+            $cost = $this->data->portfolio[$key]['cost'];
+            if ($cost > 0 && $age >= 1 && $age <= $portfolioQuarters) {
+                $portfolioCapex += $cost / $portfolioQuarters;
+            }
+        }
+
         $euFactor = $state->europeVolumeFactor * (1 - $c('europe_volume_decline_qtr'));
         $euGalTotal = $c('europe_sites') * $c('europe_gal_per_site_qtr') * $euFactor * $crudeVf;
         $eu = 0.0;
@@ -577,8 +681,10 @@ final class OperatingModel
             $gal = $euGalTotal * $cl['share'] * $vf;
             $eu += $gal * ($c('europe_fuel_margin') + $delta + $c('europe_nonfuel_per_gal'));
         }
-        $lines['europe_stations'] = $eu / 1e6 * $eurF;
-        $lines['retail_fixed'] = -$c('retail_fixed_cost');
+        $europeGone = $state->europeSold;   // sold in an earlier quarter: the stations are someone else's now
+        $europeShareFixed = $c('europe_sites') / ($c('europe_sites') + $c('cordell_sites'));
+        $lines['europe_stations'] = $europeGone ? 0.0 : $eu / 1e6 * $eurF;
+        $lines['retail_fixed'] = -$c('retail_fixed_cost') * ($europeGone ? 1 - $europeShareFixed : 1.0);
         $retail = $lines['cordell_fuel'] + $lines['cordell_shop'] + $lines['europe_stations'] + $lines['retail_fixed'];
 
         // Head office
@@ -612,11 +718,11 @@ final class OperatingModel
         // Money
         $da = $state->capitalEmployed * $c('da_rate_annual') / 4;
         $tax = $c('tax_rate') * max(0.0, $ebitda - $da);
-        $newCapital = $commitOutlay + $rebrandOutlay;   // the rebrand is capital spending, treated like a project (decision S2)
+        $newCapital = $commitOutlay + $rebrandOutlay + $portfolioCapex;   // the rebrand and the portfolio are capital spending, treated like projects (decision S2)
         $capex = $c('other_sustaining_capex') + $dec->rigs * $c('rig_capex_per_qtr') + $newCapital;
         $fcf = $ebitda - $tax - $capex;
         $newCe = $state->capitalEmployed + $capex - $da - ($kesExitProceeds > 0 ? $c('kessana_book_value') : 0.0);
-        $newNd = $state->netDebt - $fcf + $c('shareholder_payout') - $kesExitProceeds;   // exit proceeds pay down debt; the write-down is non-cash
+        $newNd = $state->netDebt - $fcf + $c('shareholder_payout') - $kesExitProceeds - $divestProceeds;   // sale proceeds pay down debt; write-downs are non-cash
 
         // Plant condition
         $health = $state->assetHealth;
@@ -682,6 +788,8 @@ final class OperatingModel
             prevBrRun: $brRun,
             kessanaTake: $kesTake,
             kessanaExited: $kesExited,
+            portfolio: $portfolioAge,
+            europeSold: $europeSold,
         );
 
         return new QuarterResult(
@@ -696,7 +804,8 @@ final class OperatingModel
                 'rival_match_cost' => $matchCost / 1e6, 'rival_ignore_cost' => $ignoreCost / 1e6,
                 'wti_shock' => $shock, 'gc' => $mkt['gc'], 'wti' => $wti, 'rebrand_outlay' => $rebrandOutlay,
                 'nonfuel_per_gal' => $nonfuelPerGal, 'br_run' => $brRun,
-                'kessana_take' => $kesTake, 'kessana_exit_proceeds' => $kesExitProceeds, 'kessana_forgone' => $kesForgone],
+                'kessana_take' => $kesTake, 'kessana_exit_proceeds' => $kesExitProceeds, 'kessana_forgone' => $kesForgone,
+                'portfolio_capex' => $portfolioCapex, 'divest_proceeds' => $divestProceeds, 'carbon' => (float) ($mkt['carbon'] ?? 0)],
             notes: $notes,
             state: $newState,
         );

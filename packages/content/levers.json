@@ -48,7 +48,12 @@
     "proj_helix": "A new business: a West Texas supply contract with a customer in Rotterdam. Slow to start, and paying most in later years.",
     "capacity_response": "Pelican says it will build a new refining unit on the Gulf Coast. Build one too, or hold. You'll learn next quarter whether Pelican meant it, and building is for good: a new unit takes two years and can't be unbuilt.",
     "opec_case": "OPEC+ meets this quarter. Pick the outcome Geneva plans for, and it buys that much of Baton Rouge's crude ahead of the meeting at today's price: 30 days if you plan for the cut to hold, 15 for a partial cut, none if you plan for it to fail. If oil then rises, the crude bought ahead gains; if it falls, it loses. The money tied up costs interest either way.",
-    "kessana_position": "The government wants 74% of Kessana's profit oil instead of 62%. You answer once, and the terms you end up with run for the rest of the course. Sign, counter, counter with a threat, or leave. The exhibit has what the field is worth at each take and what leaving is worth."
+    "kessana_position": "The government wants 74% of Kessana's profit oil instead of 62%. You answer once, and the terms you end up with run for the rest of the course. Sign, counter, counter with a threat, or leave. The exhibit has what the field is worth at each take and what leaving is worth.",
+    "port_helix_rotterdam": "The European end of Helix: the Rotterdam side of the business Ingrid offered in 2028. Worth the most if carbon gets expensive and oil demand collapses; loses money if neither happens.",
+    "port_permian_expansion": "More rigs, more wells, more of what Halden does best. Worth the most if carbon stays cheap and people keep driving; loses money if the world moves on.",
+    "port_biofuel_conversion": "Turn part of Rotterdam into a plant that makes fuel from crops and waste. Needs a Rotterdam that's still there. Smaller bet, same direction as Helix.",
+    "port_offshore_wind": "Wind farms off the Norwegian coast, where Halden already has people and permits. Worth money when carbon is dear, whatever happens to oil demand.",
+    "port_euro_retail_divest": "Sell the 1,100 Halden stations in the Netherlands, Belgium and Germany. $550M comes in and widens what you can afford. Their earnings leave from next quarter, for good."
   },
   "choices": {
     "norway": {
@@ -91,6 +96,10 @@
       "counter": "Counter at 68%, with Halden's reserve figures on the table",
       "threaten": "Counter at 68%, and say Halden will leave if he refuses",
       "exit": "Leave Kessana: hand the block back for $180M"
+    },
+    "portfolio": {
+      "hold": "Hold",
+      "go": "Go ahead"
     }
   },
   "badges": {
@@ -143,5 +152,19 @@
       "threaten": "Halden offers 68% and says it will leave at 74%. Where the talks land depends on how Tetteh answers; you'll know with the results.",
       "exit": "$180M comes in and pays down debt. The field's $2.3B book value is written off, and the Kessana line leaves the oil fields."
     }
+  },
+  "portfolio": {
+    "intro": "The board's five-year plan. $1,800M over five years; $600M of it keeps what Halden has running. The $1,200M left is yours to place, once. The money goes out evenly over five years from next quarter. If you sell the European stations, the $550M widens what you can afford.",
+    "old_list_closed": "The 2028 project list is closed. What you went ahead with then is under way; what you held is off the table.",
+    "under_way": "Under way since 2028.",
+    "not_taken": "Not taken up.",
+    "going": "Going ahead. The money goes out over five years from Q1 2030.",
+    "sold": "Sold in Q4 2029.",
+    "held": "Held.",
+    "not_possible": "Not possible: Rotterdam is closed for good.",
+    "means": "{cost} placed, out of {room} you can place{sale}. Groups: {buckets}. From next quarter, {quarterly} goes out every quarter for five years.",
+    "means_none": "Nothing placed. The $1,200M stays unspent and the debt stays where it is.",
+    "sale_note": " (the sale adds $550M)",
+    "over": "That's over the limit: {why}"
   }
 }

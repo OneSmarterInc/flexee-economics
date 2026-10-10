@@ -1,31 +1,36 @@
-key,page,label_on_screen,unit,min,max,step,default_history,unlock_round,tier,once
-rigs,oil_fields,Drilling rigs in Texas (Permian),rigs,0,40,1,14,1,your_call,0
-norway,oil_fields,Norway fields Halden runs,choice run|cut,,,,run,1,your_call,0
-br_run,refineries,How hard Baton Rouge runs,pct,60,100,1,96,1,your_call,0
-rot_run,refineries,How hard Rotterdam runs,pct,40,100,1,82,1,your_call,0
-rot_posture,refineries,Rotterdam: keep running / pause / close,choice run|idle|close,,,,run,3,your_call,0
-sg_request,refineries,What you ask Singapore for,pct,60,100,1,90,3,you_can_only_ask,0
-off_urban,gas_stations,Cordell · cities,cents_gal_vs_going_rate,-10,10,0.5,2.0,2,your_call,0
-off_suburban,gas_stations,Cordell · suburbs,cents_gal_vs_going_rate,-10,10,0.5,3.5,2,your_call,0
-off_rural,gas_stations,Cordell · small towns,cents_gal_vs_going_rate,-10,10,0.5,5.0,2,your_call,0
-off_interstate,gas_stations,Cordell · highways,cents_gal_vs_going_rate,-10,10,0.5,3.0,2,your_call,0
-off_nl,gas_stations,Halden · Netherlands,cents_gal_vs_going_rate,-10,10,0.5,0.0,2,your_call,0
-off_be,gas_stations,Halden · Belgium,cents_gal_vs_going_rate,-10,10,0.5,1.0,2,your_call,0
-off_de,gas_stations,Halden · Germany border,cents_gal_vs_going_rate,-10,10,0.5,-1.0,2,your_call,0
-tp,trading_finance,What Baton Rouge pays for Texas crude,usd_bbl,0,120,0.05,market,4,geneva_has_to_agree,0
-crude_hedge,trading_finance,Crude sold forward for next quarter,pct,0,50,5,0,5,cfo_has_to_agree,0
-eur_hedge,trading_finance,Euros sold forward for next quarter,usd_m,0,600,25,0,5,cfo_has_to_agree,0
-nok_hedge,trading_finance,Kroner bought forward for next quarter,usd_m,0,600,25,0,5,cfo_has_to_agree,0
-proj_br_upgrade,capital,Baton Rouge upgrade,choice hold|commit,,,,hold,6,your_call,0
-proj_rot_upgrade,capital,Rotterdam upgrade,choice hold|commit,,,,hold,6,your_call,0
-proj_helix,capital,Helix,choice hold|commit,,,,hold,6,your_call,0
-resp_urban,gas_stations,Cordell · cities: the rival's cut,choice ignore|match,,,,ignore,7,your_call,0
-resp_suburban,gas_stations,Cordell · suburbs: the rival's cut,choice ignore|match,,,,ignore,7,your_call,0
-resp_rural,gas_stations,Cordell · small towns: the rival's cut,choice ignore|match,,,,ignore,7,your_call,0
-resp_interstate,gas_stations,Cordell · highways: the rival's cut,choice ignore|match,,,,ignore,7,your_call,0
-capacity_response,capital,Pelican's new Gulf Coast refining unit,choice hold|match,,,,hold,7,your_call,0
-opec_case,trading_finance,What Geneva plans for at the OPEC+ meeting,choice fails|partial|full,,,,fails,8,geneva_has_to_agree,0
-rebrand_core,gas_stations,Louisiana and Mississippi: keep Cordell or go Halden,choice keep|rebrand,,,,keep,9,your_call,0
-rebrand_gulf,gas_stations,Gulf Coast beyond the core: keep Cordell or go Halden,choice keep|rebrand,,,,keep,9,your_call,0
-rebrand_edge,gas_stations,Southeast edge: keep Cordell or go Halden,choice keep|rebrand,,,,keep,9,your_call,0
-kessana_position,oil_fields,Kessana: the government's new terms,choice accept|counter|threaten|exit,,,,accept,11,your_call,1
+key,page,label_on_screen,unit,min,max,step,default_history,unlock_round,tier,once,close_round
+rigs,oil_fields,Drilling rigs in Texas (Permian),rigs,0,40,1,14,1,your_call,0,
+norway,oil_fields,Norway fields Halden runs,choice run|cut,,,,run,1,your_call,0,
+br_run,refineries,How hard Baton Rouge runs,pct,60,100,1,96,1,your_call,0,
+rot_run,refineries,How hard Rotterdam runs,pct,40,100,1,82,1,your_call,0,
+rot_posture,refineries,Rotterdam: keep running / pause / close,choice run|idle|close,,,,run,3,your_call,0,
+sg_request,refineries,What you ask Singapore for,pct,60,100,1,90,3,you_can_only_ask,0,
+off_urban,gas_stations,Cordell · cities,cents_gal_vs_going_rate,-10,10,0.5,2.0,2,your_call,0,
+off_suburban,gas_stations,Cordell · suburbs,cents_gal_vs_going_rate,-10,10,0.5,3.5,2,your_call,0,
+off_rural,gas_stations,Cordell · small towns,cents_gal_vs_going_rate,-10,10,0.5,5.0,2,your_call,0,
+off_interstate,gas_stations,Cordell · highways,cents_gal_vs_going_rate,-10,10,0.5,3.0,2,your_call,0,
+off_nl,gas_stations,Halden · Netherlands,cents_gal_vs_going_rate,-10,10,0.5,0.0,2,your_call,0,
+off_be,gas_stations,Halden · Belgium,cents_gal_vs_going_rate,-10,10,0.5,1.0,2,your_call,0,
+off_de,gas_stations,Halden · Germany border,cents_gal_vs_going_rate,-10,10,0.5,-1.0,2,your_call,0,
+tp,trading_finance,What Baton Rouge pays for Texas crude,usd_bbl,0,120,0.05,market,4,geneva_has_to_agree,0,
+crude_hedge,trading_finance,Crude sold forward for next quarter,pct,0,50,5,0,5,cfo_has_to_agree,0,
+eur_hedge,trading_finance,Euros sold forward for next quarter,usd_m,0,600,25,0,5,cfo_has_to_agree,0,
+nok_hedge,trading_finance,Kroner bought forward for next quarter,usd_m,0,600,25,0,5,cfo_has_to_agree,0,
+proj_br_upgrade,capital,Baton Rouge upgrade,choice hold|commit,,,,hold,6,your_call,0,11
+proj_rot_upgrade,capital,Rotterdam upgrade,choice hold|commit,,,,hold,6,your_call,0,11
+proj_helix,capital,Helix,choice hold|commit,,,,hold,6,your_call,0,11
+resp_urban,gas_stations,Cordell · cities: the rival's cut,choice ignore|match,,,,ignore,7,your_call,0,
+resp_suburban,gas_stations,Cordell · suburbs: the rival's cut,choice ignore|match,,,,ignore,7,your_call,0,
+resp_rural,gas_stations,Cordell · small towns: the rival's cut,choice ignore|match,,,,ignore,7,your_call,0,
+resp_interstate,gas_stations,Cordell · highways: the rival's cut,choice ignore|match,,,,ignore,7,your_call,0,
+capacity_response,capital,Pelican's new Gulf Coast refining unit,choice hold|match,,,,hold,7,your_call,0,
+opec_case,trading_finance,What Geneva plans for at the OPEC+ meeting,choice fails|partial|full,,,,fails,8,geneva_has_to_agree,0,
+rebrand_core,gas_stations,Louisiana and Mississippi: keep Cordell or go Halden,choice keep|rebrand,,,,keep,9,your_call,0,
+rebrand_gulf,gas_stations,Gulf Coast beyond the core: keep Cordell or go Halden,choice keep|rebrand,,,,keep,9,your_call,0,
+rebrand_edge,gas_stations,Southeast edge: keep Cordell or go Halden,choice keep|rebrand,,,,keep,9,your_call,0,
+kessana_position,oil_fields,Kessana: the government's new terms,choice accept|counter|threaten|exit,,,,accept,11,your_call,1,
+port_helix_rotterdam,capital,Helix at Rotterdam,choice hold|go,,,,hold,12,your_call,1,
+port_permian_expansion,capital,Expand in the Permian,choice hold|go,,,,hold,12,your_call,1,
+port_biofuel_conversion,capital,Convert part of Rotterdam to biofuels,choice hold|go,,,,hold,12,your_call,1,
+port_offshore_wind,capital,Offshore wind off Norway,choice hold|go,,,,hold,12,your_call,1,
+port_euro_retail_divest,capital,Sell the European stations,choice hold|go,,,,hold,12,your_call,1,

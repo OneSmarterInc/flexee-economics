@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Halden\Game\DecisionBook;
 use App\Halden\Game\QuarterRunner;
 use App\Models\Quarter;
 use App\Models\Section;
@@ -132,6 +133,36 @@ class HaldenScreensTest extends TestCase
         $this->assertSame($student->name, $tq->saved_pages['oil_fields']['by'] ?? null);
 
         $this->actingAs($student)->post("/play/{$q->id}/page/not_a_page", [])->assertNotFound();
+    }
+
+    public function test_the_portfolio_page_refuses_a_set_that_does_not_fit_and_keeps_one_that_does(): void
+    {
+        $runner = app(QuarterRunner::class);
+        for ($n = 1; $n <= 11; $n++) {
+            $q = $this->quarter($n);
+            $runner->open($q);
+            $runner->close($q->refresh());
+            $runner->publish($q->refresh());
+        }
+        $q = $this->quarter(12);
+        $runner->open($q);
+        $evp = $this->students['evp'];
+        $this->actingAs($evp)->from("/play/{$q->id}")
+            ->post("/play/{$q->id}/page/capital", ['port_helix_rotterdam' => 'go', 'port_offshore_wind' => 'go'])
+            ->assertSessionHasErrors(['capital']);
+        $this->actingAs($evp)->from("/play/{$q->id}")
+            ->post("/play/{$q->id}/page/capital", ['port_helix_rotterdam' => 'go', 'port_biofuel_conversion' => 'go', 'port_euro_retail_divest' => 'go'])
+            ->assertSessionHasErrors(['capital']);
+        $this->actingAs($evp)->from("/play/{$q->id}")
+            ->post("/play/{$q->id}/page/capital", ['port_helix_rotterdam' => 'go', 'port_offshore_wind' => 'go', 'port_euro_retail_divest' => 'go', 'proj_helix' => 'commit'])
+            ->assertSessionHasNoErrors();
+        $tq = TeamQuarter::query()->where('team_id', $this->team->id)->where('quarter_id', $q->id)->firstOrFail();
+        $this->assertSame('go', $tq->decisions['port_helix_rotterdam'] ?? null);
+        $this->assertSame('go', $tq->decisions['port_euro_retail_divest'] ?? null);
+        $this->assertArrayNotHasKey('proj_helix', $tq->decisions, 'the 2028 project list is closed');
+        // The Kessana answer reaches the server the same way, in its own quarter.
+        $this->assertSame('counter', app(DecisionBook::class)->validatePage('oil_fields', ['kessana_position' => 'counter'], 11)[0]['kessana_position'] ?? null);
+        $this->assertArrayNotHasKey('kessana_position', app(DecisionBook::class)->validatePage('oil_fields', ['kessana_position' => 'counter'], 12)[0]);
     }
 
     public function test_the_memo_saves_in_full(): void

@@ -13,6 +13,7 @@ final class Decisions
      * @param  array<string, string>  $projects  project key => commit | hold
      * @param  array<string, string>  $responses  Cordell cluster => ignore | match the rival's street cut
      * @param  array<string, string>  $rebrand  Cordell region => keep | rebrand (put the Halden name on the stations)
+     * @param  array<string, string>  $portfolio  Q4 2029 portfolio project key => go | hold
      */
     public function __construct(
         public int $rigs = 14,
@@ -34,6 +35,7 @@ final class Decisions
         public string $opecCase = 'fails',         // fails | partial | full: the OPEC+ outcome Geneva plans for
         public array $rebrand = [],
         public string $kessanaPosition = 'none',   // none | accept | counter | threaten | exit: the one-time answer to the Kessana government (Q3 2029)
+        public array $portfolio = [],              // Q4 2029 portfolio: project key => go | hold (one-time; the money goes out over five years)
         // Carried from the team's own history, not set on a page (the runner works them out):
         public bool $delacroixCover = false,       // the Q4 2027 crude price left Baton Rouge reporting strong, so Marcus can resist run cuts
         public bool $straitsStrained = false,      // the team kept asking Singapore for more than Straits Pacific allows
@@ -69,9 +71,24 @@ final class Decisions
             opecCase: (string) ($row['opec_case'] ?? 'fails'),
             rebrand: self::rebrandFromRow($row, $data),
             kessanaPosition: (string) ($row['kessana_position'] ?? 'none'),
+            portfolio: self::portfolioFromRow($row, $data),
             delacroixCover: (int) ($row['delacroix_cover'] ?? 0) === 1,
             straitsStrained: (int) ($row['straits_strained'] ?? 0) === 1,
         );
+    }
+
+    /**
+     * @param  array<string, mixed>  $row
+     * @return array<string, string>
+     */
+    private static function portfolioFromRow(array $row, ModelData $data): array
+    {
+        $out = [];
+        foreach (array_keys($data->portfolio) as $k) {
+            $out[$k] = (string) ($row["port_$k"] ?? 'hold');
+        }
+
+        return $out;
     }
 
     /**

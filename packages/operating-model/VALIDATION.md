@@ -1,6 +1,6 @@
-# Operating model validation (v0.7, Quarters 1-11)
+# Operating model validation (v0.8, Quarters 1-12)
 
-**Result: 71 of 71 checks pass.**
+**Result: 79 of 79 checks pass.**
 
 | # | Check | Result | Detail |
 | --- | --- | --- | --- |
@@ -73,5 +73,13 @@
 | 67 | Leaving Kessana ends the line, pays $180M off the debt and takes the $2,300M book value off capital employed; the write-down never touches EBITDA | PASS | EBITDA loses 317.3; net debt 19222.3 vs 19180.2 |
 | 68 | The settled take carries into every later quarter, and the position only acts in the quarter the government asks | PASS | 0.68 carried; 0.62 outside Q3 2029 |
 | 69 | Over ten years signing at 74% is worth $2,909M more than leaving, and settling at 68% another $713M on top | PASS | 2909.4; 712.9 |
-| 70 | Score order careful > average > careless in all eleven quarters | PASS | Q1: 88.1 / 82.2 / 12.2; Q2: 89.2 / 80.8 / 11.2; Q3: 92.2 / 84.6 / 7.8; Q4: 92.3 / 86.1 / 7.7; Q5: 90.4 / 84.9 / 9.3; Q6: 89.1 / 88.7 / 8.6; Q7: 90.9 / 83.3 / 9.0; Q8: 91.0 / 79.4 / 8.9; Q9: 91.2 / 83.3 / 8.7; Q10: 94.4 / 68.2 / 9.0; Q11: 94.9 / 79.4 / 8.7 |
-| 71 | Fixtures rebuild identically | PASS | 074eb985f3931844 |
+| 70 | Project values across the nine worlds reproduce the Week 12 package (Helix at Rotterdam -180 to +308, Permian +220 to -126, biofuels -40 to +136, wind -90 to +120, selling Europe -60 to +102) | PASS | helix_rotterdam -180..308; permian_expansion -126..220; biofuel_conversion -40..136; offshore_wind -90..120; euro_retail_divest -60..102 |
+| 71 | Every project swings sign across the worlds: there is no portfolio that wins everywhere | PASS | Permian wins when carbon stays cheap and demand holds; Helix at Rotterdam wins when carbon is dear and demand collapses |
+| 72 | After the $600M sustaining floor, $1,200M is free; 17 sets of projects can be funded, 3 of them with Helix at Rotterdam, and 2 only because the European stations are sold | PASS | 17 fundable, 3 with Helix at Rotterdam, 2 unlocked by the sale |
+| 73 | The full transition bet (Helix at Rotterdam plus offshore wind, $1,750M) is affordable only with the $550M from selling the European stations; Helix and biofuels together break the $1,200M adjacent ceiling | PASS | envelope; ok with the sale; adjacent ceiling |
+| 74 | A closed Rotterdam cannot be converted to biofuels (the Q3 2027 call reaches Q4 2029) | PASS | 10 fundable sets with Rotterdam closed |
+| 75 | Selling the European stations brings $550M in now (off the debt, not into EBITDA) and the stations' line is gone from the next quarter, with Europe's share of the retail fixed cost | PASS | next quarter Europe 82.3 -> 0; fixed -60.0 -> -47.8 |
+| 76 | Helix at Rotterdam's $1,200M goes out evenly over five years from the quarter after the go-ahead ($60M a quarter, added back in the score); nothing goes out in the go-ahead quarter | PASS | 60 a quarter |
+| 77 | Outside Q4 2029 the portfolio page does nothing | PASS | same net debt |
+| 78 | Score order careful > average > careless in all twelve quarters | PASS | Q1: 88.1 / 82.2 / 12.2; Q2: 89.2 / 80.8 / 11.2; Q3: 92.2 / 84.6 / 7.8; Q4: 92.3 / 86.1 / 7.7; Q5: 90.4 / 84.9 / 9.3; Q6: 89.1 / 88.7 / 8.6; Q7: 90.9 / 83.3 / 9.0; Q8: 91.0 / 79.4 / 8.9; Q9: 91.2 / 83.3 / 8.7; Q10: 94.4 / 68.2 / 9.0; Q11: 94.9 / 79.4 / 8.7; Q12: 95.0 / 78.4 / 8.7 |
+| 79 | Fixtures rebuild identically | PASS | bfea23043dc7fe71 |

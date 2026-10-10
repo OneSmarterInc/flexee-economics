@@ -1,0 +1,6 @@
+key,label,bucket,cost,npv_base,carbon_sens,demand_sens,needs_rotterdam
+helix_rotterdam,Helix at Rotterdam,adjacent,1200,-180,2.2,90,0
+permian_expansion,Expand in the Permian,growth,650,220,-1.9,-40,0
+biofuel_conversion,Convert part of Rotterdam to biofuels,adjacent,480,-40,0.9,25,1
+offshore_wind,Offshore wind off Norway,renewable,550,-90,1.5,0,0
+euro_retail_divest,Sell the European stations,renewable,-550,-60,0.3,60,0

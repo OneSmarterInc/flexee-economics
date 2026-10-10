@@ -1,0 +1,45 @@
+{
+  "_about": "Quarter 12 (Q4 2029). What the company should become: the five-year portfolio. Advisors know the envelope, the five projects, their values in nine futures and the group caps; none knows which future arrives. Draft for Vikram's review.",
+  "marchetti": {
+    "facts": "Carbon is $40 a tonne this quarter, the first time it has been on the page. Forecasts for 2034 run from $40 to $180. Oil demand could decline slowly, fast, or collapse; the exhibit uses those three paths. Oil is $70, the Gulf Coast margin $18.80.",
+    "stance": "The honest forecast is a range, and a plan that only works at one end of it isn't a plan.",
+    "signal": "Steer them to value every project in the worst future for it as well as the best, and to notice that the projects point in opposite directions.",
+    "misdirection": "She'd pick the middle scenario and plan for it, which is the one future that's certain not to arrive exactly."
+  },
+  "roy": {
+    "facts": "The European stations earn about $75 million a quarter and their volume falls about 1% a quarter. Buyers this year have paid about two years of earnings. The 1,100 stations are the Halden name in Europe.",
+    "stance": "Selling the stations is selling the customers, and you don't get customers back.",
+    "signal": "",
+    "misdirection": "She'll argue the European stations are worth more than any buyer will pay, because she counts the earnings and forgets the decline."
+  },
+  "aasen": {
+    "facts": "Biofuels need a refinery that's still there: Rotterdam's tanks, jetty and permits. If Rotterdam was closed for good, there's nothing to convert. Offshore wind uses the Norwegian crews and permits Halden already has. A Permian expansion is rigs and wells, which Halden has done for twenty years.",
+    "stance": "Build what your people already know how to run. Halden has never built a wind farm, and it has drilled ten thousand wells.",
+    "signal": "Ask them what Halden already owns that each project would use: a plant, a permit, a crew.",
+    "misdirection": "He'd rule out wind because Halden hasn't done it, which is a reason to be careful, not a reason to say no."
+  },
+  "ruiz": {
+    "facts": "$1,800M over five years; $600M of it is the sustaining floor; $1,200M is free. Permian $650M, Helix at Rotterdam $1,200M, biofuels $480M, wind $550M. Selling the stations brings $550M. The board caps more oil at $800M, next-to-what-we-do at $1,200M, clean energy at $700M. Money goes out a twentieth a quarter for five years and is added back in the free cash flow score. Helix at Rotterdam alone uses the whole $1,200M; Helix and wind together need the sale.",
+    "stance": "Grant will sign any set that fits the envelope. He won't sign a story about why it's bigger than the envelope.",
+    "signal": "Prompt them to write down every set of projects that fits and only then argue about which future they believe in.",
+    "misdirection": "She'd pick the set with the best value in the middle future and call that the answer, which is a forecast dressed as a decision."
+  },
+  "osei": {
+    "facts": "A carbon price is politics as much as economics. Europe has had one for years; the question is whether it spreads and how high it goes. Governments that reopen oil contracts, as Kessana did, also tend to be the ones that tax carbon later.",
+    "stance": "The carbon price in 2034 will be set by elections nobody has held yet.",
+    "signal": "Ask them what they'd have to believe about governments, not just markets, for each project to pay.",
+    "misdirection": "He'd weight the high-carbon future heavily because it's the one he worries about, which is a worry, not a forecast."
+  },
+  "lund": {
+    "facts": "The board asked for this plan. In January it will ask one question of every line in it: what does this make Halden in five years? The sentence the team wrote on its first day will be on the table.",
+    "stance": "A portfolio is an answer to who you are. Pick projects that make the same answer.",
+    "signal": "Ask them to say what Halden becomes under their set of projects, in one sentence, and whether it's the sentence they wrote in 2027.",
+    "misdirection": "She'd push for the full transition bet on principle, including selling the stations, before the numbers have been looked at."
+  },
+  "priya": {
+    "facts": "Margrethe wants a plan that changes the company. Marcus wants one that doesn't. Grant wants one that fits. Ingrid has friends on the board and has been asked what she thinks; she hasn't said. The board meets in January, and this plan is the first item.",
+    "stance": "Predictions: Margrethe will back any plan with a clear direction and fight a plan with none. Marcus will go quiet on a transition plan and loud on a sale. Grant will sign whatever fits the envelope and say nothing about which future he believes in. Ingrid will support what the team chooses in public and tell the board what she thinks in private.",
+    "signal": "",
+    "misdirection": "She thinks the board wants boldness. It wants a reason."
+  }
+}
