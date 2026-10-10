@@ -1,4 +1,4 @@
-"""Halden Energy quarterly operating model, reference implementation v0.6 (Quarters 1-10).
+"""Halden Energy quarterly operating model, reference implementation v0.7 (Quarters 1-11).
 
 This is the authoritative economics for the quarterly play-through. The Laravel engine must
 reproduce fixtures/golden_quarters.csv within tolerance (rel 1e-6, abs 1e-4).
@@ -44,6 +44,7 @@ def load_market():
             "existing_eur_hedge": r["existing_eur_hedge"] == "1",
             "rival_cut": float(r.get("rival_cut") or 0.0), "rival_builds": r.get("rival_builds") == "1",
             "opec": r.get("opec") == "1", "recession": r.get("recession") == "1",
+            "kessana": r.get("kessana") == "1",
         })
     return rows
 
@@ -94,6 +95,15 @@ def load_refinery_yields():
     return {r["refinery"]: {p: float(r[p]) for p in ("gasoline", "diesel", "jet", "other")} for r in _read("refinery_yields.csv")}
 
 
+def load_kessana_takes():
+    """The government's share of Kessana profit oil under each outcome of the Q3 2029 talks."""
+    return {r["scenario"]: float(r["take"]) for r in _read("kessana_takes.csv")}
+
+
+def load_kessana_comparables():
+    return {r["regime"]: float(r["government_take"]) for r in _read("kessana_comparables.csv")}
+
+
 def load_cohort_capital():
     return [{"behaviour": r["behaviour"], "min": float(r["score_min"]), "max": float(r["score_max"]),
              "rate": float(r["discount_rate"]), "envelope": float(r["capital_envelope"])} for r in _read("cohort_capital.csv")]
@@ -107,6 +117,11 @@ OPEC = load_opec_scenarios()
 REBRAND = load_rebrand_markets()
 ELASTICITY = load_product_elasticities()
 YIELDS = load_refinery_yields()
+KESSANA_TAKES = load_kessana_takes()
+KESSANA_COMPARABLES = load_kessana_comparables()
+# Where each negotiating position lands (structure, not numbers): signing takes the demand, a reasoned counter
+# settles in the middle, a threat Halden cannot carry out is called and the government goes harsh.
+KESSANA_POSITION_OUTCOME = {"accept": "demanded", "counter": "mid", "threaten": "harsh"}
 CORDELL = load_clusters("cordell_clusters.csv")
 EUROPE = load_clusters("europe_countries.csv")
 D = C["days_per_quarter"]
@@ -133,6 +148,7 @@ class Decisions:
     opec_case: str = "fails"       # fails | partial | full: the OPEC+ outcome Geneva plans for (sets crude bought ahead)
     rebrand: dict = field(default_factory=dict)  # Cordell region -> "keep" | "rebrand" (put the Halden name on the stations)
     # Carried from the team's own history, not set on a page (the runner works them out):
+    kessana_position: str = "none"  # none | accept | counter | threaten | exit: Halden's one-time answer to the Kessana government (Q3 2029)
     delacroix_cover: bool = False   # the Q4 2027 crude price left Baton Rouge reporting strong, so Marcus can resist run cuts
     straits_strained: bool = False  # the team kept asking Singapore for more than Straits Pacific allows
 
@@ -152,6 +168,8 @@ class State:
     projects: dict = field(default_factory=dict)   # committed project key -> quarters since commitment
     rebranded: dict = field(default_factory=dict)  # rebranded region -> quarters since the rebrand
     prev_br_run: float = 96.0                      # how hard Baton Rouge ran last quarter (a run cut in a recession can be resisted)
+    kessana_take: float = 0.62                     # the government's share of Kessana profit oil (opening_state sets it from the data)
+    kessana_exited: bool = False                   # Halden handed the Kessana block back
 
 
 def rig_productivity(k):
@@ -170,7 +188,7 @@ def opening_state():
     steady = permian_adds(rigs) / C["permian_decline_qtr"]
     return State(permian_prod=steady, prev_rigs=rigs, rot_status="running",
                  capital_employed=C["opening_capital_employed"], net_debt=C["opening_net_debt"],
-                 asset_health=C["opening_asset_health"])
+                 asset_health=C["opening_asset_health"], kessana_take=KESSANA_TAKES["current"])
 
 
 def transfer_prices(wti):
@@ -309,6 +327,39 @@ def straits_is_strained(recent_decisions):
     return over >= C["straits_strained_quarters"]
 
 
+def kessana_profit_oil():
+    """Profit oil per barrel at the valuation's long-run Brent: what the government and Halden split."""
+    return C["kessana_planning_brent"] - C["kessana_discount_to_brent"] - C["kessana_lifting"]
+
+
+def kessana_annual_mbbl():
+    return C["kessana_remaining_mbbl"] / C["kessana_production_years"]
+
+
+def kessana_annuity_factor():
+    r, n = C["kessana_risk_rate"], int(C["kessana_production_years"])
+    return (1 - (1 + r) ** -n) / r
+
+
+def kessana_pv_stay(take):
+    """What staying in Kessana is worth (USD m) at a given government take. Sunk capital is not an input."""
+    return kessana_profit_oil() * (1 - take) * kessana_annual_mbbl() * kessana_annuity_factor()
+
+
+def kessana_indifference_take():
+    """The take at which staying is worth exactly the exit value: how far the government could push on economics alone."""
+    return 1 - C["kessana_exit_value"] / (kessana_profit_oil() * kessana_annual_mbbl() * kessana_annuity_factor())
+
+
+def kessana_outcome(position, state: State):
+    """(take, exited) after the one-time talks: the position only acts in the quarter the government asks."""
+    if position == "exit":
+        return state.kessana_take, True
+    if position in KESSANA_POSITION_OUTCOME:
+        return KESSANA_TAKES[KESSANA_POSITION_OUTCOME[position]], False
+    return state.kessana_take, state.kessana_exited
+
+
 def inventory_days(case):
     return C[f"opec_inventory_days_{case}"]
 
@@ -350,8 +401,21 @@ def step(state: State, dec: Decisions, mkt: dict):
                                 - nor_vol * cut * (brent - C["norway_discount_to_brent"] - nor_saved_per_bbl)) * D / 1e6
     lines["norway_cutback_effect"] = -nor_vol * cut * (brent - C["norway_discount_to_brent"] - nor_saved_per_bbl) * D / 1e6
     lines["norway_partner_run"] = C["norway_nonop_volume"] * nor_margin_full * D / 1e6
-    kes_net = (brent - C["kessana_discount_to_brent"] - C["kessana_lifting"]) * C["kessana_company_share_profit_oil"]
-    lines["kessana"] = C["kessana_volume"] * kes_net * D / 1e6
+    # Kessana: the government's share of profit oil is set by the contract until the Q3 2029 talks, then by what Halden
+    # answered. Handing the block back ends the line, returns the exit value and takes the book value off capital.
+    kes_take, kes_exited = state.kessana_take, state.kessana_exited
+    kes_exit_proceeds = 0.0
+    if mkt.get("kessana", False) and dec.kessana_position != "none":
+        kes_take, kes_exited = kessana_outcome(dec.kessana_position, state)
+        if kes_exited and not state.kessana_exited:
+            kes_exit_proceeds = C["kessana_exit_value"]
+            notes["kessana_exit"] = True
+    kes_profit_oil = brent - C["kessana_discount_to_brent"] - C["kessana_lifting"]
+    lines["kessana"] = 0.0 if kes_exited else C["kessana_volume"] * kes_profit_oil * (1 - kes_take) * D / 1e6
+    # Already inside kessana; shown on its own: what the bigger share costs Halden against the original contract.
+    lines["kessana_take_change"] = 0.0 if kes_exited else -C["kessana_volume"] * kes_profit_oil * (kes_take - KESSANA_TAKES["current"]) * D / 1e6
+    # What the field would have earned this quarter at the carried take, once Halden has left (for the story; not a line)
+    kes_forgone = C["kessana_volume"] * kes_profit_oil * (1 - state.kessana_take) * D / 1e6 if kes_exited else 0.0
     lines["gas_other"] = C["gas_other_ebitda"]
     upstream_base = lines["permian"] + lines["norway_operated"] + lines["norway_partner_run"] + lines["kessana"] + lines["gas_other"]
 
@@ -551,8 +615,8 @@ def step(state: State, dec: Decisions, mkt: dict):
     new_capital = commit_outlay + rebrand_outlay   # the rebrand is capital spending, treated like a project (decision S2)
     capex = C["other_sustaining_capex"] + dec.rigs * C["rig_capex_per_qtr"] + new_capital
     fcf = ebitda - tax - capex
-    new_ce = state.capital_employed + capex - da
-    new_nd = state.net_debt - fcf + C["shareholder_payout"]
+    new_ce = state.capital_employed + capex - da - (C["kessana_book_value"] if kes_exit_proceeds > 0 else 0.0)
+    new_nd = state.net_debt - fcf + C["shareholder_payout"] - kes_exit_proceeds   # exit proceeds pay down debt; the write-down is non-cash
 
     # ---------------- Plant condition ----------------
     health = state.asset_health
@@ -600,7 +664,8 @@ def step(state: State, dec: Decisions, mkt: dict):
     new_state = State(permian_prod=next_prod, prev_rigs=dec.rigs, rot_status=rot_status,
                       capital_employed=new_ce, net_debt=new_nd, asset_health=health,
                       europe_volume_factor=eu_factor, held_up=held_up, held_down=held_down,
-                      hedges=new_hedges, projects=proj_age, rebranded=rebrand_age, prev_br_run=br_run)
+                      hedges=new_hedges, projects=proj_age, rebranded=rebrand_age, prev_br_run=br_run,
+                      kessana_take=kes_take, kessana_exited=kes_exited)
     money = {"ebitda": ebitda, "da": da, "tax": tax, "capex": capex, "fcf": fcf,
              "capital_employed_end": new_ce, "net_debt_end": new_nd}
     ops = {"tp": tp, "market_tp": market_tp, "cost_tp": cost_tp, "permian_prod": prod,
@@ -608,7 +673,8 @@ def step(state: State, dec: Decisions, mkt: dict):
            "fx_effect": fx_effect, "project_outlay": commit_outlay, "nwe": mkt["nwe"],
            "rival_match_cost": match_cost / 1e6, "rival_ignore_cost": ignore_cost / 1e6,
            "wti_shock": shock, "gc": mkt["gc"], "wti": wti, "rebrand_outlay": rebrand_outlay,
-           "nonfuel_per_gal": nonfuel_per_gal, "br_run": br_run}
+           "nonfuel_per_gal": nonfuel_per_gal, "br_run": br_run,
+           "kessana_take": kes_take, "kessana_exit_proceeds": kes_exit_proceeds, "kessana_forgone": kes_forgone}
     return lines, seg, money, kpi, ops, notes, new_state
 
 

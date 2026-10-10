@@ -47,7 +47,8 @@
     "proj_rot_upgrade": "Cuts Rotterdam's costs and lifts what it earns per barrel. It only pays while Rotterdam is running.",
     "proj_helix": "A new business: a West Texas supply contract with a customer in Rotterdam. Slow to start, and paying most in later years.",
     "capacity_response": "Pelican says it will build a new refining unit on the Gulf Coast. Build one too, or hold. You'll learn next quarter whether Pelican meant it, and building is for good: a new unit takes two years and can't be unbuilt.",
-    "opec_case": "OPEC+ meets this quarter. Pick the outcome Geneva plans for, and it buys that much of Baton Rouge's crude ahead of the meeting at today's price: 30 days if you plan for the cut to hold, 15 for a partial cut, none if you plan for it to fail. If oil then rises, the crude bought ahead gains; if it falls, it loses. The money tied up costs interest either way."
+    "opec_case": "OPEC+ meets this quarter. Pick the outcome Geneva plans for, and it buys that much of Baton Rouge's crude ahead of the meeting at today's price: 30 days if you plan for the cut to hold, 15 for a partial cut, none if you plan for it to fail. If oil then rises, the crude bought ahead gains; if it falls, it loses. The money tied up costs interest either way.",
+    "kessana_position": "The government wants 74% of Kessana's profit oil instead of 62%. You answer once, and the terms you end up with run for the rest of the course. Sign, counter, counter with a threat, or leave. The exhibit has what the field is worth at each take and what leaving is worth."
   },
   "choices": {
     "norway": {
@@ -84,6 +85,12 @@
     "rebrand": {
       "keep": "Keep Cordell",
       "rebrand": "Go Halden"
+    },
+    "kessana_position": {
+      "accept": "Sign the new terms: 74%",
+      "counter": "Counter at 68%, with Halden's reserve figures on the table",
+      "threaten": "Counter at 68%, and say Halden will leave if he refuses",
+      "exit": "Leave Kessana: hand the block back for $180M"
     }
   },
   "badges": {
@@ -107,16 +114,34 @@
         "title": "Norway fields partners run",
         "badge": "PARTNERS DECIDE",
         "text": "Halden owns part of these and pays its share of the bills, but the partners decide how much to pump. Right now they're pumping as planned."
-      },
-      {
-        "title": "Kessana, offshore West Africa",
-        "badge": "FIXED BY CONTRACT",
-        "text": "Runs under Halden's contract with the Kessana government. You don't set this one."
       }
     ]
   },
   "capacity_matched": "You're building. It's under way.",
   "opec_means": "Geneva buys {days} days of Baton Rouge's crude ahead of the meeting: about {barrels}M barrels, ${tied}M tied up until Vienna decides, costing about ${carry}M in interest.",
   "opec_means_none": "Geneva buys nothing ahead of the meeting.",
-  "rebranded": "Halden-branded. The signs are up."
+  "rebranded": "Halden-branded. The signs are up.",
+  "kessana": {
+    "fixed": {
+      "title": "Kessana, offshore West Africa",
+      "badge": "FIXED BY CONTRACT",
+      "text": "Runs under Halden's contract with the Kessana government. You don't set this one."
+    },
+    "settled": {
+      "title": "Kessana, offshore West Africa",
+      "badge": "SETTLED",
+      "text": "Since Q3 2029 the government takes {take}% of the field's profit oil. The terms run for the rest of the contract."
+    },
+    "exited": {
+      "title": "Kessana, offshore West Africa",
+      "badge": "HANDED BACK",
+      "text": "Halden handed the block back in Q3 2029."
+    },
+    "means": {
+      "accept": "The government keeps 74 cents of every dollar of Kessana profit oil and Halden keeps 26, down from 38, on about {volume} barrels a day.",
+      "counter": "Halden offers 68%, with its reserve figures to back it up. Where the talks land depends on how Tetteh answers; you'll know with the results.",
+      "threaten": "Halden offers 68% and says it will leave at 74%. Where the talks land depends on how Tetteh answers; you'll know with the results.",
+      "exit": "$180M comes in and pays down debt. The field's $2.3B book value is written off, and the Kessana line leaves the oil fields."
+    }
+  }
 }

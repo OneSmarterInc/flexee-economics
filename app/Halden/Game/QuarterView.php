@@ -7,6 +7,7 @@ use App\Halden\Ai\Carrying;
 use App\Halden\Ai\FacultyDrafts;
 use App\Halden\Ai\HelpDesk;
 use App\Halden\Content\ContentPack;
+use App\Halden\OperatingModel\CompanyState;
 use App\Halden\OperatingModel\ModelData;
 use App\Halden\OperatingModel\OperatingModel;
 use App\Models\Quarter;
@@ -136,6 +137,24 @@ final class QuarterView
         return ['regions' => $regions];
     }
 
+    /**
+     * The Oil fields page from Quarter 11: the Kessana talks while they are open, and the settled terms afterwards.
+     *
+     * @return array{open: bool, take: float, exited: bool, volume: float, takes: array<string, float>, exitValue: float, bookValue: float}|null
+     */
+    private function kessanaDesk(Quarter $quarter, ?CompanyState $start): ?array
+    {
+        if (! $this->book->isUnlocked('kessana_position', $quarter->number)) {
+            return null;
+        }
+        $data = $this->model->data;
+
+        return ['open' => $this->book->isOpen('kessana_position', $quarter->number) && $this->runner->hasMarket($quarter),
+            'take' => $start === null ? $data->kessanaTakes['current'] : $start->kessanaTake, 'exited' => $start !== null && $start->kessanaExited,
+            'volume' => $data->c('kessana_volume'), 'takes' => $data->kessanaTakes,
+            'exitValue' => $data->c('kessana_exit_value'), 'bookValue' => $data->c('kessana_book_value')];
+    }
+
     /** @return array{title: string, text: string|null, reason: string|null}|null */
     private function carryingFor(?TeamQuarter $tq, bool $forFaculty): ?array
     {
@@ -213,7 +232,7 @@ final class QuarterView
                 'current' => $current,
                 'saved' => $tq->decisions ?? [],
                 'savedPages' => $savedPages,
-                'levers' => array_values(array_map(fn (array $l) => $l + ['isOpen' => $l['unlock'] <= $quarter->number,
+                'levers' => array_values(array_map(fn (array $l) => $l + ['isOpen' => $this->book->isOpen($l['key'], $quarter->number),
                     'isNew' => $l['unlock'] === $quarter->number && $quarter->number > 1], $this->book->levers())),
             ],
             'desk' => [
@@ -230,6 +249,7 @@ final class QuarterView
                 'rival' => $this->rivalDesk($quarter),
                 'opec' => $this->opecDesk($quarter),
                 'rebrand' => $this->rebrandDesk($quarter, $previous),
+                'kessana' => $this->kessanaDesk($quarter, $start),
             ],
             'memo' => [
                 'text' => $tq->memo ?? '',
@@ -423,6 +443,16 @@ final class QuarterView
             $named[] = ['name' => 'Repainting the stations (capital spending, not in EBITDA)', 'amount' => -(float) $r['ops.rebrand_outlay'],
                 'why' => 'Paid up front this quarter, like a big project. It adds to debt but not to your free cash flow score.'];
         }
+        if (abs((float) ($r['line.kessana_take_change'] ?? 0)) > 0.05) {
+            $named[] = ['name' => 'Kessana: the government\'s bigger share (already in Oil fields)', 'amount' => (float) $r['line.kessana_take_change'],
+                'why' => sprintf('The government now takes %s%% of the field\'s profit oil instead of %s%%, on about %s barrels a day.',
+                    self::n((float) ($r['ops.kessana_take'] ?? 0) * 100), self::n($data->kessanaTakes['current'] * 100), number_format($data->c('kessana_volume')))];
+        }
+        if ((float) ($r['ops.kessana_exit_proceeds'] ?? 0) > 0) {
+            $named[] = ['name' => 'Leaving Kessana (proceeds, not in EBITDA)', 'amount' => (float) $r['ops.kessana_exit_proceeds'],
+                'why' => sprintf('The $%sM paid down debt. The field\'s %s book value came off capital employed, and the Kessana line is gone from the oil fields: %s this quarter.',
+                    number_format((float) $r['ops.kessana_exit_proceeds']), ContentPack::money($data->c('kessana_book_value')), ContentPack::money((float) ($r['ops.kessana_forgone'] ?? 0)))];
+        }
         if ((float) ($r['history.delacroix_cover'] ?? 0) > 0) {
             $named[] = ['name' => 'Baton Rouge ran harder than you asked', 'amount' => null,
                 'why' => sprintf('You set %s%%. Marcus delivered %s%%: the crude price you set in Q4 2027 leaves his refinery reporting a margin he can point to, and he pointed to it.',
@@ -513,6 +543,12 @@ final class QuarterView
                     : sprintf('%s of the Cordell markets across your class matched Pelican\'s cut. %s, and the shop margin this year is %s cents a gallon instead of the usual %s.',
                         $share, $margin < $usual ? 'Drivers learned to shop on price' : 'The shop counters stayed busy', self::n($margin * 100), self::n($usual * 100))];
             }
+        }
+        if ($quarter->company_quarter > '2029Q3' && ((float) ($r['ops.kessana_forgone'] ?? 0) > 0 || abs((float) ($r['line.kessana_take_change'] ?? 0)) > 0.05)) {
+            $earlier[] = ['when' => 'From Q3 2029', 'text' => (float) ($r['ops.kessana_forgone'] ?? 0) > 0
+                ? sprintf('You left Kessana. The field would have earned Halden about %s this quarter at the old terms.', ContentPack::money((float) $r['ops.kessana_forgone']))
+                : sprintf('The terms you settled with the Kessana government: it takes %s%% of the field\'s profit oil. Against the old contract, that costs %s this quarter.',
+                    self::n((float) ($r['ops.kessana_take'] ?? 0) * 100), ContentPack::money(abs((float) $r['line.kessana_take_change'])))];
         }
         if ($quarter->number >= 2 && $team->first_meeting !== null) {
             $earlier[] = ['when' => 'From your first day', 'text' => $team->first_meeting === 'ingrid'

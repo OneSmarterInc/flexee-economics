@@ -1,6 +1,6 @@
-# Operating model validation (v0.6, Quarters 1-10)
+# Operating model validation (v0.7, Quarters 1-11)
 
-**Result: 63 of 63 checks pass.**
+**Result: 71 of 71 checks pass.**
 
 | # | Check | Result | Detail |
 | --- | --- | --- | --- |
@@ -65,5 +65,13 @@
 | 59 | Asking Singapore for 100% in two of the last four quarters strains the partnership; once does not | PASS | 2 of 4 yes, 1 of 4 no |
 | 60 | A strained Straits Pacific runs Singapore at 80% in the recession whatever Halden asks; a cooperative one honours the request | PASS | 80 vs 90; no effect outside the recession |
 | 61 | Rotterdam sits just above its shutdown point in the recession: running still beats pausing, barely | PASS | margin 2.90 vs shutdown point 2.60 |
-| 62 | Score order careful > average > careless in all ten quarters | PASS | Q1: 88.1 / 82.2 / 12.2; Q2: 89.2 / 80.8 / 11.2; Q3: 92.2 / 84.6 / 7.8; Q4: 92.3 / 86.1 / 7.7; Q5: 90.4 / 84.9 / 9.3; Q6: 89.1 / 88.7 / 8.6; Q7: 90.9 / 83.3 / 9.0; Q8: 91.0 / 79.4 / 8.9; Q9: 91.2 / 83.3 / 8.7; Q10: 94.4 / 68.2 / 9.0 |
-| 63 | Fixtures rebuild identically | PASS | 4b3d1a9e1c7a1176 |
+| 62 | Kessana valuation reproduces the Week 11 package: profit oil $67, annuity 5.2161, staying worth $4,515M at 62%, $3,802M at 68%, $3,089M at 74%, $2,376M at 80% | PASS | current 4515.28, mid 3802.34, demanded 3089.40, harsh 2376.46 |
+| 63 | Staying beats the $180M exit at every take on the grid, including 80%, and falls as the take rises | PASS | worst case 2376 vs exit 180 |
+| 64 | On economics alone the government could push the take to 98.5% before Halden walks (package 0.984851); sunk capital never enters | PASS | 0.9849 |
+| 65 | The 74% demand sits inside the range of comparable fiscal terms (50% to 85%) | PASS | 0.50-0.85 |
+| 66 | At $68 oil the bigger share shows as its own line: signing at 74% costs $100M a quarter, settling at 68% $50M, a called bluff at 80% $150M | PASS | accept -100.2, counter -50.1, threaten -150.3 |
+| 67 | Leaving Kessana ends the line, pays $180M off the debt and takes the $2,300M book value off capital employed; the write-down never touches EBITDA | PASS | EBITDA loses 317.3; net debt 19222.3 vs 19180.2 |
+| 68 | The settled take carries into every later quarter, and the position only acts in the quarter the government asks | PASS | 0.68 carried; 0.62 outside Q3 2029 |
+| 69 | Over ten years signing at 74% is worth $2,909M more than leaving, and settling at 68% another $713M on top | PASS | 2909.4; 712.9 |
+| 70 | Score order careful > average > careless in all eleven quarters | PASS | Q1: 88.1 / 82.2 / 12.2; Q2: 89.2 / 80.8 / 11.2; Q3: 92.2 / 84.6 / 7.8; Q4: 92.3 / 86.1 / 7.7; Q5: 90.4 / 84.9 / 9.3; Q6: 89.1 / 88.7 / 8.6; Q7: 90.9 / 83.3 / 9.0; Q8: 91.0 / 79.4 / 8.9; Q9: 91.2 / 83.3 / 8.7; Q10: 94.4 / 68.2 / 9.0; Q11: 94.9 / 79.4 / 8.7 |
+| 71 | Fixtures rebuild identically | PASS | 074eb985f3931844 |

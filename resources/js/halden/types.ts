@@ -186,6 +186,15 @@ export interface PlayProps {
                 rebrandedBefore: boolean;
             }[];
         } | null;
+        kessana: {
+            open: boolean;
+            take: number;
+            exited: boolean;
+            volume: number;
+            takes: Record<string, number>;
+            exitValue: number;
+            bookValue: number;
+        } | null;
     };
     memo: { text: string; savedAt: string | null };
     ready: string | null;
@@ -219,6 +228,12 @@ export interface LeverText {
     opec_means: string;
     opec_means_none: string;
     rebranded: string;
+    kessana: {
+        fixed: { title: string; badge: string; text: string };
+        settled: { title: string; badge: string; text: string };
+        exited: { title: string; badge: string; text: string };
+        means: Record<string, string>;
+    };
     badges: Record<string, string>;
     station_notes: Record<string, string>;
     fixed_items: Record<

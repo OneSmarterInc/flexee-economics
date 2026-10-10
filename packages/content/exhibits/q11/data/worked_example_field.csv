@@ -1,0 +1,8 @@
+parameter,value
+profit_oil_usd_bbl,50
+take_before,0.6
+take_after,0.7
+annual_million_bbl,5
+years,8
+discount_rate,0.12
+exit_value_musd,20

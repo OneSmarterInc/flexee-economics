@@ -306,7 +306,44 @@ check("Rotterdam sits just above its shutdown point in the recession: running st
       hm.step(copy.deepcopy(start), hm.Decisions(rot_posture="run"), m10)[0]["rotterdam"] > hm.step(copy.deepcopy(start), hm.Decisions(rot_posture="idle"), m10)[0]["rotterdam"]
       and m10["nwe"] > hm.C["window1_floor"], f"margin {m10['nwe']:.2f} vs shutdown point {hm.C['window1_floor']:.2f}")
 
-# 26 Reference teams: careful > average > careless in every quarter
+# 26 Quarter 11: the Kessana hold-up (Week 11 package)
+m11 = q("2029Q3")
+af = hm.kessana_annuity_factor()
+pv = {k: hm.kessana_pv_stay(t) for k, t in hm.KESSANA_TAKES.items()}
+check("Kessana valuation reproduces the Week 11 package: profit oil $67, annuity 5.2161, staying worth $4,515M at 62%, $3,802M at 68%, $3,089M at 74%, $2,376M at 80%",
+      abs(hm.kessana_profit_oil() - 67.0) < 1e-9 and abs(af - 5.216116) < 1e-6 and abs(pv["current"] - 4515.278348) < 1e-5
+      and abs(pv["mid"] - 3802.339662) < 1e-5 and abs(pv["demanded"] - 3089.400975) < 1e-5 and abs(pv["harsh"] - 2376.462288) < 1e-5,
+      ", ".join(f"{k} {v:.2f}" for k, v in pv.items()))
+check("Staying beats the $180M exit at every take on the grid, including 80%, and falls as the take rises",
+      all(v > hm.C["kessana_exit_value"] for v in pv.values()) and pv["current"] > pv["mid"] > pv["demanded"] > pv["harsh"],
+      f"worst case {pv['harsh']:.0f} vs exit {hm.C['kessana_exit_value']:.0f}")
+ind = hm.kessana_indifference_take()
+check("On economics alone the government could push the take to 98.5% before Halden walks (package 0.984851); sunk capital never enters",
+      abs(ind - 0.984851) < 1e-6 and "kessana_sunk_capital" not in hm.kessana_pv_stay.__code__.co_names, f"{ind:.4f}")
+comp = hm.KESSANA_COMPARABLES.values()
+check("The 74% demand sits inside the range of comparable fiscal terms (50% to 85%)",
+      min(comp) <= hm.KESSANA_TAKES["demanded"] <= max(comp) and abs(min(comp) - 0.50) < 1e-9 and abs(max(comp) - 0.85) < 1e-9, f"{min(comp):.2f}-{max(comp):.2f}")
+po = {k: hm.step(copy.deepcopy(start), hm.Decisions(kessana_position=k), m11) for k in ("none", "accept", "counter", "threaten", "exit")}
+vol_q = hm.C["kessana_volume"] * 91.25 / 1e6
+spot_po = m11["wti"] + hm.C["brent_spread"] - hm.C["kessana_discount_to_brent"] - hm.C["kessana_lifting"]
+check("At $68 oil the bigger share shows as its own line: signing at 74% costs $100M a quarter, settling at 68% $50M, a called bluff at 80% $150M",
+      abs(po["accept"][0]["kessana_take_change"] + 0.12 * spot_po * vol_q) < 1e-6 and abs(po["counter"][0]["kessana_take_change"] + 0.06 * spot_po * vol_q) < 1e-6
+      and abs(po["threaten"][0]["kessana_take_change"] + 0.18 * spot_po * vol_q) < 1e-6 and abs(po["none"][0]["kessana_take_change"]) < 1e-12,
+      ", ".join(f"{k} {po[k][0]['kessana_take_change']:.1f}" for k in ("accept", "counter", "threaten")))
+check("Leaving Kessana ends the line, pays $180M off the debt and takes the $2,300M book value off capital employed; the write-down never touches EBITDA",
+      po["exit"][0]["kessana"] == 0 and abs(po["none"][2]["net_debt_end"] - po["exit"][2]["net_debt_end"] - (180 - (po["none"][2]["fcf"] - po["exit"][2]["fcf"]))) < 1e-6
+      and abs(po["none"][2]["capital_employed_end"] - po["exit"][2]["capital_employed_end"] - 2300) < 1e-6
+      and abs(po["none"][2]["ebitda"] - po["exit"][2]["ebitda"] - po["none"][0]["kessana"]) < 1e-6,
+      f"EBITDA loses {po['none'][0]['kessana']:.1f}; net debt {po['exit'][2]['net_debt_end']:.1f} vs {po['none'][2]['net_debt_end']:.1f}")
+nxt = hm.step(po["counter"][6], hm.Decisions(kessana_position="none"), q("2029Q2"))   # any later quarter: the take carries, the position is spent
+check("The settled take carries into every later quarter, and the position only acts in the quarter the government asks",
+      abs(nxt[4]["kessana_take"] - 0.68) < 1e-12 and abs(hm.step(copy.deepcopy(start), hm.Decisions(kessana_position="accept"), q("2029Q2"))[4]["kessana_take"] - 0.62) < 1e-12,
+      "0.68 carried; 0.62 outside Q3 2029")
+check("Over ten years signing at 74% is worth $2,909M more than leaving, and settling at 68% another $713M on top",
+      abs(pv["demanded"] - hm.C["kessana_exit_value"] - 2909.400975) < 1e-5 and abs(pv["mid"] - pv["demanded"] - 712.938687) < 1e-5,
+      f"{pv['demanded'] - 180:.1f}; {pv['mid'] - pv['demanded']:.1f}")
+
+# 27 Reference teams: careful > average > careless in every quarter
 summary = rr.main()
 ok = True
 detail = []
@@ -314,16 +351,16 @@ for i in range(len(summary["careful"])):
     c, a, l = (summary[t][i][2] for t in ("careful", "average", "careless"))
     ok &= c > a > l
     detail.append(f"Q{i+1}: {c:.1f} / {a:.1f} / {l:.1f}")
-check("Score order careful > average > careless in all ten quarters", ok, "; ".join(detail))
+check("Score order careful > average > careless in all eleven quarters", ok, "; ".join(detail))
 
-# 27 Determinism: fixtures rebuild byte-identical
+# 28 Determinism: fixtures rebuild byte-identical
 h1 = hashlib.sha256((ROOT / "fixtures/golden_quarters.csv").read_bytes()).hexdigest()
 rr.main()
 h2 = hashlib.sha256((ROOT / "fixtures/golden_quarters.csv").read_bytes()).hexdigest()
 check("Fixtures rebuild identically", h1 == h2, h1[:16])
 
 passed = sum(1 for c in checks if c[1])
-lines = ["# Operating model validation (v0.6, Quarters 1-10)", "", f"**Result: {passed} of {len(checks)} checks pass.**", "",
+lines = ["# Operating model validation (v0.7, Quarters 1-11)", "", f"**Result: {passed} of {len(checks)} checks pass.**", "",
          "| # | Check | Result | Detail |", "| --- | --- | --- | --- |"]
 for i, (n, okk, d) in enumerate(checks, 1):
     lines.append(f"| {i} | {n} | {'PASS' if okk else 'FAIL'} | {d} |")

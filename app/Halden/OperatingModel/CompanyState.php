@@ -28,6 +28,8 @@ final class CompanyState
         public array $projects = [],
         public array $rebranded = [],
         public float $prevBrRun = 96.0,    // how hard Baton Rouge ran last quarter (a run cut in a recession can be resisted)
+        public float $kessanaTake = 0.62,  // the government's share of Kessana profit oil (the opening state sets it from the data)
+        public bool $kessanaExited = false, // Halden handed the Kessana block back
     ) {}
 
     /** @return array<string, mixed> */
@@ -53,6 +55,8 @@ final class CompanyState
             projects: array_map('intval', (array) ($a['projects'] ?? [])),
             rebranded: array_map('intval', (array) ($a['rebranded'] ?? [])),
             prevBrRun: (float) ($a['prevBrRun'] ?? 96.0),
+            kessanaTake: (float) ($a['kessanaTake'] ?? 0.62),
+            kessanaExited: (bool) ($a['kessanaExited'] ?? false),
         );
     }
 }

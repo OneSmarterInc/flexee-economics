@@ -15,7 +15,7 @@ use App\Models\TeamQuarter;
  */
 final class DecisionBook
 {
-    /** @var array<string, array{key: string, page: string, label: string, unit: string, min: ?float, max: ?float, step: ?float, choices: list<string>, default: string, unlock: int, tier: string}> */
+    /** @var array<string, array{key: string, page: string, label: string, unit: string, min: ?float, max: ?float, step: ?float, choices: list<string>, default: string, unlock: int, tier: string, once: bool}> */
     private array $levers = [];
 
     public function __construct(private readonly ModelData $data)
@@ -34,11 +34,12 @@ final class DecisionBook
                 'default' => $r['default_history'],
                 'unlock' => (int) $r['unlock_round'],
                 'tier' => $r['tier'],
+                'once' => ($r['once'] ?? '0') === '1',   // answered in the quarter it opens, then settled for good
             ];
         }
     }
 
-    /** @return array<string, array{key: string, page: string, label: string, unit: string, min: ?float, max: ?float, step: ?float, choices: list<string>, default: string, unlock: int, tier: string}> */
+    /** @return array<string, array{key: string, page: string, label: string, unit: string, min: ?float, max: ?float, step: ?float, choices: list<string>, default: string, unlock: int, tier: string, once: bool}> */
     public function levers(): array
     {
         return $this->levers;
@@ -67,6 +68,14 @@ final class DecisionBook
         $lever = $this->levers[$key === 'tp_method' || $key === 'tp_value' ? 'tp' : $key] ?? null;
 
         return $lever !== null && $lever['unlock'] <= $quarterNumber;
+    }
+
+    /** A one-time decision can only be changed in the quarter it opens; afterwards it is settled. */
+    public function isOpen(string $key, int $quarterNumber): bool
+    {
+        $lever = $this->levers[$key] ?? null;
+
+        return $lever !== null && $lever['unlock'] <= $quarterNumber && (! $lever['once'] || $lever['unlock'] === $quarterNumber);
     }
 
     /** @return list<string> pages a team can change in this quarter */
@@ -103,7 +112,7 @@ final class DecisionBook
         $out = $previous;
         $tq = TeamQuarter::query()->where('team_id', $team->id)->where('quarter_id', $quarter->id)->first();
         foreach ($tq === null ? [] : ($tq->decisions ?? []) as $key => $value) {
-            if ($this->isUnlocked($key, $quarter->number)) {
+            if ($this->isUnlocked($key, $quarter->number) && ($key === 'tp_method' || $key === 'tp_value' || $this->isOpen($key, $quarter->number))) {
                 $out[$key] = $value;
             }
         }
@@ -148,7 +157,7 @@ final class DecisionBook
         $clean = [];
         $errors = [];
         foreach ($this->levers as $key => $l) {
-            if ($l['page'] !== $page || $l['unlock'] > $quarterNumber) {
+            if ($l['page'] !== $page || ! $this->isOpen($key, $quarterNumber)) {
                 continue;
             }
             if ($key === 'tp') {
@@ -236,6 +245,7 @@ final class DecisionBook
             capacityResponse: (string) ($d['capacity_response'] ?? 'hold'),
             opecCase: (string) ($d['opec_case'] ?? 'fails'),
             rebrand: $rebrand,
+            kessanaPosition: (string) ($d['kessana_position'] ?? 'none'),
             delacroixCover: (bool) ($history['delacroix_cover'] ?? false),
             straitsStrained: (bool) ($history['straits_strained'] ?? false),
         );

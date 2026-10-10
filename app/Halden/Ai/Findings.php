@@ -101,6 +101,15 @@ final class Findings
             $lines[] = 'The Cordell name: Halden signs on '.($painted === [] ? 'no region (Cordell kept everywhere)' : implode(', ', $painted)).'.';
         }
 
+        if ($q->number === 11) {
+            $lines[] = 'Kessana, the government\'s demand for 74% of profit oil: '.match ((string) ($d['kessana_position'] ?? 'accept')) {
+                'counter' => 'countered at 68% with Halden\'s reserve figures on the table',
+                'threaten' => 'countered at 68% with a threat to leave',
+                'exit' => 'handed the block back for $180M',
+                default => 'signed the new terms at 74%',
+            };
+        }
+
         return $lines;
     }
 
@@ -181,6 +190,14 @@ final class Findings
             if ((float) ($r['ops.rebrand_outlay'] ?? 0) > 0) {
                 $out[] = sprintf('The team spent %s repainting stations this quarter. The heartland loses money under the Halden name; the Gulf Coast beyond the core pays back in about 15 years at the usual margin and the Southeast edge in about 5.5.', $this->money((float) $r['ops.rebrand_outlay']));
             }
+        }
+        if (abs((float) ($r['line.kessana_take_change'] ?? 0)) > 0.05) {
+            $out[] = sprintf('Kessana: the government now takes %s%% of profit oil (the contract said 62%%). That costs the team %s a quarter against the old terms. A reasoned counter settled at 68%%; a threat to leave was called and the take went to 80%%; signing gave 74%%. Over ten years, staying beats the $180M exit at every take on the grid, and the $2.8B already spent never enters the decision.',
+                number_format((float) ($r['ops.kessana_take'] ?? 0) * 100), $this->money(abs((float) $r['line.kessana_take_change'])));
+        }
+        if ((float) ($r['ops.kessana_exit_proceeds'] ?? 0) > 0) {
+            $out[] = sprintf('Kessana: the team handed the block back for %s and wrote off $2.3B of book value. The field would have earned about %s this quarter at the old terms, and staying was worth about $3.1B over ten years even at the government\'s 74%%.',
+                $this->money((float) $r['ops.kessana_exit_proceeds']), $this->money((float) ($r['ops.kessana_forgone'] ?? 0)));
         }
         if ((float) ($r['history.delacroix_cover'] ?? 0) > 0) {
             $out[] = sprintf('Recession: the team asked for Baton Rouge at %s%% and got %s%%, because its Q4 2027 crude price gave Marcus Delacroix cover to resist the cut.', (string) ($d['br_run'] ?? '?'), number_format((float) ($r['ops.br_run'] ?? 0), 1));

@@ -209,6 +209,10 @@ final class ContentPack
                 $shock = (float) ($results['ops.wti_shock'] ?? 0);
 
                 return ['key' => $shock > 10 ? 'full' : ($shock > 0 ? 'partial' : 'fails'), 'value' => $shock];
+            case 'kessana':
+                $position = (string) ($decisions['kessana_position'] ?? 'accept');
+
+                return ['key' => in_array($position, ['accept', 'counter', 'threaten', 'exit'], true) ? $position : 'accept', 'value' => (float) ($results['ops.kessana_take'] ?? 0)];
             case 'projects':
                 $helix = ($decisions['proj_helix'] ?? 'hold') === 'commit';
                 $refining = ($decisions['proj_br_upgrade'] ?? 'hold') === 'commit' || ($decisions['proj_rot_upgrade'] ?? 'hold') === 'commit';
@@ -274,6 +278,9 @@ final class ContentPack
             '{rebrand_outlay}' => $money('ops.rebrand_outlay'),
             '{cordell_shop}' => $money('line.cordell_shop'),
             '{nonfuel}' => rtrim(rtrim(number_format((float) ($r['ops.nonfuel_per_gal'] ?? 0) * 100, 1), '0'), '.').' cents',
+            '{kessana_take}' => number_format((float) ($r['ops.kessana_take'] ?? 0) * 100).'%',
+            '{kessana_cost}' => self::money(abs((float) ($r['line.kessana_take_change'] ?? 0))),   // always a cost, so shown without a sign
+            '{kessana_forgone}' => $money('ops.kessana_forgone'),
         ];
     }
 

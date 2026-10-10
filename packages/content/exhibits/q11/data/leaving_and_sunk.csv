@@ -1,0 +1,4 @@
+parameter,value,note
+exit_value_musd,180,what Halden would get for handing the block back
+book_value_musd,2300,what the field is carried at on Halden's books; written off if Halden leaves
+capital_already_spent_musd,2800,for reference only: already in the ground

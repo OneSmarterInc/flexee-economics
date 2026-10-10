@@ -351,6 +351,13 @@ final class AdvisorRoom
             if (in_array('retail', $sees, true)) {
                 $bits[] = "gas stations earned {$m('segment.gas_stations')}, Cordell fuel {$m('line.cordell_fuel')}, Cordell shops {$m('line.cordell_shop')}";
             }
+            if (array_intersect(['relations', 'segments', 'operations'], $sees) !== [] && isset($r['ops.kessana_take'])) {
+                if ((float) ($r['ops.kessana_forgone'] ?? 0) > 0) {
+                    $bits[] = 'Halden has handed the Kessana block back';
+                } elseif (abs((float) $r['ops.kessana_take'] - 0.62) > 1e-9) {
+                    $bits[] = 'the Kessana government now takes '.round((float) $r['ops.kessana_take'] * 100).'% of profit oil (the old contract said 62%)';
+                }
+            }
             if (in_array('kpis', $sees, true)) {
                 $bits[] = 'profit per barrel $'.number_format((float) ($r['kpi.profit_per_barrel'] ?? 0), 2).', return on capital '.round((float) ($r['kpi.roace_pct'] ?? 0), 1).'%';
             }

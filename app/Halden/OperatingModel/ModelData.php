@@ -37,6 +37,12 @@ final class ModelData
     /** @var array<string, float> product => income elasticity */
     public readonly array $elasticity;
 
+    /** @var array<string, float> Kessana take scenario (current | mid | demanded | harsh) => the government's share of profit oil */
+    public readonly array $kessanaTakes;
+
+    /** @var array<string, float> comparable fiscal regime => government take */
+    public readonly array $kessanaComparables;
+
     /** @var array<string, array<string, float>> refinery => product => yield */
     public readonly array $yields;
 
@@ -74,6 +80,7 @@ final class ModelData
             'rival_builds' => ($r['rival_builds'] ?? '0') === '1',
             'opec' => ($r['opec'] ?? '0') === '1',
             'recession' => ($r['recession'] ?? '0') === '1',
+            'kessana' => ($r['kessana'] ?? '0') === '1',
         ], self::csv("$root/data/market_path.csv"));
 
         $projects = [];
@@ -115,6 +122,16 @@ final class ModelData
             $yields[$r['refinery']] = ['gasoline' => (float) $r['gasoline'], 'diesel' => (float) $r['diesel'], 'jet' => (float) $r['jet'], 'other' => (float) $r['other']];
         }
         $this->yields = $yields;
+        $takes = [];
+        foreach (self::csv("$root/data/kessana_takes.csv") as $r) {
+            $takes[$r['scenario']] = (float) $r['take'];
+        }
+        $this->kessanaTakes = $takes;
+        $comparables = [];
+        foreach (self::csv("$root/data/kessana_comparables.csv") as $r) {
+            $comparables[$r['regime']] = (float) $r['government_take'];
+        }
+        $this->kessanaComparables = $comparables;
 
         $this->cordell = self::clusters("$root/data/cordell_clusters.csv", 'cluster');
         $this->europe = self::clusters("$root/data/europe_countries.csv", 'country');

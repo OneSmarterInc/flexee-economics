@@ -1,0 +1,45 @@
+{
+  "_about": "Quarter 11 (Q3 2029). The Kessana hold-up. Advisors know the contract, the reserves, the exit value, the comparable takes and Tetteh's record; none knows what this team will answer. Draft for Vikram's review.",
+  "marchetti": {
+    "facts": "Oil is $68 this quarter and the Gulf Coast margin $18.40. The Kessana valuation in the workbook uses a long-run Brent of $78.50, a $2 discount for Kessana crude and $9.50 a barrel to lift it, so profit oil is $67 a barrel. The field has about 340 million barrels left, 34 million a year for ten years. The discount rate for Kessana is 14%, because of where it is.",
+    "stance": "A ten-year decision shouldn't be priced off this quarter's oil price in either direction.",
+    "signal": "Prompt them to work out what the field is worth from today at each take, and to leave the $2.8 billion out of it entirely.",
+    "misdirection": "She'd wait for a firmer long-run price view before answering, and Tetteh has given a deadline."
+  },
+  "roy": {
+    "facts": "Kessana crude doesn't go to Halden's own refineries; it's sold at sea. Nothing in the stations or the shops moves with this decision.",
+    "stance": "This one's above her pay grade and she'll say so.",
+    "signal": "",
+    "misdirection": "She'll wonder aloud whether the money from leaving could repaint more stations, which mixes up $180 million with a field worth billions."
+  },
+  "aasen": {
+    "facts": "Kessana runs about 150,000 barrels a day from platforms and pipelines that can't be moved anywhere else. The last phase of the field, the deeper wells, hasn't been drilled yet. His engineers think the reserve estimate of 340 million barrels is on the careful side.",
+    "stance": "Platforms don't have wheels. Once they're in the water, whoever controls the water controls you.",
+    "signal": "Nudge them to notice that the kit is worth almost nothing to anyone but the operator of this block, and to ask what that does to Halden's bargaining position.",
+    "misdirection": "He'd offer to slow production during the talks to make a point, which costs Halden money and changes nothing about who holds the cards."
+  },
+  "ruiz": {
+    "facts": "Halden's share of Kessana is about $320 million a quarter at the old terms and this quarter's prices. Each point of take is worth about $8 million a quarter. If Halden leaves, $180 million comes in, $2.3 billion of book value is written off (which doesn't touch EBITDA), and the Kessana line is gone. The workbook's indifference take, where staying and leaving are worth the same, is about 98%.",
+    "stance": "Sunk cost is a phrase every MBA knows and every board forgets the moment there's a write-off in it.",
+    "signal": "Steer them to compare the value of staying at each take with the exit value, and to say out loud which of those numbers the $2.8 billion appears in. It appears in neither.",
+    "misdirection": "She'd sign at 74% at once to avoid a public argument, because a quiet quarter is worth more to Grant than six points of take, which it isn't over ten years."
+  },
+  "osei": {
+    "facts": "Comparable contracts in the region give governments between 50% and 85% of profit oil; 74% is inside that range. Tetteh has renegotiated three contracts in his career. Two settled near the middle after the company brought its own reserve and cost data to the table. In the third, the company threatened to leave; he raised the take further and the company signed anyway. There's an election in Kessana next year, and he needs a result to announce.",
+    "stance": "A government holding a field you can't move doesn't need to be fair. What limits it is what it needs from you next: the next phase, the next investor, its own reputation with the companies watching.",
+    "signal": "Ask them what Tetteh needs from this negotiation that a spreadsheet can't give him, and what Halden can offer that costs little and helps him announce a win.",
+    "misdirection": "He'd give Tetteh more than he asked for to buy goodwill for the next phase, which rewards the squeeze and invites the next one."
+  },
+  "lund": {
+    "facts": "Halden has never walked away from a producing field. The board has written off assets before, and it remembers each one by the name of the executive who proposed it.",
+    "stance": "How Halden treats a host government is part of what Halden is, and the sentence the team wrote on its first day should say something about it.",
+    "signal": "Ask them whether their sentence helps them decide this, and what the Kessana government will say about Halden in five years under each answer.",
+    "misdirection": "She'd consider leaving on principle if the terms feel unfair, when the numbers say staying is worth billions at any take on the table."
+  },
+  "priya": {
+    "facts": "Tetteh has asked for a written answer within the month. Kwame has met him twice and says he's courteous, well briefed, and in no hurry. Grant wants to know the quarterly cost of every option before anyone talks to Kessana. Ingrid still has friends in the Kessana ministry from her years running the oil fields.",
+    "stance": "Predictions: Tetteh will settle in the middle if the team brings numbers he can show his cabinet, and he'll go harder than 74% if the team threatens to leave, because he knows Halden can't. Grant will back a counter if it comes with a cost per quarter attached. Ingrid will offer to make a call, and the offer will be sincere.",
+    "signal": "",
+    "misdirection": "She thinks the election makes Tetteh more flexible. It makes him need a headline, which isn't the same thing."
+  }
+}
