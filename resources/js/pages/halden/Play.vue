@@ -2502,7 +2502,11 @@ function quarterHref(id: number): string {
                                                 {{ n.name }}
                                             </td>
                                             <td class="hx-mono">
-                                                {{ money(n.amount) }}
+                                                {{
+                                                    n.amount === null
+                                                        ? '—'
+                                                        : money(n.amount)
+                                                }}
                                             </td>
                                             <td class="hx-hint">{{ n.why }}</td>
                                         </tr>

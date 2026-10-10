@@ -92,8 +92,9 @@ final class QuarterRunner
                 $effective[$team->id] = $this->book->effective($team, $quarter);
                 $answers[$team->id] = AdvisorMessage::billable($team->id, $quarter->id);
                 $start = $this->startState($team, $quarter);
-                $results[$team->id] = $this->model->step(clone $start, $this->book->toEngine($effective[$team->id], $answers[$team->id]), $market);
-                $bridges[$team->id] = $this->bridge($team, $quarter, $start, $effective[$team->id], $market, $results[$team->id]->money['ebitda']);
+                $history = $this->history($team, $quarter);
+                $results[$team->id] = $this->model->step(clone $start, $this->book->toEngine($effective[$team->id], $answers[$team->id], $history), $market);
+                $bridges[$team->id] = $this->bridge($team, $quarter, $start, $effective[$team->id], $market, $results[$team->id]->money['ebitda'], $history);
             }
             $scores = Scoring::composite(array_map(fn ($r) => $r->kpi, $results));
             $ranks = Scoring::rank($scores);
@@ -103,7 +104,8 @@ final class QuarterRunner
                     ['team_id' => $teamId, 'quarter_id' => $quarter->id],
                     [
                         'effective_decisions' => $effective[$teamId],
-                        'results' => $result->metrics() + $bridges[$teamId] + ['ops.rot_status' => $result->ops['rot_status'], 'advisor.answers' => $answers[$teamId]],
+                        'results' => $result->metrics() + $bridges[$teamId] + ['ops.rot_status' => $result->ops['rot_status'], 'advisor.answers' => $answers[$teamId]]
+                            + ['history.delacroix_cover' => (int) ($result->notes['br_run_resisted'] ?? 0) > 0 ? 1.0 : 0.0, 'history.sg_cut_by_partner' => isset($result->notes['sg_cut_by_partner']) ? 1.0 : 0.0],
                         'state_after' => $result->state->toArray(),
                         'score' => $scores[$teamId],
                         'rank' => $ranks[$teamId],
@@ -130,9 +132,10 @@ final class QuarterRunner
      *
      * @param  array<string, string|float|int|null>  $effective
      * @param  array<string, mixed>  $market
+     * @param  array{delacroix_cover?: bool, straits_strained?: bool}  $carried  what the team carries from its own record
      * @return array<string, float>
      */
-    private function bridge(Team $team, Quarter $quarter, CompanyState $start, array $effective, array $market, float $actual): array
+    private function bridge(Team $team, Quarter $quarter, CompanyState $start, array $effective, array $market, float $actual, array $carried = []): array
     {
         $prevQuarter = $quarter->previous();
         $prevDecisions = $this->book->previousEffective($team, $quarter);
@@ -151,8 +154,8 @@ final class QuarterRunner
             $prevEbitda = (float) ($tq->results['money.ebitda'] ?? 0.0);
             $prevAnswers = (int) ($tq->results['advisor.answers'] ?? 0);
         }
-        $a = $this->model->step(clone $start, $this->book->toEngine($prevDecisions, $prevAnswers), $prevMarket)->money['ebitda'];
-        $b = $this->model->step(clone $start, $this->book->toEngine($prevDecisions, $prevAnswers), $market)->money['ebitda'];
+        $a = $this->model->step(clone $start, $this->book->toEngine($prevDecisions, $prevAnswers, $carried), $prevMarket)->money['ebitda'];
+        $b = $this->model->step(clone $start, $this->book->toEngine($prevDecisions, $prevAnswers, $carried), $market)->money['ebitda'];
 
         return [
             'bridge.previous' => $prevEbitda,
@@ -160,6 +163,31 @@ final class QuarterRunner
             'bridge.decisions' => $actual - $b,
             'bridge.carried_over' => $a - $prevEbitda,
         ];
+    }
+
+    /**
+     * What a team carries from its own record into a quarter: whether Marcus has cover to resist a Baton Rouge run
+     * cut (its Q4 2027 crude price) and whether Straits Pacific is strained (its last four Singapore asks).
+     *
+     * @return array{delacroix_cover: bool, straits_strained: bool}
+     */
+    public function history(Team $team, Quarter $quarter): array
+    {
+        $cover = false;
+        $q4 = Quarter::query()->where('section_id', $quarter->section_id)->where('company_quarter', '2027Q4')->first();
+        if ($q4 !== null && $q4->number < $quarter->number) {
+            $tq = TeamQuarter::query()->where('team_id', $team->id)->where('quarter_id', $q4->id)->first();
+            if ($tq !== null && is_array($tq->effective_decisions)) {
+                $cover = $this->model->delacroixHasCover($this->book->toEngine($tq->effective_decisions), (float) $this->model->data->quarter('2027Q4')['wti']);
+            }
+        }
+        $recent = [];
+        foreach (TeamQuarter::query()->where('team_id', $team->id)->whereNotNull('effective_decisions')
+            ->whereHas('quarter', fn ($q) => $q->where('number', '<', $quarter->number)->where('number', '>=', $quarter->number - 4))->get() as $tq) {
+            $recent[] = $this->book->toEngine($tq->effective_decisions ?? []);
+        }
+
+        return ['delacroix_cover' => $cover, 'straits_strained' => $this->model->straitsIsStrained($recent)];
     }
 
     /** Draws the OPEC+ outcome from the stated chances (35% holds in full, 40% partly, 25% falls apart). */

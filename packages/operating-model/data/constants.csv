@@ -102,3 +102,6 @@ window2_slope_above,6.0,usd_bbl_per_share,Wk3 window2 addendum,margin lost per u
 window2_slope_below,3.0,usd_bbl_per_share,Wk3 window2 addendum,margin gained per unit of share below the pivot
 rebrand_total_cost,340,usd_m,Wk9 rebrand_params.csv,"putting the Halden name on all 4,300 Cordell stations; charged per site"
 rebrand_fills_per_site_year,180000,fills,Wk9 rebrand_params.csv,a calibration figure; scales every payback
+recession_gdp_change,-0.03,fraction,Wk10 recession_params.csv,the economy shrinks 3% in the recession quarter
+delacroix_cover_share,0.5,fraction,design (Vikram decision on Wk10 Delacroix cover),the share of a requested Baton Rouge run cut Marcus refuses when he has cover
+straits_strained_quarters,2,count,design (provisional),asking Singapore for more than Straits Pacific allows this many times in the last four quarters strains the partnership

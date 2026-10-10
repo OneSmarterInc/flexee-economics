@@ -423,6 +423,15 @@ final class QuarterView
             $named[] = ['name' => 'Repainting the stations (capital spending, not in EBITDA)', 'amount' => -(float) $r['ops.rebrand_outlay'],
                 'why' => 'Paid up front this quarter, like a big project. It adds to debt but not to your free cash flow score.'];
         }
+        if ((float) ($r['history.delacroix_cover'] ?? 0) > 0) {
+            $named[] = ['name' => 'Baton Rouge ran harder than you asked', 'amount' => null,
+                'why' => sprintf('You set %s%%. Marcus delivered %s%%: the crude price you set in Q4 2027 leaves his refinery reporting a margin he can point to, and he pointed to it.',
+                    self::n((float) ($d['br_run'] ?? 0)), self::n((float) ($r['ops.br_run'] ?? 0)))];
+        }
+        if ((float) ($r['history.sg_cut_by_partner'] ?? 0) > 0) {
+            $named[] = ['name' => 'Straits Pacific cut Singapore to 80%', 'amount' => null,
+                'why' => sprintf('You asked for %s%%. After a year of asking for more than they allow, they ran it their way and told you afterwards.', self::n((float) ($d['sg_request'] ?? 0)))];
+        }
         if ((float) ($r['ops.project_outlay'] ?? 0) > 0) {
             $named[] = ['name' => 'Big projects started (capital spending, not in EBITDA)', 'amount' => -(float) $r['ops.project_outlay'],
                 'why' => 'Paid up front this quarter. It adds to debt but not to your free cash flow score.'];
@@ -477,13 +486,32 @@ final class QuarterView
                     $share <= 0 ? 'None' : ($share >= 1 ? 'All' : sprintf('About %d%%', (int) round($share * 100))), '$'.number_format(abs($shift), 2), $shift < 0 ? 'lower' : 'higher')];
             }
         }
+        if ($this->runner->hasMarket($quarter) && (bool) ($this->model->data->quarter($quarter->company_quarter)['recession'] ?? false)) {
+            $pct = fn (float $v): string => rtrim(rtrim(number_format(-$v * 100, 2), '0'), '.');
+            $earlier[] = ['when' => 'This quarter', 'text' => sprintf('The recession cut demand by product: gasoline %s%%, diesel %s%%, jet fuel %s%%. By each plant\'s product mix, Baton Rouge ran %s%% below what you set, Rotterdam %s%% and Singapore %s%%.',
+                $pct($this->model->demandHit('gasoline')), $pct($this->model->demandHit('diesel')), $pct($this->model->demandHit('jet')),
+                self::n(-$this->model->refineryHit('br') * 100), self::n(-$this->model->refineryHit('rot') * 100), self::n(-$this->model->refineryHit('sg') * 100))];
+            if ((float) ($r['history.delacroix_cover'] ?? 0) > 0) {
+                $earlier[] = ['when' => 'From Q4 2027', 'text' => 'The crude price you set then left Baton Rouge reporting a strong margin. This quarter Marcus used it: he delivered half the run cut you asked for.'];
+            }
+            if ((float) ($r['history.sg_cut_by_partner'] ?? 0) > 0) {
+                $earlier[] = ['when' => 'From the last year', 'text' => 'You asked Singapore for more than Straits Pacific allows in at least two of the last four quarters. This quarter they ran it at 80% without asking you.'];
+            }
+            $paying = (float) ($r['line.projects_refining'] ?? 0) + (float) ($r['line.projects_upstream'] ?? 0);
+            if (abs($paying) > 0.05) {
+                $earlier[] = ['when' => 'From Q2 2028', 'text' => sprintf('The projects you went ahead with keep paying %s a quarter through the downturn. They also keep the debt you took on to build them.', ContentPack::money($paying))];
+            }
+        }
         if (str_starts_with($quarter->company_quarter, '2029')) {
             $aggression = $this->runner->classAggression($quarter);
             if ($aggression !== null) {
                 $margin = $this->model->window3Nonfuel($aggression);
                 $usual = $data->c('window3_base_nonfuel');
-                $earlier[] = ['when' => 'From Q3 2028', 'text' => sprintf('%s of the Cordell markets across your class matched Pelican\'s cut. Drivers learned to shop on price, and the shop margin this year is %s cents a gallon instead of the usual %s.',
-                    $aggression <= 0 ? 'None' : ($aggression >= 1 ? 'All' : sprintf('About %d%%', (int) round($aggression * 100))), self::n($margin * 100), self::n($usual * 100))];
+                $share = $aggression <= 0 ? 'None' : ($aggression >= 1 ? 'All' : sprintf('About %d%%', (int) round($aggression * 100)));
+                $earlier[] = ['when' => 'From Q3 2028', 'text' => abs($margin - $usual) < 0.005
+                    ? sprintf('%s of the Cordell markets across your class matched Pelican\'s cut: about half. The shop margin this year sits at the usual %s cents a gallon.', $share, self::n($usual * 100))
+                    : sprintf('%s of the Cordell markets across your class matched Pelican\'s cut. %s, and the shop margin this year is %s cents a gallon instead of the usual %s.',
+                        $share, $margin < $usual ? 'Drivers learned to shop on price' : 'The shop counters stayed busy', self::n($margin * 100), self::n($usual * 100))];
             }
         }
         if ($quarter->number >= 2 && $team->first_meeting !== null) {

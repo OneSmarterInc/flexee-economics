@@ -271,7 +271,42 @@ calm9 = hm.step(copy.deepcopy(start), hm.Decisions(), dict(m9, cordell_nonfuel=h
 check("Window 3 lands: a class that fought a price war earns less in the shops than one that held its prices",
       war9[0]["cordell_shop"] < base9[0]["cordell_shop"] < calm9[0]["cordell_shop"], f"{war9[0]['cordell_shop']:.1f} < {base9[0]['cordell_shop']:.1f} < {calm9[0]['cordell_shop']:.1f}")
 
-# 23 Reference teams: careful > average > careless in every quarter
+# 23 The recession (Q2 2029, Week 10 package): uneven by product, so uneven by refinery
+hits = {p: hm.demand_hit(p) for p in ("gasoline", "diesel", "jet")}
+check("Demand falls 1.05% for gasoline, 2.55% for diesel and 4.8% for jet when the economy shrinks 3%",
+      abs(hits["gasoline"] + 0.0105) < 1e-9 and abs(hits["diesel"] + 0.0255) < 1e-9 and abs(hits["jet"] + 0.048) < 1e-9, ", ".join(f"{p} {v*100:.2f}%" for p, v in hits.items()))
+rh = {k: hm.refinery_hit(k) for k in ("br", "rot", "sg")}
+check("Runs fall 1.99% at Baton Rouge, 2.23% at Rotterdam and 2.62% at Singapore (Week 10 package: -1.992, -2.226, -2.622): jet-heavy plants fall furthest",
+      abs(rh["br"] + 0.01992) < 1e-9 and abs(rh["rot"] + 0.02226) < 1e-9 and abs(rh["sg"] + 0.02622) < 1e-9 and rh["sg"] < rh["rot"] < rh["br"], ", ".join(f"{k} {v*100:.2f}%" for k, v in rh.items()))
+m10 = q("2029Q2")
+r10 = hm.step(copy.deepcopy(start), hm.Decisions(), m10)
+check("In the recession quarter Baton Rouge runs 1.99% below what the team asked for, Singapore 2.62%", abs(r10[4]["br_throughput"] / (hm.C["br_capacity"] * 0.96) - (1 + rh["br"])) < 1e-9
+      and abs(r10[4]["sg_accepted"] - 90) < 1e-9 and abs(hm.step(copy.deepcopy(start), hm.Decisions(), m9)[4]["br_throughput"] - hm.C["br_capacity"] * 0.96) < 1e-9, "throughput cut; the accepted request itself unchanged")
+
+# 24 Delacroix's cover: the right Q4 2027 answer carries a cost in the recession
+w4 = q("2027Q4")["wti"]
+check("Marcus has cover after a crude price at cost or well below market (46.20), none after market or near-market (70)",
+      hm.delacroix_has_cover(hm.Decisions(tp_method="cost"), w4) and hm.delacroix_has_cover(hm.Decisions(tp_method="other", tp_value=46.20), w4)
+      and not hm.delacroix_has_cover(hm.Decisions(tp_method="market"), w4) and not hm.delacroix_has_cover(hm.Decisions(tp_method="other", tp_value=70.0), w4), "cost yes, 46.20 yes, market no, 70 no")
+covered = hm.step(copy.deepcopy(start), hm.Decisions(br_run=90, delacroix_cover=True), m10)
+uncovered = hm.step(copy.deepcopy(start), hm.Decisions(br_run=90), m10)
+check("With cover, a cut from 96% to 90% is only half delivered (93%); without it, the cut lands; a cut outside the recession is never resisted",
+      abs(covered[4]["br_run"] - 93) < 1e-9 and abs(uncovered[4]["br_run"] - 90) < 1e-9
+      and abs(hm.step(copy.deepcopy(start), hm.Decisions(br_run=90, delacroix_cover=True), m9)[4]["br_run"] - 90) < 1e-9, f"{covered[4]['br_run']:.0f}% vs {uncovered[4]['br_run']:.0f}%")
+
+# 25 Straits Pacific: a strained partner cuts Singapore to the minimum in the recession
+ask = lambda *xs: [hm.Decisions(sg_request=x) for x in xs]
+check("Asking Singapore for 100% in two of the last four quarters strains the partnership; once does not",
+      hm.straits_is_strained(ask(100, 90, 100, 90)) and not hm.straits_is_strained(ask(100, 90, 90, 90)), "2 of 4 yes, 1 of 4 no")
+strained = hm.step(copy.deepcopy(start), hm.Decisions(sg_request=95, straits_strained=True), m10)
+check("A strained Straits Pacific runs Singapore at 80% in the recession whatever Halden asks; a cooperative one honours the request",
+      strained[4]["sg_accepted"] == 80 and r10[4]["sg_accepted"] == 90 and hm.step(copy.deepcopy(start), hm.Decisions(sg_request=95, straits_strained=True), m9)[4]["sg_accepted"] == 95,
+      "80 vs 90; no effect outside the recession")
+check("Rotterdam sits just above its shutdown point in the recession: running still beats pausing, barely",
+      hm.step(copy.deepcopy(start), hm.Decisions(rot_posture="run"), m10)[0]["rotterdam"] > hm.step(copy.deepcopy(start), hm.Decisions(rot_posture="idle"), m10)[0]["rotterdam"]
+      and m10["nwe"] > hm.C["window1_floor"], f"margin {m10['nwe']:.2f} vs shutdown point {hm.C['window1_floor']:.2f}")
+
+# 26 Reference teams: careful > average > careless in every quarter
 summary = rr.main()
 ok = True
 detail = []
@@ -279,16 +314,16 @@ for i in range(len(summary["careful"])):
     c, a, l = (summary[t][i][2] for t in ("careful", "average", "careless"))
     ok &= c > a > l
     detail.append(f"Q{i+1}: {c:.1f} / {a:.1f} / {l:.1f}")
-check("Score order careful > average > careless in all nine quarters", ok, "; ".join(detail))
+check("Score order careful > average > careless in all ten quarters", ok, "; ".join(detail))
 
-# 24 Determinism: fixtures rebuild byte-identical
+# 27 Determinism: fixtures rebuild byte-identical
 h1 = hashlib.sha256((ROOT / "fixtures/golden_quarters.csv").read_bytes()).hexdigest()
 rr.main()
 h2 = hashlib.sha256((ROOT / "fixtures/golden_quarters.csv").read_bytes()).hexdigest()
 check("Fixtures rebuild identically", h1 == h2, h1[:16])
 
 passed = sum(1 for c in checks if c[1])
-lines = ["# Operating model validation (v0.5, Quarters 1-9)", "", f"**Result: {passed} of {len(checks)} checks pass.**", "",
+lines = ["# Operating model validation (v0.6, Quarters 1-10)", "", f"**Result: {passed} of {len(checks)} checks pass.**", "",
          "| # | Check | Result | Detail |", "| --- | --- | --- | --- |"]
 for i, (n, okk, d) in enumerate(checks, 1):
     lines.append(f"| {i} | {n} | {'PASS' if okk else 'FAIL'} | {d} |")

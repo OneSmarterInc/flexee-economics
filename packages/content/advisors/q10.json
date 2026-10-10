@@ -1,0 +1,45 @@
+{
+  "_about": "Quarter 10 (Q2 2029). The recession. No new decision; earlier ones come due. Advisors know the demand hits by product and refinery, the prices, and the two history effects in general terms; none knows what this team's history will do until the close. Draft for Vikram's review.",
+  "marchetti": {
+    "facts": "The economy is shrinking about 3% this year. Oil is $62. The Gulf Coast margin is $17.50, Europe's $2.90 and Asia's $9.80. Demand falls by product: gasoline about 1%, diesel about 2.5%, jet fuel nearly 5%. The krone is 11.30 to the dollar and the euro $1.04.",
+    "stance": "A recession is uneven. The question isn't how bad; it's where.",
+    "signal": "Steer them to trace the demand fall product by product, then refinery by refinery through each plant's product mix, before touching a run rate.",
+    "misdirection": "She'd hold every run rate where it is until there's another month of data, which there won't be."
+  },
+  "roy": {
+    "facts": "Gasoline sales at the stations are down about 1%. People still drive to work. The shop counters are down a little more than fuel; the first thing a driver skips in a downturn is the coffee.",
+    "stance": "The stations are the steadiest money Halden has, and a recession proves it.",
+    "signal": "",
+    "misdirection": "She'll suggest a price cut to hold volume in a recession, which gives up margin to drivers who weren't going anywhere."
+  },
+  "aasen": {
+    "facts": "Baton Rouge makes 48% gasoline, 32% diesel, 14% jet. Rotterdam makes 32% gasoline, 44% diesel, 16% jet. Singapore makes 30% gasoline, 34% diesel, 30% jet. Rotterdam's margin is $2.90 against $2.60, the point where pausing beats running. Running a plant at a lower rate doesn't wear it; running it above 97% does.",
+    "stance": "In a recession you keep the crews and run the plants steady. Pausing Rotterdam now means paying $85 million to restart it when demand comes back.",
+    "signal": "Nudge them to check Rotterdam against its shutdown point rather than against last quarter.",
+    "misdirection": "He'll argue Rotterdam should keep running even if the margin drops below $2.60, because stopping feels like losing."
+  },
+  "ruiz": {
+    "facts": "Any crude hedge set last quarter settles this quarter at $62. Oil was $79 then. Projects already under way keep paying their quarterly share and can't be cancelled. The crude bought ahead of Vienna has been used; its gain or loss is in last quarter's numbers. Net debt is on the Profit and loss page under Cash.",
+    "stance": "In a downturn, Grant cares about one number: how many years of earnings it takes to pay off the debt.",
+    "signal": "Prompt them to look at debt against this quarter's lower earnings before they decide how many rigs to keep.",
+    "misdirection": "She'd cut rigs to the bone to protect cash, which cuts next year's production when prices recover."
+  },
+  "osei": {
+    "facts": "Straits Pacific decides how Singapore runs. Partners who've been asked for more than they allow, again and again, tend to stop asking what Halden wants when times get hard. Marcus Delacroix reports a margin for Baton Rouge every quarter, and the crude price Halden set two years ago is still in it.",
+    "stance": "A recession is when you find out which relationships you've been spending and which you've been building.",
+    "signal": "Ask them how Straits Pacific has been treated and what Marcus's reported margin has looked like since the crude price was set.",
+    "misdirection": "He'd send Straits Pacific a conciliatory letter this quarter, which changes nothing this quarter."
+  },
+  "lund": {
+    "facts": "The board has asked for one thing in every downturn Halden has been through: a plan that still makes sense if the downturn lasts two years.",
+    "stance": "A recession tests whether the sentence the team wrote down was a strategy or a mood.",
+    "signal": "Ask them whether their sentence tells them what to protect and what to let go.",
+    "misdirection": "She'd use the downturn to pause Rotterdam for good on strategic grounds, before the numbers say so."
+  },
+  "priya": {
+    "facts": "Marcus Delacroix will argue against any cut to Baton Rouge's run rate, and if his refinery has been reporting a strong margin he has the numbers to argue with. Straits Pacific hasn't called. Grant Whitaker wants a debt figure by Friday.",
+    "stance": "Predictions: if the team asks Marcus to cut and he has cover, he'll deliver part of it and call the rest a misunderstanding. If Straits Pacific has been pushed too often, they'll cut Singapore first and explain later. Grant will be calm in the meeting and sharp in the email afterwards.",
+    "signal": "",
+    "misdirection": "She thinks a phone call to Straits Pacific this week would fix a year of over-asking. It won't, not this quarter."
+  }
+}

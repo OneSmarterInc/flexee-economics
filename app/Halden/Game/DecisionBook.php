@@ -195,8 +195,11 @@ final class DecisionBook
         return [$clean, $errors];
     }
 
-    /** @param  array<string, string|float|int|null>  $d */
-    public function toEngine(array $d, int $advisorAnswers = 0): Decisions
+    /**
+     * @param  array<string, string|float|int|null>  $d
+     * @param  array{delacroix_cover?: bool, straits_strained?: bool}  $history  what the team carries from its own record
+     */
+    public function toEngine(array $d, int $advisorAnswers = 0, array $history = []): Decisions
     {
         $offsets = $this->data->baseOffsets();
         foreach (array_keys($offsets) as $k) {
@@ -233,6 +236,8 @@ final class DecisionBook
             capacityResponse: (string) ($d['capacity_response'] ?? 'hold'),
             opecCase: (string) ($d['opec_case'] ?? 'fails'),
             rebrand: $rebrand,
+            delacroixCover: (bool) ($history['delacroix_cover'] ?? false),
+            straitsStrained: (bool) ($history['straits_strained'] ?? false),
         );
     }
 

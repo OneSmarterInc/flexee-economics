@@ -94,7 +94,7 @@ export interface AdvisorsView {
 export interface Results {
     story: { title: string; paragraphs: string[]; band: string };
     pnl: { name: string; last: number; now: number; total?: boolean }[];
-    named: { name: string; amount: number; why: string }[];
+    named: { name: string; amount: number | null; why: string }[];
     bridge: {
         previous: number;
         now: number;

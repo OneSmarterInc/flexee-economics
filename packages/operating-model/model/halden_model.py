@@ -1,4 +1,4 @@
-"""Halden Energy quarterly operating model, reference implementation v0.5 (Quarters 1-9).
+"""Halden Energy quarterly operating model, reference implementation v0.6 (Quarters 1-10).
 
 This is the authoritative economics for the quarterly play-through. The Laravel engine must
 reproduce fixtures/golden_quarters.csv within tolerance (rel 1e-6, abs 1e-4).
@@ -43,7 +43,7 @@ def load_market():
             "usdsgd": float(r["usdsgd"]), "fx_live": r["fx_live"] == "1",
             "existing_eur_hedge": r["existing_eur_hedge"] == "1",
             "rival_cut": float(r.get("rival_cut") or 0.0), "rival_builds": r.get("rival_builds") == "1",
-            "opec": r.get("opec") == "1",
+            "opec": r.get("opec") == "1", "recession": r.get("recession") == "1",
         })
     return rows
 
@@ -86,6 +86,14 @@ def load_rebrand_markets():
     return out
 
 
+def load_product_elasticities():
+    return {r["product"]: float(r["income_elasticity"]) for r in _read("product_elasticities.csv")}
+
+
+def load_refinery_yields():
+    return {r["refinery"]: {p: float(r[p]) for p in ("gasoline", "diesel", "jet", "other")} for r in _read("refinery_yields.csv")}
+
+
 def load_cohort_capital():
     return [{"behaviour": r["behaviour"], "min": float(r["score_min"]), "max": float(r["score_max"]),
              "rate": float(r["discount_rate"]), "envelope": float(r["capital_envelope"])} for r in _read("cohort_capital.csv")]
@@ -97,6 +105,8 @@ COHORT_CAPITAL = load_cohort_capital()
 CAPACITY_GAME = load_capacity_game()
 OPEC = load_opec_scenarios()
 REBRAND = load_rebrand_markets()
+ELASTICITY = load_product_elasticities()
+YIELDS = load_refinery_yields()
 CORDELL = load_clusters("cordell_clusters.csv")
 EUROPE = load_clusters("europe_countries.csv")
 D = C["days_per_quarter"]
@@ -122,6 +132,9 @@ class Decisions:
     capacity_response: str = "hold"  # hold | match the rival's Gulf Coast expansion
     opec_case: str = "fails"       # fails | partial | full: the OPEC+ outcome Geneva plans for (sets crude bought ahead)
     rebrand: dict = field(default_factory=dict)  # Cordell region -> "keep" | "rebrand" (put the Halden name on the stations)
+    # Carried from the team's own history, not set on a page (the runner works them out):
+    delacroix_cover: bool = False   # the Q4 2027 crude price left Baton Rouge reporting strong, so Marcus can resist run cuts
+    straits_strained: bool = False  # the team kept asking Singapore for more than Straits Pacific allows
 
 
 @dataclass
@@ -138,6 +151,7 @@ class State:
     hedges: dict = field(default_factory=dict)     # hedges opened last quarter, settled this quarter
     projects: dict = field(default_factory=dict)   # committed project key -> quarters since commitment
     rebranded: dict = field(default_factory=dict)  # rebranded region -> quarters since the rebrand
+    prev_br_run: float = 96.0                      # how hard Baton Rouge ran last quarter (a run cut in a recession can be resisted)
 
 
 def rig_productivity(k):
@@ -268,6 +282,33 @@ def rebrand_gain_per_year(key, nonfuel_per_gal):
     return (m["halden"] - m["keep"]) * m["sites"] * C["rebrand_fills_per_site_year"] / 1e6 * nonfuel_per_gal / C["window3_base_nonfuel"]
 
 
+def demand_hit(product):
+    """How far demand for one product falls in the recession quarter: its income elasticity times the fall in the economy."""
+    return ELASTICITY[product] * C["recession_gdp_change"]
+
+
+def refinery_hit(key):
+    """How far a refinery's runs fall in the recession: its product mix, product by product. Jet-heavy plants fall furthest."""
+    return sum(YIELDS[key][p] * demand_hit(p) for p in ("gasoline", "diesel", "jet"))
+
+
+def delacroix_has_cover(q4_decision: Decisions, q4_wti):
+    """Marcus can resist a run cut if the Q4 2027 crude price left Baton Rouge reporting above target: at cost, or a
+    price well below market. A market price gives him nothing to point to."""
+    market, cost = transfer_prices(q4_wti)
+    if q4_decision.tp_method == "cost":
+        return True
+    if q4_decision.tp_method == "market":
+        return False
+    return float(q4_decision.tp_value) < market * (1 - C["geneva_band"])
+
+
+def straits_is_strained(recent_decisions):
+    """Asking Singapore for more than Straits Pacific allows, again and again, strains the partnership."""
+    over = sum(1 for d in recent_decisions if d.sg_request > C["sg_accept_max"])
+    return over >= C["straits_strained_quarters"]
+
+
 def inventory_days(case):
     return C[f"opec_inventory_days_{case}"]
 
@@ -315,7 +356,15 @@ def step(state: State, dec: Decisions, mkt: dict):
     upstream_base = lines["permian"] + lines["norway_operated"] + lines["norway_partner_run"] + lines["kessana"] + lines["gas_other"]
 
     # ---------------- Refineries ----------------
-    br_tp_bbl = C["br_capacity"] * dec.br_run / 100.0
+    recession = mkt.get("recession", False)
+    # In the recession, a Baton Rouge run cut can be resisted: Marcus delivers only part of it if he has cover.
+    br_run = dec.br_run
+    if recession and dec.delacroix_cover and dec.br_run < state.prev_br_run:
+        br_run = dec.br_run + C["delacroix_cover_share"] * (state.prev_br_run - dec.br_run)
+        notes["br_run_resisted"] = br_run
+    br_tp_bbl = C["br_capacity"] * br_run / 100.0
+    if recession:
+        br_tp_bbl *= 1 + refinery_hit("br")   # product demand falls by the plant's mix; unsold barrels aren't run
     br_crack_margin = br_tp_bbl * (mkt["gc"] + C["br_complexity"] - C["br_variable_opex"]) * D / 1e6
     br_fixed = C["br_capacity"] * C["br_fixed_opex_per_bbl_capacity"] * D / 1e6
     internal_shift = (market_tp - tp) * internal * D / 1e6   # refinery gain from paying below market
@@ -345,13 +394,20 @@ def step(state: State, dec: Decisions, mkt: dict):
             notes["rot_event"] = "restarted"
         rot_status = "running"
         rot_tp = C["rot_capacity"] * dec.rot_run / 100.0
+        if recession:
+            rot_tp *= 1 + refinery_hit("rot")
         rot = rot_tp * (mkt["nwe"] + C["rot_complexity"] - C["rot_variable_opex"]) * D / 1e6 - rot_fixed
     lines["rotterdam"] = rot * eur_f   # Rotterdam earns and spends in euros: a natural hedge
     lines["rotterdam_one_time"] = one_time
 
     sg_run = min(max(dec.sg_request, C["sg_accept_min"]), C["sg_accept_max"])
+    if recession and dec.straits_strained:
+        sg_run = C["sg_accept_min"]   # a strained partner protects itself and runs Singapore at the minimum, whatever Halden asks
+        notes["sg_cut_by_partner"] = True
     notes["sg_accepted"] = sg_run
     sg_tp = C["sg_capacity"] * C["sg_halden_share"] * sg_run / 100.0
+    if recession:
+        sg_tp *= 1 + refinery_hit("sg")
     lines["singapore"] = sg_tp * (mkt["sg"] + C["sg_complexity"] - C["sg_opex"]) * D / 1e6 * sgd_f
     # Projects committed in earlier quarters pay a quarter of each year's cash flow, cut to what such
     # projects really deliver. A Rotterdam project stops if Rotterdam closes.
@@ -419,6 +475,8 @@ def step(state: State, dec: Decisions, mkt: dict):
     # rival; where it matches, Cordell gives up the cut on every gallon and keeps the drivers.
     # A crude shock reaches the pump at 60 cents on the dollar, and drivers barely react (-0.05).
     crude_vf = 1 + C["retail_crude_elasticity"] * C["retail_crude_passthrough"] * (shock / C["gal_per_bbl"]) / C["pump_base"]
+    if recession:
+        crude_vf *= 1 + demand_hit("gasoline")   # drivers still drive to work; gasoline falls least
     cord_gal_total = C["cordell_sites"] * C["cordell_gal_per_site_qtr"] * crude_vf
     nonfuel_per_gal = mkt.get("cordell_nonfuel") or C["cordell_nonfuel_per_gal"]
     rival_cut = mkt.get("rival_cut", 0.0)
@@ -498,7 +556,7 @@ def step(state: State, dec: Decisions, mkt: dict):
 
     # ---------------- Plant condition ----------------
     health = state.asset_health
-    health -= 0.5 * max(0.0, dec.br_run - C["br_wear_threshold"])
+    health -= 0.5 * max(0.0, br_run - C["br_wear_threshold"])
     if rot_status == "running" and dec.rot_run < C["rot_sticky_threshold"]:
         health -= 0.5
     health = max(0.0, min(100.0, health))
@@ -542,7 +600,7 @@ def step(state: State, dec: Decisions, mkt: dict):
     new_state = State(permian_prod=next_prod, prev_rigs=dec.rigs, rot_status=rot_status,
                       capital_employed=new_ce, net_debt=new_nd, asset_health=health,
                       europe_volume_factor=eu_factor, held_up=held_up, held_down=held_down,
-                      hedges=new_hedges, projects=proj_age, rebranded=rebrand_age)
+                      hedges=new_hedges, projects=proj_age, rebranded=rebrand_age, prev_br_run=br_run)
     money = {"ebitda": ebitda, "da": da, "tax": tax, "capex": capex, "fcf": fcf,
              "capital_employed_end": new_ce, "net_debt_end": new_nd}
     ops = {"tp": tp, "market_tp": market_tp, "cost_tp": cost_tp, "permian_prod": prod,
@@ -550,7 +608,7 @@ def step(state: State, dec: Decisions, mkt: dict):
            "fx_effect": fx_effect, "project_outlay": commit_outlay, "nwe": mkt["nwe"],
            "rival_match_cost": match_cost / 1e6, "rival_ignore_cost": ignore_cost / 1e6,
            "wti_shock": shock, "gc": mkt["gc"], "wti": wti, "rebrand_outlay": rebrand_outlay,
-           "nonfuel_per_gal": nonfuel_per_gal}
+           "nonfuel_per_gal": nonfuel_per_gal, "br_run": br_run}
     return lines, seg, money, kpi, ops, notes, new_state
 
 

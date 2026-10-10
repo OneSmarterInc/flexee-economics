@@ -1,4 +1,4 @@
-"""Builds the golden fixtures: three reference teams through Quarters 1-9 (Q1 2027 to Q1 2029)."""
+"""Builds the golden fixtures: three reference teams through Quarters 1-10 (Q1 2027 to Q2 2029)."""
 import csv
 import copy
 import json
@@ -40,8 +40,12 @@ TEAMS = {
         dict(rigs=11, br_run=96, rot_run=92, sg_request=95, offsets=offsets(suburban=4.5, rural=7.0, interstate=3.5, nl=0.5, be=1.5, de=-1.5), tp_method="cost",
              crude_hedge_pct=25, eur_hedge=100, nok_hedge=150, projects={"br_upgrade": "commit", "rot_upgrade": "commit", "helix": "hold"},
              responses={}, capacity_response="hold", opec_case="partial", rebrand={"core": "keep", "gulf": "keep", "edge": "rebrand"}),
+        dict(rigs=9, br_run=90, rot_run=85, sg_request=85, offsets=offsets(suburban=4.5, rural=7.0, interstate=3.5, nl=0.5, be=1.5, de=-1.5), tp_method="cost",
+             crude_hedge_pct=25, eur_hedge=100, nok_hedge=150, projects={"br_upgrade": "commit", "rot_upgrade": "commit", "helix": "hold"},
+             responses={}, capacity_response="hold", opec_case="partial", rebrand={"core": "keep", "gulf": "keep", "edge": "rebrand"}),
     ],
     "average": [
+        dict(),
         dict(),
         dict(),
         dict(),
@@ -71,6 +75,10 @@ TEAMS = {
              crude_hedge_pct=50, eur_hedge=600, projects={"helix": "commit"},
              responses={"urban": "match", "suburban": "match", "rural": "match", "interstate": "match"}, capacity_response="match", opec_case="full",
              rebrand={"core": "rebrand", "gulf": "rebrand", "edge": "rebrand"}),
+        dict(rigs=26, norway="cut", br_run=99, rot_posture="idle", sg_request=100, offsets=offsets(urban=-1.0, suburban=0.5, rural=2.0, interstate=0.0, nl=-3.0, be=-2.0, de=-4.0), tp_method="other", tp_value=46.20,
+             crude_hedge_pct=50, eur_hedge=600, projects={"helix": "commit"},
+             responses={"urban": "match", "suburban": "match", "rural": "match", "interstate": "match"}, capacity_response="match", opec_case="full",
+             rebrand={"core": "rebrand", "gulf": "rebrand", "edge": "rebrand"}),
     ],
 }
 
@@ -90,6 +98,13 @@ def main():
             rows.append(("history", m["quarter"], k, v))
 
     plans = {t: [hm.Decisions(**p) for p in TEAMS[t]] for t in TEAMS}
+    # What each team carries from its own history into the recession: whether Marcus has cover to resist a Baton
+    # Rouge run cut (the Q4 2027 crude price) and whether Straits Pacific is strained (the last four Singapore asks).
+    q4_wti = next(x["wti"] for x in market if x["quarter"] == "2027Q4")
+    for t in TEAMS:
+        for i, d in enumerate(plans[t]):
+            d.delacroix_cover = i >= 4 and hm.delacroix_has_cover(plans[t][3], q4_wti)
+            d.straits_strained = hm.straits_is_strained(plans[t][max(0, i - 4):i])
     class_effects = {}
     for rnd, m in enumerate(market, start=1):
         m = dict(m)
@@ -140,7 +155,7 @@ def main():
             for k, v in kpi.items():
                 rows.append((team, q, f"kpi.{k}", v))
             for k in ("tp", "market_tp", "cost_tp", "permian_prod", "br_throughput", "rot_throughput", "sg_accepted", "fx_effect", "project_outlay", "nwe",
-                      "rival_match_cost", "rival_ignore_cost", "wti_shock", "gc", "wti", "rebrand_outlay", "nonfuel_per_gal"):
+                      "rival_match_cost", "rival_ignore_cost", "wti_shock", "gc", "wti", "rebrand_outlay", "nonfuel_per_gal", "br_run"):
                 rows.append((team, q, f"ops.{k}", ops[k]))
             rows.append((team, q, "score.composite", scores[team]))
             rows.append((team, q, "score.rank", ranks[team]))
@@ -150,7 +165,8 @@ def main():
                   "advisor_answers": d.advisor_answers, "crude_hedge_pct": d.crude_hedge_pct, "eur_hedge": d.eur_hedge,
                   "nok_hedge": d.nok_hedge, **{f"proj_{k}": d.projects.get(k, "hold") for k in hm.PROJECTS},
                   **{f"resp_{c['key']}": d.responses.get(c["key"], "ignore") for c in hm.CORDELL}, "capacity_response": d.capacity_response,
-                  "opec_case": d.opec_case, **{f"rebrand_{k}": d.rebrand.get(k, "keep") for k in hm.REBRAND}}
+                  "opec_case": d.opec_case, **{f"rebrand_{k}": d.rebrand.get(k, "keep") for k in hm.REBRAND},
+                  "delacroix_cover": int(d.delacroix_cover), "straits_strained": int(d.straits_strained)}
             dd.update({f"off_{k}": v for k, v in d.offsets.items()})
             decisions_rows.append(dd)
             state_rows.append({"team": team, "quarter_end": q, "permian_prod_next": st.permian_prod, "rot_status": st.rot_status,
@@ -158,7 +174,7 @@ def main():
                                "europe_volume_factor": st.europe_volume_factor,
                                "held_up": json.dumps(st.held_up, sort_keys=True), "held_down": json.dumps(st.held_down, sort_keys=True),
                                "hedges": json.dumps(st.hedges, sort_keys=True), "projects": json.dumps(st.projects, sort_keys=True),
-                               "rebranded": json.dumps(st.rebranded, sort_keys=True)})
+                               "rebranded": json.dumps(st.rebranded, sort_keys=True), "prev_br_run": st.prev_br_run})
             states[team] = st
             summary.setdefault(team, []).append((q, money["ebitda"], scores[team], ranks[team], seg, kpi))
 

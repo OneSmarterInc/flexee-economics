@@ -182,6 +182,12 @@ final class Findings
                 $out[] = sprintf('The team spent %s repainting stations this quarter. The heartland loses money under the Halden name; the Gulf Coast beyond the core pays back in about 15 years at the usual margin and the Southeast edge in about 5.5.', $this->money((float) $r['ops.rebrand_outlay']));
             }
         }
+        if ((float) ($r['history.delacroix_cover'] ?? 0) > 0) {
+            $out[] = sprintf('Recession: the team asked for Baton Rouge at %s%% and got %s%%, because its Q4 2027 crude price gave Marcus Delacroix cover to resist the cut.', (string) ($d['br_run'] ?? '?'), number_format((float) ($r['ops.br_run'] ?? 0), 1));
+        }
+        if ((float) ($r['history.sg_cut_by_partner'] ?? 0) > 0) {
+            $out[] = sprintf('Recession: Straits Pacific ran Singapore at 80%% against a request of %s%%, because the team asked for more than they allow in two or more of the last four quarters.', (string) ($d['sg_request'] ?? '?'));
+        }
         if (abs((float) ($r['line.capacity_game'] ?? 0)) > 0.05) {
             $out[] = sprintf('Pelican built its Gulf Coast unit. Halden\'s answer (%s) is costing %s a quarter under Refineries.',
                 ($d['capacity_response'] ?? 'hold') === 'match' ? 'building too' : 'not building', $this->money(abs((float) $r['line.capacity_game'])));

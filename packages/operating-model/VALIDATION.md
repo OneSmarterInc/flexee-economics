@@ -1,6 +1,6 @@
-# Operating model validation (v0.5, Quarters 1-9)
+# Operating model validation (v0.6, Quarters 1-10)
 
-**Result: 55 of 55 checks pass.**
+**Result: 63 of 63 checks pass.**
 
 | # | Check | Result | Detail |
 | --- | --- | --- | --- |
@@ -57,5 +57,13 @@
 | 51 | After a price war (shop margin $0.38) the same rebrand takes 9.4 years to pay back | PASS | 9.44 years |
 | 52 | Rebranding the Southeast edge costs $83.0M of capital now (added back in the score) and pays $3.78M a quarter in the shop from the next quarter | PASS | outlay 83.02, then 3.780 a quarter, charged once |
 | 53 | Window 3 lands: a class that fought a price war earns less in the shops than one that held its prices | PASS | 161.6 < 178.6 < 191.3 |
-| 54 | Score order careful > average > careless in all nine quarters | PASS | Q1: 88.1 / 82.2 / 12.2; Q2: 89.2 / 80.8 / 11.2; Q3: 92.2 / 84.6 / 7.8; Q4: 92.3 / 86.1 / 7.7; Q5: 90.4 / 84.9 / 9.3; Q6: 89.1 / 88.7 / 8.6; Q7: 90.9 / 83.3 / 9.0; Q8: 91.0 / 79.4 / 8.9; Q9: 91.2 / 83.3 / 8.7 |
-| 55 | Fixtures rebuild identically | PASS | 5befdfd3b839a63c |
+| 54 | Demand falls 1.05% for gasoline, 2.55% for diesel and 4.8% for jet when the economy shrinks 3% | PASS | gasoline -1.05%, diesel -2.55%, jet -4.80% |
+| 55 | Runs fall 1.99% at Baton Rouge, 2.23% at Rotterdam and 2.62% at Singapore (Week 10 package: -1.992, -2.226, -2.622): jet-heavy plants fall furthest | PASS | br -1.99%, rot -2.23%, sg -2.62% |
+| 56 | In the recession quarter Baton Rouge runs 1.99% below what the team asked for, Singapore 2.62% | PASS | throughput cut; the accepted request itself unchanged |
+| 57 | Marcus has cover after a crude price at cost or well below market (46.20), none after market or near-market (70) | PASS | cost yes, 46.20 yes, market no, 70 no |
+| 58 | With cover, a cut from 96% to 90% is only half delivered (93%); without it, the cut lands; a cut outside the recession is never resisted | PASS | 93% vs 90% |
+| 59 | Asking Singapore for 100% in two of the last four quarters strains the partnership; once does not | PASS | 2 of 4 yes, 1 of 4 no |
+| 60 | A strained Straits Pacific runs Singapore at 80% in the recession whatever Halden asks; a cooperative one honours the request | PASS | 80 vs 90; no effect outside the recession |
+| 61 | Rotterdam sits just above its shutdown point in the recession: running still beats pausing, barely | PASS | margin 2.90 vs shutdown point 2.60 |
+| 62 | Score order careful > average > careless in all ten quarters | PASS | Q1: 88.1 / 82.2 / 12.2; Q2: 89.2 / 80.8 / 11.2; Q3: 92.2 / 84.6 / 7.8; Q4: 92.3 / 86.1 / 7.7; Q5: 90.4 / 84.9 / 9.3; Q6: 89.1 / 88.7 / 8.6; Q7: 90.9 / 83.3 / 9.0; Q8: 91.0 / 79.4 / 8.9; Q9: 91.2 / 83.3 / 8.7; Q10: 94.4 / 68.2 / 9.0 |
+| 63 | Fixtures rebuild identically | PASS | 4b3d1a9e1c7a1176 |
