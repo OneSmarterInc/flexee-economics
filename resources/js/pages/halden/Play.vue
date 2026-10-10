@@ -739,7 +739,36 @@ function quarterHref(id: number): string {
                     style="color: var(--hx-mint)"
                     >HALDEN</span
                 >
-                <span class="font-semibold">{{ team.name }}</span>
+                <label
+                    v-if="props.section.classes.length > 1"
+                    class="inline-flex items-center gap-2"
+                >
+                    <span class="hx-sr">Class</span>
+                    <select
+                        class="hx-mono rounded px-2 py-1 text-[13px]"
+                        style="
+                            background: #1f3540;
+                            color: #e6ecef;
+                            border: 1px solid #3a5160;
+                            max-width: 240px;
+                        "
+                        :value="props.section.id"
+                        @change="
+                            router.visit(
+                                `/play?class=${($event.target as HTMLSelectElement).value}`,
+                            )
+                        "
+                    >
+                        <option
+                            v-for="c in props.section.classes"
+                            :key="c.id"
+                            :value="c.id"
+                        >
+                            {{ c.name }} · {{ c.team }}
+                        </option>
+                    </select>
+                </label>
+                <span v-else class="font-semibold">{{ team.name }}</span>
                 <span>{{ quarter.heading }}</span>
                 <span
                     class="rounded px-2 py-0.5 text-[13px]"
