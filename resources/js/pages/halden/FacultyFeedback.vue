@@ -24,7 +24,12 @@ const props = defineProps<{
     enabled: boolean;
     text: Record<string, string>;
     labels: Record<Kind, string>;
-    inputs: { memo: string; sheet: string[]; found: string[] };
+    inputs: {
+        memo: string;
+        sheet: string[];
+        found: string[];
+        record: string[];
+    };
     drafts: Record<Kind, Draft | null>;
     feedback: {
         text: string;
@@ -315,13 +320,7 @@ function when(iso: string | null): string {
                     </div>
                 </div>
                 <div class="hx-card">
-                    <h2 class="hx-h2">
-                        {{
-                            board
-                                ? "The team's board defense"
-                                : "The team's memo"
-                        }}
-                    </h2>
+                    <h2 class="hx-h2">{{ text.memo_title }}</h2>
                     <p v-if="inputs.memo.trim() === ''" class="hx-hint mt-2">
                         {{ text.no_memo }}
                     </p>
@@ -330,10 +329,29 @@ function when(iso: string | null): string {
                     </p>
                 </div>
                 <div class="hx-card">
-                    <h2 class="hx-h2">What they set</h2>
+                    <h2 class="hx-h2">{{ text.sheet_title }}</h2>
                     <ul class="mt-2 list-disc pl-5 text-[14px] leading-relaxed">
                         <li v-for="(l, i) in inputs.sheet" :key="i">{{ l }}</li>
                     </ul>
+                </div>
+                <div v-if="inputs.record.length" class="hx-card">
+                    <h2 class="hx-h2">{{ text.record_title }}</h2>
+                    <p class="hx-hint mt-1">
+                        Each quarter's memo goes to the drafts in full. Open a
+                        quarter to read it.
+                    </p>
+                    <details
+                        v-for="(l, i) in inputs.record"
+                        :key="i"
+                        class="mt-2 text-[14px] leading-relaxed"
+                    >
+                        <summary class="cursor-pointer font-semibold">
+                            {{ l.split(' · ')[0] }}
+                        </summary>
+                        <p class="hx-p mt-1 whitespace-pre-line">
+                            {{ l.slice(l.indexOf(' · ') + 3) }}
+                        </p>
+                    </details>
                 </div>
                 <div class="hx-card">
                     <h2 class="hx-h2">What the model found</h2>

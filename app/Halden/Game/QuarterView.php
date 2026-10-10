@@ -49,6 +49,7 @@ final class QuarterView
         private readonly Carrying $carrying,
         private readonly HelpDesk $help,
         private readonly BoardVerdict $board,
+        private readonly BoardRecord $record,
     ) {}
 
     /**
@@ -221,28 +222,16 @@ final class QuarterView
         if (! ($c['board_meeting'] ?? false)) {
             return null;
         }
-        $world = $this->runner->worldOf($quarter);
-        $previous = $this->book->previousEffective($team, $quarter);
-        $chosen = $this->book->portfolioChosen($previous);
-        $value = $this->model->portfolioValueInWorld($chosen, $world['carbon'], $world['demand']);
-        $fill = ['{carbon_world}' => strtolower(substr($this->model->data->scenarios['carbon'][$world['carbon']]['label'], 0, 1)).substr($this->model->data->scenarios['carbon'][$world['carbon']]['label'], 1),
-            '{demand_world}' => strtolower(substr($this->model->data->scenarios['demand'][$world['demand']]['label'], 0, 1)).substr($this->model->data->scenarios['demand'][$world['demand']]['label'], 1),
-            '{portfolio_value}' => ContentPack::money($value)];
-        $record = [];
-        foreach (TeamQuarter::query()->where('team_id', $team->id)->whereHas('quarter', fn ($q) => $q->where('number', '<', $quarter->number)->where('status', Quarter::PUBLISHED))
-            ->with('quarter')->get()->sortBy(fn (TeamQuarter $x) => $x->quarter->number) as $past) {
-            $pc = $this->content->hasQuarter($past->quarter->number) ? $this->content->quarter($past->quarter->number) : null;
-            $record[] = ['number' => $past->quarter->number, 'label' => $past->quarter->label(), 'question' => $pc['briefing']['question'] ?? '',
-                'ebitda' => (float) ($past->results['money.ebitda'] ?? 0), 'score' => $past->score, 'rank' => $past->rank, 'memo' => (string) $past->memo];
-        }
+        $world = $this->record->world($team, $quarter);
+        $fill = ['{carbon_world}' => $world['carbon_label'], '{demand_world}' => $world['demand_label'], '{portfolio_value}' => ContentPack::money($world['value'])];
         $published = $tq?->verdict_published_at !== null && $tq->verdict !== null;
 
         return [
             'defense' => $c['defense'],
-            'world' => ['title' => $c['world']['title'], 'text' => strtr($chosen === [] ? $c['world']['none'] : $c['world']['text'], $fill),
-                'carbon' => $world['carbon'], 'demand' => $world['demand'], 'value' => $value],
-            'sentence' => $team->strategy_become ? "Halden should become a company that {$team->strategy_become} by {$team->strategy_by}." : null,
-            'record' => $record,
+            'world' => ['title' => $c['world']['title'], 'text' => strtr($world['chosen'] === [] ? $c['world']['none'] : $c['world']['text'], $fill),
+                'carbon' => $world['carbon'], 'demand' => $world['demand'], 'value' => $world['value']],
+            'sentence' => $this->record->sentence($team),
+            'record' => $this->record->record($team, $quarter),
             'submission' => ['parts' => $tq === null ? [] : ($tq->defense ?? []), 'savedAt' => $tq?->defense_saved_at?->toIso8601String(),
                 'savedBy' => $tq?->defense_saved_by === null ? null : User::query()->find($tq->defense_saved_by)?->name],
             'verdict' => $published || ($forFaculty && $tq?->verdict !== null)
