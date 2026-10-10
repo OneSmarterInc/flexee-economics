@@ -111,7 +111,7 @@ class GoldenQuartersTest extends TestCase
                 }
             }
         }
-        $this->assertCount(12, $quarters);
+        $this->assertCount(13, $quarters);
         $this->assertGreaterThan(800, $checked);
     }
 }

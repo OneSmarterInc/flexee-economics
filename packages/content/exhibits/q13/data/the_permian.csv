@@ -1,0 +1,4 @@
+parameter,value,note
+barrels_per_extra_worker_per_year,9000,what one more Permian worker produces
+margin_per_barrel_usd,56.4,what Halden makes on each of those barrels
+market_wage_k,145,the loaded wage the Permian market sets (in thousands)

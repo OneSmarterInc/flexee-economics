@@ -383,7 +383,43 @@ check("Helix at Rotterdam's $1,200M goes out evenly over five years from the qua
 check("Outside Q4 2029 the portfolio page does nothing", abs(hm.step(copy.deepcopy(start), hm.Decisions(portfolio={"helix_rotterdam": "go"}), m11)[2]["net_debt_end"]
       - hm.step(copy.deepcopy(start), hm.Decisions(), m11)[2]["net_debt_end"]) < 1e-9, "same net debt")
 
-# 28 Reference teams: careful > average > careless in every quarter
+# 28 Quarter 13: the factor markets (Week 13 package)
+m13 = q("2030Q1")
+gross = hm.C["norway_wage_bill"] * hm.C["norway_union_demand"]
+check("The union's 8% costs $33.6M a year gross and $7.39M after Norway's 78% tax: the concession costs Halden 22% of its face value (Week 13 package)",
+      abs(gross - 33.6) < 1e-9 and abs(hm.norway_concession_after_tax(gross) - 7.392) < 1e-9, f"{gross:.1f} gross, {hm.norway_concession_after_tax(gross):.3f} after tax")
+check("A marginal Permian worker earns Halden $507.6k a year against a $145k wage (3.5 times): Halden takes the market wage and competes on keeping people",
+      abs(hm.permian_marginal_revenue_product_k() - 507.6) < 1e-9 and abs(hm.permian_marginal_revenue_product_k() / hm.C["permian_market_wage_k"] - 3.50069) < 1e-5,
+      f"{hm.permian_marginal_revenue_product_k():.1f}k, {hm.permian_marginal_revenue_product_k() / hm.C['permian_market_wage_k']:.4f}x")
+check("The turnaround costs $81M at the contractor peak now, or an expected $78M off-peak next quarter (60 plus a 12% chance of a $150M breakdown): a $3M saving, within 5%, for three points of plant condition",
+      abs(hm.turnaround_peak_cost() - 81) < 1e-9 and abs(hm.turnaround_delay_expected_cost() - 78) < 1e-9 and abs((81 - 78) / 81 - 0.037037) < 1e-5,
+      f"{hm.turnaround_peak_cost():.0f} vs {hm.turnaround_delay_expected_cost():.0f}")
+acc = hm.step(copy.deepcopy(start), hm.Decisions(norway_wage="accept"), m13)
+half = hm.step(copy.deepcopy(start), hm.Decisions(norway_wage="half"), m13)
+ref = hm.step(copy.deepcopy(start), hm.Decisions(norway_wage="refuse"), m13)
+none = hm.step(copy.deepcopy(start), hm.Decisions(), m13)
+check("Accepting the 8% costs $8.4M a quarter on the Norway line and $1.85M after the tax shield; nothing stops",
+      abs(acc[0]["norway_wages"] + 8.4) < 1e-9 and abs((none[2]["tax"] - acc[2]["tax"]) - 8.4 * hm.C["norway_tax_rate"]) < 1e-9
+      and abs((none[2]["ebitda"] - none[2]["tax"]) - (acc[2]["ebitda"] - acc[2]["tax"]) - 8.4 * 0.22) < 1e-9 and acc[4]["norway_stoppage_weeks"] == 0,
+      f"wages {acc[0]['norway_wages']:.2f}; after tax {(none[2]['ebitda'] - none[2]['tax']) - (acc[2]['ebitda'] - acc[2]['tax']):.3f}")
+check("Refusing brings a two-week stoppage on the operated fields and the union's 8% anyway by arbitration; half brings a one-week stoppage and 4%: both cost more than accepting, even after tax",
+      ref[4]["norway_stoppage_weeks"] == 2 and abs(ref[4]["norway_wage_uplift"] - 0.08) < 1e-12 and half[4]["norway_stoppage_weeks"] == 1 and abs(half[4]["norway_wage_uplift"] - 0.04) < 1e-12
+      and ref[0]["norway_stoppage"] < half[0]["norway_stoppage"] < 0 and (ref[2]["ebitda"] - ref[2]["tax"]) < (half[2]["ebitda"] - half[2]["tax"]) < (acc[2]["ebitda"] - acc[2]["tax"]),
+      f"stoppage refuse {ref[0]['norway_stoppage']:.1f}, half {half[0]['norway_stoppage']:.1f}")
+later = hm.step(acc[6], hm.Decisions(), q("2029Q4"))
+check("The settled raise stays on the wage bill in every later quarter; outside Q1 2030 the answer changes nothing",
+      abs(later[0]["norway_wages"] + 8.4) < 1e-9 and abs(hm.step(copy.deepcopy(start), hm.Decisions(norway_wage="refuse"), q("2029Q4"))[0]["norway_stoppage"]) < 1e-12, "8.4 a quarter carried")
+now = hm.step(copy.deepcopy(start), hm.Decisions(turnaround="now"), m13)
+wait = hm.step(copy.deepcopy(start), hm.Decisions(turnaround="wait"), m13)
+m_next = dict(q("2029Q4")); m_out = dict(m_next, outage=True)
+after_wait = hm.step(wait[6], hm.Decisions(), m_next)
+after_out = hm.step(wait[6], hm.Decisions(), m_out)
+check("Doing the turnaround now costs $81M under Refineries this quarter; waiting costs nothing now, three points of plant condition, then $60M next quarter, or $210M if the plant breaks down first",
+      abs(now[0]["turnaround"] + 81) < 1e-9 and wait[0]["turnaround"] == 0 and abs(now[3]["plant_condition"] - wait[3]["plant_condition"] - 3) < 1e-9
+      and abs(after_wait[0]["turnaround"] + 60) < 1e-9 and after_wait[0]["turnaround_outage"] == 0 and abs(after_out[0]["turnaround_outage"] + 150) < 1e-9
+      and not after_wait[6].turnaround_pending, f"now {now[0]['turnaround']:.0f}; later {after_wait[0]['turnaround']:.0f} / {after_out[0]['turnaround'] + after_out[0]['turnaround_outage']:.0f}")
+
+# 29 Reference teams: careful > average > careless in every quarter
 summary = rr.main()
 ok = True
 detail = []
@@ -391,16 +427,16 @@ for i in range(len(summary["careful"])):
     c, a, l = (summary[t][i][2] for t in ("careful", "average", "careless"))
     ok &= c > a > l
     detail.append(f"Q{i+1}: {c:.1f} / {a:.1f} / {l:.1f}")
-check("Score order careful > average > careless in all twelve quarters", ok, "; ".join(detail))
+check("Score order careful > average > careless in all thirteen quarters", ok, "; ".join(detail))
 
-# 29 Determinism: fixtures rebuild byte-identical
+# 30 Determinism: fixtures rebuild byte-identical
 h1 = hashlib.sha256((ROOT / "fixtures/golden_quarters.csv").read_bytes()).hexdigest()
 rr.main()
 h2 = hashlib.sha256((ROOT / "fixtures/golden_quarters.csv").read_bytes()).hexdigest()
 check("Fixtures rebuild identically", h1 == h2, h1[:16])
 
 passed = sum(1 for c in checks if c[1])
-lines = ["# Operating model validation (v0.8, Quarters 1-12)", "", f"**Result: {passed} of {len(checks)} checks pass.**", "",
+lines = ["# Operating model validation (v0.9, Quarters 1-13)", "", f"**Result: {passed} of {len(checks)} checks pass.**", "",
          "| # | Check | Result | Detail |", "| --- | --- | --- | --- |"]
 for i, (n, okk, d) in enumerate(checks, 1):
     lines.append(f"| {i} | {n} | {'PASS' if okk else 'FAIL'} | {d} |")

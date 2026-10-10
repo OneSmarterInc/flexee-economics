@@ -222,6 +222,10 @@ final class ContentPack
                 $key = $oil && $transition > 0 ? 'both' : ($oil ? 'oil' : ($transition > 0 ? 'transition' : 'none'));
 
                 return ['key' => $key, 'value' => (float) $transition];
+            case 'union':
+                $answer = (string) ($decisions['norway_wage'] ?? 'accept');
+
+                return ['key' => in_array($answer, ['refuse', 'half', 'accept'], true) ? $answer : 'accept', 'value' => (float) ($results['ops.norway_wage_uplift'] ?? 0)];
             case 'sale':
                 return ['key' => ($decisions['port_euro_retail_divest'] ?? 'hold') === 'go' ? 'sold' : 'kept', 'value' => (float) ($results['ops.divest_proceeds'] ?? 0)];
             case 'projects':
@@ -294,6 +298,9 @@ final class ContentPack
             '{kessana_forgone}' => $money('ops.kessana_forgone'),
             '{carbon}' => '$'.number_format((float) ($r['ops.carbon'] ?? 0), 0),
             '{divest_proceeds}' => $money('ops.divest_proceeds'),
+            '{norway_wages}' => self::money(abs((float) ($r['line.norway_wages'] ?? 0))),       // always a cost
+            '{norway_stoppage}' => self::money(abs((float) ($r['line.norway_stoppage'] ?? 0))), // always a cost
+            '{norway_tax_shield}' => $money('ops.norway_tax_shield'),
         ];
     }
 

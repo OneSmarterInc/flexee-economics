@@ -34,3 +34,5 @@ port_permian_expansion,capital,Expand in the Permian,choice hold|go,,,,hold,12,y
 port_biofuel_conversion,capital,Convert part of Rotterdam to biofuels,choice hold|go,,,,hold,12,your_call,1,
 port_offshore_wind,capital,Offshore wind off Norway,choice hold|go,,,,hold,12,your_call,1,
 port_euro_retail_divest,capital,Sell the European stations,choice hold|go,,,,hold,12,your_call,1,
+norway_wage,oil_fields,The Norwegian union's 8%,choice refuse|half|accept,,,,accept,13,your_call,1,
+turnaround,refineries,Baton Rouge's turnaround,choice now|wait,,,,now,13,your_call,1,

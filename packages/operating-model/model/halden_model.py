@@ -1,4 +1,4 @@
-"""Halden Energy quarterly operating model, reference implementation v0.8 (Quarters 1-12).
+"""Halden Energy quarterly operating model, reference implementation v0.9 (Quarters 1-13).
 
 This is the authoritative economics for the quarterly play-through. The Laravel engine must
 reproduce fixtures/golden_quarters.csv within tolerance (rel 1e-6, abs 1e-4).
@@ -45,6 +45,7 @@ def load_market():
             "rival_cut": float(r.get("rival_cut") or 0.0), "rival_builds": r.get("rival_builds") == "1",
             "opec": r.get("opec") == "1", "recession": r.get("recession") == "1",
             "kessana": r.get("kessana") == "1", "carbon": float(r.get("carbon") or 0.0),
+            "labor": r.get("labor") == "1",
         })
     return rows
 
@@ -125,6 +126,10 @@ def load_portfolio_scenarios():
     return out
 
 
+def load_labor_markets():
+    return [{"market": r["market"], "structure": r["structure"], "wage_k": float(r["benchmark_wage_k"]), "note": r["note"]} for r in _read("labor_markets.csv")]
+
+
 def load_cohort_capital():
     return [{"behaviour": r["behaviour"], "min": float(r["score_min"]), "max": float(r["score_max"]),
              "rate": float(r["discount_rate"]), "envelope": float(r["capital_envelope"])} for r in _read("cohort_capital.csv")]
@@ -138,6 +143,7 @@ OPEC = load_opec_scenarios()
 REBRAND = load_rebrand_markets()
 ELASTICITY = load_product_elasticities()
 YIELDS = load_refinery_yields()
+LABOR = load_labor_markets()
 PORTFOLIO = load_portfolio_projects()
 BUCKETS = load_portfolio_buckets()
 SCENARIOS = load_portfolio_scenarios()
@@ -174,6 +180,8 @@ class Decisions:
     # Carried from the team's own history, not set on a page (the runner works them out):
     kessana_position: str = "none"  # none | accept | counter | threaten | exit: Halden's one-time answer to the Kessana government (Q3 2029)
     portfolio: dict = field(default_factory=dict)  # Q4 2029 portfolio: project key -> "go" | "hold" (one-time; the money goes out over five years)
+    norway_wage: str = "none"      # none | refuse | half | accept: Halden's answer to the Norwegian union's 8% (Q1 2030, one-time)
+    turnaround: str = "none"       # none | now | wait: Baton Rouge's turnaround at the contractor peak now, or off-peak next quarter (Q1 2030, one-time)
     delacroix_cover: bool = False   # the Q4 2027 crude price left Baton Rouge reporting strong, so Marcus can resist run cuts
     straits_strained: bool = False  # the team kept asking Singapore for more than Straits Pacific allows
 
@@ -197,6 +205,8 @@ class State:
     kessana_exited: bool = False                   # Halden handed the Kessana block back
     portfolio: dict = field(default_factory=dict)  # portfolio project key -> quarters since the go-ahead
     europe_sold: bool = False                      # the European stations have been sold (the line stops the quarter after)
+    norway_wage_uplift: float = 0.0                # the raise settled with the Norwegian union, on the wage bill, for good
+    turnaround_pending: bool = False               # Baton Rouge's turnaround was put off to next quarter
 
 
 def rig_productivity(k):
@@ -415,6 +425,36 @@ def portfolio_feasible_sets(rotterdam_closed=False):
     return out
 
 
+def norway_wage_outcome(answer):
+    """(stoppage weeks this quarter, raise for good). The union strikes over anything less than its demand, and the
+    government ends a long stoppage by arbitration at the union's rate; a half offer is taken after a short one."""
+    if answer == "refuse":
+        return C["strike_weeks_refuse"], C["norway_union_demand"]
+    if answer == "half":
+        return C["strike_weeks_half"], C["norway_half_offer"]
+    if answer == "accept":
+        return 0.0, C["norway_union_demand"]
+    return 0.0, 0.0
+
+
+def norway_concession_after_tax(gross):
+    """What a Norwegian wage concession costs Halden after the 78% petroleum tax (the Week 13 tax shield)."""
+    return gross * (1 - C["norway_tax_rate"])
+
+
+def permian_marginal_revenue_product_k():
+    """What one more Permian worker earns Halden a year, in $k: barrels times margin."""
+    return C["permian_marginal_worker_bbl"] * C["permian_margin_per_bbl"] / 1e3
+
+
+def turnaround_peak_cost():
+    return C["turnaround_labor_base"] * C["turnaround_peak_multiplier"]
+
+
+def turnaround_delay_expected_cost():
+    return C["turnaround_labor_base"] + C["turnaround_outage_probability"] * C["turnaround_outage_cost"]
+
+
 def kessana_outcome(position, state: State):
     """(take, exited) after the one-time talks: the position only acts in the quarter the government asks."""
     if position == "exit":
@@ -464,6 +504,20 @@ def step(state: State, dec: Decisions, mkt: dict):
     lines["norway_operated"] = (nor_vol * nor_margin_full
                                 - nor_vol * cut * (brent - C["norway_discount_to_brent"] - nor_saved_per_bbl)) * D / 1e6
     lines["norway_cutback_effect"] = -nor_vol * cut * (brent - C["norway_discount_to_brent"] - nor_saved_per_bbl) * D / 1e6
+    # The Norwegian union (Q1 2030, one-time): a stoppage costs the operated fields' margin for its weeks (the barrels stay in
+    # the ground; the variable lifting is saved); the settled raise lands on the wage bill for good, and Norway's 78% tax
+    # absorbs most of it in the tax line.
+    wage_uplift = state.norway_wage_uplift
+    stoppage_weeks = 0.0
+    if mkt.get("labor", False) and dec.norway_wage != "none":
+        stoppage_weeks, wage_uplift = norway_wage_outcome(dec.norway_wage)
+        if stoppage_weeks > 0:
+            notes["norway_stoppage_weeks"] = stoppage_weeks
+    stoppage_share = stoppage_weeks / C["weeks_per_quarter"]
+    lines["norway_stoppage"] = -nor_vol * (1 - cut) * stoppage_share * (brent - C["norway_discount_to_brent"] - nor_saved_per_bbl) * D / 1e6
+    lines["norway_operated"] += lines["norway_stoppage"]
+    lines["norway_wages"] = -C["norway_wage_bill"] * wage_uplift / 4
+    lines["norway_operated"] += lines["norway_wages"]
     lines["norway_partner_run"] = C["norway_nonop_volume"] * nor_margin_full * D / 1e6
     # Kessana: the government's share of profit oil is set by the contract until the Q3 2029 talks, then by what Halden
     # answered. Handing the block back ends the line, returns the exit value and takes the book value off capital.
@@ -558,8 +612,26 @@ def step(state: State, dec: Decisions, mkt: dict):
     lines["projects_upstream"] = proj_lines["oil_fields"]
     # The rival's Gulf Coast expansion: once it is built (from Q4 2028), Halden's answer sets a yearly payoff.
     lines["capacity_game"] = capacity_payoff(dec.capacity_response, mkt.get("rival_builds", False))
+    # Baton Rouge's turnaround (Q1 2030, one-time): contractor crews at the spring peak now, or off-peak next quarter with
+    # a chance of a breakdown in between and three points off plant condition for running past due.
+    turnaround_pending = state.turnaround_pending
+    lines["turnaround"] = 0.0
+    lines["turnaround_outage"] = 0.0
+    health_penalty = 0.0
+    if turnaround_pending:
+        lines["turnaround"] = -C["turnaround_labor_base"]
+        if mkt.get("outage", False):
+            lines["turnaround_outage"] = -C["turnaround_outage_cost"]
+            notes["turnaround_outage"] = True
+        turnaround_pending = False
+    elif mkt.get("labor", False) and dec.turnaround == "now":
+        lines["turnaround"] = -turnaround_peak_cost()
+    elif mkt.get("labor", False) and dec.turnaround == "wait":
+        turnaround_pending = True
+        health_penalty = C["turnaround_health_penalty"]
+        notes["turnaround_delayed"] = True
     refining = (lines["baton_rouge"] + lines["rotterdam"] + lines["rotterdam_one_time"] + lines["singapore"]
-                + lines["projects_refining"] + lines["capacity_game"])
+                + lines["projects_refining"] + lines["capacity_game"] + lines["turnaround"] + lines["turnaround_outage"])
 
     # ---------------- Trading ----------------
     lines["geneva_desk"] = C["geneva_base_desk"]
@@ -693,7 +765,10 @@ def step(state: State, dec: Decisions, mkt: dict):
 
     # ---------------- Money ----------------
     da = state.capital_employed * C["da_rate_annual"] / 4
-    tax = C["tax_rate"] * max(0.0, ebitda - da)
+    # Norway's petroleum tax absorbs 78% of the wage raise, not the usual rate. norway_tax_shield is the whole 78%
+    # (what the story quotes); the tax line already carries the usual rate on the lower EBITDA, so only the extra is taken off here.
+    norway_tax_shield = -lines["norway_wages"] * C["norway_tax_rate"]
+    tax = C["tax_rate"] * max(0.0, ebitda - da) + lines["norway_wages"] * (C["norway_tax_rate"] - C["tax_rate"])
     new_capital = commit_outlay + rebrand_outlay + portfolio_capex   # the rebrand and the portfolio are capital spending, treated like projects (decision S2)
     capex = C["other_sustaining_capex"] + dec.rigs * C["rig_capex_per_qtr"] + new_capital
     fcf = ebitda - tax - capex
@@ -702,6 +777,7 @@ def step(state: State, dec: Decisions, mkt: dict):
 
     # ---------------- Plant condition ----------------
     health = state.asset_health
+    health -= health_penalty
     health -= 0.5 * max(0.0, br_run - C["br_wear_threshold"])
     if rot_status == "running" and dec.rot_run < C["rot_sticky_threshold"]:
         health -= 0.5
@@ -747,7 +823,8 @@ def step(state: State, dec: Decisions, mkt: dict):
                       capital_employed=new_ce, net_debt=new_nd, asset_health=health,
                       europe_volume_factor=eu_factor, held_up=held_up, held_down=held_down,
                       hedges=new_hedges, projects=proj_age, rebranded=rebrand_age, prev_br_run=br_run,
-                      kessana_take=kes_take, kessana_exited=kes_exited, portfolio=portfolio_age, europe_sold=europe_sold)
+                      kessana_take=kes_take, kessana_exited=kes_exited, portfolio=portfolio_age, europe_sold=europe_sold,
+                      norway_wage_uplift=wage_uplift, turnaround_pending=turnaround_pending)
     money = {"ebitda": ebitda, "da": da, "tax": tax, "capex": capex, "fcf": fcf,
              "capital_employed_end": new_ce, "net_debt_end": new_nd}
     ops = {"tp": tp, "market_tp": market_tp, "cost_tp": cost_tp, "permian_prod": prod,
@@ -757,7 +834,9 @@ def step(state: State, dec: Decisions, mkt: dict):
            "wti_shock": shock, "gc": mkt["gc"], "wti": wti, "rebrand_outlay": rebrand_outlay,
            "nonfuel_per_gal": nonfuel_per_gal, "br_run": br_run,
            "kessana_take": kes_take, "kessana_exit_proceeds": kes_exit_proceeds, "kessana_forgone": kes_forgone,
-           "portfolio_capex": portfolio_capex, "divest_proceeds": divest_proceeds, "carbon": mkt.get("carbon", 0.0)}
+           "portfolio_capex": portfolio_capex, "divest_proceeds": divest_proceeds, "carbon": mkt.get("carbon", 0.0),
+           "norway_wage_uplift": wage_uplift, "norway_stoppage_weeks": stoppage_weeks, "norway_tax_shield": norway_tax_shield,
+           "turnaround_pending": 1.0 if turnaround_pending else 0.0}
     return lines, seg, money, kpi, ops, notes, new_state
 
 

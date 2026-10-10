@@ -33,6 +33,8 @@ final class CompanyState
         public bool $kessanaExited = false, // Halden handed the Kessana block back
         public array $portfolio = [],       // Q4 2029 portfolio project key => quarters since the go-ahead
         public bool $europeSold = false,    // the European stations have been sold (the line stops the quarter after)
+        public float $norwayWageUplift = 0.0, // the raise settled with the Norwegian union, on the wage bill, for good
+        public bool $turnaroundPending = false, // Baton Rouge's turnaround was put off to next quarter
     ) {}
 
     /** @return array<string, mixed> */
@@ -62,6 +64,8 @@ final class CompanyState
             kessanaExited: (bool) ($a['kessanaExited'] ?? false),
             portfolio: array_map('intval', (array) ($a['portfolio'] ?? [])),
             europeSold: (bool) ($a['europeSold'] ?? false),
+            norwayWageUplift: (float) ($a['norwayWageUplift'] ?? 0.0),
+            turnaroundPending: (bool) ($a['turnaroundPending'] ?? false),
         );
     }
 }

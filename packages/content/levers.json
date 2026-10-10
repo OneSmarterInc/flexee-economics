@@ -53,7 +53,9 @@
     "port_permian_expansion": "More rigs, more wells, more of what Halden does best. Worth the most if carbon stays cheap and people keep driving; loses money if the world moves on.",
     "port_biofuel_conversion": "Turn part of Rotterdam into a plant that makes fuel from crops and waste. Needs a Rotterdam that's still there. Smaller bet, same direction as Helix.",
     "port_offshore_wind": "Wind farms off the Norwegian coast, where Halden already has people and permits. Worth money when carbon is dear, whatever happens to oil demand.",
-    "port_euro_retail_divest": "Sell the 1,100 Halden stations in the Netherlands, Belgium and Germany. $550M comes in and widens what you can afford. Their earnings leave from next quarter, for good."
+    "port_euro_retail_divest": "Sell the 1,100 Halden stations in the Netherlands, Belgium and Germany. $550M comes in and widens what you can afford. Their earnings leave from next quarter, for good.",
+    "norway_wage": "The union wants 8% on the $420M wage bill, about $33.6M a year, or the platforms stop. Norway's 78% petroleum tax takes most of any raise back, so the cost to Halden after tax is about 22% of the headline. You answer once.",
+    "turnaround": "Baton Rouge's maintenance shutdown is due. Contractor crews cost $81M now at the spring peak, or $60M next quarter off-peak, with a 12% chance the plant breaks down first ($150M) and three points off plant condition for running past due. You answer once."
   },
   "choices": {
     "norway": {
@@ -100,6 +102,15 @@
     "portfolio": {
       "hold": "Hold",
       "go": "Go ahead"
+    },
+    "norway_wage": {
+      "refuse": "Refuse: hold the wage bill where it is",
+      "half": "Offer half: 4%",
+      "accept": "Accept the 8%"
+    },
+    "turnaround": {
+      "now": "Do it now, at peak rates",
+      "wait": "Wait for off-peak rates next quarter"
     }
   },
   "badges": {
@@ -166,5 +177,19 @@
     "means_none": "Nothing placed. The $1,200M stays unspent and the debt stays where it is.",
     "sale_note": " (the sale adds $550M)",
     "over": "That's over the limit: {why}"
+  },
+  "labor": {
+    "norway_means": {
+      "refuse": "Halden holds at 0%. The union has said it will stop the platforms; what a stoppage costs is on the Norway line when the results come.",
+      "half": "Halden offers 4%: $16.8M a year on the wage bill, about $3.7M after Norway's tax. The union has said it will stop the platforms over less than 8%.",
+      "accept": "The raise is $33.6M a year on the wage bill, $8.4M a quarter; Norway's tax takes back about 78%, so about $1.85M a quarter is Halden's."
+    },
+    "turnaround_means": {
+      "now": "$81M of contractor crews under Refineries this quarter.",
+      "wait": "Nothing this quarter; $60M next quarter, and three points off plant condition now. A breakdown in between would cost $150M."
+    },
+    "settled_norway": "Settled in Q1 2030: the wage bill is {pct}% higher for good.",
+    "settled_turnaround_now": "Done in Q1 2030, at peak rates.",
+    "settled_turnaround_wait": "Put off in Q1 2030 to off-peak rates."
   }
 }

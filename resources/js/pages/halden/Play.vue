@@ -331,6 +331,12 @@ const commitText = computed(() => {
             `five-year portfolio: ${names.length ? names.join(', ') : 'nothing placed'}`,
         );
     }
+    if (props.desk.labor?.open && isOpenLever('norway_wage')) {
+        parts.push(
+            `the union: ${props.leverText.choices.norway_wage[String(draft.norway_wage ?? 'accept')] ?? ''}`,
+            `turnaround: ${props.leverText.choices.turnaround[String(draft.turnaround ?? 'now')] ?? ''}`,
+        );
+    }
     if (props.desk.kessana?.open && isOpenLever('kessana_position')) {
         parts.push(
             `Kessana: ${props.leverText.choices.kessana_position[String(draft.kessana_position ?? 'accept')] ?? ''}`,
@@ -1204,6 +1210,71 @@ function quarterHref(id: number): string {
                                 <div class="hx-hint mt-1">{{ f.text }}</div>
                             </div>
                             <div
+                                v-if="desk.labor && isOpenLever('norway_wage')"
+                                class="hx-lever"
+                            >
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <span class="text-[16px] font-semibold">{{
+                                        lever('norway_wage').label
+                                    }}</span>
+                                    <span class="hx-badge hx-badge-call">{{
+                                        badge('norway_wage')
+                                    }}</span>
+                                    <span
+                                        v-if="lever('norway_wage').isNew"
+                                        class="hx-badge hx-badge-new"
+                                        >NEW</span
+                                    >
+                                </div>
+                                <div class="hx-hint mt-1 mb-3">
+                                    {{ leverText.help.norway_wage }}
+                                </div>
+                                <div class="flex flex-wrap gap-2.5">
+                                    <button
+                                        v-for="(label, choice) in leverText
+                                            .choices.norway_wage"
+                                        :key="choice"
+                                        type="button"
+                                        class="hx-opt"
+                                        :aria-pressed="
+                                            draft.norway_wage === choice
+                                        "
+                                        :disabled="!editable"
+                                        @click="
+                                            draft.norway_wage = String(choice)
+                                        "
+                                    >
+                                        {{ label }}
+                                    </button>
+                                </div>
+                                <div v-if="errors.norway_wage" class="hx-error">
+                                    {{ errors.norway_wage }}
+                                </div>
+                            </div>
+                            <div
+                                v-else-if="
+                                    desk.labor && !isOpenLever('norway_wage')
+                                "
+                                class="hx-lever"
+                            >
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <span class="text-[16px] font-semibold">{{
+                                        lever('norway_wage').label
+                                    }}</span>
+                                    <span class="hx-badge hx-badge-fixed"
+                                        >SETTLED</span
+                                    >
+                                </div>
+                                <div class="hx-hint mt-1">
+                                    {{
+                                        leverText.labor.settled_norway.replace(
+                                            '{pct}',
+                                            fmt(desk.labor.uplift * 100),
+                                        )
+                                    }}
+                                </div>
+                            </div>
+                            <div
                                 v-if="
                                     desk.kessana &&
                                     desk.kessana.open &&
@@ -1292,6 +1363,22 @@ function quarterHref(id: number): string {
                                         "
                                     >
                                         {{ kessanaMeans() }}</template
+                                    >
+                                    <template
+                                        v-if="
+                                            desk.labor &&
+                                            isOpenLever('norway_wage')
+                                        "
+                                    >
+                                        {{
+                                            ' ' +
+                                            (leverText.labor.norway_means[
+                                                String(
+                                                    draft.norway_wage ??
+                                                        'accept',
+                                                )
+                                            ] ?? '')
+                                        }}</template
                                     >
                                 </div>
                             </div>
@@ -1598,6 +1685,72 @@ function quarterHref(id: number): string {
                                     </div>
                                 </div>
                             </div>
+                            <div
+                                v-if="desk.labor && isOpenLever('turnaround')"
+                                class="hx-lever"
+                            >
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <span class="text-[16px] font-semibold">{{
+                                        lever('turnaround').label
+                                    }}</span>
+                                    <span class="hx-badge hx-badge-call">{{
+                                        badge('turnaround')
+                                    }}</span>
+                                    <span
+                                        v-if="lever('turnaround').isNew"
+                                        class="hx-badge hx-badge-new"
+                                        >NEW</span
+                                    >
+                                </div>
+                                <div class="hx-hint mt-1 mb-3">
+                                    {{ leverText.help.turnaround }}
+                                </div>
+                                <div class="flex flex-wrap gap-2.5">
+                                    <button
+                                        v-for="(label, choice) in leverText
+                                            .choices.turnaround"
+                                        :key="choice"
+                                        type="button"
+                                        class="hx-opt"
+                                        :aria-pressed="
+                                            draft.turnaround === choice
+                                        "
+                                        :disabled="!editable"
+                                        @click="
+                                            draft.turnaround = String(choice)
+                                        "
+                                    >
+                                        {{ label }}
+                                    </button>
+                                </div>
+                                <div v-if="errors.turnaround" class="hx-error">
+                                    {{ errors.turnaround }}
+                                </div>
+                            </div>
+                            <div
+                                v-else-if="
+                                    desk.labor && !isOpenLever('turnaround')
+                                "
+                                class="hx-lever"
+                            >
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <span class="text-[16px] font-semibold">{{
+                                        lever('turnaround').label
+                                    }}</span>
+                                    <span class="hx-badge hx-badge-fixed"
+                                        >SETTLED</span
+                                    >
+                                </div>
+                                <div class="hx-hint mt-1">
+                                    {{
+                                        desk.labor.turnaroundBefore === 'wait'
+                                            ? leverText.labor
+                                                  .settled_turnaround_wait
+                                            : leverText.labor
+                                                  .settled_turnaround_now
+                                    }}
+                                </div>
+                            </div>
                         </div>
                         <div class="hx-desk mt-4">
                             <div>
@@ -1605,6 +1758,21 @@ function quarterHref(id: number): string {
                                 <div class="hx-mono mt-1 text-[14px]">
                                     Oil through Baton Rouge and Rotterdam: about
                                     {{ fmt(refineryCrude) }} barrels a day.
+                                    <template
+                                        v-if="
+                                            desk.labor &&
+                                            isOpenLever('turnaround')
+                                        "
+                                    >
+                                        {{
+                                            ' ' +
+                                            (leverText.labor.turnaround_means[
+                                                String(
+                                                    draft.turnaround ?? 'now',
+                                                )
+                                            ] ?? '')
+                                        }}</template
+                                    >
                                 </div>
                             </div>
                             <button

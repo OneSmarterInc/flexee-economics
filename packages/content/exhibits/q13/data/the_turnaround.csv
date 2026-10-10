@@ -1,0 +1,6 @@
+parameter,value,note
+crews_off_peak_musd,60,contractor crews at summer rates
+peak_multiple,1.35,what the spring peak adds to the rate
+chance_of_breakdown_if_you_wait,0.12,the chance a plant run past due breaks down before the crews come
+breakdown_cost_musd,150,what a breakdown costs
+plant_condition_penalty_points,3,what running past due takes off the plant condition score now

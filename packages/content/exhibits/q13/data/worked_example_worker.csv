@@ -1,0 +1,6 @@
+parameter,value
+units_a_worker_makes,1000
+price_per_unit,50
+wage,40000
+a_raise,100
+tax_rate,0.5

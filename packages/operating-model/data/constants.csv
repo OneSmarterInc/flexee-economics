@@ -116,3 +116,18 @@ portfolio_envelope,1800,usd_m,Wk12 envelope.csv,five-year capital envelope for t
 portfolio_sustaining_floor,600,usd_m,Wk12 envelope.csv,must be spent keeping what Halden has running; leaves 1200 for choices
 portfolio_years,5,years,Wk12 package,the money goes out evenly over five years from Q4 2029
 portfolio_carbon_base,40,usd_tonne,Wk12 package,"the carbon price the project values are quoted at (NPV = base + carbon_sens x (carbon - 40) + demand_sens x demand code)"
+norway_wage_bill,420,usd_m_per_year,Wk13 norway_union.csv,the Norwegian offshore wage bill
+norway_union_demand,0.08,fraction,Wk13 norway_union.csv,the raise the union asks for
+norway_tax_rate,0.78,fraction,ledger Wk1,Norway's petroleum tax: the government absorbs 78% of any extra cost there
+norway_half_offer,0.04,fraction,design (provisional),the raise Halden offers when it offers half
+strike_weeks_refuse,2,weeks,design (provisional),a two-week stoppage on the operated fields before the government orders arbitration at the union's rate
+strike_weeks_half,1,weeks,design (provisional),a one-week stoppage before the union takes the half offer
+weeks_per_quarter,13,weeks,calendar,
+permian_marginal_worker_bbl,9000,bbl_per_year,Wk13 permian_labor.csv,what one more Permian worker produces
+permian_margin_per_bbl,56.4,usd_bbl,Wk13 permian_labor.csv,margin on a Permian barrel for the labor valuation
+permian_market_wage_k,145,usd_k,Wk13 permian_labor.csv,the loaded wage the Permian market sets
+turnaround_labor_base,60,usd_m,Wk13 turnaround.csv,Baton Rouge turnaround labor at off-peak contractor rates
+turnaround_peak_multiplier,1.35,multiple,Wk13 turnaround.csv,contractor rates at the spring peak
+turnaround_outage_probability,0.12,fraction,Wk13 turnaround.csv,chance of a breakdown when the turnaround is put off a quarter
+turnaround_outage_cost,150,usd_m,Wk13 turnaround.csv,what a breakdown costs
+turnaround_health_penalty,3,points,Wk13 turnaround.csv,plant condition lost by putting the turnaround off

@@ -1,0 +1,45 @@
+{
+  "_about": "Quarter 13 (Q1 2030). The factor markets: the Norwegian union, the Permian wage, the Baton Rouge turnaround. Advisors know the package figures and the mechanics; none knows whether the plant will break down if the turnaround waits. Draft for Vikram's review.",
+  "marchetti": {
+    "facts": "Oil is $71, carbon $45 a tonne. The Norwegian offshore benchmark wage is about $128,000; the Permian's $145,000; Gulf Coast contractors about $118,000, and 35% more at the March peak. The three markets are built differently: one union against one employer in Norway; many employers chasing few workers in the Permian; a spot market for crews on the Gulf Coast.",
+    "stance": "Labor is a price like any other, and the way the market is built tells you who sets it.",
+    "signal": "Steer them to name which kind of market each of the three is before they decide what to pay in it.",
+    "misdirection": "She'd treat all three as one labor cost line and index it to inflation, which misses everything that matters this quarter."
+  },
+  "roy": {
+    "facts": "The stations have no part in this quarter. Her dealers pay their own people.",
+    "stance": "She'll say this isn't her quarter and ask about the shops.",
+    "signal": "",
+    "misdirection": "She'll suggest the Permian crews could be kept with the kind of loyalty scheme the stations use for drivers, which isn't how oilfield crews move."
+  },
+  "aasen": {
+    "facts": "The turnaround is due. Crews cost $81 million at the March peak or $60 million off-peak next quarter. A plant run past due has about a 12% chance of a breakdown that costs $150 million, and plant condition drops three points for the wait. His Norwegian crews will stop if the union says so; the operated fields produce nothing while they do.",
+    "stance": "You don't run a refinery past due to save contractor money. The money you save is the money the breakdown costs, plus the embarrassment.",
+    "signal": "Nudge them to put the expected cost of waiting next to the peak cost, and then to ask what the three points of condition are worth to the score.",
+    "misdirection": "He'd pay the peak without doing the sum, because waiting feels like neglect; the sum is closer than he thinks."
+  },
+  "ruiz": {
+    "facts": "The union's 8% is $33.6 million a year gross on the $420 million wage bill. Norway taxes the fields at 78%, so Halden's after-tax cost is about $7.4 million a year, 22% of the face value. A stoppage on the operated fields costs their margin for as long as it lasts, and most of that would have been tax too. The Permian wage is $145,000 and a marginal worker there produces 9,000 barrels a year at about $56 a barrel of margin.",
+    "stance": "Before anyone fights the union, divide by five. That's what the fight is actually about.",
+    "signal": "Prompt them to work out the after-tax cost of the raise, and the after-tax cost of a week of stoppage, and to compare those two numbers rather than the headlines.",
+    "misdirection": "She'd offer half on principle, to show the union that Halden negotiates, which buys a week's stoppage for a saving that is close to nothing."
+  },
+  "osei": {
+    "facts": "The Norwegian government has ended every offshore strike of the last twenty years by ordering compulsory arbitration, usually within two weeks, and the arbitrators award the industry rate the union asked for. Two operators have already settled this year at 8%. The union is one union; Halden is one employer; that's a bilateral monopoly, and the government is the third party at the table.",
+    "stance": "In Norway you don't win a strike. You decide how long to have one.",
+    "signal": "Ask them what happens on day fifteen of a stoppage, and who decides.",
+    "misdirection": "He'd settle above 8% to buy goodwill for next time, which teaches the union that Halden pays more when asked."
+  },
+  "lund": {
+    "facts": "The board's last meeting is next quarter. It will ask about every quarter, and this one will be remembered for how Halden treated its people in two countries in the same month.",
+    "stance": "How a company pays people is a statement about what it is.",
+    "signal": "Ask them whether the answers they give the union and the Permian crews are the answers of the company in their sentence.",
+    "misdirection": "She'd pay the Permian crews above market on principle, which is a gift to the company next door when the crews leave anyway."
+  },
+  "priya": {
+    "facts": "The union has told Bjørn it will stop the platforms over anything less than 8%; Bjørn believes them. Marcus wants the turnaround done now and has told the contractors so. Grant wants the after-tax number on the union before anyone answers. The Permian crews' foreman has been seen at the company next door's office.",
+    "stance": "Predictions: the union walks for a week on a half offer and two on a refusal, and the government hands them 8% either way. Marcus will blame any breakdown on the wait, loudly and in writing. Grant signs the 8% the moment he sees the 22%.",
+    "signal": "",
+    "misdirection": "She thinks a personal call from the EVP to the union leader could get 6%. It can't; the leader answers to a vote."
+  }
+}
