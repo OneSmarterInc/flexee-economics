@@ -25,6 +25,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('faculty', [FacultyController::class, 'board'])->name('faculty.board');
     Route::post('faculty/quarters/{quarter}/{action}', [FacultyController::class, 'action'])->whereIn('action', ['open', 'close', 'publish', 'extend'])->name('faculty.quarter');
+    Route::post('faculty/quarters/{quarter}/draws', [FacultyController::class, 'setDraw'])->name('faculty.draw');
     Route::get('faculty/teams/{team}/quarters/{quarter}', [FacultyController::class, 'viewTeam'])->name('faculty.team');
     Route::get('faculty/teams/{team}/quarters/{quarter}/feedback', [FacultyController::class, 'feedback'])->name('faculty.feedback');
     Route::post('faculty/teams/{team}/quarters/{quarter}/feedback/draft', [FacultyController::class, 'draftFeedback'])->middleware('throttle:10,1')->name('faculty.feedback.draft');

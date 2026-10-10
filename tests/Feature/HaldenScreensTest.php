@@ -293,6 +293,49 @@ class HaldenScreensTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page->has('results.bridge.parts', 3));
     }
 
+    public function test_faculty_can_set_the_class_draws_ahead_of_time_or_leave_them_to_chance(): void
+    {
+        // Quarter 7 published, Quarter 8 (OPEC+) next: the board offers that one draw.
+        $this->section->quarters()->where('number', '<=', 7)->update(['status' => Quarter::PUBLISHED]);
+        $q8 = $this->quarter(8);
+        $this->actingAs($this->faculty)->get('/faculty')->assertInertia(fn (Assert $page) => $page
+            ->has('draws', 1)
+            ->where('draws.0.key', 'opec')
+            ->where('draws.0.quarterLabel', 'Q4 2028')
+            ->where('draws.0.settable', true)
+            ->where('draws.0.value', null)
+            ->where('draws.0.options.2.label', 'The cut falls apart')
+            ->where('draws.0.options.2.chance', 25));
+
+        $this->actingAs($this->faculty)->post("/faculty/quarters/{$q8->id}/draws", ['draw' => 'opec', 'value' => 'fails'])->assertSessionHasNoErrors();
+        $this->assertSame('fails', $q8->refresh()->event_outcome);
+        $this->actingAs($this->faculty)->from('/faculty')->post("/faculty/quarters/{$q8->id}/draws", ['draw' => 'opec', 'value' => 'maybe'])->assertSessionHasErrors(['draw']);
+        $this->actingAs($this->faculty)->post("/faculty/quarters/{$q8->id}/draws", ['draw' => 'opec', 'value' => ''])->assertSessionHasNoErrors();
+        $this->assertNull($q8->refresh()->event_outcome);
+
+        // A quarter without that draw refuses it; a quarter that has run is settled.
+        $this->actingAs($this->faculty)->from('/faculty')->post('/faculty/quarters/'.$this->quarter(3)->id.'/draws', ['draw' => 'opec', 'value' => 'full'])->assertSessionHasErrors(['draw']);
+        $q8->update(['status' => Quarter::CLOSED, 'event_outcome' => 'partial']);
+        $this->actingAs($this->faculty)->from('/faculty')->post("/faculty/quarters/{$q8->id}/draws", ['draw' => 'opec', 'value' => 'full'])->assertSessionHasErrors(['draw']);
+        $this->assertSame('partial', $q8->refresh()->event_outcome);
+
+        // Quarter 13 published, the board quarter next: the breakdown and the world, both open to be set; a preset world survives opening.
+        $this->section->quarters()->where('number', '<=', 13)->update(['status' => Quarter::PUBLISHED]);
+        $q14 = $this->quarter(14);
+        $this->actingAs($this->faculty)->get('/faculty')->assertInertia(fn (Assert $page) => $page
+            ->has('draws', 2)
+            ->where('draws.0.key', 'outage')
+            ->where('draws.0.options.1.chance', 12)
+            ->where('draws.1.key', 'world')
+            ->has('draws.1.options', 9)
+            ->where('draws.1.options.0.value', 'low:slow'));
+        $this->actingAs($this->faculty)->post("/faculty/quarters/{$q14->id}/draws", ['draw' => 'world', 'value' => 'high:collapse'])->assertSessionHasNoErrors();
+        app(QuarterRunner::class)->open($q14->refresh());
+        $this->assertSame('high:collapse', $q14->refresh()->world);
+        $this->actingAs($this->faculty)->post("/faculty/quarters/{$q14->id}/draws", ['draw' => 'outage', 'value' => 'outage'])->assertSessionHasNoErrors();
+        $this->assertSame('outage', $q14->refresh()->event_outcome);
+    }
+
     public function test_faculty_cannot_run_another_instructors_class(): void
     {
         $stranger = User::factory()->create(['role' => User::ROLE_FACULTY]);

@@ -19,6 +19,19 @@ interface TeamRow {
     flag: string | null;
 }
 
+interface Draw {
+    key: 'opec' | 'outage' | 'world';
+    title: string;
+    when: string;
+    value: string | null;
+    settable: boolean;
+    options: { value: string; label: string; chance: number }[];
+    quarterId: number;
+    quarterLabel: string;
+    quarterNumber: number;
+    open: boolean;
+}
+
 const props = defineProps<{
     section: { id: number; name: string; course: string };
     quarter: {
@@ -36,6 +49,7 @@ const props = defineProps<{
     pages: { page: string; title: string }[];
     teams: TeamRow[];
     quarters: { number: number; label: string; status: string }[];
+    draws: Draw[];
 }>();
 
 const page = usePage();
@@ -72,6 +86,49 @@ function act(
     router.post(
         `/faculty/quarters/${quarterId}/${action}?section=${props.section.id}`,
         {},
+        { preserveScroll: true, onFinish: () => (busy.value = false) },
+    );
+}
+
+const drawPicks = ref<Record<string, string>>(
+    Object.fromEntries(
+        props.draws.map((d) => [`${d.quarterId}:${d.key}`, d.value ?? '']),
+    ),
+);
+
+function drawLabel(d: Draw, value: string | null): string {
+    return d.options.find((o) => o.value === value)?.label ?? 'Chance';
+}
+
+function drawStatus(d: Draw): string {
+    if (!d.settable) {
+        return `Settled: ${drawLabel(d, d.value)}.`;
+    }
+
+    if (d.value === null) {
+        return `Left to chance, drawn ${d.when}.`;
+    }
+
+    return `Set to: ${drawLabel(d, d.value)}.`;
+}
+
+function setDraw(d: Draw) {
+    const value = drawPicks.value[`${d.quarterId}:${d.key}`] ?? '';
+    const text =
+        value === ''
+            ? `Hand this back to chance? It will be drawn ${d.when}.`
+            : d.key === 'world' && d.open
+              ? `Set this to "${drawLabel(d, value)}"? The quarter is open, so students will see the new world right away.`
+              : `Set this to "${drawLabel(d, value)}" for the whole class?`;
+
+    if (!window.confirm(text)) {
+        return;
+    }
+
+    busy.value = true;
+    router.post(
+        `/faculty/quarters/${d.quarterId}/draws?section=${props.section.id}`,
+        { draw: d.key, value },
         { preserveScroll: true, onFinish: () => (busy.value = false) },
     );
 }
@@ -206,6 +263,63 @@ function teamHref(teamId: number): string {
                 <p v-for="(e, k) in errors" :key="k" class="hx-error mt-3">
                     {{ e }}
                 </p>
+
+                <section v-if="draws.length" class="hx-card mt-6">
+                    <h2 class="hx-h2">Decided for the whole class</h2>
+                    <p class="hx-hint mt-1">
+                        These are drawn by chance unless you set them first.
+                        Every team gets the same outcome.
+                    </p>
+                    <div
+                        v-for="d in draws"
+                        :key="`${d.quarterId}:${d.key}`"
+                        class="mt-4 flex flex-wrap items-end gap-3 border-t pt-4"
+                        style="border-color: var(--hx-line)"
+                    >
+                        <div class="min-w-[260px] flex-1">
+                            <p class="font-semibold">
+                                {{ d.title }}
+                                <span class="hx-hint font-normal"
+                                    >· {{ d.quarterLabel }}</span
+                                >
+                            </p>
+                            <p class="hx-hint">{{ drawStatus(d) }}</p>
+                        </div>
+                        <template v-if="d.settable">
+                            <label class="block w-full max-w-[440px]">
+                                <span class="hx-sr">{{ d.title }}</span>
+                                <select
+                                    v-model="
+                                        drawPicks[`${d.quarterId}:${d.key}`]
+                                    "
+                                    class="hx-in hx-in-wide"
+                                    :disabled="busy"
+                                >
+                                    <option value="">Leave it to chance</option>
+                                    <option
+                                        v-for="o in d.options"
+                                        :key="o.value"
+                                        :value="o.value"
+                                    >
+                                        {{ o.label }} ({{ o.chance }}%)
+                                    </option>
+                                </select>
+                            </label>
+                            <button
+                                type="button"
+                                class="hx-btn hx-btn-outline"
+                                :disabled="
+                                    busy ||
+                                    (drawPicks[`${d.quarterId}:${d.key}`] ??
+                                        '') === (d.value ?? '')
+                                "
+                                @click="setDraw(d)"
+                            >
+                                Set
+                            </button>
+                        </template>
+                    </div>
+                </section>
 
                 <div class="hx-card mt-6 overflow-x-auto p-0">
                     <table class="hx-tbl w-full">
