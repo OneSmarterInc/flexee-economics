@@ -33,7 +33,56 @@ const props = defineProps<{
         writingScore: number | null;
         publishedAt: string | null;
     };
+    board: {
+        defense: Record<string, string>;
+        parts: { key: string; title: string; prompt: string; words: number }[];
+        reasoning: string | null;
+        outcomes: {
+            average: number | null;
+            median: number | null;
+            strong: boolean | null;
+        };
+        suggested: string | null;
+        tier: string | null;
+        verdict: string | null;
+        publishedAt: string | null;
+        endings: { key: string; title: string }[];
+        resultsPublished: boolean;
+    } | null;
 }>();
+
+// The board's verdict (the last quarter): the instructor's reasoning call plus the scorecard pick the ending.
+const reasoning = ref<string | null>(props.board?.reasoning ?? null);
+const verdictChoice = ref<string | null>(props.board?.verdict ?? null);
+const savingVerdict = ref(false);
+function suggestedEnding(): string | null {
+    const strong = props.board?.outcomes.strong;
+    if (reasoning.value === null || strong === null || strong === undefined) {
+        return null;
+    }
+    if (reasoning.value === 'strong') {
+        return strong ? 'widen' : 'split';
+    }
+
+    return strong ? 'conditions' : 'sold';
+}
+function saveVerdict(publish: boolean) {
+    savingVerdict.value = true;
+    router.post(
+        `/faculty/teams/${props.team.id}/quarters/${props.quarter.id}/verdict${qs.value}`,
+        {
+            reasoning: reasoning.value,
+            verdict: verdictChoice.value ?? suggestedEnding(),
+            publish,
+        },
+        {
+            preserveScroll: true,
+            onFinish: () => {
+                savingVerdict.value = false;
+            },
+        },
+    );
+}
 
 const page = usePage();
 const errors = computed(
@@ -180,8 +229,99 @@ function when(iso: string | null): string {
                     </h1>
                     <p class="hx-hint mt-1">{{ text.intro }}</p>
                 </div>
+                <div v-if="board" class="hx-card">
+                    <h2 class="hx-h2">The board's verdict</h2>
+                    <p class="hx-hint mt-1">
+                        You decide whether the reasoning was strong, from the
+                        defense and the fourteen memos. The scorecard decides
+                        the outcomes: this team's average score over the course,
+                        against the class median. Together they pick the ending;
+                        you can change it before publishing.
+                    </p>
+                    <div class="mt-3 flex flex-wrap items-center gap-2.5">
+                        <span class="text-[14px] font-semibold"
+                            >Reasoning:</span
+                        >
+                        <button
+                            v-for="opt in ['strong', 'weak']"
+                            :key="opt"
+                            type="button"
+                            class="hx-opt"
+                            :aria-pressed="reasoning === opt"
+                            @click="reasoning = opt"
+                        >
+                            {{ opt === 'strong' ? 'Strong' : 'Weak' }}
+                        </button>
+                    </div>
+                    <div class="hx-mono mt-2 text-[13px]">
+                        Outcomes:
+                        {{
+                            board.outcomes.strong === null
+                                ? 'no scores yet'
+                                : `${board.outcomes.strong ? 'strong' : 'weaker'} (average ${board.outcomes.average?.toFixed(1)} against a class median of ${board.outcomes.median?.toFixed(1)})`
+                        }}
+                    </div>
+                    <div class="mt-3 flex flex-wrap items-center gap-2.5">
+                        <span class="text-[14px] font-semibold">Ending:</span>
+                        <button
+                            v-for="e in board.endings"
+                            :key="e.key"
+                            type="button"
+                            class="hx-opt"
+                            :aria-pressed="
+                                (verdictChoice ?? suggestedEnding()) === e.key
+                            "
+                            @click="verdictChoice = e.key"
+                        >
+                            {{ e.title }}
+                        </button>
+                    </div>
+                    <div v-if="suggestedEnding()" class="hx-hint mt-1">
+                        The four-tier table suggests:
+                        {{
+                            board.endings.find(
+                                (e) => e.key === suggestedEnding(),
+                            )?.title
+                        }}
+                    </div>
+                    <div v-if="errors.verdict" class="hx-error">
+                        {{ errors.verdict }}
+                    </div>
+                    <div class="mt-3 flex flex-wrap items-center gap-2.5">
+                        <button
+                            type="button"
+                            class="hx-btn hx-btn-outline"
+                            :disabled="savingVerdict"
+                            @click="saveVerdict(false)"
+                        >
+                            Save
+                        </button>
+                        <button
+                            type="button"
+                            class="hx-btn hx-btn-primary"
+                            :disabled="savingVerdict || !board.resultsPublished"
+                            @click="saveVerdict(true)"
+                        >
+                            Publish the verdict to the team
+                        </button>
+                        <span v-if="board.publishedAt" class="hx-hint"
+                            >Published {{ when(board.publishedAt) }}.</span
+                        >
+                        <span
+                            v-else-if="!board.resultsPublished"
+                            class="hx-hint"
+                            >Show the quarter's results first.</span
+                        >
+                    </div>
+                </div>
                 <div class="hx-card">
-                    <h2 class="hx-h2">The team's memo</h2>
+                    <h2 class="hx-h2">
+                        {{
+                            board
+                                ? "The team's board defense"
+                                : "The team's memo"
+                        }}
+                    </h2>
                     <p v-if="inputs.memo.trim() === ''" class="hx-hint mt-2">
                         {{ text.no_memo }}
                     </p>

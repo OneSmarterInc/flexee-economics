@@ -27,6 +27,9 @@ type Section =
     | 'trading_finance'
     | 'capital'
     | 'memo'
+    | 'defense'
+    | 'record'
+    | 'verdict'
     | 'check'
     | 'story'
     | 'pnl'
@@ -555,25 +558,41 @@ const rail = computed(() => [
 const navGroups = computed(() => [
     {
         title: 'This quarter',
-        items: [
-            { key: 'briefing' as Section, label: "What's happening" },
-            { key: 'prices' as Section, label: 'Prices' },
-            { key: 'advisors' as Section, label: 'Your advisors' },
-            { key: 'question' as Section, label: 'The big question' },
-            { key: 'memo' as Section, label: 'Your memo' },
-            { key: 'check' as Section, label: 'Check and submit' },
-        ],
+        items: props.board
+            ? [
+                  { key: 'briefing' as Section, label: "What's happening" },
+                  { key: 'prices' as Section, label: 'Prices' },
+                  { key: 'advisors' as Section, label: 'Your advisors' },
+                  { key: 'question' as Section, label: 'The big question' },
+                  { key: 'record' as Section, label: 'Your record' },
+                  { key: 'defense' as Section, label: 'Your board defense' },
+                  { key: 'check' as Section, label: 'Check and submit' },
+              ]
+            : [
+                  { key: 'briefing' as Section, label: "What's happening" },
+                  { key: 'prices' as Section, label: 'Prices' },
+                  { key: 'advisors' as Section, label: 'Your advisors' },
+                  { key: 'question' as Section, label: 'The big question' },
+                  { key: 'memo' as Section, label: 'Your memo' },
+                  { key: 'check' as Section, label: 'Check and submit' },
+              ],
     },
-    {
-        title: 'Your decisions',
-        items: props.pages.map((p) => ({
-            key: p as Section,
-            label: props.leverText.pages[p]?.title ?? p,
-            tag: props.decisions.levers.some((l) => l.page === p && l.isNew)
-                ? 'new'
-                : '',
-        })),
-    },
+    ...(props.pages.length
+        ? [
+              {
+                  title: 'Your decisions',
+                  items: props.pages.map((p) => ({
+                      key: p as Section,
+                      label: props.leverText.pages[p]?.title ?? p,
+                      tag: props.decisions.levers.some(
+                          (l) => l.page === p && l.isNew,
+                      )
+                          ? 'new'
+                          : '',
+                  })),
+              },
+          ]
+        : []),
     {
         title: 'Your results',
         items: [
@@ -583,9 +602,52 @@ const navGroups = computed(() => [
             { key: 'earlier' as Section, label: 'Earlier choices' },
             { key: 'news' as Section, label: 'Industry news' },
             { key: 'people' as Section, label: 'Where you stand' },
-        ].map((i) => ({ ...i, tag: props.results ? '' : 'after the close' })),
+            ...(props.board
+                ? [{ key: 'verdict' as Section, label: "The board's verdict" }]
+                : []),
+        ].map((i) => ({
+            ...i,
+            tag:
+                i.key === 'verdict'
+                    ? props.board?.verdict?.published
+                        ? ''
+                        : 'after the meeting'
+                    : props.results
+                      ? ''
+                      : 'after the close',
+        })),
     },
 ]);
+
+// The board defense (the last quarter): three parts, saved together.
+const defenseText = reactive<Record<string, string>>({
+    ...props.board?.submission.parts,
+});
+function defenseWords(key: string): number {
+    const t = (defenseText[key] ?? '').trim();
+
+    return t ? t.split(/\s+/).length : 0;
+}
+function saveDefense(): void {
+    saving.value = 'defense';
+    router.post(
+        `/play/${props.quarter.id}/defense`,
+        { ...defenseText },
+        {
+            preserveScroll: true,
+            preserveState: true,
+            onSuccess: () => {
+                savedNote.value = {
+                    ...savedNote.value,
+                    defense: `Saved at ${timeOf(new Date().toISOString())}.`,
+                };
+            },
+            onFinish: () => {
+                saving.value = null;
+            },
+        },
+    );
+}
 
 const showResults = computed(
     () => resultSections.includes(section.value) && props.results !== null,
@@ -2628,6 +2690,187 @@ function quarterHref(id: number): string {
                     </div>
                 </template>
 
+                <!-- The board defense (the last quarter) -->
+                <template v-if="section === 'defense' && board">
+                    <div class="hx-card">
+                        <h1 class="hx-h1">
+                            {{ board.defense.title }} · {{ quarter.label }}
+                        </h1>
+                        <p class="hx-p mt-2">{{ board.defense.intro }}</p>
+                        <div
+                            class="mt-4 rounded-md px-4 py-3"
+                            style="background: var(--hx-teal-wash)"
+                        >
+                            <span class="hx-eyebrow">{{
+                                board.defense.sentence_title
+                            }}</span>
+                            <div class="hx-serif mt-1 text-[17px]">
+                                {{
+                                    board.sentence ?? board.defense.no_sentence
+                                }}
+                            </div>
+                            <div class="hx-hint mt-1">
+                                {{ board.defense.sentence_note }}
+                            </div>
+                        </div>
+                        <div
+                            class="mt-3 rounded-md px-4 py-3"
+                            style="background: var(--hx-amber-wash, #fdf6e7)"
+                        >
+                            <span class="hx-eyebrow">{{
+                                board.world.title
+                            }}</span>
+                            <div class="hx-p mt-1">{{ board.world.text }}</div>
+                        </div>
+                        <div
+                            v-for="part in board.defense.parts"
+                            :key="part.key"
+                            class="mt-5"
+                        >
+                            <h2 class="hx-h2">{{ part.title }}</h2>
+                            <div class="hx-hint mt-1 mb-2">
+                                {{ part.prompt }}
+                            </div>
+                            <label class="hx-sr" :for="`defense-${part.key}`">{{
+                                part.title
+                            }}</label>
+                            <textarea
+                                :id="`defense-${part.key}`"
+                                v-model="defenseText[part.key]"
+                                :disabled="!editable"
+                                class="hx-serif w-full rounded-lg p-3.5 text-[15px] leading-relaxed"
+                                style="
+                                    min-height: 220px;
+                                    border: 1px solid #b9c1bc;
+                                    background: #fffef7;
+                                    color: var(--hx-ink);
+                                    resize: vertical;
+                                "
+                            ></textarea>
+                            <div v-if="errors[part.key]" class="hx-error">
+                                {{ errors[part.key] }}
+                            </div>
+                            <div
+                                class="hx-mono mt-1 text-[13px]"
+                                :style="{
+                                    color:
+                                        defenseWords(part.key) >
+                                        part.words * 1.3
+                                            ? 'var(--hx-amber)'
+                                            : 'var(--hx-muted)',
+                                }"
+                            >
+                                {{ defenseWords(part.key) }} words · aim for
+                                about {{ part.words }}
+                            </div>
+                        </div>
+                        <div
+                            class="mt-4 flex flex-wrap items-center justify-between gap-2.5"
+                        >
+                            <div class="hx-hint">
+                                {{
+                                    savedNote.defense ||
+                                    (board.submission.savedAt
+                                        ? `Last saved by ${board.submission.savedBy ?? 'your team'} ${timeOf(board.submission.savedAt)}.`
+                                        : 'Not started.')
+                                }}
+                            </div>
+                            <button
+                                v-if="editable"
+                                type="button"
+                                class="hx-btn hx-btn-primary"
+                                :disabled="saving === 'defense'"
+                                @click="saveDefense"
+                            >
+                                Save the defense
+                            </button>
+                        </div>
+                    </div>
+                </template>
+
+                <!-- The team's record (the last quarter) -->
+                <template v-if="section === 'record' && board">
+                    <div class="hx-card">
+                        <h1 class="hx-h1">
+                            Your record · every quarter you ran
+                        </h1>
+                        <div class="hx-hint mb-3">
+                            The board has these pages too: each quarter's
+                            question, what Halden earned, your score and rank,
+                            and the memo you wrote at the time.
+                        </div>
+                        <div
+                            v-for="q in board.record"
+                            :key="q.number"
+                            class="hx-lever"
+                        >
+                            <div
+                                class="flex flex-wrap items-baseline gap-x-3 gap-y-1"
+                            >
+                                <span class="text-[16px] font-semibold"
+                                    >Quarter {{ q.number }} ·
+                                    {{ q.label }}</span
+                                >
+                                <span class="hx-mono text-[13px]"
+                                    >{{ money(q.ebitda) }} · score
+                                    {{
+                                        q.score === null ? '—' : fmt(q.score, 1)
+                                    }}
+                                    · rank {{ q.rank ?? '—' }}</span
+                                >
+                            </div>
+                            <div class="hx-hint mt-1">{{ q.question }}</div>
+                            <details class="mt-2">
+                                <summary class="cursor-pointer text-[14px]">
+                                    {{
+                                        q.memo.trim()
+                                            ? 'Your memo that quarter'
+                                            : 'No memo that quarter'
+                                    }}
+                                </summary>
+                                <div
+                                    v-if="q.memo.trim()"
+                                    class="hx-serif mt-2 text-[15px] leading-relaxed whitespace-pre-wrap"
+                                >
+                                    {{ q.memo }}
+                                </div>
+                            </details>
+                        </div>
+                    </div>
+                </template>
+
+                <!-- The board's verdict (the last quarter) -->
+                <template v-if="section === 'verdict' && board">
+                    <div class="hx-card">
+                        <template v-if="board.verdict">
+                            <span class="hx-eyebrow">{{
+                                board.verdict.heading
+                            }}</span>
+                            <h1 class="hx-h1 mt-1">
+                                {{ board.verdict.title }}
+                            </h1>
+                            <p class="hx-hint mt-2">
+                                {{ board.verdict.intro }}
+                            </p>
+                            <p
+                                v-for="(para, i) in board.verdict.paragraphs"
+                                :key="i"
+                                class="hx-serif mt-4 text-[17px] leading-relaxed"
+                            >
+                                {{ para }}
+                            </p>
+                        </template>
+                        <template v-else>
+                            <h1 class="hx-h1">The board's verdict</h1>
+                            <p class="hx-p mt-2">
+                                The board meets after this quarter closes. Your
+                                instructor reads your defense and your record,
+                                and the verdict appears here.
+                            </p>
+                        </template>
+                    </div>
+                </template>
+
                 <!-- Memo -->
                 <template v-if="section === 'memo'">
                     <div class="hx-card">
@@ -2740,7 +2983,32 @@ function quarterHref(id: number): string {
                                         </td>
                                         <td class="hx-hint">{{ r.who }}</td>
                                     </tr>
-                                    <tr>
+                                    <tr v-if="board">
+                                        <td class="font-medium">
+                                            Your board defense
+                                        </td>
+                                        <td
+                                            :style="
+                                                board.submission.savedAt
+                                                    ? 'color: var(--hx-teal); font-weight: 600'
+                                                    : 'color: var(--hx-amber-text); font-weight: 600'
+                                            "
+                                        >
+                                            {{
+                                                board.submission.savedAt
+                                                    ? `Saved, ${Object.values(board.submission.parts).join(' ').trim().split(/\s+/).filter(Boolean).length} words`
+                                                    : 'Not started'
+                                            }}
+                                        </td>
+                                        <td class="hx-hint">
+                                            {{
+                                                board.submission.savedAt
+                                                    ? `${board.submission.savedBy ?? ''}, ${timeOf(board.submission.savedAt)}`
+                                                    : '—'
+                                            }}
+                                        </td>
+                                    </tr>
+                                    <tr v-else>
                                         <td class="font-medium">Your memo</td>
                                         <td
                                             :style="

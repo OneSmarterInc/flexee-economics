@@ -49,7 +49,7 @@ final class ModelData
     /** @var array<string, array{label: string, floor: float, ceiling: float}> */
     public readonly array $buckets;
 
-    /** @var array{carbon: array<string, array{label: string, value: float}>, demand: array<string, array{label: string, value: float}>} */
+    /** @var array{carbon: array<string, array{label: string, value: float, p: float}>, demand: array<string, array{label: string, value: float, p: float}>} */
     public readonly array $scenarios;
 
     /** @var list<array{market: string, structure: string, wage_k: float, note: string}> the three labor markets of Quarter 13 */
@@ -159,7 +159,7 @@ final class ModelData
         $this->buckets = $buckets;
         $scenarios = ['carbon' => [], 'demand' => []];
         foreach (self::csv("$root/data/portfolio_scenarios.csv") as $r) {
-            $scenarios[$r['kind'] === 'carbon' ? 'carbon' : 'demand'][$r['key']] = ['label' => $r['label'], 'value' => (float) $r['value']];
+            $scenarios[$r['kind'] === 'carbon' ? 'carbon' : 'demand'][$r['key']] = ['label' => $r['label'], 'value' => (float) $r['value'], 'p' => (float) ($r['probability'] ?? 0)];
         }
         $this->scenarios = $scenarios;
         $this->labor = array_map(fn (array $r): array => ['market' => $r['market'], 'structure' => $r['structure'], 'wage_k' => (float) $r['benchmark_wage_k'], 'note' => $r['note']],

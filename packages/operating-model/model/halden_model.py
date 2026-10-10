@@ -1,4 +1,4 @@
-"""Halden Energy quarterly operating model, reference implementation v0.9 (Quarters 1-13).
+"""Halden Energy quarterly operating model, reference implementation v1.0 (Quarters 1-14).
 
 This is the authoritative economics for the quarterly play-through. The Laravel engine must
 reproduce fixtures/golden_quarters.csv within tolerance (rel 1e-6, abs 1e-4).
@@ -122,7 +122,7 @@ def load_portfolio_buckets():
 def load_portfolio_scenarios():
     out = {"carbon": {}, "demand": {}}
     for r in _read("portfolio_scenarios.csv"):
-        out[r["kind"]][r["key"]] = {"label": r["label"], "value": float(r["value"])}
+        out[r["kind"]][r["key"]] = {"label": r["label"], "value": float(r["value"]), "p": float(r.get("probability") or 0.0)}
     return out
 
 
@@ -397,6 +397,13 @@ def portfolio_npv(key, carbon, demand_code):
     """A project's value in one world: its base value at $40 carbon, moved by the carbon price and by how fast oil demand falls."""
     p = PORTFOLIO[key]
     return p["npv_base"] + p["carbon_sens"] * (carbon - C["portfolio_carbon_base"]) + p["demand_sens"] * demand_code
+
+
+def portfolio_value_in_world(chosen, carbon_key, demand_key):
+    """What a set of projects is worth in one world (USD m): the sum of each project's value there."""
+    carbon = SCENARIOS["carbon"][carbon_key]["value"]
+    demand = SCENARIOS["demand"][demand_key]["value"]
+    return sum(portfolio_npv(k, carbon, demand) for k in chosen)
 
 
 def portfolio_check(chosen, rotterdam_closed=False):

@@ -226,6 +226,10 @@ final class ContentPack
                 $answer = (string) ($decisions['norway_wage'] ?? 'accept');
 
                 return ['key' => in_array($answer, ['refuse', 'half', 'accept'], true) ? $answer : 'accept', 'value' => (float) ($results['ops.norway_wage_uplift'] ?? 0)];
+            case 'rank':
+                return ['key' => (string) ($results['board.rank_band'] ?? 'middle'), 'value' => (float) ($results['score.rank'] ?? 0)];
+            case 'partner':
+                return ['key' => (string) ($results['board.partner'] ?? 'straits'), 'value' => 0.0];
             case 'sale':
                 return ['key' => ($decisions['port_euro_retail_divest'] ?? 'hold') === 'go' ? 'sold' : 'kept', 'value' => (float) ($results['ops.divest_proceeds'] ?? 0)];
             case 'projects':

@@ -1,4 +1,4 @@
-"""Builds the golden fixtures: three reference teams through Quarters 1-13 (Q1 2027 to Q1 2030)."""
+"""Builds the golden fixtures: three reference teams through Quarters 1-14 (Q1 2027 to Q2 2030)."""
 import csv
 import copy
 import json
@@ -112,6 +112,10 @@ TEAMS = {
 }
 
 
+for _team, _plan in TEAMS.items():
+    _plan.append(dict(_plan[-1]))   # Round 14, the board meeting: no new decision; every page carries
+
+
 def main():
     gas_other = hm.calibrate_gas_other(3750.0)
     start_state, hist = hm.run_history()
@@ -167,6 +171,12 @@ def main():
             for t in TEAMS:
                 chosen = [k for k, v in plans[t][rnd - 1].portfolio.items() if v == "go"]
                 assert hm.portfolio_check(chosen, states[t].rot_status == "closed") == [], f"{t} portfolio {chosen} can't be funded"
+        if m["quarter"] == "2030Q2":   # the board meeting: the fixtures take the likeliest draw (the plant holds)
+            class_effects["turnaround_outage"] = False
+            class_effects["world"] = "mid:slow"
+            for t in TEAMS:
+                chosen = [k for k, v in plans[t][rnd - 1].portfolio.items() if v == "go"]
+                class_effects[f"portfolio_value_{t}"] = hm.portfolio_value_in_world(chosen, "mid", "slow")
         if m["quarter"].startswith("2029"):   # Window 3 lands for all of 2029
             m["cordell_nonfuel"] = class_effects["window3_nonfuel"]
         kpis, outs = {}, {}

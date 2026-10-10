@@ -1,6 +1,6 @@
-# Operating model validation (v0.9, Quarters 1-13)
+# Operating model validation (v1.0, Quarters 1-14)
 
-**Result: 86 of 86 checks pass.**
+**Result: 89 of 89 checks pass.**
 
 | # | Check | Result | Detail |
 | --- | --- | --- | --- |
@@ -88,5 +88,8 @@
 | 82 | Refusing brings a two-week stoppage on the operated fields and the union's 8% anyway by arbitration; half brings a one-week stoppage and 4%: both cost more than accepting, even after tax | PASS | stoppage refuse -181.5, half -90.8 |
 | 83 | The settled raise stays on the wage bill in every later quarter; outside Q1 2030 the answer changes nothing | PASS | 8.4 a quarter carried |
 | 84 | Doing the turnaround now costs $81M under Refineries this quarter; waiting costs nothing now, three points of plant condition, then $60M next quarter, or $210M if the plant breaks down first | PASS | now -81; later -60 / -210 |
-| 85 | Score order careful > average > careless in all thirteen quarters | PASS | Q1: 88.1 / 82.2 / 12.2; Q2: 89.2 / 80.8 / 11.2; Q3: 92.2 / 84.6 / 7.8; Q4: 92.3 / 86.1 / 7.7; Q5: 90.4 / 84.9 / 9.3; Q6: 89.1 / 88.7 / 8.6; Q7: 90.9 / 83.3 / 9.0; Q8: 91.0 / 79.4 / 8.9; Q9: 91.2 / 83.3 / 8.7; Q10: 94.4 / 68.2 / 9.0; Q11: 94.9 / 79.4 / 8.7; Q12: 95.0 / 78.4 / 8.7; Q13: 95.1 / 77.9 / 8.7 |
-| 86 | Fixtures rebuild identically | PASS | 65adea738ae1b141 |
+| 85 | The world the portfolio is valued in is drawn from nine futures whose odds add up to one (carbon 30/45/25, demand 45/35/20); the likeliest is pricier carbon with a slow decline | PASS | mid:slow |
+| 86 | A set of projects is valued in the drawn world as the sum of its projects' values there: Helix at Rotterdam plus wind plus the sale is worth -$330M if carbon stays cheap and demand holds, +$530M if carbon is dear and demand collapses | PASS | -330 / +530 |
+| 87 | In the board quarter every page carries and the one-time answers do nothing new: the delayed turnaround's crews come ($60M), the raise stays, no new stoppage | PASS | 60; 8.4; 0 |
+| 88 | Score order careful > average > careless in all fourteen quarters | PASS | Q1: 88.1 / 82.2 / 12.2; Q2: 89.2 / 80.8 / 11.2; Q3: 92.2 / 84.6 / 7.8; Q4: 92.3 / 86.1 / 7.7; Q5: 90.4 / 84.9 / 9.3; Q6: 89.1 / 88.7 / 8.6; Q7: 90.9 / 83.3 / 9.0; Q8: 91.0 / 79.4 / 8.9; Q9: 91.2 / 83.3 / 8.7; Q10: 94.4 / 68.2 / 9.0; Q11: 94.9 / 79.4 / 8.7; Q12: 95.0 / 78.4 / 8.7; Q13: 95.1 / 77.9 / 8.7; Q14: 95.1 / 72.4 / 8.7 |
+| 89 | Fixtures rebuild identically | PASS | f32de9e9126eed08 |

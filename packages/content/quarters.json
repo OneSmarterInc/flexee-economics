@@ -1529,5 +1529,175 @@
         ]
       }
     }
+  },
+  "14": {
+    "board_meeting": true,
+    "briefing": {
+      "dateline": "Q2 2030 · Monday 1 April · Houston",
+      "headline": "The board meets in June",
+      "paragraphs": [
+        "Fourteen quarters ago the board gave you a job that didn't exist and one sentence to go with it: run Halden as one company, and show the board the job was worth creating. In June it decides. Erik has asked for your case in writing before the meeting, and Margrethe has told you, kindly, that the board has read every one of your memos and will ask about them.",
+        "There's nothing to set this quarter. Every page carries what you set last quarter, the plant runs, the stations sell fuel, and the numbers come in as they always have. If you put Baton Rouge's turnaround off, the crews arrive this quarter, and you'll find out whether the plant held. The five-year plan you placed in October gets its first real test: the world has started to show which way it's going.",
+        "The board will ask three things. Did your decisions add up to a company, or were they fourteen separate answers? Were they sound choices at the time, with what you knew then, whatever happened next? And do you understand your own run: what you got right, what you got wrong, and which was which?"
+      ],
+      "question": "Was this job worth creating, and what did you learn running it?"
+    },
+    "rule": "No decisions this quarter. Every page carries last quarter's settings, and the quarter runs as usual at the close: your fourteenth set of results, and your final score and rank against the class. Two things are decided for your class: if any team put off Baton Rouge's turnaround, whether the plant held is drawn at the close; and the world your five-year plan is valued in (a carbon price and a path for oil demand) is drawn when the quarter opens and shown on the Your board defense page. What you submit instead of a memo is your board defense, in three parts: the case for the company you ran, three of your own decisions defended against what you wrote at the time, and what you'd do differently. Your instructor reads it with your fourteen memos and your results, decides whether your reasoning was strong, and the board's verdict follows from that and from your results against the class: four endings, as you were told on your first day.",
+    "new_pages_note": "Nothing to set. Your board defense replaces your memo this quarter, and Your record has every quarter you ran.",
+    "exhibits": [],
+    "marchetti": "The last quarter's prices barely matter now. What matters is the world that's arriving: look at the carbon price and at what the analysts are saying about demand, because your five-year plan is about to be judged in one future, not nine. Then stop looking at prices and write the case.",
+    "defense": {
+      "title": "Your board defense",
+      "intro": "This replaces your memo. The board has read all fourteen; now it wants the whole run in one argument. Any teammate can write; the EVP presents it in June. Aim for a few pages in total.",
+      "parts": [
+        {
+          "key": "synthesis",
+          "title": "The case for the company you ran",
+          "prompt": "What did Halden become under you, and what did you bet on? Say it the way you'd say it across the table from Margrethe: the company, the worldview behind the choices, and the through-line from your first quarter to your five-year plan.",
+          "words": 600
+        },
+        {
+          "key": "decisions",
+          "title": "Three decisions, defended",
+          "prompt": "Pick three decisions from your fourteen quarters. For each: what you decided, what you wrote at the time, what happened, and whether you'd stand by it with what you knew then. At least one should be a decision that went badly.",
+          "words": 500
+        },
+        {
+          "key": "counterfactual",
+          "title": "What you'd do differently",
+          "prompt": "If you took the seat again on 4 January 2027, what would you change, and what would you keep? Be specific: a quarter, a page, a number.",
+          "words": 300
+        }
+      ],
+      "sentence_title": "Your sentence, from day one",
+      "sentence_note": "You wrote this before your first quarter. Read it next to what happened.",
+      "no_sentence": "Your team never wrote the sentence."
+    },
+    "world": {
+      "title": "The world your plan is being judged in",
+      "text": "By June the analysts had settled on where things are going: {carbon_world}, and {demand_world}. Your five-year plan is worth {portfolio_value} in that world. Every plan on the table was worth money in some worlds and lost it in others; this is the one that arrived.",
+      "none": "You placed nothing in October, so there's nothing to value. The world arrived anyway: {carbon_world}, and {demand_world}."
+    },
+    "story": {
+      "band_on": "portfolio",
+      "bands": [
+        {
+          "key": "transition",
+          "title": "Eighteen months later",
+          "paragraphs": [
+            "{analyst}",
+            "{board_judge}",
+            "{partner_judge}"
+          ]
+        },
+        {
+          "key": "oil",
+          "title": "Eighteen months later",
+          "paragraphs": [
+            "{analyst}",
+            "{board_judge}",
+            "{partner_judge}"
+          ]
+        },
+        {
+          "key": "both",
+          "title": "Eighteen months later",
+          "paragraphs": [
+            "{analyst}",
+            "{board_judge}",
+            "{partner_judge}"
+          ]
+        },
+        {
+          "key": "none",
+          "title": "Eighteen months later",
+          "paragraphs": [
+            "{analyst}",
+            "{board_judge}",
+            "{partner_judge}"
+          ]
+        }
+      ],
+      "closing": "The board meets in June. Your defense is on the table, with fourteen memos and fourteen quarters of numbers. The verdict comes from your instructor."
+    },
+    "fills": {
+      "{board_judge}": {
+        "on": "band:portfolio",
+        "transition": "The board, through Margrethe: \"The company that came to us in January 2027 pumped oil, refined it and sold it, and the three parts barely spoke. The company in front of us now has placed its next five years on the far side of oil, and the parts speak. Whether the bet pays is the world's business. Whether it was a company's bet, and not three divisions' bets, is ours, and it was.\"",
+        "oil": "The board, through Margrethe: \"The company that came to us in January 2027 pumped oil, refined it and sold it. The company in front of us does the same, and does it better: the numbers say so. We asked what Halden should become. The answer we got was: more Halden. It's a defensible answer. It isn't the one the question was looking for, and the board will want to hear why it was the right one.\"",
+        "both": "The board, through Margrethe: \"The company in front of us has kept one foot in oil and put the other somewhere new, and it can explain why. Some of the board calls that hedging and some of it calls that judgment. The EVP's job in June is to make the second group larger than the first.\"",
+        "none": "The board, through Margrethe: \"The company in front of us runs well and has placed nothing on its next five years. We asked what Halden should become, and the answer was that it would decide later. The board has noticed that later is now.\""
+      },
+      "{partner_judge}": {
+        "on": "band:partner",
+        "kessana_gone": "The government of Kessana, through Minister Tetteh: \"Halden left when the terms changed. The company that took the block is still there, at the terms Halden refused. We wish Halden well, and we will remember how it leaves.\"",
+        "kessana_hostile": "The government of Kessana, through Minister Tetteh: \"Halden threatened to leave a field it could not leave, and then stayed at terms worse than the ones it was offered. It is a reliable operator. It is not a company we will reopen a contract with gently.\"",
+        "kessana_fine": "The government of Kessana, through Minister Tetteh: \"When the terms changed, Halden came to the table with its own figures and left with a deal both sides could announce. The next phase of the field will be drilled with Halden. That is what a partner looks like.\"",
+        "helix": "The Helix customer in Rotterdam: \"Halden built the thing it said it would build, on the timetable it gave us, and it is here when oil companies are leaving Europe. We are signing the next ten years with them.\"",
+        "straits": "Straits Pacific, Halden's partner in Singapore: \"We were asked, not told, in every quarter that mattered. The refinery ran the way we agreed it would. We would do this again with Halden.\"",
+        "straits_strained": "Straits Pacific, Halden's partner in Singapore: \"Halden asked us for more than we had agreed, again and again, and when the downturn came we ran the plant our way. We will finish the contract. We are not looking to extend it.\""
+      },
+      "{analyst}": {
+        "on": "band:rank",
+        "top": "A sell-side analyst, in a note to clients: \"Over fourteen quarters Halden earned {ebitda_total} before interest, tax and depreciation and finished {rank_text} in its class. Net debt stands at {net_debt}. {portfolio_clause} On the numbers, the integrated structure the board created in 2027 has done what it was meant to do.\"",
+        "middle": "A sell-side analyst, in a note to clients: \"Over fourteen quarters Halden earned {ebitda_total} before interest, tax and depreciation and finished {rank_text} in its class. Net debt stands at {net_debt}. {portfolio_clause} On the numbers, the integrated structure has been neither vindicated nor refuted; the argument will be made in the boardroom, not the spreadsheet.\"",
+        "bottom": "A sell-side analyst, in a note to clients: \"Over fourteen quarters Halden earned {ebitda_total} before interest, tax and depreciation and finished {rank_text} in its class. Net debt stands at {net_debt}. {portfolio_clause} On the numbers, the integrated structure has not yet paid for itself, and the board will want to know whether that is the structure or the choices.\""
+      }
+    },
+    "news": [
+      {
+        "title": "What the world decided",
+        "body": "By the spring of 2030 the arguments of the last two years had an answer, at least for now: the carbon price and the demand for oil had each picked a direction. Oil companies that bet early on that direction are being called visionary; the ones that bet the other way are being called unlucky, which is sometimes the same thing seen from the other side."
+      },
+      {
+        "title": "The integrated model, revisited",
+        "body": "Three years after a wave of oil companies folded their divisions into single operating jobs, the results are mixed. The companies where the job worked share a trait: the person in it could say, in one sentence, what the company was for. The others produced excellent quarterly numbers and no sentence."
+      },
+      {
+        "title": "Board season",
+        "body": "It is the season of board meetings, and of executives explaining fourteen quarters in forty minutes. The ones who do it well, boards say, talk about the decisions that went wrong before they are asked."
+      }
+    ],
+    "relations": {
+      "band_on": "portfolio",
+      "bands": {
+        "transition": [],
+        "oil": [],
+        "both": [],
+        "none": []
+      }
+    },
+    "endings": {
+      "title": "The board's verdict",
+      "intro": "Your instructor read your defense and your fourteen memos and decided whether your reasoning was strong. Your results against the class decided the other half. Together they gave the board its answer.",
+      "widen": {
+        "title": "They keep the job and give you more.",
+        "paragraphs": [
+          "The board met for two hours and spent most of them on the next five years, not the last three and a half. Erik summed it up: the company runs as one company, the numbers say so, and the EVP can explain why. The job stays, and Corporate Strategy now reports to it.",
+          "Margrethe caught you on the way out. \"The sentence you wrote on your first day,\" she said. \"You should know that we read it before every meeting.\""
+        ]
+      },
+      "conditions": {
+        "title": "They keep the job, with conditions.",
+        "paragraphs": [
+          "The board met for two hours. The numbers were good, and the board said so. Then it asked why they were good, decision by decision, and the answers were thinner than the numbers. The job stays. For the next year, every capital decision above the board limit goes to Ingrid first, and the board wants a written account each quarter of why, not just what.",
+          "Margrethe, afterwards: \"You ran it well. Next time, tell us how you knew.\""
+        ]
+      },
+      "split": {
+        "title": "They split the job back into three.",
+        "paragraphs": [
+          "The board met for three hours. It agreed that the thinking in front of it was sound: the decisions were defensible at the time, the memos said so, and the EVP could explain every one. It also looked at fourteen quarters of results against the class and concluded that one person, however clear, could not run all of it. Three presidents again, reporting to Erik.",
+          "Margrethe, afterwards: \"You were right more often than the numbers show. That is a hard thing to put in front of a board, and you did it well. It wasn't enough this time.\""
+        ]
+      },
+      "sold": {
+        "title": "They sell the European business without asking you.",
+        "paragraphs": [
+          "The board met for an hour. The results were not there, and the case for them did not explain why. Erik announced the sale of the European business the following week; the EVP learned of it from the announcement. The job stays in name, running what is left.",
+          "Margrethe did not catch you on the way out."
+        ]
+      }
+    }
   }
 }

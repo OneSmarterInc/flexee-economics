@@ -11,6 +11,8 @@ interface TeamRow {
     ready: boolean;
     advisorAnswers: number;
     feedback: 'none' | 'drafted' | 'published';
+    defense: boolean;
+    verdict: 'none' | 'decided' | 'published';
     lastActivity: string | null;
     score: number | null;
     rank: number | null;
@@ -26,6 +28,8 @@ const props = defineProps<{
         status: 'upcoming' | 'open' | 'closed' | 'published';
         deadline: string | null;
         deadlineText: string | null;
+        isBoard: boolean;
+        world: string | null;
     } | null;
     next: { id: number; label: string; buildable: boolean } | null;
     feedbackQuarter: { id: number; label: string } | null;
@@ -218,7 +222,13 @@ function teamHref(teamId: number): string {
                                 >
                                     {{ p.title }}
                                 </th>
-                                <th scope="col">Memo</th>
+                                <th scope="col">
+                                    {{
+                                        quarter?.isBoard
+                                            ? 'Board defense'
+                                            : 'Memo'
+                                    }}
+                                </th>
                                 <th scope="col">Advisor answers</th>
                                 <th scope="col">Ready</th>
                                 <th scope="col">Last activity</th>
@@ -255,12 +265,33 @@ function teamHref(teamId: number): string {
                                     >
                                 </td>
                                 <td>
-                                    <span v-if="t.memoWords > 0"
-                                        >{{ t.memoWords }} words</span
-                                    >
-                                    <span v-else class="hx-hint">{{
-                                        t.flag
-                                    }}</span>
+                                    <template v-if="quarter?.isBoard">
+                                        <span
+                                            v-if="t.defense"
+                                            style="color: var(--hx-teal)"
+                                            >Defense saved</span
+                                        >
+                                        <span v-else class="hx-hint"
+                                            >No defense yet</span
+                                        >
+                                        <div class="hx-hint mt-1">
+                                            {{
+                                                t.verdict === 'published'
+                                                    ? 'Verdict sent'
+                                                    : t.verdict === 'decided'
+                                                      ? 'Verdict decided, not sent'
+                                                      : 'No verdict yet'
+                                            }}
+                                        </div>
+                                    </template>
+                                    <template v-else>
+                                        <span v-if="t.memoWords > 0"
+                                            >{{ t.memoWords }} words</span
+                                        >
+                                        <span v-else class="hx-hint">{{
+                                            t.flag
+                                        }}</span>
+                                    </template>
                                 </td>
                                 <td>{{ t.advisorAnswers }}</td>
                                 <td>
@@ -301,7 +332,11 @@ function teamHref(teamId: number): string {
                                                 ? 'Feedback sent'
                                                 : t.feedback === 'drafted'
                                                   ? 'Finish feedback'
-                                                  : 'Write feedback'
+                                                  : quarter?.isBoard &&
+                                                      feedbackQuarter.id ===
+                                                          quarter.id
+                                                    ? 'Feedback and the verdict'
+                                                    : 'Write feedback'
                                         }}
                                         · {{ feedbackQuarter.label }}</a
                                     >

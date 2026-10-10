@@ -322,6 +322,23 @@ final class OperatingModel
     }
 
     /**
+     * What a set of projects is worth in one world (USD m): the sum of each project's value there.
+     *
+     * @param  list<string>  $chosen
+     */
+    public function portfolioValueInWorld(array $chosen, string $carbonKey, string $demandKey): float
+    {
+        $carbon = $this->data->scenarios['carbon'][$carbonKey]['value'];
+        $demand = $this->data->scenarios['demand'][$demandKey]['value'];
+        $sum = 0.0;
+        foreach ($chosen as $k) {
+            $sum += $this->portfolioNpv($k, $carbon, $demand);
+        }
+
+        return $sum;
+    }
+
+    /**
      * Why a set of projects can't be funded, in order: [] when it can. The sale's proceeds widen the envelope.
      *
      * @param  list<string>  $chosen

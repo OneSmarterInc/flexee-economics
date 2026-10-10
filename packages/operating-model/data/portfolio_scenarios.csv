@@ -1,7 +1,7 @@
-kind,key,label,value
-carbon,low,Carbon stays cheap ($40 a tonne),40
-carbon,mid,Carbon gets pricier ($95),95
-carbon,high,Carbon gets expensive ($180),180
-demand,slow,Oil demand declines slowly,0
-demand,fast,Oil demand declines fast,1
-demand,collapse,Oil demand collapses,2
+kind,key,label,value,probability
+carbon,low,Carbon stays cheap ($40 a tonne),40,0.30
+carbon,mid,Carbon gets pricier ($95),95,0.45
+carbon,high,Carbon gets expensive ($180),180,0.25
+demand,slow,Oil demand declines slowly,0,0.45
+demand,fast,Oil demand declines fast,1,0.35
+demand,collapse,Oil demand collapses,2,0.20

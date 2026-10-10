@@ -19,6 +19,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string|null $memo
  * @property int|null $memo_saved_by
  * @property CarbonImmutable|null $memo_saved_at
+ * @property array<string, string>|null $defense
+ * @property int|null $defense_saved_by
+ * @property CarbonImmutable|null $defense_saved_at
+ * @property string|null $reasoning
+ * @property string|null $verdict
+ * @property CarbonImmutable|null $verdict_published_at
  * @property int|null $ready_by
  * @property CarbonImmutable|null $ready_at
  * @property array<string, float|string>|null $results
@@ -34,8 +40,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string|null $carrying_status
  * @property string|null $carrying_reason
  */
-#[Fillable(['team_id', 'quarter_id', 'decisions', 'effective_decisions', 'saved_pages', 'memo', 'memo_saved_by', 'memo_saved_at',
-    'ready_by', 'ready_at', 'results', 'state_after', 'score', 'rank', 'feedback', 'feedback_published_at', 'writing_score_ai', 'writing_adjustment', 'writing_score', 'carrying', 'carrying_status', 'carrying_reason'])]
+#[Fillable(['team_id', 'quarter_id', 'decisions', 'effective_decisions', 'saved_pages', 'memo', 'memo_saved_by', 'memo_saved_at', 'defense', 'defense_saved_by', 'defense_saved_at',
+    'ready_by', 'ready_at', 'results', 'state_after', 'score', 'rank', 'feedback', 'feedback_published_at', 'writing_score_ai', 'writing_adjustment', 'writing_score', 'carrying', 'carrying_status', 'carrying_reason',
+    'reasoning', 'verdict', 'verdict_published_at'])]
 class TeamQuarter extends Model
 {
     /** The AI's proposal plus the instructor's adjustment, kept within the scale. Null until there is something to score. */
@@ -57,6 +64,9 @@ class TeamQuarter extends Model
             'results' => 'array',
             'state_after' => 'array',
             'memo_saved_at' => 'datetime',
+            'defense' => 'array',
+            'defense_saved_at' => 'datetime',
+            'verdict_published_at' => 'datetime',
             'ready_at' => 'datetime',
             'feedback_published_at' => 'datetime',
             'score' => 'float',

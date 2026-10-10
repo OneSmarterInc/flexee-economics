@@ -239,6 +239,51 @@ export interface PlayProps {
     memo: { text: string; savedAt: string | null };
     ready: string | null;
     results: Results | null;
+    board: {
+        defense: {
+            title: string;
+            intro: string;
+            parts: {
+                key: string;
+                title: string;
+                prompt: string;
+                words: number;
+            }[];
+            sentence_title: string;
+            sentence_note: string;
+            no_sentence: string;
+        };
+        world: {
+            title: string;
+            text: string;
+            carbon: string;
+            demand: string;
+            value: number;
+        };
+        sentence: string | null;
+        record: {
+            number: number;
+            label: string;
+            question: string;
+            ebitda: number;
+            score: number | null;
+            rank: number | null;
+            memo: string;
+        }[];
+        submission: {
+            parts: Record<string, string>;
+            savedAt: string | null;
+            savedBy: string | null;
+        };
+        verdict: {
+            heading: string;
+            intro: string;
+            ending: string;
+            published: boolean;
+            title: string;
+            paragraphs: string[];
+        } | null;
+    } | null;
     feedback: { title: string; text: string; at: string } | null;
     carrying: {
         title: string;
