@@ -7,6 +7,12 @@ use RuntimeException;
 
 final class AnthropicClient implements LlmClient
 {
+    /**
+     * Current models think before they answer, and the thinking counts against max_tokens. The callers' budgets are
+     * for the answer itself (the checks enforce the length), so the request gets this much room on top.
+     */
+    private const THINKING_HEADROOM = 8000;
+
     public function __construct(private readonly string $apiKey, private readonly string $model) {}
 
     public function complete(string $system, array $messages, int $maxTokens): LlmReply
@@ -16,7 +22,7 @@ final class AnthropicClient implements LlmClient
             'anthropic-version' => '2023-06-01',
         ])->timeout(60)->retry(2, 1500, throw: false)->post('https://api.anthropic.com/v1/messages', [
             'model' => $this->model,
-            'max_tokens' => $maxTokens,
+            'max_tokens' => $maxTokens + self::THINKING_HEADROOM,
             'system' => $system,
             'messages' => $messages,
         ]);

@@ -125,6 +125,67 @@ class FacultyDraftsTest extends TestCase
         $this->assertSame(4, TeamQuarter::query()->firstOrFail()->writing_score);
     }
 
+    public function test_in_the_board_quarter_the_drafts_read_the_defense_against_the_whole_record(): void
+    {
+        $runner = app(QuarterRunner::class);
+        $runner->publish($this->q());
+        $this->team->update(['strategy_become' => 'earns its keep in oil', 'strategy_by' => 'running every plant to its margin']);
+        for ($n = 2; $n <= 13; $n++) {
+            $q = $this->section->quarters()->where('number', $n)->firstOrFail();
+            $runner->open($q);
+            if ($n === 5) {
+                TeamQuarter::query()->create(['team_id' => $this->team->id, 'quarter_id' => $q->id, 'memo' => 'We paused Rotterdam because every barrel there loses money at this margin.']);
+            }
+            $runner->close($q->refresh());
+            $runner->publish($q->refresh());
+        }
+        $q14 = $this->section->quarters()->where('number', 14)->firstOrFail();
+        $runner->open($q14);
+        $this->actingAs($this->student)->post("/play/{$q14->id}/defense", ['synthesis' => 'We ran Halden as one oil company.', 'decisions' => 'Rotterdam: we always meant to keep it running.', 'counterfactual' => 'Fewer rigs in 2027.'])
+            ->assertSessionHasNoErrors();
+        $runner->close($q14->refresh());
+        $tq = TeamQuarter::query()->where('team_id', $this->team->id)->where('quarter_id', $q14->id)->firstOrFail();
+        $url = "/faculty/teams/{$this->team->id}/quarters/{$q14->id}/feedback";
+
+        $this->llm->queue(
+            "A company, or fourteen answers: You say you ran one oil company, and the record mostly bears that out. Q1 2027 is the clearest case. Your eleven rigs followed from what each one adds, which is the test you kept applying.\n\nSound at the time: Of the three decisions you defend, Rotterdam is the weakest. Your memo from Q1 2028 argued for pausing it because every barrel there loses money at this margin, so the claim that you always meant to keep it running does not match what you wrote then. The rigs decision is the strongest.\n\nTheir own run: You see what went right. You see less of what went wrong. The record shows a quarter without a memo at all, and your defense does not mention it.",
+            '{"score": 3, "reason": "The parts are there; the through-line is asserted rather than shown."}',
+            '{"mismatch": true, "note": "Q1 2028: the memo argued for pausing Rotterdam; the defense says the team always meant to keep it running."}',
+        );
+        $this->actingAs($this->faculty)->post("$url/draft?section={$this->section->id}")->assertSessionHasNoErrors();
+
+        $this->assertCount(3, $this->llm->calls);
+        $system = $this->llm->calls[0]['system'];
+        $sent = $this->llm->calls[0]['messages'][0]['content'];
+        $this->assertStringContainsString('submits a board defense in three parts', $system);
+        $this->assertStringContainsString("'A company, or fourteen answers:'", $system);
+        $this->assertStringContainsString("THE TEAM'S BOARD DEFENSE:", $sent);
+        $this->assertStringContainsString('Rotterdam: we always meant to keep it running.', $sent);
+        $this->assertStringContainsString('Halden should become a company that earns its keep in oil by running every plant to its margin.', $sent);
+        $this->assertStringContainsString('The world the plan is judged in:', $sent);
+        $this->assertStringContainsString("THE TEAM'S RECORD, QUARTER BY QUARTER:", $sent);
+        $this->assertStringContainsString((string) TeamQuarter::query()->where('quarter_id', $this->q()->id)->firstOrFail()->memo, $sent, 'every memo goes in whole');
+        $this->assertStringContainsString('Q1 2028 · ', $sent);
+        $this->assertStringContainsString('every barrel there loses money at this margin', $sent);
+        $this->assertStringContainsString('(No memo that quarter.)', $sent);
+        $this->assertStringContainsString('Only flag a real contradiction between the defense and the record.', $this->llm->calls[2]['system']);
+
+        $this->actingAs($this->faculty)->get("$url?section={$this->section->id}")->assertInertia(fn (Assert $p) => $p
+            ->where('labels.feedback', 'Feedback on the board defense')
+            ->where('labels.mismatch', 'Does the defense match the record?')
+            ->where('text.memo_title', "The team's board defense")
+            ->where('drafts.feedback.status', 'ok')
+            ->where('drafts.writing.data.score', 3)
+            ->where('drafts.mismatch.data.mismatch', true)
+            ->has('inputs.record', 13));
+        $this->assertSame(3, $tq->refresh()->writing_score_ai);
+
+        // The usual memo feedback shape is refused here: the board quarter wants its own three paragraphs.
+        $this->llm->queue(self::FEEDBACK, '{"score": 3, "reason": "Fine."}', '{"mismatch": false, "note": "The defense matches the record."}');
+        $this->actingAs($this->faculty)->post("$url/draft?section={$this->section->id}");
+        $this->assertSame("Shape: the draft is missing the 'A company, or fourteen answers:' paragraph.", FacultyDraft::query()->where('kind', 'feedback')->latest('id')->firstOrFail()->dropped_reason);
+    }
+
     public function test_publishing_empty_feedback_is_refused(): void
     {
         $this->actingAs($this->faculty)->post($this->url(), ['feedback' => '  ', 'publish' => true])

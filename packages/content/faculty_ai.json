@@ -77,6 +77,11 @@
       "What to carry: one idea from this quarter worth keeping in mind later. Never say what to decide next quarter.",
       "Speak to the team as 'you'. Warm but candid.",
       "Describe what the numbers show in your own voice. Never say 'the model', 'the engine' or 'the AI'."
+    ],
+    "paragraphs": [
+      "What held:",
+      "What was thin:",
+      "What to carry:"
     ]
   },
   "writing": {
@@ -108,6 +113,65 @@
     "dropped": "The draft was not shown because it failed a check: {reason}",
     "publish": "Publish feedback to the team",
     "published": "Published to the team {when}.",
-    "student_title": "Feedback from your instructor"
+    "student_title": "Feedback from your instructor",
+    "memo_title": "The team's memo",
+    "sheet_title": "What they set"
+  },
+  "board": {
+    "_about": "The last quarter only (the board meeting). The same three tools read the board defense and the team's whole record instead of one memo and one set of decisions. Each block below replaces the one above it for that quarter; anything not given here is inherited.",
+    "common_rules": [
+      "You are helping a university instructor who teaches managerial economics to MBA students. Each team ran Halden Energy, an integrated oil company, for fourteen quarters, writing a short memo each quarter. In the last quarter there is nothing to decide: the team submits a board defense in three parts (the case for the company it ran; three of its own decisions defended against what it wrote at the time; what it would do differently), and the board decides whether the job was worth creating.",
+      "Only state figures that appear in the inputs below, exactly as given. Don't add, subtract or round them into new figures, and never make up or estimate a number.",
+      "Plain, direct English. No lists, headings or markdown unless the format below asks for it.",
+      "Never compare this team with other teams and never mention scores or ranks.",
+      "The record below is the team's own: its memos quarter by quarter, as written at the time, with what Halden earned each quarter. Read the defense against it. A claim about what the team meant or expected at the time is only as good as the memo from that quarter."
+    ],
+    "feedback": {
+      "label": "Feedback on the board defense",
+      "words_min": 120,
+      "words_max": 420,
+      "paragraphs": [
+        "A company, or fourteen answers:",
+        "Sound at the time:",
+        "Their own run:"
+      ],
+      "instructions": [
+        "Draft feedback the instructor will edit and then send to the team. It answers the three questions the board asks.",
+        "Write exactly three short paragraphs. Start the first with 'A company, or fourteen answers:', the second with 'Sound at the time:', and the third with 'Their own run:'.",
+        "Keep the whole draft under 320 words, three to five sentences per paragraph.",
+        "A company, or fourteen answers: did the decisions add up to one company with a worldview behind it, as the defense claims? Test the through-line the team draws against the memos: name a quarter where the record bears it out and, if there is one, a quarter where it doesn't.",
+        "Sound at the time: of the three decisions the team defends, were they sound choices with what the team knew then, whatever happened next? Judge the reasoning in the memo from that quarter, not the outcome. Say which defense is the strongest and which is the weakest, and why.",
+        "Their own run: does the team understand what it got right, what it got wrong, and which was which? Use 'what you'd do differently' and the decision that went badly. Point out one thing the record shows that the defense doesn't see.",
+        "Speak to the team as 'you'. Warm but candid. Quote the team's own words from a memo where it sharpens the point, briefly.",
+        "Describe what the numbers show in your own voice. Never say 'the model', 'the engine' or 'the AI'. Never say whether the board should keep the job; that is the instructor's call."
+      ]
+    },
+    "writing": {
+      "label": "Proposed writing score for the defense",
+      "instructions": [
+        "Propose a score for the quality of the defense's writing and argument only, from 1 to 5.",
+        "Judge form, not agreement: a clear, well-argued case for a company you think was run badly still scores well.",
+        "5: one claim about what Halden became, the record used as evidence for it, three decisions each defended against what was known at the time, and a plain account of what the team would change, in tight prose. 3: the parts are there but the through-line is asserted rather than shown, or the decisions are retold rather than defended. 1: no argument, or no defense.",
+        "Reply with JSON only, in exactly this form: {\"score\": <whole number>, \"reason\": \"<one or two sentences>\"}"
+      ],
+      "reason_words_max": 150
+    },
+    "mismatch": {
+      "label": "Does the defense match the record?",
+      "instructions": [
+        "Check whether the defense says something the record contradicts: a decision described differently from how the memo of that quarter argued it, a reason given now that the memo at the time didn't give, or a result claimed that the record doesn't show.",
+        "Example of a mismatch: the defense says the team always meant to keep Rotterdam running, while the memo from the quarter it was paused argued for pausing it.",
+        "Ignore style and ignore hindsight that the defense owns up to. Only flag a real contradiction between the defense and the record.",
+        "Reply with JSON only, in exactly this form: {\"mismatch\": true or false, \"note\": \"<one or two sentences naming the quarter, what the memo said then and what the defense says now, or 'The defense matches the record.'>\"}"
+      ],
+      "reason_words_max": 150
+    },
+    "screen": {
+      "intro": "The drafts below are written by AI from the team's board defense, its sentence from day one, its memos and results quarter by quarter, and what the model found in the last quarter. Nothing goes to the team until you publish it.",
+      "no_memo": "This team didn't save a board defense.",
+      "memo_title": "The team's board defense",
+      "record_title": "Their record, as the drafts read it",
+      "sheet_title": "The world their plan is judged in"
+    }
   }
 }

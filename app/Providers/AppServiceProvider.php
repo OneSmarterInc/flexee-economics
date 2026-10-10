@@ -11,6 +11,7 @@ use App\Halden\Ai\HelpDesk;
 use App\Halden\Ai\LlmClient;
 use App\Halden\Ai\StubClient;
 use App\Halden\Content\ContentPack;
+use App\Halden\Game\BoardRecord;
 use App\Halden\Game\DecisionBook;
 use App\Halden\Game\QuarterRunner;
 use App\Halden\OperatingModel\ModelData;
@@ -59,6 +60,7 @@ class AppServiceProvider extends ServiceProvider
             $app->make(LlmClient::class),
             new Findings($app->make(OperatingModel::class), $app->make(ModelData::class), $app->make(DecisionBook::class)),
             $app->make(AdvisorRoom::class),
+            $app->make(BoardRecord::class),
             enabled: (string) config('halden.ai.anthropic_key') !== '' || ! $app->isProduction(),
         ));
     }
