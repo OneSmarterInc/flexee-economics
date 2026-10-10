@@ -48,6 +48,7 @@ final class QuarterView
         private readonly FacultyDrafts $drafts,
         private readonly Carrying $carrying,
         private readonly HelpDesk $help,
+        private readonly BoardVerdict $board,
     ) {}
 
     /**
@@ -205,6 +206,51 @@ final class QuarterView
             'turnaroundBefore' => (string) ($previous['turnaround'] ?? 'now'), 'pending' => $start !== null && $start->turnaroundPending, 'markets' => $data->labor];
     }
 
+    /**
+     * The board meeting (the last quarter): the defense to write, the world the plan is judged in, the team's record,
+     * and the verdict once the instructor publishes it.
+     *
+     * @return array<string, mixed>|null
+     */
+    private function board(Team $team, Quarter $quarter, ?TeamQuarter $tq, bool $forFaculty): ?array
+    {
+        if (! $quarter->isBoardQuarter() || ! $this->content->hasQuarter($quarter->number)) {
+            return null;
+        }
+        $c = $this->content->quarter($quarter->number);
+        if (! ($c['board_meeting'] ?? false)) {
+            return null;
+        }
+        $world = $this->runner->worldOf($quarter);
+        $previous = $this->book->previousEffective($team, $quarter);
+        $chosen = $this->book->portfolioChosen($previous);
+        $value = $this->model->portfolioValueInWorld($chosen, $world['carbon'], $world['demand']);
+        $fill = ['{carbon_world}' => strtolower(substr($this->model->data->scenarios['carbon'][$world['carbon']]['label'], 0, 1)).substr($this->model->data->scenarios['carbon'][$world['carbon']]['label'], 1),
+            '{demand_world}' => strtolower(substr($this->model->data->scenarios['demand'][$world['demand']]['label'], 0, 1)).substr($this->model->data->scenarios['demand'][$world['demand']]['label'], 1),
+            '{portfolio_value}' => ContentPack::money($value)];
+        $record = [];
+        foreach (TeamQuarter::query()->where('team_id', $team->id)->whereHas('quarter', fn ($q) => $q->where('number', '<', $quarter->number)->where('status', Quarter::PUBLISHED))
+            ->with('quarter')->get()->sortBy(fn (TeamQuarter $x) => $x->quarter->number) as $past) {
+            $pc = $this->content->hasQuarter($past->quarter->number) ? $this->content->quarter($past->quarter->number) : null;
+            $record[] = ['number' => $past->quarter->number, 'label' => $past->quarter->label(), 'question' => $pc['briefing']['question'] ?? '',
+                'ebitda' => (float) ($past->results['money.ebitda'] ?? 0), 'score' => $past->score, 'rank' => $past->rank, 'memo' => (string) $past->memo];
+        }
+        $published = $tq?->verdict_published_at !== null && $tq->verdict !== null;
+
+        return [
+            'defense' => $c['defense'],
+            'world' => ['title' => $c['world']['title'], 'text' => strtr($chosen === [] ? $c['world']['none'] : $c['world']['text'], $fill),
+                'carbon' => $world['carbon'], 'demand' => $world['demand'], 'value' => $value],
+            'sentence' => $team->strategy_become ? "Halden should become a company that {$team->strategy_become} by {$team->strategy_by}." : null,
+            'record' => $record,
+            'submission' => ['parts' => $tq === null ? [] : ($tq->defense ?? []), 'savedAt' => $tq?->defense_saved_at?->toIso8601String(),
+                'savedBy' => $tq?->defense_saved_by === null ? null : User::query()->find($tq->defense_saved_by)?->name],
+            'verdict' => $published || ($forFaculty && $tq?->verdict !== null)
+                ? ['heading' => $c['endings']['title'], 'intro' => $c['endings']['intro'], 'ending' => $tq->verdict,
+                    'published' => $published] + $c['endings'][$tq->verdict] : null,
+        ];
+    }
+
     /** @return array{title: string, text: string|null, reason: string|null}|null */
     private function carryingFor(?TeamQuarter $tq, bool $forFaculty): ?array
     {
@@ -276,7 +322,8 @@ final class QuarterView
             'wti' => $this->wtiHistory($quarter),
             'advisors' => $this->room->view($team, $quarter, forFaculty: $readOnly && $me === null),
             'leverText' => $this->content->leverText(),
-            'pages' => array_values(array_intersect(array_keys(self::PAGE_TITLES), $this->book->openPages($quarter->number))),
+            'pages' => $quarter->isBoardQuarter() ? [] : array_values(array_intersect(array_keys(self::PAGE_TITLES), $this->book->openPages($quarter->number))),
+            'board' => $this->board($team, $quarter, $tq, $readOnly && $me === null),
             'decisions' => [
                 'previous' => $previous,
                 'current' => $current,
@@ -662,7 +709,7 @@ final class QuarterView
         $content = $this->content->quarter($quarter->number);
 
         return [
-            'story' => $this->content->story($quarter->number, $r, $d, $base, ['{rebranded_regions}' => $this->rebrandedRegions($d),
+            'story' => $this->content->story($quarter->number, $r + $this->boardBands($team, $quarter, $r, $d), $d, $base, $this->boardFill($team, $quarter, $r, $d) + ['{rebranded_regions}' => $this->rebrandedRegions($d),
                 '{portfolio_list}' => $this->portfolioChosenLabels($d) === [] ? 'nothing' : self::join($this->portfolioChosenLabels($d)),
                 '{portfolio_cost}' => ContentPack::money($this->portfolioCost($d))]),
             'pnl' => $pnl,
@@ -733,6 +780,61 @@ final class QuarterView
         $last = array_pop($names);
 
         return $names === [] ? (string) $last : implode(', ', $names).' and '.$last;
+    }
+
+    /**
+     * The board quarter's story is told by three judges; two of them are picked by the team's record.
+     *
+     * @param  array<string, float|string>  $r
+     * @param  array<string, string|float|int|null>  $d
+     * @return array<string, string>
+     */
+    private function boardBands(Team $team, Quarter $quarter, array $r, array $d): array
+    {
+        if (! $quarter->isBoardQuarter()) {
+            return [];
+        }
+        ['rank' => $rank, 'teams' => $teams] = $this->board->courseRank($team, $quarter);
+        $rankBand = $teams <= 2 ? ($rank === 1 ? 'top' : 'bottom') : ($rank <= (int) ceil($teams / 3) ? 'top' : ($rank > $teams - (int) ceil($teams / 3) ? 'bottom' : 'middle'));
+        $position = (string) ($d['kessana_position'] ?? 'accept');
+        if ((float) ($r['ops.kessana_forgone'] ?? 0) > 0 || $position === 'exit') {
+            $partner = 'kessana_gone';
+        } elseif ($position === 'threaten') {
+            $partner = 'kessana_hostile';
+        } elseif ($position === 'counter') {
+            $partner = 'kessana_fine';
+        } elseif (($d['proj_helix'] ?? 'hold') === 'commit' || ($d['port_helix_rotterdam'] ?? 'hold') === 'go') {
+            $partner = 'helix';
+        } else {
+            $partner = $this->runner->history($team, $quarter)['straits_strained'] ? 'straits_strained' : 'straits';
+        }
+
+        return ['board.rank_band' => $rankBand, 'board.partner' => $partner];
+    }
+
+    /**
+     * @param  array<string, float|string>  $r
+     * @param  array<string, string|float|int|null>  $d
+     * @return array<string, string>
+     */
+    private function boardFill(Team $team, Quarter $quarter, array $r, array $d): array
+    {
+        if (! $quarter->isBoardQuarter()) {
+            return [];
+        }
+        $total = (float) TeamQuarter::query()->where('team_id', $team->id)
+            ->whereHas('quarter', fn ($q) => $q->where('status', Quarter::PUBLISHED)->where('number', '<=', $quarter->number))
+            ->get()->sum(fn (TeamQuarter $x) => (float) ($x->results['money.ebitda'] ?? 0));
+        ['rank' => $rank, 'teams' => $teams] = $this->board->courseRank($team, $quarter);
+        $ordinal = fn (int $n): string => $n.(in_array($n % 100, [11, 12, 13], true) ? 'th' : (['th', 'st', 'nd', 'rd'][$n % 10] ?? 'th'));
+        $world = $this->runner->worldOf($quarter);
+        $chosen = $this->book->portfolioChosen($d);
+        $value = $this->model->portfolioValueInWorld($chosen, $world['carbon'], $world['demand']);
+
+        return ['{ebitda_total}' => ContentPack::money($total), '{rank_text}' => $ordinal($rank).' of '.$teams.' over the course',
+            '{net_debt}' => ContentPack::money((float) ($r['money.net_debt_end'] ?? 0)), '{portfolio_value}' => ContentPack::money($value),
+            '{portfolio_clause}' => $chosen === [] ? 'The board approved no five-year plan in October.'
+                : sprintf('The five-year plan the board approved in October is worth %s in the world that has arrived.', ContentPack::money($value))];
     }
 
     /** @param  array<string, string|float|int|null>  $d */

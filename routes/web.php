@@ -14,6 +14,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('play/{quarter}', [PlayController::class, 'show'])->name('play.show');
     Route::post('play/{quarter}/page/{page}', [PlayController::class, 'savePage'])->name('play.page');
     Route::post('play/{quarter}/memo', [PlayController::class, 'saveMemo'])->name('play.memo');
+    Route::post('play/{quarter}/defense', [PlayController::class, 'saveDefense'])->name('play.defense');
     Route::post('play/{quarter}/ready', [PlayController::class, 'toggleReady'])->name('play.ready');
     Route::post('play/{quarter}/advisors/{advisor}', [PlayController::class, 'ask'])->whereAlpha('advisor')->middleware('throttle:20,1')->name('play.ask');
     Route::get('files/{path}', [PlayController::class, 'exhibit'])->where('path', '[A-Za-z0-9_\-/\.]+')->name('exhibits.show');
@@ -28,6 +29,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('faculty/teams/{team}/quarters/{quarter}/feedback', [FacultyController::class, 'feedback'])->name('faculty.feedback');
     Route::post('faculty/teams/{team}/quarters/{quarter}/feedback/draft', [FacultyController::class, 'draftFeedback'])->middleware('throttle:10,1')->name('faculty.feedback.draft');
     Route::post('faculty/teams/{team}/quarters/{quarter}/feedback', [FacultyController::class, 'saveFeedback'])->name('faculty.feedback.save');
+    Route::post('faculty/teams/{team}/quarters/{quarter}/verdict', [FacultyController::class, 'saveVerdict'])->name('faculty.verdict');
 });
 
 require __DIR__.'/settings.php';

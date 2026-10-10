@@ -17,6 +17,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string $company_quarter
  * @property string $status
  * @property string|null $event_outcome
+ * @property string|null $world
  * @property CarbonImmutable|null $deadline_at
  * @property CarbonImmutable|null $opened_at
  * @property CarbonImmutable|null $closed_at
@@ -24,7 +25,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property CarbonImmutable|null $seats_rotated_at
  * @property-read Section $section
  */
-#[Fillable(['section_id', 'number', 'company_quarter', 'status', 'event_outcome', 'deadline_at', 'opened_at', 'closed_at', 'published_at', 'seats_rotated_at'])]
+#[Fillable(['section_id', 'number', 'company_quarter', 'status', 'event_outcome', 'world', 'deadline_at', 'opened_at', 'closed_at', 'published_at', 'seats_rotated_at'])]
 class Quarter extends Model
 {
     public const UPCOMING = 'upcoming';
@@ -68,6 +69,12 @@ class Quarter extends Model
     public function isRotationQuarter(): bool
     {
         return $this->number === (int) ceil($this->section->weeks / 2) + 1;
+    }
+
+    /** The last quarter of the course: the board meeting. No operating decisions; the board defense instead. */
+    public function isBoardQuarter(): bool
+    {
+        return $this->number === (int) $this->section->weeks;
     }
 
     public function previous(): ?self

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Halden;
 use App\Halden\Ai\Carrying;
 use App\Halden\Ai\FacultyDrafts;
 use App\Halden\Content\ContentPack;
+use App\Halden\Game\BoardVerdict;
 use App\Halden\Game\DecisionBook;
 use App\Halden\Game\QuarterRunner;
 use App\Halden\Game\QuarterView;
@@ -52,6 +53,8 @@ class FacultyController extends Controller
                 'memoWords' => $words,
                 'ready' => $tq?->ready_at !== null,
                 'feedback' => $fbTq?->feedback_published_at !== null ? 'published' : ($fbTq !== null && FacultyDraft::query()->where('team_quarter_id', $fbTq->id)->exists() ? 'drafted' : 'none'),
+                'defense' => $tq?->defense_saved_at !== null,
+                'verdict' => $tq?->verdict_published_at !== null ? 'published' : ($tq?->verdict !== null ? 'decided' : 'none'),
                 'advisorAnswers' => $quarter === null ? 0 : AdvisorMessage::billable($team->id, $quarter->id),
                 'lastActivity' => $times[0] ?? null,
                 'score' => $tq?->score,
@@ -65,6 +68,7 @@ class FacultyController extends Controller
             'section' => ['id' => $section->id, 'name' => $section->name, 'course' => $section->course_name],
             'quarter' => $quarter === null ? null : [
                 'id' => $quarter->id, 'number' => $quarter->number, 'label' => $quarter->label(), 'status' => $quarter->status,
+                'isBoard' => $quarter->isBoardQuarter(), 'world' => $quarter->world,
                 'deadline' => $quarter->deadline_at?->toIso8601String(),
                 'deadlineText' => $quarter->deadline_at?->setTimezone('America/New_York')->format('l j M, g:i a'),
             ],
@@ -103,9 +107,26 @@ class FacultyController extends Controller
         return Inertia::render('halden/Play', $view->build($team, $quarter, null, readOnly: true) + ['startPage' => (string) $request->query('page', '')]);
     }
 
-    public function feedback(Request $request, Team $team, Quarter $quarter, FacultyDrafts $drafts): Response
+    public function feedback(Request $request, Team $team, Quarter $quarter, FacultyDrafts $drafts, BoardVerdict $verdict, ContentPack $content): Response
     {
         $tq = $this->teamQuarter($request, $team, $quarter);
+        $board = null;
+        if ($quarter->isBoardQuarter() && $content->hasQuarter($quarter->number)) {
+            $outcomes = $verdict->outcomes($team, $quarter);
+            $c = $content->quarter($quarter->number);
+            $board = [
+                'defense' => $tq->defense ?? [],
+                'parts' => $c['defense']['parts'],
+                'reasoning' => $tq->reasoning,
+                'outcomes' => $outcomes,
+                'suggested' => $verdict->suggested($tq->reasoning, $outcomes['strong']),
+                'tier' => $verdict->tierLabel($tq->reasoning, $outcomes['strong']),
+                'verdict' => $tq->verdict,
+                'publishedAt' => $tq->verdict_published_at?->toIso8601String(),
+                'endings' => array_map(fn (string $k) => ['key' => $k, 'title' => $c['endings'][$k]['title']], BoardVerdict::ENDINGS),
+                'resultsPublished' => $quarter->status === Quarter::PUBLISHED,
+            ];
+        }
         $latest = [];
         foreach (FacultyDraft::KINDS as $kind) {
             $d = FacultyDraft::query()->where('team_quarter_id', $tq->id)->where('kind', $kind)->latest('id')->first();
@@ -125,6 +146,7 @@ class FacultyController extends Controller
             'labels' => $drafts->labels(),
             'inputs' => $drafts->inputs($tq),
             'drafts' => $latest,
+            'board' => $board,
             'feedback' => [
                 'text' => (string) $tq->feedback,
                 'writingScoreAi' => $tq->writing_score_ai,
@@ -133,6 +155,32 @@ class FacultyController extends Controller
                 'publishedAt' => $tq->feedback_published_at?->toIso8601String(),
             ],
         ]);
+    }
+
+    /** The board's verdict on one team: the instructor's reasoning call, the ending, and whether students can see it. */
+    public function saveVerdict(Request $request, Team $team, Quarter $quarter, BoardVerdict $verdict): RedirectResponse
+    {
+        $tq = $this->teamQuarter($request, $team, $quarter);
+        abort_unless($quarter->isBoardQuarter(), 404);
+        $data = $request->validate([
+            'reasoning' => ['nullable', 'in:strong,weak'],
+            'verdict' => ['nullable', 'in:'.implode(',', BoardVerdict::ENDINGS)],
+            'publish' => ['boolean'],
+        ]);
+        $tq->reasoning = $data['reasoning'] ?? null;
+        $tq->verdict = $data['verdict'] ?? $verdict->suggested($tq->reasoning, $verdict->outcomes($team, $quarter)['strong']);
+        if ($request->boolean('publish')) {
+            if ($tq->verdict === null) {
+                throw ValidationException::withMessages(['verdict' => 'Decide whether the reasoning was strong before publishing the verdict.']);
+            }
+            if ($quarter->status !== Quarter::PUBLISHED) {
+                throw ValidationException::withMessages(['verdict' => 'Show the quarter\'s results first; the verdict goes out after them.']);
+            }
+            $tq->verdict_published_at = now();
+        }
+        $tq->save();
+
+        return back();
     }
 
     public function draftFeedback(Request $request, Team $team, Quarter $quarter, FacultyDrafts $drafts): RedirectResponse

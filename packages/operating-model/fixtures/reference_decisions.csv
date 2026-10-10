@@ -38,3 +38,6 @@ careless,12,2029Q4,26,cut,99,82.0,idle,100,other,46.2,0,50,600,0.0,hold,hold,com
 careful,13,2030Q1,10,run,93,88,run,88,cost,,0,25,100,150,commit,commit,hold,ignore,ignore,ignore,ignore,hold,partial,keep,keep,rebrand,1,0,counter,hold,hold,go,go,hold,accept,now,2.0,4.5,7.0,3.5,0.5,1.5,-1.5
 average,13,2030Q1,14,run,96.0,82.0,run,90.0,market,,0,0.0,0.0,0.0,hold,hold,hold,ignore,ignore,ignore,ignore,hold,fails,keep,keep,keep,0,0,accept,hold,go,hold,hold,hold,half,wait,2.0,3.5,5.0,3.0,0.0,1.0,-1.0
 careless,13,2030Q1,26,cut,99,82.0,idle,100,other,46.2,0,50,600,0.0,hold,hold,commit,match,match,match,match,match,full,rebrand,rebrand,rebrand,1,1,threaten,go,hold,hold,go,go,refuse,wait,-1.0,0.5,2.0,0.0,-3.0,-2.0,-4.0
+careful,14,2030Q2,10,run,93,88,run,88,cost,,0,25,100,150,commit,commit,hold,ignore,ignore,ignore,ignore,hold,partial,keep,keep,rebrand,1,0,counter,hold,hold,go,go,hold,accept,now,2.0,4.5,7.0,3.5,0.5,1.5,-1.5
+average,14,2030Q2,14,run,96.0,82.0,run,90.0,market,,0,0.0,0.0,0.0,hold,hold,hold,ignore,ignore,ignore,ignore,hold,fails,keep,keep,keep,0,0,accept,hold,go,hold,hold,hold,half,wait,2.0,3.5,5.0,3.0,0.0,1.0,-1.0
+careless,14,2030Q2,26,cut,99,82.0,idle,100,other,46.2,0,50,600,0.0,hold,hold,commit,match,match,match,match,match,full,rebrand,rebrand,rebrand,1,1,threaten,go,hold,hold,go,go,refuse,wait,-1.0,0.5,2.0,0.0,-3.0,-2.0,-4.0

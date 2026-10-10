@@ -419,7 +419,20 @@ check("Doing the turnaround now costs $81M under Refineries this quarter; waitin
       and abs(after_wait[0]["turnaround"] + 60) < 1e-9 and after_wait[0]["turnaround_outage"] == 0 and abs(after_out[0]["turnaround_outage"] + 150) < 1e-9
       and not after_wait[6].turnaround_pending, f"now {now[0]['turnaround']:.0f}; later {after_wait[0]['turnaround']:.0f} / {after_out[0]['turnaround'] + after_out[0]['turnaround_outage']:.0f}")
 
-# 29 Reference teams: careful > average > careless in every quarter
+# 29 Quarter 14: the board meeting
+m14 = q("2030Q2")
+pw = {k: v["p"] for k, v in hm.SCENARIOS["carbon"].items()}
+pd_ = {k: v["p"] for k, v in hm.SCENARIOS["demand"].items()}
+check("The world the portfolio is valued in is drawn from nine futures whose odds add up to one (carbon 30/45/25, demand 45/35/20); the likeliest is pricier carbon with a slow decline",
+      abs(sum(pw.values()) - 1) < 1e-9 and abs(sum(pd_.values()) - 1) < 1e-9 and max(pw, key=pw.get) == "mid" and max(pd_, key=pd_.get) == "slow", "mid:slow")
+check("A set of projects is valued in the drawn world as the sum of its projects' values there: Helix at Rotterdam plus wind plus the sale is worth -$330M if carbon stays cheap and demand holds, +$530M if carbon is dear and demand collapses",
+      abs(hm.portfolio_value_in_world(["helix_rotterdam", "offshore_wind", "euro_retail_divest"], "low", "slow") + 330) < 1e-9
+      and abs(hm.portfolio_value_in_world(["helix_rotterdam", "offshore_wind", "euro_retail_divest"], "high", "collapse") - 530) < 1e-9, "-330 / +530")
+carried = hm.step(hm.step(copy.deepcopy(start), hm.Decisions(turnaround="wait", norway_wage="accept"), m13)[6], hm.Decisions(turnaround="wait", norway_wage="accept"), m14)
+check("In the board quarter every page carries and the one-time answers do nothing new: the delayed turnaround's crews come ($60M), the raise stays, no new stoppage",
+      abs(carried[0]["turnaround"] + 60) < 1e-9 and abs(carried[0]["norway_wages"] + 8.4) < 1e-9 and carried[0]["norway_stoppage"] == 0 and not carried[6].turnaround_pending, "60; 8.4; 0")
+
+# 30 Reference teams: careful > average > careless in every quarter
 summary = rr.main()
 ok = True
 detail = []
@@ -427,16 +440,16 @@ for i in range(len(summary["careful"])):
     c, a, l = (summary[t][i][2] for t in ("careful", "average", "careless"))
     ok &= c > a > l
     detail.append(f"Q{i+1}: {c:.1f} / {a:.1f} / {l:.1f}")
-check("Score order careful > average > careless in all thirteen quarters", ok, "; ".join(detail))
+check("Score order careful > average > careless in all fourteen quarters", ok, "; ".join(detail))
 
-# 30 Determinism: fixtures rebuild byte-identical
+# 31 Determinism: fixtures rebuild byte-identical
 h1 = hashlib.sha256((ROOT / "fixtures/golden_quarters.csv").read_bytes()).hexdigest()
 rr.main()
 h2 = hashlib.sha256((ROOT / "fixtures/golden_quarters.csv").read_bytes()).hexdigest()
 check("Fixtures rebuild identically", h1 == h2, h1[:16])
 
 passed = sum(1 for c in checks if c[1])
-lines = ["# Operating model validation (v0.9, Quarters 1-13)", "", f"**Result: {passed} of {len(checks)} checks pass.**", "",
+lines = ["# Operating model validation (v1.0, Quarters 1-14)", "", f"**Result: {passed} of {len(checks)} checks pass.**", "",
          "| # | Check | Result | Detail |", "| --- | --- | --- | --- |"]
 for i, (n, okk, d) in enumerate(checks, 1):
     lines.append(f"| {i} | {n} | {'PASS' if okk else 'FAIL'} | {d} |")

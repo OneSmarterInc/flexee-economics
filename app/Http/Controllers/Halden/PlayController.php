@@ -59,6 +59,9 @@ class PlayController extends Controller
         $team = $this->teamOf($user);
         $this->assertOpen($team, $quarter);
         abort_unless(array_key_exists($page, QuarterView::PAGE_TITLES), 404);
+        if ($quarter->isBoardQuarter()) {
+            throw ValidationException::withMessages([$page => 'Nothing is set this quarter. Every page carries, and the board meets.']);
+        }
 
         [$clean, $errors] = $book->validatePage($page, $request->all(), $quarter->number);
         if ($errors !== []) {
@@ -111,6 +114,32 @@ class PlayController extends Controller
 
         return sprintf("The board caps \"%s\" at \$%sM, and that's over it. Hold one of the projects in that group.",
             strtolower($data->buckets[$bucket]['label']), number_format($data->buckets[$bucket]['ceiling']));
+    }
+
+    /** The board defense (the last quarter): three parts, saved whole, by any teammate. Mirrored into the memo so the instructor's drafting tools read it. */
+    public function saveDefense(Request $request, Quarter $quarter, ContentPack $content): RedirectResponse
+    {
+        $user = $this->user($request);
+        $team = $this->teamOf($user);
+        $this->assertOpen($team, $quarter);
+        abort_unless($quarter->isBoardQuarter(), 404);
+        $parts = $content->quarter($quarter->number)['defense']['parts'];
+        $rules = [];
+        foreach ($parts as $p) {
+            $rules[$p['key']] = ['nullable', 'string', 'max:40000'];
+        }
+        $data = $request->validate($rules, ['*.max' => 'That part is too long for the box. A few pages in total is plenty.']);
+        $defense = [];
+        $memo = [];
+        foreach ($parts as $p) {
+            $defense[$p['key']] = (string) ($data[$p['key']] ?? '');
+            $memo[] = $p['title'].":\n".$defense[$p['key']];
+        }
+        $tq = TeamQuarter::query()->firstOrCreate(['team_id' => $team->id, 'quarter_id' => $quarter->id]);
+        $tq->update(['defense' => $defense, 'defense_saved_by' => $user->id, 'defense_saved_at' => now(),
+            'memo' => implode("\n\n", $memo), 'memo_saved_by' => $user->id, 'memo_saved_at' => now()]);
+
+        return back()->with('saved', 'defense');
     }
 
     public function saveMemo(Request $request, Quarter $quarter): RedirectResponse

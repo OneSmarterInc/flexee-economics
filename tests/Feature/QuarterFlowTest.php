@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Halden\Game\BoardVerdict;
 use App\Halden\Game\DecisionBook;
 use App\Halden\Game\QuarterRunner;
 use App\Halden\Game\QuarterView;
@@ -207,7 +208,7 @@ class QuarterFlowTest extends TestCase
         $this->assertEqualsWithDelta(-10.0, $tq->results['line.capacity_game'], 1e-9, 'Pelican built; the team held, so $10M a quarter');
     }
 
-    public function test_quarters_eleven_to_thirteen_settle_their_one_time_answers(): void
+    public function test_quarters_eleven_to_fourteen_settle_their_answers_and_the_board_decides(): void
     {
         [$section, $teams] = $this->section(['a', 'b']);
         $runner = app(QuarterRunner::class);
@@ -284,8 +285,45 @@ class QuarterFlowTest extends TestCase
         $view13 = app(QuarterView::class)->build($teams['a'], $q13->refresh(), null, readOnly: true);
         $this->assertSame('refuse', $view13['results']['story']['band']);
         $this->assertTrue(collect($view13['results']['named'])->contains(fn (array $l) => str_contains($l['name'], 'stoppage')));
-        $this->assertTrue($runner->followsLaborQuarter($section->quarters()->where('number', 14)->firstOrFail()));
-        $this->expectExceptionMessage("The economics for Q2 2030 aren't built yet.");
-        $runner->open($section->quarters()->where('number', 14)->firstOrFail());
+        $q14 = $section->quarters()->where('number', 14)->firstOrFail();
+        $this->assertTrue($runner->followsLaborQuarter($q14));
+
+        // Quarter 14: the board meeting. The world is drawn at open, the breakdown at close, nothing is set, and the verdict is the instructor's.
+        $runner->open($q14);
+        $q14->refresh();
+        $this->assertTrue($q14->isBoardQuarter());
+        $this->assertMatchesRegularExpression('/^(low|mid|high):(slow|fast|collapse)$/', (string) $q14->world);
+        $view14 = app(QuarterView::class)->build($teams['a'], $q14, null, readOnly: true);
+        $this->assertSame([], $view14['pages'], 'no operating pages in the board quarter');
+        $this->assertNotNull($view14['board']);
+        $this->assertCount(13, $view14['board']['record']);
+        $this->assertStringContainsString('Your five-year plan is worth', $view14['board']['world']['text']);
+        TeamQuarter::query()->updateOrCreate(['team_id' => $teams['a']->id, 'quarter_id' => $q14->id], ['defense' => ['synthesis' => 'We ran it as one company.', 'decisions' => 'Three.', 'counterfactual' => 'Kessana.'], 'defense_saved_at' => now()]);
+        $runner->close($q14->refresh());
+        $q14->refresh();
+        $this->assertContains($q14->event_outcome, ['outage', 'no_outage'], 'the breakdown behind the delayed turnaround is drawn at the close');
+        $runner->publish($q14->refresh());
+        $a14 = TeamQuarter::query()->where('team_id', $teams['a']->id)->where('quarter_id', $q14->id)->firstOrFail();
+        $this->assertEqualsWithDelta(-60.0, $a14->results['line.turnaround'], 1e-9, 'the off-peak crews came');
+        $this->assertSame($q14->event_outcome === 'outage' ? -150.0 : 0.0, (float) $a14->results['line.turnaround_outage']);
+        $this->assertEqualsWithDelta(-8.4, $a14->results['line.norway_wages'], 1e-9, 'the raise carries');
+        $view14 = app(QuarterView::class)->build($teams['a'], $q14->refresh(), null, readOnly: true);
+        $this->assertSame('Eighteen months later', $view14['results']['story']['title']);
+        $text = implode(' ', $view14['results']['story']['paragraphs']);
+        $this->assertStringContainsString('A sell-side analyst', $text);
+        $this->assertStringContainsString('The board, through Margrethe', $text);
+        $this->assertStringContainsString('Minister Tetteh', $text, 'team a countered in Kessana, so the government is its partner judge');
+        $this->assertStringNotContainsString('{', $text);
+        $this->assertNull($view14['board']['verdict'], 'no verdict until the instructor publishes one');
+        $verdict = app(BoardVerdict::class);
+        $outcomes = $verdict->outcomes($teams['a'], $q14);
+        $this->assertNotNull($outcomes['strong']);
+        $this->assertSame('widen', $verdict->suggested('strong', true));
+        $this->assertSame('conditions', $verdict->suggested('weak', true));
+        $this->assertSame('split', $verdict->suggested('strong', false));
+        $this->assertSame('sold', $verdict->suggested('weak', false));
+        $a14->update(['reasoning' => 'strong', 'verdict' => 'widen', 'verdict_published_at' => now()]);
+        $view14 = app(QuarterView::class)->build($teams['a'], $q14->refresh(), null, readOnly: true);
+        $this->assertSame('They keep the job and give you more.', $view14['board']['verdict']['title']);
     }
 }

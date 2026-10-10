@@ -165,6 +165,43 @@ class HaldenScreensTest extends TestCase
         $this->assertArrayNotHasKey('kessana_position', app(DecisionBook::class)->validatePage('oil_fields', ['kessana_position' => 'counter'], 12)[0]);
     }
 
+    public function test_the_board_quarter_takes_a_defense_and_refuses_page_saves_and_the_instructor_publishes_the_verdict(): void
+    {
+        $runner = app(QuarterRunner::class);
+        for ($n = 1; $n <= 13; $n++) {
+            $q = $this->quarter($n);
+            $runner->open($q);
+            $runner->close($q->refresh());
+            $runner->publish($q->refresh());
+        }
+        $q = $this->quarter(14);
+        $runner->open($q);
+        $student = $this->students['refineries'];
+        $this->actingAs($student)->from("/play/{$q->id}")
+            ->post("/play/{$q->id}/page/oil_fields", ['rigs' => 9])
+            ->assertSessionHasErrors(['oil_fields']);
+        $this->actingAs($student)->post("/play/{$q->id}/defense", ['synthesis' => 'One company.', 'decisions' => 'Three.', 'counterfactual' => 'Fewer rigs.'])
+            ->assertSessionHasNoErrors();
+        $tq = TeamQuarter::query()->where('team_id', $this->team->id)->where('quarter_id', $q->id)->firstOrFail();
+        $this->assertSame('Three.', $tq->defense['decisions'] ?? null);
+        $this->assertStringContainsString('Three decisions, defended:', (string) $tq->memo, 'mirrored into the memo for the drafting tools');
+        // The verdict waits for the quarter to run, then goes out when the instructor says so.
+        $this->actingAs($this->faculty)
+            ->post("/faculty/teams/{$this->team->id}/quarters/{$q->id}/verdict?section={$this->section->id}", ['reasoning' => 'strong', 'publish' => true])
+            ->assertNotFound();
+        $runner->close($q->refresh());
+        $runner->publish($q->refresh());
+        $this->actingAs($this->faculty)
+            ->post("/faculty/teams/{$this->team->id}/quarters/{$q->id}/verdict?section={$this->section->id}", ['reasoning' => 'strong', 'publish' => true])
+            ->assertSessionHasNoErrors();
+        $tq->refresh();
+        $this->assertSame('widen', $tq->verdict, 'strong reasoning and, alone in its class, strong outcomes');
+        $this->assertNotNull($tq->verdict_published_at);
+        $this->actingAs($this->students['evp'])->get("/play/{$q->id}")->assertInertia(fn (Assert $page) => $page
+            ->where('board.verdict.title', 'They keep the job and give you more.')
+            ->where('pages', []));
+    }
+
     public function test_the_memo_saves_in_full(): void
     {
         $q = $this->openFirst();

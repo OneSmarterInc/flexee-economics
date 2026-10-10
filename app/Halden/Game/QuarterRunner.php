@@ -34,6 +34,10 @@ final class QuarterRunner
         if ($quarter->isRotationQuarter() && $quarter->seats_rotated_at === null) {
             $this->rotateSeats($quarter);
         }
+        // The board meeting: the world the five-year portfolio is valued in is drawn once per class when the quarter opens.
+        if ($quarter->isBoardQuarter() && $quarter->world === null) {
+            $quarter->world = $this->drawWorld();
+        }
         $quarter->update(['status' => Quarter::OPEN, 'opened_at' => now()]);
     }
 
@@ -218,6 +222,39 @@ final class QuarterRunner
         $prev = $quarter->previous();
 
         return $prev !== null && $this->hasMarket($prev) && (bool) ($this->model->data->quarter($prev->company_quarter)['labor'] ?? false);
+    }
+
+    /** "carbon:demand", drawn from the odds in the package (e.g. "mid:slow"). */
+    public function drawWorld(): string
+    {
+        $pick = function (array $options): string {
+            $r = random_int(1, 1000) / 1000;
+            $cum = 0.0;
+            $last = array_key_first($options);
+            foreach ($options as $key => $o) {
+                $cum += $o['p'];
+                $last = $key;
+                if ($r <= $cum + 1e-9) {
+                    return (string) $key;
+                }
+            }
+
+            return (string) $last;
+        };
+
+        return $pick($this->model->data->scenarios['carbon']).':'.$pick($this->model->data->scenarios['demand']);
+    }
+
+    /**
+     * The world a board quarter was drawn into, as keys, or the likeliest world when none is set.
+     *
+     * @return array{carbon: string, demand: string}
+     */
+    public function worldOf(Quarter $quarter): array
+    {
+        $parts = explode(':', (string) ($quarter->world ?? 'mid:slow'));
+
+        return ['carbon' => $parts[0], 'demand' => $parts[1] ?? 'slow'];
     }
 
     /** 'outage' with the package's 12% chance, otherwise 'no_outage'. */
