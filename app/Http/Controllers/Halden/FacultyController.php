@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Halden;
 
 use App\Halden\Admin\ClassAccess;
 use App\Halden\Admin\ResultsExport;
+use App\Halden\Admin\Schedule;
 use App\Halden\Ai\Carrying;
 use App\Halden\Ai\FacultyDrafts;
 use App\Halden\Content\ContentPack;
@@ -94,6 +95,44 @@ class FacultyController extends Controller
             'teams' => $teams,
             'quarters' => $section->quarters()->get()->map(fn (Quarter $q) => ['number' => $q->number, 'label' => $q->label(), 'status' => $q->status])->values(),
         ]);
+    }
+
+    /** The schedule: every deadline, editable while its quarter has not been run. */
+    public function schedule(Request $request): Response
+    {
+        $section = $this->section($request);
+        /** @var User $viewer */
+        $viewer = $request->user();
+
+        return Inertia::render('halden/FacultySchedule', [
+            'section' => ['id' => $section->id, 'name' => $section->name, 'course' => $section->course_name, 'weeks' => (int) $section->weeks],
+            'classes' => ClassAccess::choices($viewer),
+            'rows' => Schedule::rows($section),
+            'done' => $request->session()->get('done'),
+        ]);
+    }
+
+    public function saveSchedule(Request $request): RedirectResponse
+    {
+        $section = $this->section($request);
+        $data = $request->validate([
+            'deadlines' => ['required', 'array'],
+            'deadlines.*' => ['required', 'date_format:Y-m-d\TH:i'],
+            'shift_following' => ['required', 'boolean'],
+        ]);
+        $ids = $section->quarters()->pluck('id')->all();
+        $submitted = [];
+        foreach ($data['deadlines'] as $id => $at) {
+            abort_unless(in_array((int) $id, $ids, true), 404);
+            $submitted[(int) $id] = (string) $at;
+        }
+        try {
+            $changed = Schedule::apply($section, $submitted, (bool) $data['shift_following']);
+        } catch (RuntimeException $e) {
+            throw ValidationException::withMessages(['schedule' => $e->getMessage()]);
+        }
+
+        return redirect()->route('faculty.schedule', ['section' => $section->id])->with('done', "changed:$changed");
     }
 
     /** Every team's results, memos and feedback for the class as a CSV, for grading in a spreadsheet. */
