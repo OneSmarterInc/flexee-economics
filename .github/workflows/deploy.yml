@@ -21,7 +21,7 @@ jobs:
 
     steps:
       - name: Deploy tested release to production
-        uses: appleboy/ssh-action@v1.2.2
+        uses: appleboy/ssh-action@v1.2.5
         env:
           RELEASE_SHA: ${{ github.event.workflow_run.head_sha }}
           PRODUCTION_BACKUP_COMMAND: ${{ secrets.PRODUCTION_BACKUP_COMMAND }}
