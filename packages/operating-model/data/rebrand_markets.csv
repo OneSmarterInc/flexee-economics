@@ -1,0 +1,4 @@
+key,label,equity,sites,keep_uplift_per_fill,halden_benefit_per_fill,note
+core,Louisiana and Mississippi,strong,1850,0.055,0.010,"Wk9 markets.csv: the Cordell heartland; the name is worth 5.5 cents a fill"
+gulf,Gulf Coast beyond the core,medium,1400,0.015,0.045,"Wk9: Texas and Alabama; the name is worth a little"
+edge,Southeast edge,weak,1050,-0.005,0.075,"Wk9: Georgia and the Carolinas; the Cordell name is a slight drag"

@@ -899,5 +899,129 @@
         ]
       }
     }
+  },
+  "9": {
+    "briefing": {
+      "dateline": "Q1 2029 · Monday 8 January · Houston",
+      "headline": "Danielle wants the Halden name on the stations",
+      "paragraphs": [
+        "Danielle has a proposal: paint over Cordell. Put the Halden name on all 4,300 US stations, the way it already is in Europe. It costs about $340 million, roughly $79,000 a station, and she says the Halden name sells more coffee and snacks than Cordell's does, at least in the places where Cordell was never much of a name.",
+        "Marcus is against it. In Louisiana and Mississippi, Cordell is the brand people grew up with, and he says a Halden sign there would cost sales, not win them. The two of them agree on one thing: the answer isn't the same everywhere. The question is where.",
+        "Meanwhile the shop counters are telling you what last summer's price war did. Drivers who learned to shop on price haven't all come back to the coffee counter, and that changes what any brand is worth."
+      ],
+      "question": "Where, if anywhere, should Halden put its own name on Cordell's stations, and what is the Cordell name still worth?"
+    },
+    "rule": "Cordell's stations sit in three regions. In Louisiana and Mississippi, the Cordell name adds about 5.5 cents a fill in the shop; the Halden name would add about 1 cent. On the Gulf Coast beyond the core, Cordell adds 1.5 cents and Halden would add 4.5. On the Southeast edge, Cordell costs about half a cent a fill and Halden would add 7.5. Rebranding a region costs about $79,000 a station, paid now as capital, and it's permanent. From the next quarter, the region earns the difference between the two names on every fill, about 180,000 fills a station a year, scaled by this year's shop margin. Your free cash flow score is measured before the rebrand's cost, as with any big project. This year's shop margin is set by what the whole class did about Pelican's price cut last summer: a class that matched everywhere earns less in every shop.",
+    "new_pages_note": "New this quarter: keep Cordell or go Halden, region by region, on the Gas stations page.",
+    "exhibits": [
+      {
+        "title": "What each name is worth in each region, what a rebrand costs, and how the shop margin changes the sums",
+        "file": "q9/halden-q9-rebrand.xlsx"
+      },
+      {
+        "title": "Python notebook with the same data (optional)",
+        "file": "q9/halden-q9-analysis.ipynb"
+      },
+      {
+        "title": "Data files the notebook reads (unzip them next to it)",
+        "file": "q9/halden-q9-notebook-data.zip"
+      }
+    ],
+    "marchetti": "Oil has settled at $79 as OPEC+ members drifted back to pumping, and the Gulf Coast margin is $20.80. A brand is an asset you can only see in the shop margin. Before you decide where the Halden name goes, work out what it earns per fill in each region, and check what this year's shop margin does to the payback.",
+    "story": {
+      "band_on": "rebrand",
+      "bands": [
+        {
+          "key": "none",
+          "title": "The Cordell signs stay up",
+          "paragraphs": [
+            "You kept the Cordell name everywhere. Danielle took it well in public and badly in private. Marcus bought her lunch. The shop counters earned {cordell_shop} this quarter, at a margin of {nonfuel} a gallon.",
+            "{price_war_line}"
+          ]
+        },
+        {
+          "key": "partial",
+          "title": "Halden signs go up where Cordell was weakest",
+          "paragraphs": [
+            "You put the Halden name on {rebranded_regions} and kept Cordell where it still means something. The painters start this quarter, at a cost of {rebrand_outlay}, and the first Halden-branded fills show up next quarter. Danielle called it the right half of her idea. Marcus called it the right half of his.",
+            "{price_war_line}"
+          ]
+        },
+        {
+          "key": "full",
+          "title": "Cordell is gone",
+          "paragraphs": [
+            "You put the Halden name on every station, including the heartland where Cordell was the brand people grew up with. It cost {rebrand_outlay}. In Louisiana and Mississippi the regulars noticed the new sign and some of them went to the station across the road. Danielle got her wish. Marcus has stopped coming to the Monday meeting.",
+            "{price_war_line}"
+          ]
+        }
+      ],
+      "closing": "Halden made {ebitda} before interest, tax and depreciation. Next quarter the economy turns, and every decision you've made since you took the job gets tested at once."
+    },
+    "fills": {
+      "{price_war_line}": {
+        "on": "band:window3",
+        "war": "Across your class, chains matched Pelican's cut almost everywhere last summer, and drivers learned to shop on price. The shop margin is {nonfuel} a gallon this year instead of 42 cents. Every brand on the Gulf Coast is worth less than it was.",
+        "calm": "Across your class, most chains held their prices against Pelican last summer, and the shop counters stayed busy. The shop margin is {nonfuel} a gallon this year, better than the usual 42 cents.",
+        "base": "Across your class, about half the chains matched Pelican's cut last summer. The shop margin is {nonfuel} a gallon this year, about where it usually sits."
+      }
+    },
+    "news": [
+      {
+        "title": "The price war's bill arrives at the coffee counter",
+        "body": "Chains that chased Pelican's cut last summer kept their drivers and lost their shoppers. Where most chains matched, shop margins are down for the year; where most held, they're up. What your class did in July is in every Cordell shop's numbers this year."
+      },
+      {
+        "title": "Oil settles after Vienna",
+        "body": "OPEC+ members drifted back to pumping over the winter and oil settled at about $79, close to where analysts expected it before the meeting. Companies that bought crude ahead have taken their gains or losses; the Gulf Coast margin is back to about $20.80."
+      }
+    ],
+    "relations": {
+      "band_on": "rebrand",
+      "bands": {
+        "none": [
+          {
+            "who": "Danielle Roy",
+            "was": "Cooperative",
+            "now": "Watchful",
+            "why": "Her proposal went nowhere."
+          },
+          {
+            "who": "Marcus Delacroix",
+            "was": "Cooperative",
+            "now": "Supportive",
+            "why": "You kept the name he built his career on."
+          }
+        ],
+        "partial": [
+          {
+            "who": "Danielle Roy",
+            "was": "Cooperative",
+            "now": "Cooperative",
+            "why": "She got the regions where the sums worked."
+          },
+          {
+            "who": "Marcus Delacroix",
+            "was": "Cooperative",
+            "now": "Cooperative",
+            "why": "The heartland kept its name."
+          }
+        ],
+        "full": [
+          {
+            "who": "Marcus Delacroix",
+            "was": "Cooperative",
+            "now": "Guarded",
+            "why": "You painted over the brand in his home market."
+          },
+          {
+            "who": "Danielle Roy",
+            "was": "Cooperative",
+            "now": "Supportive",
+            "why": "She asked for everything and got it."
+          }
+        ]
+      }
+    }
   }
 }

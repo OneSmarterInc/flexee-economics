@@ -100,3 +100,5 @@ opec_inventory_carry_annual,0.085,fraction,ledger Wk6 base hurdle,cost of money 
 window2_pivot,0.50,share,Wk3 window2 addendum,share of the class going ahead with the Baton Rouge upgrade at which the Gulf Coast margin is unchanged
 window2_slope_above,6.0,usd_bbl_per_share,Wk3 window2 addendum,margin lost per unit of share above the pivot
 window2_slope_below,3.0,usd_bbl_per_share,Wk3 window2 addendum,margin gained per unit of share below the pivot
+rebrand_total_cost,340,usd_m,Wk9 rebrand_params.csv,"putting the Halden name on all 4,300 Cordell stations; charged per site"
+rebrand_fills_per_site_year,180000,fills,Wk9 rebrand_params.csv,a calibration figure; scales every payback

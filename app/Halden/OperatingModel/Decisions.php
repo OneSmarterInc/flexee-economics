@@ -12,6 +12,7 @@ final class Decisions
      * @param  array<string, float>  $offsets  cents per gallon above (+) or below (-) the going rate, by station market
      * @param  array<string, string>  $projects  project key => commit | hold
      * @param  array<string, string>  $responses  Cordell cluster => ignore | match the rival's street cut
+     * @param  array<string, string>  $rebrand  Cordell region => keep | rebrand (put the Halden name on the stations)
      */
     public function __construct(
         public int $rigs = 14,
@@ -31,6 +32,7 @@ final class Decisions
         public array $responses = [],
         public string $capacityResponse = 'hold',  // hold | match the rival's Gulf Coast expansion
         public string $opecCase = 'fails',         // fails | partial | full: the OPEC+ outcome Geneva plans for
+        public array $rebrand = [],
     ) {}
 
     /** @param  array<string, mixed>  $row  a row shaped like fixtures/reference_decisions.csv */
@@ -61,7 +63,22 @@ final class Decisions
             responses: self::responsesFromRow($row, $data),
             capacityResponse: (string) ($row['capacity_response'] ?? 'hold'),
             opecCase: (string) ($row['opec_case'] ?? 'fails'),
+            rebrand: self::rebrandFromRow($row, $data),
         );
+    }
+
+    /**
+     * @param  array<string, mixed>  $row
+     * @return array<string, string>
+     */
+    private static function rebrandFromRow(array $row, ModelData $data): array
+    {
+        $out = [];
+        foreach (array_keys($data->rebrand) as $k) {
+            $out[$k] = (string) ($row["rebrand_$k"] ?? 'keep');
+        }
+
+        return $out;
     }
 
     /**

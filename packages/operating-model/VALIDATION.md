@@ -1,6 +1,6 @@
-# Operating model validation (v0.4, Quarters 1-8)
+# Operating model validation (v0.5, Quarters 1-9)
 
-**Result: 49 of 49 checks pass.**
+**Result: 55 of 55 checks pass.**
 
 | # | Check | Result | Detail |
 | --- | --- | --- | --- |
@@ -51,5 +51,11 @@
 | 45 | Outside the OPEC+ quarter the planning case changes nothing | PASS | Q3 2028 EBITDA equal |
 | 46 | Window 2: all building -$3.00; half 0; none +$1.50; overbuilding costs twice what restraint earns | PASS | -3.00 / 0 / +1.50 |
 | 47 | Worst case (the cut holds and everyone built): Gulf Coast margin $13.60 | PASS | 13.60 |
-| 48 | Score order careful > average > careless in all eight quarters | PASS | Q1: 88.1 / 82.2 / 12.2; Q2: 89.2 / 80.8 / 11.2; Q3: 92.2 / 84.6 / 7.8; Q4: 92.3 / 86.1 / 7.7; Q5: 90.4 / 84.9 / 9.3; Q6: 89.1 / 88.7 / 8.6; Q7: 90.9 / 83.3 / 9.0; Q8: 91.0 / 79.4 / 8.9 |
-| 49 | Fixtures rebuild identically | PASS | 4dad40e30039e3ab |
+| 48 | Putting the Halden name on a station costs $79,070 (a $340M programme over 4,300 sites) | PASS | $79,069.77 |
+| 49 | At a $0.42 shop margin the rebrand earns -$15.0M a year in the heartland, +$7.6M on the Gulf Coast, +$15.1M on the Southeast edge | PASS | core -14.985, gulf 7.560, edge 15.120 |
+| 50 | Paybacks: Southeast edge 5.5 years, Gulf Coast 14.6; both together 8.5 years on $193.7M; all three regions earn only $7.7M a year | PASS | edge 5.49, gulf 14.64, both 8.54; all three 7.695/yr |
+| 51 | After a price war (shop margin $0.38) the same rebrand takes 9.4 years to pay back | PASS | 9.44 years |
+| 52 | Rebranding the Southeast edge costs $83.0M of capital now (added back in the score) and pays $3.78M a quarter in the shop from the next quarter | PASS | outlay 83.02, then 3.780 a quarter, charged once |
+| 53 | Window 3 lands: a class that fought a price war earns less in the shops than one that held its prices | PASS | 161.6 < 178.6 < 191.3 |
+| 54 | Score order careful > average > careless in all nine quarters | PASS | Q1: 88.1 / 82.2 / 12.2; Q2: 89.2 / 80.8 / 11.2; Q3: 92.2 / 84.6 / 7.8; Q4: 92.3 / 86.1 / 7.7; Q5: 90.4 / 84.9 / 9.3; Q6: 89.1 / 88.7 / 8.6; Q7: 90.9 / 83.3 / 9.0; Q8: 91.0 / 79.4 / 8.9; Q9: 91.2 / 83.3 / 8.7 |
+| 55 | Fixtures rebuild identically | PASS | 5befdfd3b839a63c |

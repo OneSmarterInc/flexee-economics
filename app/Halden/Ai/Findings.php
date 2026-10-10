@@ -91,6 +91,16 @@ final class Findings
             };
         }
 
+        if ($q->number >= 9) {
+            $painted = [];
+            foreach ($this->data->rebrand as $key => $m) {
+                if (($d["rebrand_$key"] ?? 'keep') === 'rebrand') {
+                    $painted[] = $m['label'];
+                }
+            }
+            $lines[] = 'The Cordell name: Halden signs on '.($painted === [] ? 'no region (Cordell kept everywhere)' : implode(', ', $painted)).'.';
+        }
+
         return $lines;
     }
 
@@ -163,6 +173,14 @@ final class Findings
             $out[] = sprintf('OPEC+: oil moved $%s to $%s. Crude bought ahead made %s, less %s of interest. Baton Rouge\'s margin ended at $%s a barrel.',
                 number_format((float) $r['ops.wti_shock'], 2), number_format((float) $r['ops.wti'], 2), $this->money((float) ($r['line.crude_bought_ahead'] ?? 0)),
                 $this->money(abs((float) ($r['line.inventory_carry'] ?? 0))), number_format((float) ($r['ops.gc'] ?? 0), 2));
+        }
+        if ($q->number >= 9) {
+            $margin = (float) ($r['ops.nonfuel_per_gal'] ?? 0);
+            $out[] = sprintf('The shop margin this year is %s cents a gallon (the usual is %s), set by how the class answered Pelican. A rebrand pays back faster or slower in step with it.',
+                rtrim(rtrim(number_format($margin * 100, 1), '0'), '.'), rtrim(rtrim(number_format($this->data->c('window3_base_nonfuel') * 100, 1), '0'), '.'));
+            if ((float) ($r['ops.rebrand_outlay'] ?? 0) > 0) {
+                $out[] = sprintf('The team spent %s repainting stations this quarter. The heartland loses money under the Halden name; the Gulf Coast beyond the core pays back in about 15 years at the usual margin and the Southeast edge in about 5.5.', $this->money((float) $r['ops.rebrand_outlay']));
+            }
         }
         if (abs((float) ($r['line.capacity_game'] ?? 0)) > 0.05) {
             $out[] = sprintf('Pelican built its Gulf Coast unit. Halden\'s answer (%s) is costing %s a quarter under Refineries.',

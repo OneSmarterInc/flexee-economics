@@ -1,4 +1,4 @@
-"""Halden Energy quarterly operating model, reference implementation v0.4 (Quarters 1-8).
+"""Halden Energy quarterly operating model, reference implementation v0.5 (Quarters 1-9).
 
 This is the authoritative economics for the quarterly play-through. The Laravel engine must
 reproduce fixtures/golden_quarters.csv within tolerance (rel 1e-6, abs 1e-4).
@@ -78,6 +78,14 @@ def load_opec_scenarios():
     return out
 
 
+def load_rebrand_markets():
+    out = {}
+    for r in _read("rebrand_markets.csv"):
+        out[r["key"]] = {"label": r["label"], "equity": r["equity"], "sites": float(r["sites"]),
+                         "keep": float(r["keep_uplift_per_fill"]), "halden": float(r["halden_benefit_per_fill"])}
+    return out
+
+
 def load_cohort_capital():
     return [{"behaviour": r["behaviour"], "min": float(r["score_min"]), "max": float(r["score_max"]),
              "rate": float(r["discount_rate"]), "envelope": float(r["capital_envelope"])} for r in _read("cohort_capital.csv")]
@@ -88,6 +96,7 @@ PROJECTS = load_projects()
 COHORT_CAPITAL = load_cohort_capital()
 CAPACITY_GAME = load_capacity_game()
 OPEC = load_opec_scenarios()
+REBRAND = load_rebrand_markets()
 CORDELL = load_clusters("cordell_clusters.csv")
 EUROPE = load_clusters("europe_countries.csv")
 D = C["days_per_quarter"]
@@ -112,6 +121,7 @@ class Decisions:
     responses: dict = field(default_factory=dict)  # Cordell cluster -> "ignore" | "match" the rival's street cut
     capacity_response: str = "hold"  # hold | match the rival's Gulf Coast expansion
     opec_case: str = "fails"       # fails | partial | full: the OPEC+ outcome Geneva plans for (sets crude bought ahead)
+    rebrand: dict = field(default_factory=dict)  # Cordell region -> "keep" | "rebrand" (put the Halden name on the stations)
 
 
 @dataclass
@@ -127,6 +137,7 @@ class State:
     held_down: dict = field(default_factory=dict)  # consecutive quarters each price held below base
     hedges: dict = field(default_factory=dict)     # hedges opened last quarter, settled this quarter
     projects: dict = field(default_factory=dict)   # committed project key -> quarters since commitment
+    rebranded: dict = field(default_factory=dict)  # rebranded region -> quarters since the rebrand
 
 
 def rig_productivity(k):
@@ -243,6 +254,18 @@ def opec_market(mkt, outcome, br_share=0.5):
 
 def expected_wti(wti_pre):
     return wti_pre + sum(s["p"] * s["dwti"] for s in OPEC.values())
+
+
+def rebrand_cost(key):
+    """Putting the Halden name on one region's stations: the total programme cost, charged per site."""
+    return C["rebrand_total_cost"] / sum(m["sites"] for m in REBRAND.values()) * REBRAND[key]["sites"]
+
+
+def rebrand_gain_per_year(key, nonfuel_per_gal):
+    """What a rebranded region earns a year: the Halden name's pull less the Cordell name's, per fill, times fills,
+    scaled by the shop margin the class is living with (a price war shrinks what a better name is worth)."""
+    m = REBRAND[key]
+    return (m["halden"] - m["keep"]) * m["sites"] * C["rebrand_fills_per_site_year"] / 1e6 * nonfuel_per_gal / C["window3_base_nonfuel"]
 
 
 def inventory_days(case):
@@ -415,9 +438,22 @@ def step(state: State, dec: Decisions, mkt: dict):
                 gal -= lost
         cord_fuel += gal * (C["cordell_fuel_margin"] + delta - cut_given)
         cord_nonfuel += gal * nonfuel_per_gal * C["cordell_nonfuel_halden_share"]
+    # Regions rebranded in an earlier quarter earn the Halden name's pull from the quarter after the work.
+    rebrand_age = {}
+    rebrand_gain = 0.0
+    for key, age in state.rebranded.items():
+        rebrand_age[key] = age + 1
+        rebrand_gain += rebrand_gain_per_year(key, nonfuel_per_gal) / 4
+    rebrand_outlay = 0.0
+    for key, choice in dec.rebrand.items():
+        if choice == "rebrand" and key not in state.rebranded:
+            rebrand_age[key] = 0
+            rebrand_outlay += rebrand_cost(key)
+    cord_nonfuel += rebrand_gain * 1e6
     lines["cordell_fuel"] = cord_fuel / 1e6
     lines["cordell_shop"] = cord_nonfuel / 1e6
     lines["cordell_price_match"] = -match_cost / 1e6   # already inside cordell_fuel; shown on its own
+    lines["rebrand_gain"] = rebrand_gain                # already inside cordell_shop; shown on its own
 
     eu_factor = state.europe_volume_factor * (1 - C["europe_volume_decline_qtr"])
     eu_gal_total = C["europe_sites"] * C["europe_gal_per_site_qtr"] * eu_factor * crude_vf
@@ -454,7 +490,8 @@ def step(state: State, dec: Decisions, mkt: dict):
     # ---------------- Money ----------------
     da = state.capital_employed * C["da_rate_annual"] / 4
     tax = C["tax_rate"] * max(0.0, ebitda - da)
-    capex = C["other_sustaining_capex"] + dec.rigs * C["rig_capex_per_qtr"] + commit_outlay
+    new_capital = commit_outlay + rebrand_outlay   # the rebrand is capital spending, treated like a project (decision S2)
+    capex = C["other_sustaining_capex"] + dec.rigs * C["rig_capex_per_qtr"] + new_capital
     fcf = ebitda - tax - capex
     new_ce = state.capital_employed + capex - da
     new_nd = state.net_debt - fcf + C["shareholder_payout"]
@@ -476,7 +513,7 @@ def step(state: State, dec: Decisions, mkt: dict):
         "roace_pct": 100 * 4 * (ebitda - da) * (1 - C["tax_rate"]) / state.capital_employed,
         # Before growth projects (decision S2, Vikram 9 Oct 2026): sustaining cash generation, so a sound project
         # isn't punished in the score in the quarter its money goes out. Net debt still carries it.
-        "free_cash_flow": fcf + commit_outlay,
+        "free_cash_flow": fcf + new_capital,
         "refining_vs_industry": (refining_ex_internal * 1e6 / refined_bbl - bench_margin) if refined_bbl > 0 else -bench_margin,
         "shop_profit_per_station_k": cord_nonfuel / C["cordell_sites"] / 1e3,
         "debt_to_earnings": new_nd / (4 * ebitda) if ebitda > 0 else 99.0,
@@ -505,14 +542,15 @@ def step(state: State, dec: Decisions, mkt: dict):
     new_state = State(permian_prod=next_prod, prev_rigs=dec.rigs, rot_status=rot_status,
                       capital_employed=new_ce, net_debt=new_nd, asset_health=health,
                       europe_volume_factor=eu_factor, held_up=held_up, held_down=held_down,
-                      hedges=new_hedges, projects=proj_age)
+                      hedges=new_hedges, projects=proj_age, rebranded=rebrand_age)
     money = {"ebitda": ebitda, "da": da, "tax": tax, "capex": capex, "fcf": fcf,
              "capital_employed_end": new_ce, "net_debt_end": new_nd}
     ops = {"tp": tp, "market_tp": market_tp, "cost_tp": cost_tp, "permian_prod": prod,
            "br_throughput": br_tp_bbl, "rot_throughput": rot_tp, "sg_accepted": sg_run, "rot_status": rot_status,
            "fx_effect": fx_effect, "project_outlay": commit_outlay, "nwe": mkt["nwe"],
            "rival_match_cost": match_cost / 1e6, "rival_ignore_cost": ignore_cost / 1e6,
-           "wti_shock": shock, "gc": mkt["gc"], "wti": wti}
+           "wti_shock": shock, "gc": mkt["gc"], "wti": wti, "rebrand_outlay": rebrand_outlay,
+           "nonfuel_per_gal": nonfuel_per_gal}
     return lines, seg, money, kpi, ops, notes, new_state
 
 

@@ -35,6 +35,23 @@ class ContentPackTest extends TestCase
         $this->assertStringContainsString('bought nothing ahead', implode(' ', $story['paragraphs']));
     }
 
+    public function test_quarter_nine_story_is_picked_by_the_rebrand_and_names_the_price_war(): void
+    {
+        $results = ['ops.rebrand_outlay' => 193.72, 'line.cordell_shop' => 165.0, 'ops.nonfuel_per_gal' => 0.38, 'money.ebitda' => 4000.0];
+        $d = ['rigs' => 14, 'rebrand_core' => 'keep', 'rebrand_gulf' => 'rebrand', 'rebrand_edge' => 'rebrand'];
+        $story = $this->pack()->story(9, $results, $d, [], ['{rebranded_regions}' => 'Gulf Coast beyond the core and Southeast edge']);
+        $this->assertSame('partial', $story['band']);
+        $text = implode(' ', $story['paragraphs']);
+        $this->assertStringContainsString('Halden name on Gulf Coast beyond the core and Southeast edge', $text);
+        $this->assertStringContainsString('cost of $194M', $text);
+        $this->assertStringContainsString('shop margin is 38 cents a gallon this year instead of 42 cents', $text);
+        $this->assertStringNotContainsString('{', $text);
+        $this->assertSame('none', $this->pack()->story(9, $results, ['rigs' => 14], [])['band']);
+        $calm = $this->pack()->story(9, ['ops.nonfuel_per_gal' => 0.45] + $results, ['rebrand_core' => 'rebrand'] + $d, [], ['{rebranded_regions}' => 'all three']);
+        $this->assertSame('full', $calm['band']);
+        $this->assertStringContainsString('better than the usual 42 cents', implode(' ', $calm['paragraphs']));
+    }
+
     public function test_quarter_seven_story_is_picked_by_how_many_markets_were_matched(): void
     {
         $results = ['ops.rival_match_cost' => 46.1, 'ops.rival_ignore_cost' => 0.07, 'money.ebitda' => 3862.0];

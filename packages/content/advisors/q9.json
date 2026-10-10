@@ -1,0 +1,45 @@
+{
+  "_about": "Quarter 9 (Q1 2029). The Cordell rebrand, region by region. Window 3 has landed: the shop margin this year depends on the class's answer to Pelican. Advisors know what each name is worth per fill, the cost per site and the fills per site; none of them says where to paint. Draft for Vikram's review.",
+  "marchetti": {
+    "facts": "Oil is $79 and the Gulf Coast margin $20.80. The shop margin this year is shown on the Prices page and in the notes on The big question; the usual figure is 42 cents a gallon. A rebrand costs about $79,000 a station and is permanent.",
+    "stance": "A brand is an asset that only shows up in one line of the accounts. Value it like one.",
+    "signal": "Steer them to work out what each name earns per fill in each region, then multiply by fills, then compare with the cost, and to notice that this year's shop margin scales the whole sum.",
+    "misdirection": "She'd wait a year to see whether the shop margin recovers before painting anything, which pushes every payback out a year for nothing."
+  },
+  "roy": {
+    "facts": "In Louisiana and Mississippi the Cordell name adds about 5.5 cents a fill in the shop and Halden's would add about 1 cent. On the Gulf Coast beyond the core, Cordell adds 1.5 cents and Halden would add 4.5. On the Southeast edge, Cordell costs about half a cent and Halden would add 7.5. A station does about 180,000 fills a year. There are 1,850 stations in the heartland, 1,400 on the wider Gulf Coast and 1,050 on the Southeast edge.",
+    "stance": "One name, one company. She wants Halden on every sign and she's tired of explaining Cordell to people in Atlanta.",
+    "signal": "",
+    "misdirection": "She'll argue for painting the heartland too, for consistency, where her own numbers say the Cordell name is worth more than Halden's."
+  },
+  "aasen": {
+    "facts": "Repainting a region takes a quarter. Stations stay open while it's done. Nothing about fuel supply or the refineries changes with the name on the sign.",
+    "stance": "He doesn't much care what the sign says, and he says so.",
+    "signal": "",
+    "misdirection": "He'll suggest doing all three regions at once because the contractors give a volume discount, which the numbers don't allow for."
+  },
+  "ruiz": {
+    "facts": "The full programme costs $340 million for 4,300 stations, about $79,000 each, paid as capital in the quarter the work starts. It's charged per station, so a region costs its share. The free cash flow score is measured before the cost, like any big project. Grant wants any region's rebrand to pay back inside ten years at this year's shop margin.",
+    "stance": "Grant will fund a region that pays back and refuse one that doesn't, and he won't fund a programme to make the signs match.",
+    "signal": "Prompt them to compute payback by region, at this year's shop margin, not the usual one.",
+    "misdirection": "She'd fund only the single fastest-payback region and stop there, even where a second region also clears Grant's bar."
+  },
+  "osei": {
+    "facts": "Cordell has been the name on Gulf Coast stations since 1962. Halden's European stations have carried the Halden name since the merger. No regulator has a view on either.",
+    "stance": "A name that's been on a corner for sixty years is a relationship, not a sign.",
+    "signal": "",
+    "misdirection": "He'd keep Cordell everywhere out of respect for the history, including on the Southeast edge where it's a drag."
+  },
+  "lund": {
+    "facts": "The board's one-company mandate came with a question nobody answered: does one company need one name?",
+    "stance": "The sentence the team wrote down should be able to answer this one.",
+    "signal": "Ask them whether their sentence says anything about what the company is called, and whether a name is strategy or paint.",
+    "misdirection": "She leans toward one name for the board's sake, whatever the heartland numbers say."
+  },
+  "priya": {
+    "facts": "Danielle Roy wants every station repainted. Marcus Delacroix wants none, and he's from Baton Rouge. Grant Whitaker will sign off region by region.",
+    "stance": "Predictions: if the team repaints the heartland, Marcus will take it personally and go quiet for a quarter. If it repaints only the edge, Danielle will say the job is half done and keep asking. If it repaints nothing, Danielle will bring the proposal back next year with new numbers.",
+    "signal": "",
+    "misdirection": "She thinks Grant will approve the whole programme if the team asks confidently. He'll ask for the payback by region, every time."
+  }
+}
