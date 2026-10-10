@@ -230,6 +230,19 @@ class EconomicRulesTest extends TestCase
         $this->assertEqualsWithDelta(-150.0, $broken->lines['turnaround_outage'], 1e-9);
     }
 
+    public function test_selling_singapore_dollars_forward_pays_when_the_us_dollar_strengthens(): void
+    {
+        $m5 = $this->data->quarter('2028Q1');
+        $m6 = $this->data->quarter('2028Q2');
+        $set = $this->model->step(clone $this->start, new Decisions(sgdHedge: 400.0), $m5 + ['existing_eur_hedge' => false]);
+        $up = $this->model->step(clone $set->state, new Decisions, ['usdsgd' => $m5['usdsgd'] * 1.02] + $m6)->lines['hedges'];
+        $down = $this->model->step(clone $set->state, new Decisions, ['usdsgd' => $m5['usdsgd'] * 0.98] + $m6)->lines['hedges'];
+        $this->assertEqualsWithDelta(400 * (1 - 1 / 1.02), $up, 1e-9);
+        $this->assertEqualsWithDelta(400 * (1 - 1 / 0.98), $down, 1e-9);
+        $this->assertGreaterThan(0, $up);
+        $this->assertLessThan(0, $down);
+    }
+
     public function test_tiny_differences_do_not_swing_the_score(): void
     {
         $base = ['profit_per_barrel' => 37.0, 'roace_pct' => 12.0, 'free_cash_flow' => 1800.0, 'refining_vs_industry' => 0.6,

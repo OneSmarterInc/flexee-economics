@@ -251,6 +251,7 @@ final class DecisionBook
             crudeHedgePct: (float) ($d['crude_hedge'] ?? 0),
             eurHedge: (float) ($d['eur_hedge'] ?? 0),
             nokHedge: (float) ($d['nok_hedge'] ?? 0),
+            sgdHedge: (float) ($d['sgd_hedge'] ?? 0),
             projects: array_map(fn (string $k): string => (string) ($d["proj_$k"] ?? 'hold'), array_combine(array_keys($this->data->projects), array_keys($this->data->projects))),
             responses: $responses,
             capacityResponse: (string) ($d['capacity_response'] ?? 'hold'),

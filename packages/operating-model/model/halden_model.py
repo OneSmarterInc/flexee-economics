@@ -172,6 +172,7 @@ class Decisions:
     crude_hedge_pct: float = 0.0   # percent of next quarter's crude output sold forward at this quarter's price
     eur_hedge: float = 0.0         # USD m of euros sold forward for next quarter
     nok_hedge: float = 0.0         # USD m of kroner bought forward for next quarter
+    sgd_hedge: float = 0.0         # USD m of Singapore dollars sold forward for next quarter
     projects: dict = field(default_factory=dict)  # project key -> "commit" | "hold"
     responses: dict = field(default_factory=dict)  # Cordell cluster -> "ignore" | "match" the rival's street cut
     capacity_response: str = "hold"  # hold | match the rival's Gulf Coast expansion
@@ -760,6 +761,9 @@ def step(state: State, dec: Decisions, mkt: dict):
             settle += h["eur"] * (h["eur_rate"] - mkt["eurusd"]) / h["eur_rate"]
         if h.get("nok", 0.0):
             settle += h["nok"] * (h["nok_rate"] / mkt["usdnok"] - 1)
+        if h.get("sgd", 0.0):
+            # Singapore earns in Singapore dollars: selling them forward pays when the US dollar strengthens.
+            settle += h["sgd"] * (1 - h["sgd_rate"] / mkt["usdsgd"])
     if mkt.get("existing_eur_hedge", False):
         r0 = C["existing_eur_hedge_rate"]
         settle += C["existing_eur_hedge_notional"] * (r0 - mkt["eurusd"]) / r0
@@ -820,6 +824,8 @@ def step(state: State, dec: Decisions, mkt: dict):
         new_hedges["eur"], new_hedges["eur_rate"] = float(dec.eur_hedge), mkt["eurusd"]
     if dec.nok_hedge > 0:
         new_hedges["nok"], new_hedges["nok_rate"] = float(dec.nok_hedge), mkt["usdnok"]
+    if dec.sgd_hedge > 0:
+        new_hedges["sgd"], new_hedges["sgd_rate"] = float(dec.sgd_hedge), mkt["usdsgd"]
     fx_effect = 0.0
     if fx:
         fx_effect = (lines["rotterdam"] * (1 - 1 / eur_f) + lines["europe_stations"] * (1 - 1 / eur_f)

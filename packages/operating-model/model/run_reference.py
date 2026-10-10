@@ -208,7 +208,7 @@ def main():
                   "rot_run": d.rot_run, "rot_posture": d.rot_posture, "sg_request": d.sg_request,
                   "tp_method": d.tp_method, "tp_value": "" if d.tp_value is None else d.tp_value,
                   "advisor_answers": d.advisor_answers, "crude_hedge_pct": d.crude_hedge_pct, "eur_hedge": d.eur_hedge,
-                  "nok_hedge": d.nok_hedge, **{f"proj_{k}": d.projects.get(k, "hold") for k in hm.PROJECTS},
+                  "nok_hedge": d.nok_hedge, "sgd_hedge": d.sgd_hedge, **{f"proj_{k}": d.projects.get(k, "hold") for k in hm.PROJECTS},
                   **{f"resp_{c['key']}": d.responses.get(c["key"], "ignore") for c in hm.CORDELL}, "capacity_response": d.capacity_response,
                   "opec_case": d.opec_case, **{f"rebrand_{k}": d.rebrand.get(k, "keep") for k in hm.REBRAND},
                   "delacroix_cover": int(d.delacroix_cover), "straits_strained": int(d.straits_strained),

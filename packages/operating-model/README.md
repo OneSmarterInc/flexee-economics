@@ -27,7 +27,7 @@
    - Capital spending is $565M plus $40M per rig.
    - Free cash flow is EBITDA − tax − capital spending.
    - Net debt moves by −FCF + $1,750M paid to shareholders.
-7. **From Quarter 5 (2028 on): currency.** Norway's lifting cost moves with the krone, Rotterdam and the European stations with the euro, Singapore with its dollar, each against fixed reference rates (1.085, 10.20, 1.34). A hedge set this quarter settles next quarter: crude at this quarter's WTI, euros and kroner at today's rates. A $300M euro forward sold at 1.085 before the shock settles in Q1 2028.
+7. **From Quarter 5 (2028 on): currency.** Norway's lifting cost moves with the krone, Rotterdam and the European stations with the euro, Singapore with its dollar, each against fixed reference rates (1.085, 10.20, 1.34). A hedge set this quarter settles next quarter: crude at this quarter's WTI, euros, kroner and Singapore dollars at today's rates (the Singapore leg pays when the US dollar strengthens). A $300M euro forward sold at 1.085 before the shock settles in Q1 2028.
 8. **From Quarter 6: big projects.** Going ahead costs the full outlay now (capital spending, in net debt) and pays a quarter of each year's forecast cash flow from the next quarter, cut to 88% (refining) or 61% (new business). The Rotterdam upgrade stops paying if Rotterdam is closed. The score's free cash flow adds the outlay back (decision S2).
 9. **From Quarter 7: the rival's moves.** A rival cuts street prices 6c a gallon in every Cordell market. Where a team holds its price, drivers drift to the rival by the cluster's elasticity × 6c ÷ $3.20 (a fraction of a percent). Where it matches, Cordell gives up 6c on every gallon there. The rival also announces a Gulf Coast expansion; once it builds (Q4 2028 on), holding costs Halden $40M a year and matching $140M, under Refineries (`data/capacity_game.csv`).
 10. **From Quarter 8: OPEC+.** The quarter opens at pre-decision prices (WTI $74, Gulf Coast margin $21.50). At the close the outcome is drawn (holds in full +$14, 35%; partly holds +$7, 40%; falls apart −$4, 25%) and WTI moves by it; the Gulf Coast margin compresses 35 cents a dollar; station volumes move by −0.05 × 0.60 × the pump change. Geneva buys crude for Baton Rouge ahead of the decision according to the case the team plans for (30, 15 or 0 days), gaining or losing the move and paying 8.5% a year on the money tied up.
@@ -81,7 +81,7 @@ These are the numbers the quarterly loop needed that the weekly design never fix
 | `data/` | Prices by quarter (with the rival's moves), constants, Cordell clusters, European countries, projects, capital terms by class behaviour, the capacity game, decisions and their on-screen labels |
 | `model/halden_model.py` | The reference model |
 | `model/run_reference.py` | Runs the three reference teams and writes the fixtures |
-| `model/validate.py` | 89 checks; writes `VALIDATION.md` |
+| `model/validate.py` | 90 checks; writes `VALIDATION.md` |
 | `fixtures/golden_quarters.csv` | Every line, segment, money figure, measure, score and rank, by team and quarter |
 | `fixtures/reference_decisions.csv`, `state_after_quarter.csv`, `calibration.json`, `class_effects.json` | Inputs, carried state and class effects for the engine tests |
 | `halden-operating-model-summary.xlsx` | The same results laid out for reading |
@@ -91,4 +91,4 @@ These are the numbers the quarterly loop needed that the weekly design never fix
 
 ## Next
 
-The model is complete through Quarter 14. The 7-week variant (two quarters per round) and project delay/cancel are the open items.
+The model is complete through Quarter 14. Project delay/cancel is the open item (the 7-week variant is built in the app, running the same quarters two a week).

@@ -29,6 +29,7 @@ final class Decisions
         public float $crudeHedgePct = 0.0,      // percent of next quarter's crude sold forward at this quarter's price
         public float $eurHedge = 0.0,           // USD m of euros sold forward for next quarter
         public float $nokHedge = 0.0,           // USD m of kroner bought forward for next quarter
+        public float $sgdHedge = 0.0,           // USD m of Singapore dollars sold forward for next quarter
         public array $projects = [],
         public array $responses = [],
         public string $capacityResponse = 'hold',  // hold | match the rival's Gulf Coast expansion
@@ -67,6 +68,7 @@ final class Decisions
             crudeHedgePct: (float) ($row['crude_hedge_pct'] ?? 0),
             eurHedge: (float) ($row['eur_hedge'] ?? 0),
             nokHedge: (float) ($row['nok_hedge'] ?? 0),
+            sgdHedge: (float) ($row['sgd_hedge'] ?? 0),
             projects: array_filter(array_map(fn (string $k): string => (string) ($row["proj_$k"] ?? 'hold'), array_combine(array_keys($data->projects), array_keys($data->projects)))),
             responses: self::responsesFromRow($row, $data),
             capacityResponse: (string) ($row['capacity_response'] ?? 'hold'),

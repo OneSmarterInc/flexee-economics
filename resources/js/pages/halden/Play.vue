@@ -391,7 +391,7 @@ function rivalMeans(): string {
         .replace('{markets}', n === 1 ? 'market' : 'markets')
         .replace('{cost}', fmt(matchCost.value, 1));
 }
-const hedgeKeys = ['crude_hedge', 'eur_hedge', 'nok_hedge'];
+const hedgeKeys = ['crude_hedge', 'eur_hedge', 'nok_hedge', 'sgd_hedge'];
 
 function portfolioMeans(): string {
     const pf = props.desk.portfolio;
@@ -2443,7 +2443,14 @@ function quarterHref(id: number): string {
                                                 draft.nok_hedge,
                                             )
                                         }}
-                                        of kroner bought.</template
+                                        of kroner bought,
+                                        {{
+                                            hedgeText(
+                                                'sgd_hedge',
+                                                draft.sgd_hedge,
+                                            )
+                                        }}
+                                        of Singapore dollars sold.</template
                                     >
                                 </div>
                             </div>

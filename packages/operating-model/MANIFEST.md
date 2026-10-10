@@ -3,7 +3,7 @@
 | File | SHA-256 |
 | --- | --- |
 | `README.md` | `af02447b7b7e2e5f6d6f89112c99d00ad1f0ed6089fc4fef017723c2da54d121` |
-| `VALIDATION.md` | `7ac4f0e06a2e6f18639e54d905b4c395f2a21e429d427a66b8e7db3ba8d30800` |
+| `VALIDATION.md` | `b08ef94373c3314900ee8a08e587bafbb57f1d3e4fdcf01cb4f2c2d8d5affd89` |
 | `data/capacity_game.csv` | `848be90ae2e3d8f822048fcc6c09fb09f53319f6049835cf85e41c5b8653f59e` |
 | `data/cohort_capital.csv` | `6887791c79683e63a3a0380bcf78485747bf98ae1abfb6e0dd3ef122ba61ba87` |
 | `data/constants.csv` | `4e6e0ad0adf2f9e48470a3ef5ba216eb637f6a02901d0410e3ad4b88b781141d` |
@@ -12,7 +12,7 @@
 | `data/kessana_comparables.csv` | `1d7eb5b12e72bae5953f0fbfaf79edb6454c71a9f7865d825d357d0c9dfd15db` |
 | `data/kessana_takes.csv` | `c87b9b7dc35b080bc92c1bd6eedba70a50ee9a8160ce00219ea88fdb868b27d6` |
 | `data/labor_markets.csv` | `5f7dd323dcbeb656cefed5edc404dacc568bd6df494fa1629dcb76c20f249f90` |
-| `data/levers.csv` | `4af3a96320d5dde42100fd8485d5524a66c238fc66b9986f7426c93e5917b138` |
+| `data/levers.csv` | `401cbffd91064bb394f913b7ead80f0ed8df2b0716c38cd0b117210bdf8cc11b` |
 | `data/market_path.csv` | `e3b505e9847d02730e2f41396ac341bca7d629908b6592a1dd8133cda1ef0427` |
 | `data/opec_scenarios.csv` | `dcac92fabf6c4c9dd49f4de0dd996ff6cddca25793c8a79807768a6b4a121016` |
 | `data/portfolio_buckets.csv` | `2b2f71424ae3bffb48fd821e65f5a0ae36c04f3f01486f0ec87774931a42828b` |
@@ -25,9 +25,9 @@
 | `fixtures/calibration.json` | `424fe598cba06049e4d85a1469728d650c7e2d966d78c0a2511ec5e395a681ff` |
 | `fixtures/class_effects.json` | `6c71179118ac739b3c6420b5be0042b54d51e05ceb59e4ab9c40343cafe33154` |
 | `fixtures/golden_quarters.csv` | `f32de9e9126eed08080cbce2668efc99203ec11bbcdd4d7c4003788c8b005262` |
-| `fixtures/reference_decisions.csv` | `187fa6fdbe23c5b3ff5d8ad6601f54740ea6c62be08c2bc2c1706a57bfa6dc8b` |
+| `fixtures/reference_decisions.csv` | `131aafc4d640e607e91f519ba18f4c588214aeda51f468b3cd2c23873eaca739` |
 | `fixtures/state_after_quarter.csv` | `21ca17225ac15a5c7ed673d42def043e09496949a48d41a6a03d7ba7311ee6bd` |
-| `model/halden_model.py` | `b76a9d6ba5632fc3adf148fdfb8393a667b6e4e8734b5af47f570c761d800801` |
-| `model/run_reference.py` | `c8efcd3be02343e22724762948961e7d2802337eb0edd381baa20256d0cf14ad` |
-| `model/validate.py` | `31b0e5156f20e0d981ccdcac85a3e6fd4a72f3813dc5bd0b50baaab2c6113786` |
+| `model/halden_model.py` | `5051e03f155ca6f5ba18a76823a245f1713ff0d864776965a2590554ddd1e081` |
+| `model/run_reference.py` | `09aee42636bd46a62aeebde74e8ebd3dc7de80f989076764371d3884955e7062` |
+| `model/validate.py` | `2b90b1f5e5755d2d27a09ba3ba95d1780a59e837969de4ce6feca9241368109c` |
 | `model/write_manifest.py` | `70d76776022d1b8e10ed56ecca4ac12cadb6279e708a22d6309c875eb4ea3a9b` |

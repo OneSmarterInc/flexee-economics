@@ -791,6 +791,10 @@ final class OperatingModel
             if (($h['nok'] ?? 0.0) != 0.0) {
                 $settle += $h['nok'] * ($h['nok_rate'] / $mkt['usdnok'] - 1);
             }
+            if (($h['sgd'] ?? 0.0) != 0.0) {
+                // Singapore earns in Singapore dollars: selling them forward pays when the US dollar strengthens.
+                $settle += $h['sgd'] * (1 - $h['sgd_rate'] / $mkt['usdsgd']);
+            }
         }
         if ((bool) ($mkt['existing_eur_hedge'] ?? false)) {
             $r0 = $c('existing_eur_hedge_rate');
@@ -859,6 +863,10 @@ final class OperatingModel
         if ($dec->nokHedge > 0) {
             $newHedges['nok'] = $dec->nokHedge;
             $newHedges['nok_rate'] = $mkt['usdnok'];
+        }
+        if ($dec->sgdHedge > 0) {
+            $newHedges['sgd'] = $dec->sgdHedge;
+            $newHedges['sgd_rate'] = $mkt['usdsgd'];
         }
         $fxEffect = 0.0;
         if ($fx) {

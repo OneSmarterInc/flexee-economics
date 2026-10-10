@@ -142,6 +142,11 @@ check("A crude hedge gains when oil falls and loses when it rises (euro and kron
       f"oil -$5: {falls:.1f}; oil +$5: {rises:.1f}")
 eur_leg = 600 * (m5["eurusd"] - m6["eurusd"]) / m5["eurusd"]
 check("Selling $600M of euros at 1.015 loses when the euro recovers to 1.031", eur_leg < 0, f"${eur_leg:.2f}M")
+s5 = hm.step(copy.deepcopy(start), hm.Decisions(sgd_hedge=400), dict(m5, existing_eur_hedge=False))[-1]
+sgd_up = hm.step(copy.deepcopy(s5), hm.Decisions(), dict(m6, usdsgd=m5["usdsgd"] * 1.02))[0]["hedges"]
+sgd_down = hm.step(copy.deepcopy(s5), hm.Decisions(), dict(m6, usdsgd=m5["usdsgd"] * 0.98))[0]["hedges"]
+check("Selling $400M of Singapore dollars forward pays when the US dollar strengthens 2% and costs when it weakens 2%",
+      abs(sgd_up - 400 * (1 - 1 / 1.02)) < 1e-9 and abs(sgd_down - 400 * (1 - 1 / 0.98)) < 1e-9, f"+2%: ${sgd_up:.2f}M; -2%: ${sgd_down:.2f}M")
 
 # 13 Window 1: the class's Q3 2027 European run rates set the Q1 2028 European margin
 check("Window 1: at a 75% average the margin stays $4.60; at 90% it falls to $3.25; it never goes below $2.60",
