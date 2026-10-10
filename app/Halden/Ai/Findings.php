@@ -83,6 +83,14 @@ final class Findings
             $lines[] = 'Pelican\'s announced Gulf Coast unit: '.(($d['capacity_response'] ?? 'hold') === 'match' ? 'Halden is building a unit of its own' : 'Halden is not building');
         }
 
+        if ($q->number >= 8 && isset($d['opec_case'])) {
+            $lines[] = 'What Geneva planned for at OPEC+: '.match ((string) $d['opec_case']) {
+                'full' => 'the cut holding (30 days of crude bought ahead)',
+                'partial' => 'a partial cut (15 days bought ahead)',
+                default => 'the cut failing (nothing bought ahead)',
+            };
+        }
+
         return $lines;
     }
 
@@ -150,6 +158,11 @@ final class Findings
         if ($q->number >= 7 && (((float) ($r['ops.rival_match_cost'] ?? 0)) > 0 || ((float) ($r['ops.rival_ignore_cost'] ?? 0)) > 0)) {
             $out[] = sprintf('Pelican\'s price cut: matching gave up %s of fuel margin this quarter; in the markets where the team held its price, drivers drifting to Pelican cost about %s. Matching costs six cents on every gallon; holding costs a fraction of a percent of volume.',
                 $this->money((float) ($r['ops.rival_match_cost'] ?? 0)), $this->money((float) ($r['ops.rival_ignore_cost'] ?? 0)));
+        }
+        if (abs((float) ($r['ops.wti_shock'] ?? 0)) > 0.05) {
+            $out[] = sprintf('OPEC+: oil moved $%s to $%s. Crude bought ahead made %s, less %s of interest. Baton Rouge\'s margin ended at $%s a barrel.',
+                number_format((float) $r['ops.wti_shock'], 2), number_format((float) $r['ops.wti'], 2), $this->money((float) ($r['line.crude_bought_ahead'] ?? 0)),
+                $this->money(abs((float) ($r['line.inventory_carry'] ?? 0))), number_format((float) ($r['ops.gc'] ?? 0), 2));
         }
         if (abs((float) ($r['line.capacity_game'] ?? 0)) > 0.05) {
             $out[] = sprintf('Pelican built its Gulf Coast unit. Halden\'s answer (%s) is costing %s a quarter under Refineries.',

@@ -1,0 +1,6 @@
+parameter,value,note
+days_if_planning_for_the_cut_to_hold,30.0,
+days_if_planning_for_a_partial_cut,15.0,
+days_if_planning_for_the_cut_to_fail,0.0,
+baton_rouge_barrels_per_day_at_96pct,499200.0,what Baton Rouge takes each day at its usual run rate
+interest_on_money_tied_up_per_year,0.085,charged for one quarter on the crude bought ahead

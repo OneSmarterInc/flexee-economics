@@ -1,4 +1,4 @@
-"""Halden Energy quarterly operating model, reference implementation v0.3 (Quarters 1-7).
+"""Halden Energy quarterly operating model, reference implementation v0.4 (Quarters 1-8).
 
 This is the authoritative economics for the quarterly play-through. The Laravel engine must
 reproduce fixtures/golden_quarters.csv within tolerance (rel 1e-6, abs 1e-4).
@@ -43,6 +43,7 @@ def load_market():
             "usdsgd": float(r["usdsgd"]), "fx_live": r["fx_live"] == "1",
             "existing_eur_hedge": r["existing_eur_hedge"] == "1",
             "rival_cut": float(r.get("rival_cut") or 0.0), "rival_builds": r.get("rival_builds") == "1",
+            "opec": r.get("opec") == "1",
         })
     return rows
 
@@ -70,6 +71,13 @@ def load_capacity_game():
     return out
 
 
+def load_opec_scenarios():
+    out = {}
+    for r in _read("opec_scenarios.csv"):
+        out[r["key"]] = {"label": r["label"], "p": float(r["probability"]), "dwti": float(r["delta_wti"])}
+    return out
+
+
 def load_cohort_capital():
     return [{"behaviour": r["behaviour"], "min": float(r["score_min"]), "max": float(r["score_max"]),
              "rate": float(r["discount_rate"]), "envelope": float(r["capital_envelope"])} for r in _read("cohort_capital.csv")]
@@ -79,6 +87,7 @@ C = load_constants()
 PROJECTS = load_projects()
 COHORT_CAPITAL = load_cohort_capital()
 CAPACITY_GAME = load_capacity_game()
+OPEC = load_opec_scenarios()
 CORDELL = load_clusters("cordell_clusters.csv")
 EUROPE = load_clusters("europe_countries.csv")
 D = C["days_per_quarter"]
@@ -102,6 +111,7 @@ class Decisions:
     projects: dict = field(default_factory=dict)  # project key -> "commit" | "hold"
     responses: dict = field(default_factory=dict)  # Cordell cluster -> "ignore" | "match" the rival's street cut
     capacity_response: str = "hold"  # hold | match the rival's Gulf Coast expansion
+    opec_case: str = "fails"       # fails | partial | full: the OPEC+ outcome Geneva plans for (sets crude bought ahead)
 
 
 @dataclass
@@ -210,11 +220,41 @@ def capacity_payoff(action, rival_builds):
     return CAPACITY_GAME[(action, "builds")] / 4
 
 
+def window2_shift(br_share):
+    """Window 2: the share of the class that went ahead with the Baton Rouge upgrade in Q2 2028 moves the
+    Q4 2028 Gulf Coast margin. Overbuilding costs twice what restraint earns."""
+    pivot = C["window2_pivot"]
+    if br_share > pivot:
+        return -C["window2_slope_above"] * (br_share - pivot)
+    return C["window2_slope_below"] * (pivot - br_share)
+
+
+def opec_market(mkt, outcome, br_share=0.5):
+    """The Q4 2028 prices once OPEC+ has decided: WTI moves by the outcome, the Gulf Coast margin compresses
+    35 cents a dollar and carries the Window 2 shift. Returns a new market row with the shock recorded."""
+    d = OPEC[outcome]["dwti"]
+    m = dict(mkt)
+    m["wti"] = mkt["wti"] + d
+    m["gc"] = mkt["gc"] + C["crack_per_wti"] * d + window2_shift(br_share)
+    m["wti_shock"] = d
+    m["opec_outcome"] = outcome
+    return m
+
+
+def expected_wti(wti_pre):
+    return wti_pre + sum(s["p"] * s["dwti"] for s in OPEC.values())
+
+
+def inventory_days(case):
+    return C[f"opec_inventory_days_{case}"]
+
+
 def step(state: State, dec: Decisions, mkt: dict):
     """Run one quarter. Returns (lines dict in USD m, kpi inputs, new state)."""
     lines = {}
     notes = {}
     wti = mkt["wti"]
+    shock = mkt.get("wti_shock", 0.0)   # how far an OPEC+ outcome moved WTI this quarter (0 otherwise)
     brent = wti + C["brent_spread"]
     fx = mkt.get("fx_live", False)
     eur_f = mkt["eurusd"] / C["fx_ref_eurusd"] if fx else 1.0      # euro earnings in dollars
@@ -316,7 +356,18 @@ def step(state: State, dec: Decisions, mkt: dict):
 
     # ---------------- Trading ----------------
     lines["geneva_desk"] = C["geneva_base_desk"]
-    trading = lines["geneva_desk"] + geneva
+    # Ahead of an OPEC+ decision, Geneva buys crude for Baton Rouge at the pre-decision price according to the
+    # case the team plans for. It gains if crude rises and loses if it falls, and the money tied up costs interest.
+    bought_ahead = 0.0
+    carry = 0.0
+    if mkt.get("opec", False):
+        days = inventory_days(dec.opec_case)
+        wti_pre = wti - shock
+        bought_ahead = days * br_tp_bbl * shock / 1e6
+        carry = -days * br_tp_bbl * wti_pre * C["opec_inventory_carry_annual"] / 4 / 1e6
+    lines["crude_bought_ahead"] = bought_ahead
+    lines["inventory_carry"] = carry
+    trading = lines["geneva_desk"] + geneva + bought_ahead + carry
 
     # ---------------- Gas stations ----------------
     held_up, held_down = dict(state.held_up), dict(state.held_down)
@@ -343,7 +394,9 @@ def step(state: State, dec: Decisions, mkt: dict):
 
     # A rival's street cut (from Q3 2028): in a market where the team holds its price, drivers drift to the
     # rival; where it matches, Cordell gives up the cut on every gallon and keeps the drivers.
-    cord_gal_total = C["cordell_sites"] * C["cordell_gal_per_site_qtr"]
+    # A crude shock reaches the pump at 60 cents on the dollar, and drivers barely react (-0.05).
+    crude_vf = 1 + C["retail_crude_elasticity"] * C["retail_crude_passthrough"] * (shock / C["gal_per_bbl"]) / C["pump_base"]
+    cord_gal_total = C["cordell_sites"] * C["cordell_gal_per_site_qtr"] * crude_vf
     nonfuel_per_gal = mkt.get("cordell_nonfuel") or C["cordell_nonfuel_per_gal"]
     rival_cut = mkt.get("rival_cut", 0.0)
     cord_fuel = cord_nonfuel = 0.0
@@ -367,7 +420,7 @@ def step(state: State, dec: Decisions, mkt: dict):
     lines["cordell_price_match"] = -match_cost / 1e6   # already inside cordell_fuel; shown on its own
 
     eu_factor = state.europe_volume_factor * (1 - C["europe_volume_decline_qtr"])
-    eu_gal_total = C["europe_sites"] * C["europe_gal_per_site_qtr"] * eu_factor
+    eu_gal_total = C["europe_sites"] * C["europe_gal_per_site_qtr"] * eu_factor * crude_vf
     eu = 0.0
     for c in EUROPE:
         vf, delta = volume_factor(c, dec.offsets[c["key"]])
@@ -458,7 +511,8 @@ def step(state: State, dec: Decisions, mkt: dict):
     ops = {"tp": tp, "market_tp": market_tp, "cost_tp": cost_tp, "permian_prod": prod,
            "br_throughput": br_tp_bbl, "rot_throughput": rot_tp, "sg_accepted": sg_run, "rot_status": rot_status,
            "fx_effect": fx_effect, "project_outlay": commit_outlay, "nwe": mkt["nwe"],
-           "rival_match_cost": match_cost / 1e6, "rival_ignore_cost": ignore_cost / 1e6}
+           "rival_match_cost": match_cost / 1e6, "rival_ignore_cost": ignore_cost / 1e6,
+           "wti_shock": shock, "gc": mkt["gc"], "wti": wti}
     return lines, seg, money, kpi, ops, notes, new_state
 
 

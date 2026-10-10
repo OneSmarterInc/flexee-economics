@@ -210,7 +210,41 @@ check("Window 3 reproduces the ledger: a price war 0.38, base 0.42, disciplined 
       and abs(hm.window3_nonfuel(1.0) - 0.37) < 1e-9 and abs(hm.window3_nonfuel(0.0) - 0.47) < 1e-9, "0.38 / 0.42 / 0.45; floor 0.357 at full aggression")
 check("A team that matches in two of four Cordell markets is half aggressive", hm.price_aggression(hm.Decisions(responses={"urban": "match", "rural": "match"})) == 0.5, "0.5")
 
-# 19 Reference teams: careful > average > careless in every quarter
+# 19 OPEC+ (Q4 2028, Week 8 package): three outcomes, one shock that helps the oil fields and hurts the refinery
+m8 = q("2028Q4")
+check("Expected WTI across the three OPEC+ outcomes is $80.70 from a $74 start", abs(hm.expected_wti(m8["wti"]) - 80.70) < 1e-9, f"{hm.expected_wti(m8['wti']):.2f}")
+outs = {k: hm.opec_market(m8, k, 0.5) for k in hm.OPEC}
+check("Outcomes: the cut holds WTI 88 / margin 16.60; partly holds 81 / 19.05; fails 70 / 22.90 (crack -0.35 a dollar, Window 2 at pivot)",
+      all(abs(outs["full"][k] - v) < 1e-9 for k, v in {"wti": 88.0, "gc": 16.60}.items())
+      and all(abs(outs["partial"][k] - v) < 1e-9 for k, v in {"wti": 81.0, "gc": 19.05}.items())
+      and all(abs(outs["fails"][k] - v) < 1e-9 for k, v in {"wti": 70.0, "gc": 22.90}.items()), "88/16.60, 81/19.05, 70/22.90")
+full = hm.step(copy.deepcopy(start), hm.Decisions(), outs["full"])
+fails = hm.step(copy.deepcopy(start), hm.Decisions(), outs["fails"])
+check("Integration conflict: when the cut holds, the oil fields earn more and Baton Rouge earns less than when it fails",
+      full[0]["permian"] > fails[0]["permian"] and full[0]["baton_rouge"] < fails[0]["baton_rouge"],
+      f"Permian {full[0]['permian']:.0f} vs {fails[0]['permian']:.0f}; Baton Rouge {full[0]['baton_rouge']:.0f} vs {fails[0]['baton_rouge']:.0f}")
+vf = 1 + hm.C["retail_crude_elasticity"] * hm.C["retail_crude_passthrough"] * (14 / hm.C["gal_per_bbl"]) / hm.C["pump_base"]
+check("Drivers barely react: a $14 crude rise moves station volume -0.31%", abs((vf - 1) * 100 + 0.3125) < 1e-6, f"{(vf - 1) * 100:.4f}%")
+
+# 20 Crude bought ahead: the planning case is a bet on the outcome, and the money tied up costs interest
+plan = lambda case, outcome: hm.step(copy.deepcopy(start), hm.Decisions(opec_case=case), outs[outcome])[0]
+br = hm.C["br_capacity"] * 0.96
+gain_full = 30 * br * 14 / 1e6
+carry = 30 * br * 74 * hm.C["opec_inventory_carry_annual"] / 4 / 1e6
+check("Planning for the cut to hold buys 30 days of Baton Rouge crude ahead: +$210M if it holds, -$60M if it fails, less $24M of interest either way",
+      abs(plan("full", "full")["crude_bought_ahead"] - gain_full) < 1e-6 and abs(plan("full", "fails")["crude_bought_ahead"] + 30 * br * 4 / 1e6) < 1e-6
+      and abs(plan("full", "full")["inventory_carry"] + carry) < 1e-6 and plan("fails", "full")["crude_bought_ahead"] == 0.0 and plan("fails", "full")["inventory_carry"] == 0.0,
+      f"+{gain_full:.1f} / {-30 * br * 4 / 1e6:.1f}; carry {carry:.1f}; planning for failure buys nothing")
+check("Outside the OPEC+ quarter the planning case changes nothing", abs(hm.step(copy.deepcopy(start), hm.Decisions(opec_case="full"), m7)[2]["ebitda"]
+      - hm.step(copy.deepcopy(start), hm.Decisions(), m7)[2]["ebitda"]) < 1e-9, "Q3 2028 EBITDA equal")
+
+# 21 Window 2: the share of the class that went ahead with the Baton Rouge upgrade moves the Gulf Coast margin
+check("Window 2: all building -$3.00; half 0; none +$1.50; overbuilding costs twice what restraint earns",
+      abs(hm.window2_shift(1.0) + 3.0) < 1e-9 and abs(hm.window2_shift(0.5)) < 1e-9 and abs(hm.window2_shift(0.0) - 1.5) < 1e-9, "-3.00 / 0 / +1.50")
+worst = hm.opec_market(m8, "full", 1.0)
+check("Worst case (the cut holds and everyone built): Gulf Coast margin $13.60", abs(worst["gc"] - 13.60) < 1e-9, f"{worst['gc']:.2f}")
+
+# 22 Reference teams: careful > average > careless in every quarter
 summary = rr.main()
 ok = True
 detail = []
@@ -218,16 +252,16 @@ for i in range(len(summary["careful"])):
     c, a, l = (summary[t][i][2] for t in ("careful", "average", "careless"))
     ok &= c > a > l
     detail.append(f"Q{i+1}: {c:.1f} / {a:.1f} / {l:.1f}")
-check("Score order careful > average > careless in all seven quarters", ok, "; ".join(detail))
+check("Score order careful > average > careless in all eight quarters", ok, "; ".join(detail))
 
-# 20 Determinism: fixtures rebuild byte-identical
+# 23 Determinism: fixtures rebuild byte-identical
 h1 = hashlib.sha256((ROOT / "fixtures/golden_quarters.csv").read_bytes()).hexdigest()
 rr.main()
 h2 = hashlib.sha256((ROOT / "fixtures/golden_quarters.csv").read_bytes()).hexdigest()
 check("Fixtures rebuild identically", h1 == h2, h1[:16])
 
 passed = sum(1 for c in checks if c[1])
-lines = ["# Operating model validation (v0.3, Quarters 1-7)", "", f"**Result: {passed} of {len(checks)} checks pass.**", "",
+lines = ["# Operating model validation (v0.4, Quarters 1-8)", "", f"**Result: {passed} of {len(checks)} checks pass.**", "",
          "| # | Check | Result | Detail |", "| --- | --- | --- | --- |"]
 for i, (n, okk, d) in enumerate(checks, 1):
     lines.append(f"| {i} | {n} | {'PASS' if okk else 'FAIL'} | {d} |")

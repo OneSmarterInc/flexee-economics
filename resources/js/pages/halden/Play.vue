@@ -190,6 +190,7 @@ const pageKeys: Record<string, string[]> = {
         'crude_hedge',
         'eur_hedge',
         'nok_hedge',
+        'opec_case',
     ],
     capital: [
         'proj_br_upgrade',
@@ -357,6 +358,25 @@ function rivalMeans(): string {
         .replace('{cost}', fmt(matchCost.value, 1));
 }
 const hedgeKeys = ['crude_hedge', 'eur_hedge', 'nok_hedge'];
+
+function opecMeans(): string {
+    const o = props.desk.opec;
+    if (!o) {
+        return '';
+    }
+    const days = o.days[String(draft.opec_case ?? 'fails')] ?? 0;
+    if (days <= 0) {
+        return props.leverText.opec_means_none;
+    }
+    const barrels = (days * props.desk.brCapacity * num(draft.br_run)) / 100;
+    const tied = (barrels * o.wti) / 1e6;
+
+    return props.leverText.opec_means
+        .replace('{days}', String(days))
+        .replace('{barrels}', fmt(barrels / 1e6, 1))
+        .replace('{tied}', fmt(tied))
+        .replace('{carry}', fmt((tied * o.carryRate) / 4));
+}
 
 function hedgeText(key: string, v: DecisionValue | undefined): string {
     const n = num(v);
@@ -717,6 +737,14 @@ function quarterHref(id: number): string {
                                 Last quarter's settings are still running unless
                                 you change them.
                             </p>
+                        </div>
+                        <div
+                            v-if="content.rotationNote"
+                            class="hx-card"
+                            style="background: var(--hx-teal-wash)"
+                        >
+                            <div class="hx-eyebrow mb-1">New seats</div>
+                            <p class="hx-p m-0">{{ content.rotationNote }}</p>
                         </div>
                         <div class="hx-card">
                             <div class="hx-eyebrow mb-2">
@@ -1775,10 +1803,55 @@ function quarterHref(id: number): string {
                                 </div>
                             </div>
                         </div>
+                        <div
+                            v-if="desk.opec && isOpenLever('opec_case')"
+                            class="hx-lever"
+                        >
+                            <div class="flex flex-wrap items-center gap-2">
+                                <span class="text-[16px] font-semibold">{{
+                                    lever('opec_case').label
+                                }}</span>
+                                <span class="hx-badge hx-badge-agree">{{
+                                    badge('opec_case')
+                                }}</span>
+                                <span
+                                    v-if="lever('opec_case').isNew"
+                                    class="hx-badge hx-badge-new"
+                                    >NEW</span
+                                >
+                            </div>
+                            <div class="hx-hint mt-1 mb-3">
+                                {{ leverText.help.opec_case }}
+                            </div>
+                            <div class="flex flex-wrap gap-2.5">
+                                <button
+                                    v-for="(label, choice) in leverText.choices
+                                        .opec_case"
+                                    :key="choice"
+                                    type="button"
+                                    class="hx-opt"
+                                    :aria-pressed="draft.opec_case === choice"
+                                    :disabled="!editable"
+                                    @click="draft.opec_case = String(choice)"
+                                >
+                                    {{ label }}
+                                </button>
+                            </div>
+                            <div v-if="errors.opec_case" class="hx-error">
+                                {{ errors.opec_case }}
+                            </div>
+                        </div>
                         <div class="hx-desk">
                             <div>
                                 <span class="hx-eyebrow">What this means</span>
                                 <div class="hx-mono mt-1 text-[14px]">
+                                    <template
+                                        v-if="
+                                            desk.opec &&
+                                            isOpenLever('opec_case')
+                                        "
+                                        >{{ opecMeans() }}
+                                    </template>
                                     Geneva can trade on the gap for up to
                                     {{ fmt(desk.genevaMaxVolume) }} barrels a
                                     day.<template

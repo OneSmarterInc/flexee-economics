@@ -153,6 +153,55 @@ final class OperatingModel
         return $this->data->capacityGame["$action|builds"] / 4;
     }
 
+    /**
+     * Window 2: the share of the class that went ahead with the Baton Rouge upgrade in Q2 2028 moves the
+     * Q4 2028 Gulf Coast margin. Overbuilding costs twice what restraint earns.
+     */
+    public function window2Shift(float $brShare): float
+    {
+        $c = fn (string $k): float => $this->data->c($k);
+        $pivot = $c('window2_pivot');
+        if ($brShare > $pivot) {
+            return -$c('window2_slope_above') * ($brShare - $pivot);
+        }
+
+        return $c('window2_slope_below') * ($pivot - $brShare);
+    }
+
+    /**
+     * The Q4 2028 prices once OPEC+ has decided: WTI moves by the outcome, the Gulf Coast margin compresses
+     * 35 cents a dollar and carries the Window 2 shift.
+     *
+     * @param  array<string, mixed>  $mkt
+     * @return array<string, mixed>
+     */
+    public function opecMarket(array $mkt, string $outcome, float $brShare = 0.5): array
+    {
+        $d = $this->data->opec[$outcome]['dwti'];
+        $m = $mkt;
+        $m['wti'] = $mkt['wti'] + $d;
+        $m['gc'] = $mkt['gc'] + $this->data->c('crack_per_wti') * $d + $this->window2Shift($brShare);
+        $m['wti_shock'] = $d;
+        $m['opec_outcome'] = $outcome;
+
+        return $m;
+    }
+
+    public function expectedWti(float $wtiPre): float
+    {
+        $sum = 0.0;
+        foreach ($this->data->opec as $s) {
+            $sum += $s['p'] * $s['dwti'];
+        }
+
+        return $wtiPre + $sum;
+    }
+
+    public function inventoryDays(string $case): float
+    {
+        return $this->data->c("opec_inventory_days_$case");
+    }
+
     /** @param  array<string, mixed>  $mkt  one row of the market path */
     public function step(CompanyState $state, Decisions $dec, array $mkt): QuarterResult
     {
@@ -161,6 +210,7 @@ final class OperatingModel
         $lines = [];
         $notes = [];
         $wti = $mkt['wti'];
+        $shock = (float) ($mkt['wti_shock'] ?? 0.0);   // how far an OPEC+ outcome moved WTI this quarter
         $brent = $wti + $c('brent_spread');
         $fx = (bool) ($mkt['fx_live'] ?? false);
         $eurF = $fx ? $mkt['eurusd'] / $c('fx_ref_eurusd') : 1.0;
@@ -266,9 +316,20 @@ final class OperatingModel
         $refining = $lines['baton_rouge'] + $lines['rotterdam'] + $lines['rotterdam_one_time'] + $lines['singapore']
             + $lines['projects_refining'] + $lines['capacity_game'];
 
-        // Geneva
+        // Geneva. Ahead of an OPEC+ decision it buys crude for Baton Rouge at the pre-decision price according to
+        // the case the team plans for: it gains if crude rises, loses if it falls, and the money tied up costs interest.
         $lines['geneva_desk'] = $c('geneva_base_desk');
-        $trading = $lines['geneva_desk'] + $geneva;
+        $boughtAhead = 0.0;
+        $carry = 0.0;
+        if ((bool) ($mkt['opec'] ?? false)) {
+            $days = $this->inventoryDays($dec->opecCase);
+            $wtiPre = $wti - $shock;
+            $boughtAhead = $days * $brTpBbl * $shock / 1e6;
+            $carry = -$days * $brTpBbl * $wtiPre * $c('opec_inventory_carry_annual') / 4 / 1e6;
+        }
+        $lines['crude_bought_ahead'] = $boughtAhead;
+        $lines['inventory_carry'] = $carry;
+        $trading = $lines['geneva_desk'] + $geneva + $boughtAhead + $carry;
 
         // Gas stations
         $heldUp = $state->heldUp;
@@ -299,7 +360,9 @@ final class OperatingModel
 
         // A rival's street cut (from Q3 2028): where the team holds its price, drivers drift to the rival;
         // where it matches, Cordell gives up the cut on every gallon and keeps the drivers.
-        $cordGalTotal = $c('cordell_sites') * $c('cordell_gal_per_site_qtr');
+        // A crude shock reaches the pump at 60 cents on the dollar, and drivers barely react.
+        $crudeVf = 1 + $c('retail_crude_elasticity') * $c('retail_crude_passthrough') * ($shock / $c('gal_per_bbl')) / $c('pump_base');
+        $cordGalTotal = $c('cordell_sites') * $c('cordell_gal_per_site_qtr') * $crudeVf;
         $nonfuelPerGal = (float) ($mkt['cordell_nonfuel'] ?? 0) > 0 ? (float) $mkt['cordell_nonfuel'] : $c('cordell_nonfuel_per_gal');
         $rivalCut = (float) ($mkt['rival_cut'] ?? 0.0);
         $cordFuel = 0.0;
@@ -328,7 +391,7 @@ final class OperatingModel
         $lines['cordell_price_match'] = -$matchCost / 1e6;   // already inside cordell_fuel; shown on its own
 
         $euFactor = $state->europeVolumeFactor * (1 - $c('europe_volume_decline_qtr'));
-        $euGalTotal = $c('europe_sites') * $c('europe_gal_per_site_qtr') * $euFactor;
+        $euGalTotal = $c('europe_sites') * $c('europe_gal_per_site_qtr') * $euFactor * $crudeVf;
         $eu = 0.0;
         foreach ($this->data->europe as $cl) {
             [$vf, $delta] = $volumeFactor($cl, $offsets[$cl['key']]);
@@ -446,7 +509,8 @@ final class OperatingModel
             ops: ['tp' => $tp, 'market_tp' => $marketTp, 'cost_tp' => $costTp, 'permian_prod' => $prod,
                 'br_throughput' => $brTpBbl, 'rot_throughput' => $rotTp, 'sg_accepted' => $sgRun, 'rot_status' => $rotStatus,
                 'fx_effect' => $fxEffect, 'project_outlay' => $commitOutlay, 'nwe' => $mkt['nwe'],
-                'rival_match_cost' => $matchCost / 1e6, 'rival_ignore_cost' => $ignoreCost / 1e6],
+                'rival_match_cost' => $matchCost / 1e6, 'rival_ignore_cost' => $ignoreCost / 1e6,
+                'wti_shock' => $shock, 'gc' => $mkt['gc'], 'wti' => $wti],
             notes: $notes,
             state: $newState,
         );

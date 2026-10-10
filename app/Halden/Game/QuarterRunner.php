@@ -8,6 +8,7 @@ use App\Halden\OperatingModel\Scoring;
 use App\Models\AdvisorMessage;
 use App\Models\Quarter;
 use App\Models\Team;
+use App\Models\TeamMember;
 use App\Models\TeamQuarter;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
@@ -30,7 +31,31 @@ final class QuarterRunner
             throw new RuntimeException("Publish {$prev->label()} results before opening {$quarter->label()}.");
         }
         $this->marketFor($quarter);
+        if ($quarter->isRotationQuarter() && $quarter->seats_rotated_at === null) {
+            $this->rotateSeats($quarter);
+        }
         $quarter->update(['status' => Quarter::OPEN, 'opened_at' => now()]);
+    }
+
+    /**
+     * Every student moves one seat along: EVP -> Oil fields -> Refineries -> Gas stations -> Trading & finance -> EVP.
+     * A team with a seat missing keeps the gap; nobody is dropped.
+     */
+    public function rotateSeats(Quarter $quarter): void
+    {
+        $order = array_keys(TeamMember::SEATS);
+        DB::transaction(function () use ($quarter, $order): void {
+            foreach ($quarter->section->teams()->get() as $team) {
+                foreach ($team->members()->get() as $member) {
+                    $i = array_search($member->seat, $order, true);
+                    if ($i === false) {
+                        continue;
+                    }
+                    $member->update(['seat' => $order[($i + 1) % count($order)]]);
+                }
+            }
+            $quarter->update(['seats_rotated_at' => now()]);
+        });
     }
 
     public function startState(Team $team, Quarter $quarter): CompanyState
@@ -52,6 +77,9 @@ final class QuarterRunner
     {
         if ($quarter->status !== Quarter::OPEN) {
             throw new RuntimeException('Only an open quarter can be closed.');
+        }
+        if ($this->model->data->quarter($quarter->company_quarter)['opec'] && $quarter->event_outcome === null) {
+            $quarter->update(['event_outcome' => $this->drawOpecOutcome()]);
         }
         $market = $this->marketFor($quarter);
 
@@ -134,6 +162,29 @@ final class QuarterRunner
         ];
     }
 
+    /** Draws the OPEC+ outcome from the stated chances (35% holds in full, 40% partly, 25% falls apart). */
+    public function drawOpecOutcome(): string
+    {
+        $r = random_int(1, 1000) / 1000;
+        $cum = 0.0;
+        $last = 'partial';
+        foreach ($this->model->data->opec as $key => $s) {
+            $cum += $s['p'];
+            $last = $key;
+            if ($r <= $cum + 1e-9) {
+                return $key;
+            }
+        }
+
+        return $last;
+    }
+
+    /** Share of this class that went ahead with the Baton Rouge upgrade in Q2 2028 (Window 2's input). */
+    public function classBrUpgradeShare(Quarter $quarter): ?float
+    {
+        return $this->classAverage($quarter, '2028Q2', fn (array $d): float => ($d['proj_br_upgrade'] ?? 'hold') === 'commit' ? 1.0 : 0.0);
+    }
+
     public function hasMarket(Quarter $quarter): bool
     {
         return in_array($quarter->company_quarter, array_column($this->model->data->market, 'quarter'), true);
@@ -143,6 +194,8 @@ final class QuarterRunner
      * This quarter's prices for this class, including what the whole class did earlier (hidden until it lands).
      * Window 1: the class's Q3 2027 European run rates set the Q1 2028 European refining margin.
      * Window 3: the class's Q3 2028 price aggression sets the Q1 2029 Cordell shop margin.
+     * OPEC+ (Q4 2028): once the outcome is drawn at the close, WTI and the Gulf Coast margin move by it, and
+     * Window 2 (the class's Q2 2028 Baton Rouge upgrades) lands on the same margin.
      *
      * @return array<string, mixed>
      */
@@ -158,6 +211,9 @@ final class QuarterRunner
             if ($util !== null) {
                 $m['nwe'] = $this->model->window1Nwe($util);
             }
+        }
+        if ((bool) $m['opec'] && $quarter->event_outcome !== null) {
+            $m = $this->model->opecMarket($m, $quarter->event_outcome, $this->classBrUpgradeShare($quarter) ?? 0.5);
         }
         if ($quarter->company_quarter === '2029Q1') {
             $aggression = $this->classAggression($quarter);

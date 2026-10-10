@@ -16,13 +16,15 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property int $number
  * @property string $company_quarter
  * @property string $status
+ * @property string|null $event_outcome
  * @property CarbonImmutable|null $deadline_at
  * @property CarbonImmutable|null $opened_at
  * @property CarbonImmutable|null $closed_at
  * @property CarbonImmutable|null $published_at
+ * @property CarbonImmutable|null $seats_rotated_at
  * @property-read Section $section
  */
-#[Fillable(['section_id', 'number', 'company_quarter', 'status', 'deadline_at', 'opened_at', 'closed_at', 'published_at'])]
+#[Fillable(['section_id', 'number', 'company_quarter', 'status', 'event_outcome', 'deadline_at', 'opened_at', 'closed_at', 'published_at', 'seats_rotated_at'])]
 class Quarter extends Model
 {
     public const UPCOMING = 'upcoming';
@@ -40,6 +42,7 @@ class Quarter extends Model
             'opened_at' => 'datetime',
             'closed_at' => 'datetime',
             'published_at' => 'datetime',
+            'seats_rotated_at' => 'datetime',
         ];
     }
 
@@ -59,6 +62,12 @@ class Quarter extends Model
     public function label(): string
     {
         return substr($this->company_quarter, 4).' '.substr($this->company_quarter, 0, 4);
+    }
+
+    /** The quarter in which the team swaps seats when it opens: after the midterm (Quarter 8 of 14, Quarter 5 of 7). */
+    public function isRotationQuarter(): bool
+    {
+        return $this->number === (int) ceil($this->section->weeks / 2) + 1;
     }
 
     public function previous(): ?self

@@ -107,7 +107,9 @@ final class ContentPack
             }
         }
         $chosen ??= end($story['bands']);
-        $vars = self::placeholders($results, $decisions) + $this->fills($n, $decisions);
+        $vars = self::placeholders($results, $decisions);
+        // A fill is a sentence picked by a choice; it can hold placeholders of its own, so fill those first.
+        $vars += array_map(fn (string $t): string => strtr($t, $vars), $this->fills($n, $decisions));
         $fill = fn (string $t): string => strtr($t, $vars);
 
         return [
@@ -182,6 +184,10 @@ final class ContentPack
                 }
 
                 return ['key' => $matched === 0 ? 'held' : ($matched >= 3 ? 'matched' : 'mixed'), 'value' => (float) $matched];
+            case 'opec':
+                $shock = (float) ($results['ops.wti_shock'] ?? 0);
+
+                return ['key' => $shock > 10 ? 'full' : ($shock > 0 ? 'partial' : 'fails'), 'value' => $shock];
             case 'projects':
                 $helix = ($decisions['proj_helix'] ?? 'hold') === 'commit';
                 $refining = ($decisions['proj_br_upgrade'] ?? 'hold') === 'commit' || ($decisions['proj_rot_upgrade'] ?? 'hold') === 'commit';
@@ -236,6 +242,10 @@ final class ContentPack
             '{nwe}' => '$'.number_format((float) ($r['ops.nwe'] ?? 0), 2),
             '{match_cost}' => $money('ops.rival_match_cost'),
             '{ignore_cost}' => $money('ops.rival_ignore_cost'),
+            '{wti}' => '$'.number_format((float) ($r['ops.wti'] ?? 0), 0),
+            '{gc}' => '$'.number_format((float) ($r['ops.gc'] ?? 0), 2),
+            '{bought_ahead}' => $money('line.crude_bought_ahead'),
+            '{inventory_carry}' => self::money(abs((float) ($r['line.inventory_carry'] ?? 0))),   // always a cost, so shown without a sign
         ];
     }
 

@@ -1,0 +1,4 @@
+key,label,probability,delta_wti,note
+full,The cut holds in full,0.35,14.00,"Wk8 opec_scenarios.csv: WTI 88"
+partial,The cut partly holds,0.40,7.00,"Wk8: WTI 81"
+fails,The cut falls apart,0.25,-4.00,"Wk8: WTI 70"

@@ -94,6 +94,28 @@ final class QuarterView
         return ['cut' => $cut, 'clusters' => array_map(fn (array $c) => ['key' => $c['key'], 'label' => $c['label'], 'gallons' => $total * $c['share']], $data->cordell)];
     }
 
+    /**
+     * The Trading & finance page in the OPEC+ quarter: how much crude each planning case buys ahead, at what price.
+     *
+     * @return array{days: array<string, float>, wti: float, carryRate: float}|null
+     */
+    private function opecDesk(Quarter $quarter): ?array
+    {
+        if (! $this->book->isUnlocked('opec_case', $quarter->number) || ! $this->runner->hasMarket($quarter)) {
+            return null;
+        }
+        $m = $this->model->data->quarter($quarter->company_quarter);
+        if (! $m['opec']) {
+            return null;
+        }
+        $days = [];
+        foreach (array_keys($this->model->data->opec) as $case) {
+            $days[$case] = $this->model->inventoryDays($case);
+        }
+
+        return ['days' => $days, 'wti' => (float) $m['wti'], 'carryRate' => $this->model->data->c('opec_inventory_carry_annual')];
+    }
+
     /** @return array{title: string, text: string|null, reason: string|null}|null */
     private function carryingFor(?TeamQuarter $tq, bool $forFaculty): ?array
     {
@@ -186,6 +208,7 @@ final class QuarterView
                 'costTp' => $data->c('delivered_marginal_cost') + $data->c('sr_capital_charge'),
                 'capital' => $this->capitalDesk($quarter, $previous),
                 'rival' => $this->rivalDesk($quarter),
+                'opec' => $this->opecDesk($quarter),
             ],
             'memo' => [
                 'text' => $tq->memo ?? '',
@@ -212,6 +235,7 @@ final class QuarterView
             'rule' => $c['rule'],
             'newPagesNote' => $c['new_pages_note'],
             'marchetti' => $c['marchetti'],
+            'rotationNote' => $quarter->seats_rotated_at !== null ? ($c['rotation_note'] ?? null) : null,
             'exhibits' => array_map(fn (array $e) => ['title' => $e['title'], 'url' => route('exhibits.show', ['path' => $e['file']])], $c['exhibits']),
         ];
     }
@@ -356,6 +380,13 @@ final class QuarterView
             $named[] = ['name' => 'Pelican\'s new Gulf Coast unit', 'amount' => (float) $r['line.capacity_game'],
                 'why' => ($d['capacity_response'] ?? 'hold') === 'match' ? 'Two new units chasing the same barrels. Counted under Refineries.' : 'Margin Baton Rouge lost to the new unit. Counted under Refineries.'];
         }
+        if (abs((float) ($r['line.crude_bought_ahead'] ?? 0)) > 0.05 || abs((float) ($r['line.inventory_carry'] ?? 0)) > 0.05) {
+            $named[] = ['name' => 'Crude bought ahead of OPEC+', 'amount' => (float) ($r['line.crude_bought_ahead'] ?? 0),
+                'why' => sprintf('Geneva bought %d days of Baton Rouge\'s crude at $%s before the meeting. Oil then moved $%s. Counted under Geneva trading.',
+                    (int) $this->model->inventoryDays((string) ($d['opec_case'] ?? 'fails')), number_format((float) $r['ops.wti'] - (float) $r['ops.wti_shock'], 2), number_format((float) $r['ops.wti_shock'], 2))];
+            $named[] = ['name' => 'Interest on the crude bought ahead', 'amount' => (float) ($r['line.inventory_carry'] ?? 0),
+                'why' => 'The cost of the money tied up until Vienna decided.'];
+        }
         if ((float) ($r['ops.project_outlay'] ?? 0) > 0) {
             $named[] = ['name' => 'Big projects started (capital spending, not in EBITDA)', 'amount' => -(float) $r['ops.project_outlay'],
                 'why' => 'Paid up front this quarter. It adds to debt but not to your free cash flow score.'];
@@ -402,6 +433,14 @@ final class QuarterView
         $prevRigs = (int) (($this->book->previousEffective($team, $quarter))['rigs'] ?? 14);
         $earlier[] = ['when' => 'From last quarter', 'text' => sprintf('The %d rigs that drilled last quarter set this quarter\'s Texas output: %s barrels a day (last quarter: %s).',
             $prevRigs, number_format(round((float) $r['ops.permian_prod'], -2)), number_format(round((float) ($prev['ops.permian_prod'] ?? $r['ops.permian_prod']), -2)))];
+        if ($quarter->company_quarter === '2028Q4') {
+            $share = $this->runner->classBrUpgradeShare($quarter);
+            if ($share !== null) {
+                $shift = $this->model->window2Shift($share);
+                $earlier[] = ['when' => 'From Q2 2028', 'text' => sprintf('%s of the teams in your class went ahead with the Baton Rouge upgrade. Those units are running now, and the Gulf Coast margin is %s a barrel %s than it would otherwise be.',
+                    $share <= 0 ? 'None' : ($share >= 1 ? 'All' : sprintf('About %d%%', (int) round($share * 100))), '$'.number_format(abs($shift), 2), $shift < 0 ? 'lower' : 'higher')];
+            }
+        }
         if ($quarter->number >= 2 && $team->first_meeting !== null) {
             $earlier[] = ['when' => 'From your first day', 'text' => $team->first_meeting === 'ingrid'
                 ? 'You met Ingrid Vestergaard first. She has been quicker to approve your plans for the oil fields.'
