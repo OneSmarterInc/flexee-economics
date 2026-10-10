@@ -21,7 +21,8 @@ final class ClassAccess
     {
         $query = Section::query()->orderBy('id');
         if (! $user->isAdmin()) {
-            $query->where('faculty_user_id', $user->id);
+            $query->where(fn (Builder $q) => $q->where('faculty_user_id', $user->id)
+                ->orWhereHas('coInstructors', fn (Builder $c) => $c->whereKey($user->id)));
         }
 
         return $query;

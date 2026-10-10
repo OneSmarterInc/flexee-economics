@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Halden;
 
+use App\Halden\Admin\ClassAccess;
 use App\Halden\Admin\ClassFactory;
 use App\Http\Controllers\Controller;
 use App\Models\AdvisorMessage;
@@ -30,11 +31,12 @@ class AdminController extends Controller
     {
         $this->admin($request);
         $classes = [];
-        foreach (Section::query()->with('faculty')->orderByDesc('id')->get() as $section) {
+        foreach (Section::query()->with(['faculty', 'coInstructors'])->orderByDesc('id')->get() as $section) {
             $current = $section->currentQuarter();
             $classes[] = [
                 'id' => $section->id, 'name' => $section->name, 'course' => $section->course_name, 'weeks' => (int) $section->weeks,
                 'instructor' => $section->faculty->name, 'instructorEmail' => $section->faculty->email,
+                'coInstructors' => $section->coInstructors->map(fn (User $u) => $u->name)->values()->all(),
                 'teams' => $section->teams()->count(), 'students' => TeamMember::query()->whereIn('team_id', $section->teams()->select('id'))->count(),
                 'seats' => $section->seats, 'advisorsEnabled' => (bool) $section->advisors_enabled,
                 'where' => $current === null ? 'No quarters' : ($section->weeks < Quarter::COMPANY_QUARTERS ? 'Week '.$current->week() : 'Quarter '.$current->number).' · '.$this->statusText($current->status),
@@ -43,7 +45,7 @@ class AdminController extends Controller
         }
         $instructors = User::query()->whereIn('role', [User::ROLE_FACULTY, User::ROLE_ADMIN])->orderBy('name')->get()
             ->map(fn (User $u) => ['id' => $u->id, 'name' => $u->name, 'email' => $u->email, 'role' => $u->role,
-                'classes' => Section::query()->where('faculty_user_id', $u->id)->pluck('name')->all()])->values();
+                'classes' => ClassAccess::query($u)->pluck('name')->all()])->values();
 
         return Inertia::render('halden/AdminClasses', [
             'classes' => $classes,
@@ -89,6 +91,7 @@ class AdminController extends Controller
             'section' => [
                 'id' => $section->id, 'name' => $section->name, 'course' => $section->course_name, 'weeks' => (int) $section->weeks,
                 'instructor' => $section->faculty_user_id, 'seats' => $section->seats, 'advisorsEnabled' => (bool) $section->advisors_enabled,
+                'coInstructors' => $section->coInstructors()->orderBy('name')->get()->map(fn (User $u) => ['id' => $u->id, 'name' => $u->name, 'email' => $u->email])->values(),
                 'firstDeadline' => $first?->deadline_at?->setTimezone('America/New_York')->format('Y-m-d\TH:i'),
                 'started' => $section->hasStarted(),
                 'teams' => $section->teams()->withCount('members')->orderBy('name')->get()->map(fn ($t) => ['name' => $t->name, 'members' => $t->members_count])->values(),
@@ -130,6 +133,28 @@ class AdminController extends Controller
         }
 
         return back()->with('done', 'saved');
+    }
+
+    /** Adds a co-instructor to a class, or takes one off; the lead instructor stays on the class's settings. */
+    public function coInstructor(Request $request, Section $section): RedirectResponse
+    {
+        $this->admin($request);
+        $data = $request->validate([
+            'instructor' => ['required', 'integer', Rule::exists('users', 'id')->whereIn('role', [User::ROLE_FACULTY, User::ROLE_ADMIN])],
+            'remove' => ['sometimes', 'boolean'],
+        ]);
+        $id = (int) $data['instructor'];
+        if ($request->boolean('remove')) {
+            $section->coInstructors()->detach($id);
+
+            return back()->with('done', 'co-removed');
+        }
+        if ($id === (int) $section->faculty_user_id) {
+            throw ValidationException::withMessages(['co_instructor' => 'That is already the class\'s instructor.']);
+        }
+        $section->coInstructors()->syncWithoutDetaching([$id]);
+
+        return back()->with('done', 'co-added');
     }
 
     public function destroyClass(Request $request, Section $section): RedirectResponse

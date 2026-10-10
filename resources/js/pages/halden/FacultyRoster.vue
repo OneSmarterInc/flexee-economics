@@ -30,6 +30,7 @@ const props = defineProps<{
         started: boolean;
     };
     classes: { id: number; name: string; course: string }[];
+    mailEnabled: boolean;
     students: Student[];
     teams: { id: number; name: string }[];
     seats: Record<string, string>;
@@ -46,7 +47,11 @@ const errors = computed(
 const busy = ref(false);
 const q = `?section=${props.section.id}`;
 
-const addForm = reactive({ list: '', team: '' as string | number });
+const addForm = reactive({
+    list: '',
+    team: '' as string | number,
+    email: true,
+});
 const file = ref<File | null>(null);
 const renaming = ref<number | null>(null);
 const renameTo = ref('');
@@ -121,6 +126,7 @@ function add() {
         {
             list: addForm.list,
             team: addForm.team === '' ? null : Number(addForm.team),
+            email: props.mailEnabled && addForm.email,
             file: file.value,
         },
         {
@@ -416,6 +422,20 @@ function downloadLogins() {
                             Add students
                         </button>
                     </div>
+                    <label
+                        v-if="mailEnabled"
+                        class="mt-3 flex items-center gap-2 text-[14px]"
+                    >
+                        <input v-model="addForm.email" type="checkbox" />
+                        <span
+                            >Email each student their login (new ones get their
+                            password)</span
+                        >
+                    </label>
+                    <p v-else class="hx-hint mt-3">
+                        Outgoing mail isn't switched on yet, so hand the
+                        passwords out yourself.
+                    </p>
                     <p v-if="section.seats" class="hx-hint mt-3">
                         {{ students.length }} of {{ section.seats }} seats
                         taken.

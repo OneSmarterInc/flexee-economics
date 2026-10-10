@@ -74,6 +74,13 @@ QUEUE_CONNECTION=sync
 
 Delete any `SEED_DEMO_PASSWORD` line for now.
 
+**Outgoing mail** is off until the `MAIL_*` lines point at a real mailer (`MAIL_MAILER=smtp` with the host, port,
+username, password and `MAIL_FROM_ADDRESS` from GoDaddy or whichever service you use). Once they do, Halden emails
+students their login when an instructor adds them (if the instructor ticks the box), sends deadline reminders a day,
+four hours and an hour before each close (the scheduler line below runs `halden:remind`), lets instructors send a
+reminder from the board, and password resets work from the login page. `HALDEN_MAIL=false` holds all of that while
+you test the mailer with `php artisan tinker` first. Then `php artisan config:clear`.
+
 The advisors stay switched off until an Anthropic API key is added. To switch them on, add
 `ANTHROPIC_API_KEY=` with a key made for this server (not one shared in chat), then run
 `php artisan config:cache`.

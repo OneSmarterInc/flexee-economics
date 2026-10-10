@@ -9,6 +9,7 @@ interface ClassRow {
     weeks: number;
     instructor: string;
     instructorEmail: string;
+    coInstructors: string[];
     teams: number;
     students: number;
     seats: number | null;
@@ -146,6 +147,11 @@ function createInstructor() {
                                 <span class="hx-hint block">{{
                                     c.instructorEmail
                                 }}</span>
+                                <span
+                                    v-if="c.coInstructors.length"
+                                    class="hx-hint block"
+                                    >with {{ c.coInstructors.join(', ') }}</span
+                                >
                             </td>
                             <td>{{ c.weeks }} weeks</td>
                             <td>

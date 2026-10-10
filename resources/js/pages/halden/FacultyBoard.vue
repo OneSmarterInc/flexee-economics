@@ -58,6 +58,8 @@ const props = defineProps<{
     pages: { page: string; title: string }[];
     teams: TeamRow[];
     quarters: { number: number; label: string; status: string }[];
+    mailEnabled: boolean;
+    done: string | null;
     draws: Draw[];
 }>();
 
@@ -83,11 +85,21 @@ const confirmText: Record<string, string> = {
     extend: 'Push the deadline back by one day?',
 };
 
+const reminded = computed(() =>
+    props.done?.startsWith('reminded:')
+        ? `Reminder sent to ${props.done.slice(9)} students on teams that haven't pressed Ready.`
+        : null,
+);
+
 function act(
     quarterId: number,
-    action: 'open' | 'close' | 'publish' | 'extend',
+    action: 'open' | 'close' | 'publish' | 'extend' | 'remind',
 ) {
-    if (!window.confirm(confirmText[action])) {
+    const ask =
+        action === 'remind'
+            ? "Email every student on a team that hasn't pressed Ready?"
+            : confirmText[action];
+    if (!window.confirm(ask)) {
         return;
     }
 
@@ -244,6 +256,16 @@ function teamHref(teamId: number): string {
                         >
                             {{ quarter.coverage }}
                         </p>
+                        <p
+                            v-if="reminded"
+                            class="mt-2 rounded-md px-3 py-2 text-[14px]"
+                            style="background: var(--hx-teal-wash)"
+                        >
+                            {{ reminded }}
+                        </p>
+                        <p v-if="errors.action" class="hx-error mt-2">
+                            {{ errors.action }}
+                        </p>
                     </div>
                     <div class="flex flex-wrap gap-2">
                         <template v-if="quarter.status === 'open'">
@@ -254,6 +276,19 @@ function teamHref(teamId: number): string {
                                 @click="act(quarter.id, 'extend')"
                             >
                                 Extend one day
+                            </button>
+                            <button
+                                type="button"
+                                class="hx-btn hx-btn-outline"
+                                :disabled="busy || !mailEnabled"
+                                :title="
+                                    mailEnabled
+                                        ? 'Email the teams that haven\'t pressed Ready'
+                                        : 'Outgoing mail isn\'t switched on yet'
+                                "
+                                @click="act(quarter.id, 'remind')"
+                            >
+                                Send a reminder
                             </button>
                             <button
                                 type="button"

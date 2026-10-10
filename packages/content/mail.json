@@ -1,0 +1,38 @@
+{
+    "_note": "The emails students get. {name}, {class}, {course}, {instructor}, {email}, {password}, {login_url}, {join_url}, {quarter}, {deadline}, {hours}, {play_url} are filled in. Mail only goes out when the server has outgoing mail switched on.",
+    "login": {
+        "subject": "Your Halden Energy login for {class}",
+        "lines": [
+            "Hi {name},",
+            "Your instructor, {instructor}, has set up your login for Halden Energy, the company you'll run in {course} ({class}).",
+            "Log in at {login_url} with this email address and the password below. You can change the password once you're in, under Settings.",
+            "Password: {password}",
+            "If you're not yet on a team, you'll see a short note saying so. Your instructor puts the teams together."
+        ]
+    },
+    "added": {
+        "subject": "You've been added to {class} on Halden Energy",
+        "lines": [
+            "Hi {name},",
+            "Your instructor, {instructor}, has added you to {class} ({course}) on Halden Energy. Log in at {login_url} with this email address and the password you already have.",
+            "Forgotten it? Use \"Forgot your password?\" on the login page."
+        ]
+    },
+    "reminder": {
+        "subject": "{class}: {quarter} closes in {hours}",
+        "lines": [
+            "Hi {name},",
+            "{quarter} at Halden closes on {deadline} (Eastern), about {hours} from now. Your team hasn't told your instructor it's done yet.",
+            "Whatever is saved when the quarter closes is what runs. Anything you haven't changed keeps last quarter's value, so check the pages and the memo, then have your EVP press \"Tell your instructor we're done\".",
+            "Open your company: {play_url}"
+        ]
+    },
+    "nudge": {
+        "subject": "{class}: a note from your instructor about {quarter}",
+        "lines": [
+            "Hi {name},",
+            "{instructor} sent a reminder to every team that hasn't finished {quarter} yet. It closes on {deadline} (Eastern).",
+            "Open your company: {play_url}"
+        ]
+    }
+}

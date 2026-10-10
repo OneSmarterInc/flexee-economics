@@ -36,6 +36,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('admin/classes/{section}', [AdminController::class, 'showClass'])->name('admin.class');
     Route::post('admin/classes/{section}', [AdminController::class, 'updateClass'])->name('admin.class.update');
     Route::delete('admin/classes/{section}', [AdminController::class, 'destroyClass'])->name('admin.class.delete');
+    Route::post('admin/classes/{section}/co-instructors', [AdminController::class, 'coInstructor'])->name('admin.class.co');
     Route::post('admin/instructors', [AdminController::class, 'storeInstructor'])->name('admin.instructors.store');
 
     Route::get('faculty', [FacultyController::class, 'board'])->name('faculty.board');
@@ -52,6 +53,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('faculty/roster/teams/{team}', [RosterController::class, 'deleteTeam'])->name('faculty.roster.team.delete');
     Route::post('faculty/quarters/{quarter}/{action}', [FacultyController::class, 'action'])->whereIn('action', ['open', 'close', 'publish', 'extend'])->name('faculty.quarter');
     Route::post('faculty/quarters/{quarter}/draws', [FacultyController::class, 'setDraw'])->name('faculty.draw');
+    Route::post('faculty/quarters/{quarter}/remind', [FacultyController::class, 'remind'])->middleware('throttle:6,60')->name('faculty.remind');
     Route::get('faculty/teams/{team}/quarters/{quarter}', [FacultyController::class, 'viewTeam'])->name('faculty.team');
     Route::get('faculty/teams/{team}/quarters/{quarter}/feedback', [FacultyController::class, 'feedback'])->name('faculty.feedback');
     Route::post('faculty/teams/{team}/quarters/{quarter}/feedback/draft', [FacultyController::class, 'draftFeedback'])->middleware('throttle:10,1')->name('faculty.feedback.draft');

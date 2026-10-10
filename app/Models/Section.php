@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
@@ -29,6 +30,22 @@ class Section extends Model
     public function faculty(): BelongsTo
     {
         return $this->belongsTo(User::class, 'faculty_user_id');
+    }
+
+    /**
+     * Instructors besides the lead who see and run this class's board.
+     *
+     * @return BelongsToMany<User, $this>
+     */
+    public function coInstructors(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'section_instructors')->withTimestamps();
+    }
+
+    /** Whether this user runs the class: the lead instructor or a co-instructor. */
+    public function isRunBy(User $user): bool
+    {
+        return $this->faculty_user_id === $user->id || $this->coInstructors()->whereKey($user->id)->exists();
     }
 
     /** @return HasMany<Team, $this> */

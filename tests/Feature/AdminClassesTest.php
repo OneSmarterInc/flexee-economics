@@ -2,10 +2,12 @@
 
 namespace Tests\Feature;
 
+use App\Halden\Admin\ClassFactory;
 use App\Halden\Game\QuarterRunner;
 use App\Models\Quarter;
 use App\Models\Section;
 use App\Models\User;
+use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
@@ -23,6 +25,27 @@ class AdminClassesTest extends TestCase
         parent::setUp();
         $this->admin = User::factory()->create(['role' => User::ROLE_ADMIN]);
         $this->faculty = User::factory()->create(['role' => User::ROLE_FACULTY, 'name' => 'Pat Instructor']);
+    }
+
+    public function test_a_co_instructor_sees_and_runs_the_class_but_is_not_its_lead(): void
+    {
+        $section = app(ClassFactory::class)->create('MBA 7250', 'Managerial Economics', 14, $this->faculty, CarbonImmutable::now());
+        $co = User::factory()->create(['role' => User::ROLE_FACULTY, 'name' => 'Sam Co']);
+        $this->actingAs($co)->get('/faculty')->assertNotFound();
+
+        $this->actingAs($this->admin)->post("/admin/classes/{$section->id}/co-instructors", ['instructor' => $this->faculty->id])->assertSessionHasErrors(['co_instructor']);
+        $this->actingAs($this->admin)->post("/admin/classes/{$section->id}/co-instructors", ['instructor' => $co->id])->assertSessionHasNoErrors();
+        $this->assertTrue($section->refresh()->isRunBy($co));
+        $this->actingAs($co)->get('/faculty')->assertInertia(fn (Assert $p) => $p->where('section.id', $section->id));
+        $this->actingAs($co)->get('/faculty/roster')->assertOk();
+        $this->actingAs($co)->get('/faculty/results.csv')->assertOk();
+        $this->actingAs($this->admin)->get('/admin')->assertInertia(fn (Assert $p) => $p->where('classes.0.coInstructors', ['Sam Co']));
+        $this->actingAs($this->admin)->get("/admin/classes/{$section->id}")->assertInertia(fn (Assert $p) => $p->has('section.coInstructors', 1));
+        $this->assertSame($this->faculty->id, $section->faculty_user_id, 'the lead does not change');
+
+        $this->actingAs($this->admin)->post("/admin/classes/{$section->id}/co-instructors", ['instructor' => $co->id, 'remove' => true])->assertSessionHasNoErrors();
+        $this->assertFalse($section->refresh()->isRunBy($co));
+        $this->actingAs($co)->get('/faculty')->assertNotFound();
     }
 
     public function test_an_admin_creates_a_class_with_its_quarters_and_changes_its_settings(): void
