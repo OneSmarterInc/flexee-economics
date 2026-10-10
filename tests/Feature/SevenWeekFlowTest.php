@@ -163,7 +163,9 @@ class SevenWeekFlowTest extends TestCase
         $this->assertSame('counter', $this->tq(11)->effective_decisions['kessana_position']);
         $this->assertEqualsWithDelta(0.68, $this->tq(11)->results['ops.kessana_take'], 1e-9);
         $this->assertSame('go', $this->tq(12)->effective_decisions['port_offshore_wind']);
-        $this->assertSame(['biofuel_conversion', 'offshore_wind'], array_keys((array) $this->tq(12)->state_after['portfolio']));
+        $placed = array_keys((array) $this->tq(12)->state_after['portfolio']);
+        sort($placed);   // MySQL stores JSON object keys in its own order; the set is what matters
+        $this->assertSame(['biofuel_conversion', 'offshore_wind'], $placed);
         $this->assertSame([], (array) $this->tq(11)->state_after['portfolio'], 'the plan is placed in Q4 2029, not before');
         $runner->publish($q11);
 
