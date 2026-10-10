@@ -599,10 +599,31 @@ final class OperatingModel
         $lines['singapore'] = $sgTp * ($mkt['sg'] + $c('sg_complexity') - $c('sg_opex')) * $D / 1e6 * $sgdF;
 
         // Projects committed earlier pay a quarter of each year's cash flow, cut to what such projects deliver.
+        // A project under way can be paused (its clock stops for the quarter and Halden pays the cost of capital on the
+        // outlay) or cancelled (its cash flows stop for good; nothing comes back, and the outlay stays in capital employed).
         $projAge = [];
         $projLines = ['refineries' => 0.0, 'oil_fields' => 0.0];
+        $cancelled = $state->cancelled;
+        $pauseCost = 0.0;
+        $capitalRate = (float) ($mkt['capital_rate'] ?? $this->capitalTerms(0.5)['rate']);
         foreach ($state->projects as $key => $age) {
             $p = $this->data->projects[$key];
+            $choice = $dec->projects[$key] ?? 'commit';
+            if ($choice === 'cancel') {
+                $cancelled[] = $key;
+                $notes['projects_cancelled'][] = $key;
+
+                continue;
+            }
+            if ($choice === 'pause') {
+                $projAge[$key] = $age;
+                $charge = $p['outlay'] * $capitalRate / 4;
+                $projLines[$p['segment']] -= $charge;
+                $pauseCost += $charge;
+                $notes['projects_paused'][] = $key;
+
+                continue;
+            }
             $age++;
             $projAge[$key] = $age;
             $year = intdiv($age - 1, 4) + 1;
@@ -613,7 +634,7 @@ final class OperatingModel
         }
         $commitOutlay = 0.0;
         foreach ($dec->projects as $key => $choice) {
-            if ($choice === 'commit' && ! array_key_exists($key, $state->projects)) {
+            if ($choice === 'commit' && ! array_key_exists($key, $state->projects) && ! in_array($key, $cancelled, true)) {
                 $projAge[$key] = 0;
                 $commitOutlay += $this->data->projects[$key]['outlay'];
             }
@@ -887,6 +908,7 @@ final class OperatingModel
             heldDown: $heldDown,
             hedges: $newHedges,
             projects: $projAge,
+            cancelled: $cancelled,
             rebranded: $rebrandAge,
             prevBrRun: $brRun,
             kessanaTake: $kesTake,
@@ -905,7 +927,7 @@ final class OperatingModel
             kpi: $kpi,
             ops: ['tp' => $tp, 'market_tp' => $marketTp, 'cost_tp' => $costTp, 'permian_prod' => $prod,
                 'br_throughput' => $brTpBbl, 'rot_throughput' => $rotTp, 'sg_accepted' => $sgRun, 'rot_status' => $rotStatus,
-                'fx_effect' => $fxEffect, 'project_outlay' => $commitOutlay, 'nwe' => $mkt['nwe'],
+                'fx_effect' => $fxEffect, 'project_outlay' => $commitOutlay, 'project_pause_cost' => $pauseCost, 'nwe' => $mkt['nwe'],
                 'rival_match_cost' => $matchCost / 1e6, 'rival_ignore_cost' => $ignoreCost / 1e6,
                 'wti_shock' => $shock, 'gc' => $mkt['gc'], 'wti' => $wti, 'rebrand_outlay' => $rebrandOutlay,
                 'nonfuel_per_gal' => $nonfuelPerGal, 'br_run' => $brRun,

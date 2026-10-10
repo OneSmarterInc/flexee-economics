@@ -230,6 +230,28 @@ class EconomicRulesTest extends TestCase
         $this->assertEqualsWithDelta(-150.0, $broken->lines['turnaround_outage'], 1e-9);
     }
 
+    public function test_a_paused_project_costs_the_cost_of_capital_and_a_cancelled_one_keeps_its_outlay_on_the_books(): void
+    {
+        $m6 = $this->data->quarter('2028Q2');
+        $committed = $this->play(['projects' => ['br_upgrade' => 'commit']], '2028Q2');
+        $paused = $this->model->step(clone $committed->state, new Decisions(projects: ['br_upgrade' => 'pause']), $m6 + ['capital_rate' => 0.065]);
+        $this->assertEqualsWithDelta(-640 * 0.065 / 4, $paused->lines['projects_refining'], 1e-9, 'the class rate when the market carries one');
+        $this->assertSame(0, $paused->state->projects['br_upgrade'], 'the clock stops');
+        $resumed = $this->model->step(clone $paused->state, new Decisions(projects: ['br_upgrade' => 'commit']), $m6);
+        $this->assertEqualsWithDelta(180 * 0.88 / 4, $resumed->lines['projects_refining'], 1e-9);
+        $this->assertEqualsWithDelta(0.0, $resumed->ops['project_outlay'], 1e-9);
+
+        $cancelled = $this->model->step(clone $committed->state, new Decisions(projects: ['br_upgrade' => 'cancel']), $m6);
+        $plain = $this->model->step(clone $committed->state, new Decisions, $m6);
+        $this->assertSame(0.0, $cancelled->lines['projects_refining']);
+        $this->assertSame(['br_upgrade'], $cancelled->state->cancelled);
+        $this->assertArrayNotHasKey('br_upgrade', $cancelled->state->projects);
+        $this->assertEqualsWithDelta($plain->money['capital_employed_end'], $cancelled->money['capital_employed_end'], 1e-9, 'the outlay stays on the books');
+        $again = $this->model->step(clone $cancelled->state, new Decisions(projects: ['br_upgrade' => 'commit']), $m6);
+        $this->assertEqualsWithDelta(0.0, $again->ops['project_outlay'], 1e-9, 'a cancelled project cannot be restarted');
+        $this->assertSame(0.0, $again->lines['projects_refining']);
+    }
+
     public function test_selling_singapore_dollars_forward_pays_when_the_us_dollar_strengthens(): void
     {
         $m5 = $this->data->quarter('2028Q1');

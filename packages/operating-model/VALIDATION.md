@@ -1,6 +1,6 @@
 # Operating model validation (v1.0, Quarters 1-14)
 
-**Result: 90 of 90 checks pass.**
+**Result: 93 of 93 checks pass.**
 
 | # | Check | Result | Detail |
 | --- | --- | --- | --- |
@@ -37,60 +37,63 @@
 | 31 | A committed project costs its outlay now and pays a quarter of year one, at 88% of forecast, next quarter | PASS | outlay 640, then 39.60 a quarter |
 | 32 | A Rotterdam project stops paying if Rotterdam closes | PASS | 0 after closure |
 | 33 | The score counts free cash flow before new projects; net debt still carries the outlay | PASS | score FCF 1848.7 vs cash FCF 1208.7 |
-| 34 | Holding price against the rival's cut costs under a twentieth of matching it, in every Cordell market | PASS | urban: hold 0.19 vs match 21.3; suburban: hold 0.12 vs match 24.8; rural: hold 0.02 vs match 14.2; interstate: hold 0.04 vs match 10.6 ($M a quarter) |
-| 35 | Matching everywhere costs 6c on every Cordell gallon and shows as its own line | PASS | -70.95 |
-| 36 | Before the rival moves, the answer levers change nothing | PASS | Q2 2028 EBITDA equal |
-| 37 | Capacity game: at a 70% chance the rival builds, holding (-$28M a year) beats matching (-$80M); breakeven is 37.5% | PASS | hold -28, match -80, breakeven 0.375 |
-| 38 | Once the rival builds, holding costs $10M a quarter and matching $35M, under Refineries | PASS | -10 / -35; 0 before it builds |
-| 39 | Window 3 reproduces the ledger: a price war 0.38, base 0.42, disciplined 0.45 a fill, bounded within 15% of base | PASS | 0.38 / 0.42 / 0.45; floor 0.357 at full aggression |
-| 40 | A team that matches in two of four Cordell markets is half aggressive | PASS | 0.5 |
-| 41 | Expected WTI across the three OPEC+ outcomes is $80.70 from a $74 start | PASS | 80.70 |
-| 42 | Outcomes: the cut holds WTI 88 / margin 16.60; partly holds 81 / 19.05; fails 70 / 22.90 (crack -0.35 a dollar, Window 2 at pivot) | PASS | 88/16.60, 81/19.05, 70/22.90 |
-| 43 | Integration conflict: when the cut holds, the oil fields earn more and Baton Rouge earns less than when it fails | PASS | Permian 935 vs 703; Baton Rouge 700 vs 987 |
-| 44 | Drivers barely react: a $14 crude rise moves station volume -0.31% | PASS | -0.3125% |
-| 45 | Planning for the cut to hold buys 30 days of Baton Rouge crude ahead: +$210M if it holds, -$60M if it fails, less $24M of interest either way | PASS | +209.7 / -59.9; carry 23.5; planning for failure buys nothing |
-| 46 | Outside the OPEC+ quarter the planning case changes nothing | PASS | Q3 2028 EBITDA equal |
-| 47 | Window 2: all building -$3.00; half 0; none +$1.50; overbuilding costs twice what restraint earns | PASS | -3.00 / 0 / +1.50 |
-| 48 | Worst case (the cut holds and everyone built): Gulf Coast margin $13.60 | PASS | 13.60 |
-| 49 | Putting the Halden name on a station costs $79,070 (a $340M programme over 4,300 sites) | PASS | $79,069.77 |
-| 50 | At a $0.42 shop margin the rebrand earns -$15.0M a year in the heartland, +$7.6M on the Gulf Coast, +$15.1M on the Southeast edge | PASS | core -14.985, gulf 7.560, edge 15.120 |
-| 51 | Paybacks: Southeast edge 5.5 years, Gulf Coast 14.6; both together 8.5 years on $193.7M; all three regions earn only $7.7M a year | PASS | edge 5.49, gulf 14.64, both 8.54; all three 7.695/yr |
-| 52 | After a price war (shop margin $0.38) the same rebrand takes 9.4 years to pay back | PASS | 9.44 years |
-| 53 | Rebranding the Southeast edge costs $83.0M of capital now (added back in the score) and pays $3.78M a quarter in the shop from the next quarter | PASS | outlay 83.02, then 3.780 a quarter, charged once |
-| 54 | Window 3 lands: a class that fought a price war earns less in the shops than one that held its prices | PASS | 161.6 < 178.6 < 191.3 |
-| 55 | Demand falls 1.05% for gasoline, 2.55% for diesel and 4.8% for jet when the economy shrinks 3% | PASS | gasoline -1.05%, diesel -2.55%, jet -4.80% |
-| 56 | Runs fall 1.99% at Baton Rouge, 2.23% at Rotterdam and 2.62% at Singapore (Week 10 package: -1.992, -2.226, -2.622): jet-heavy plants fall furthest | PASS | br -1.99%, rot -2.23%, sg -2.62% |
-| 57 | In the recession quarter Baton Rouge runs 1.99% below what the team asked for, Singapore 2.62% | PASS | throughput cut; the accepted request itself unchanged |
-| 58 | Marcus has cover after a crude price at cost or well below market (46.20), none after market or near-market (70) | PASS | cost yes, 46.20 yes, market no, 70 no |
-| 59 | With cover, a cut from 96% to 90% is only half delivered (93%); without it, the cut lands; a cut outside the recession is never resisted | PASS | 93% vs 90% |
-| 60 | Asking Singapore for 100% in two of the last four quarters strains the partnership; once does not | PASS | 2 of 4 yes, 1 of 4 no |
-| 61 | A strained Straits Pacific runs Singapore at 80% in the recession whatever Halden asks; a cooperative one honours the request | PASS | 80 vs 90; no effect outside the recession |
-| 62 | Rotterdam sits just above its shutdown point in the recession: running still beats pausing, barely | PASS | margin 2.90 vs shutdown point 2.60 |
-| 63 | Kessana valuation reproduces the Week 11 package: profit oil $67, annuity 5.2161, staying worth $4,515M at 62%, $3,802M at 68%, $3,089M at 74%, $2,376M at 80% | PASS | current 4515.28, mid 3802.34, demanded 3089.40, harsh 2376.46 |
-| 64 | Staying beats the $180M exit at every take on the grid, including 80%, and falls as the take rises | PASS | worst case 2376 vs exit 180 |
-| 65 | On economics alone the government could push the take to 98.5% before Halden walks (package 0.984851); sunk capital never enters | PASS | 0.9849 |
-| 66 | The 74% demand sits inside the range of comparable fiscal terms (50% to 85%) | PASS | 0.50-0.85 |
-| 67 | At $68 oil the bigger share shows as its own line: signing at 74% costs $100M a quarter, settling at 68% $50M, a called bluff at 80% $150M | PASS | accept -100.2, counter -50.1, threaten -150.3 |
-| 68 | Leaving Kessana ends the line, pays $180M off the debt and takes the $2,300M book value off capital employed; the write-down never touches EBITDA | PASS | EBITDA loses 317.3; net debt 19222.3 vs 19180.2 |
-| 69 | The settled take carries into every later quarter, and the position only acts in the quarter the government asks | PASS | 0.68 carried; 0.62 outside Q3 2029 |
-| 70 | Over ten years signing at 74% is worth $2,909M more than leaving, and settling at 68% another $713M on top | PASS | 2909.4; 712.9 |
-| 71 | Project values across the nine worlds reproduce the Week 12 package (Helix at Rotterdam -180 to +308, Permian +220 to -126, biofuels -40 to +136, wind -90 to +120, selling Europe -60 to +102) | PASS | helix_rotterdam -180..308; permian_expansion -126..220; biofuel_conversion -40..136; offshore_wind -90..120; euro_retail_divest -60..102 |
-| 72 | Every project swings sign across the worlds: there is no portfolio that wins everywhere | PASS | Permian wins when carbon stays cheap and demand holds; Helix at Rotterdam wins when carbon is dear and demand collapses |
-| 73 | After the $600M sustaining floor, $1,200M is free; 17 sets of projects can be funded, 3 of them with Helix at Rotterdam, and 2 only because the European stations are sold | PASS | 17 fundable, 3 with Helix at Rotterdam, 2 unlocked by the sale |
-| 74 | The full transition bet (Helix at Rotterdam plus offshore wind, $1,750M) is affordable only with the $550M from selling the European stations; Helix and biofuels together break the $1,200M adjacent ceiling | PASS | envelope; ok with the sale; adjacent ceiling |
-| 75 | A closed Rotterdam cannot be converted to biofuels (the Q3 2027 call reaches Q4 2029) | PASS | 10 fundable sets with Rotterdam closed |
-| 76 | Selling the European stations brings $550M in now (off the debt, not into EBITDA) and the stations' line is gone from the next quarter, with Europe's share of the retail fixed cost | PASS | next quarter Europe 82.3 -> 0; fixed -60.0 -> -47.8 |
-| 77 | Helix at Rotterdam's $1,200M goes out evenly over five years from the quarter after the go-ahead ($60M a quarter, added back in the score); nothing goes out in the go-ahead quarter | PASS | 60 a quarter |
-| 78 | Outside Q4 2029 the portfolio page does nothing | PASS | same net debt |
-| 79 | The union's 8% costs $33.6M a year gross and $7.39M after Norway's 78% tax: the concession costs Halden 22% of its face value (Week 13 package) | PASS | 33.6 gross, 7.392 after tax |
-| 80 | A marginal Permian worker earns Halden $507.6k a year against a $145k wage (3.5 times): Halden takes the market wage and competes on keeping people | PASS | 507.6k, 3.5007x |
-| 81 | The turnaround costs $81M at the contractor peak now, or an expected $78M off-peak next quarter (60 plus a 12% chance of a $150M breakdown): a $3M saving, within 5%, for three points of plant condition | PASS | 81 vs 78 |
-| 82 | Accepting the 8% costs $8.4M a quarter on the Norway line and $1.85M after the tax shield; nothing stops | PASS | wages -8.40; after tax 1.848 |
-| 83 | Refusing brings a two-week stoppage on the operated fields and the union's 8% anyway by arbitration; half brings a one-week stoppage and 4%: both cost more than accepting, even after tax | PASS | stoppage refuse -181.5, half -90.8 |
-| 84 | The settled raise stays on the wage bill in every later quarter; outside Q1 2030 the answer changes nothing | PASS | 8.4 a quarter carried |
-| 85 | Doing the turnaround now costs $81M under Refineries this quarter; waiting costs nothing now, three points of plant condition, then $60M next quarter, or $210M if the plant breaks down first | PASS | now -81; later -60 / -210 |
-| 86 | The world the portfolio is valued in is drawn from nine futures whose odds add up to one (carbon 30/45/25, demand 45/35/20); the likeliest is pricier carbon with a slow decline | PASS | mid:slow |
-| 87 | A set of projects is valued in the drawn world as the sum of its projects' values there: Helix at Rotterdam plus wind plus the sale is worth -$330M if carbon stays cheap and demand holds, +$530M if carbon is dear and demand collapses | PASS | -330 / +530 |
-| 88 | In the board quarter every page carries and the one-time answers do nothing new: the delayed turnaround's crews come ($60M), the raise stays, no new stoppage | PASS | 60; 8.4; 0 |
-| 89 | Score order careful > average > careless in all fourteen quarters | PASS | Q1: 88.1 / 82.2 / 12.2; Q2: 89.2 / 80.8 / 11.2; Q3: 92.2 / 84.6 / 7.8; Q4: 92.3 / 86.1 / 7.7; Q5: 90.4 / 84.9 / 9.3; Q6: 89.1 / 88.7 / 8.6; Q7: 90.9 / 83.3 / 9.0; Q8: 91.0 / 79.4 / 8.9; Q9: 91.2 / 83.3 / 8.7; Q10: 94.4 / 68.2 / 9.0; Q11: 94.9 / 79.4 / 8.7; Q12: 95.0 / 78.4 / 8.7; Q13: 95.1 / 77.9 / 8.7; Q14: 95.1 / 72.4 / 8.7 |
-| 90 | Fixtures rebuild identically | PASS | f32de9e9126eed08 |
+| 34 | A paused project pays nothing that quarter, costs the cost of capital on its outlay, and its clock stops | PASS | -$13.60M; age stays 0 |
+| 35 | Resuming picks up where it left off: year one's quarter, and no second outlay | PASS | 39.60 |
+| 36 | A cancelled project stops paying for good, gets nothing back, keeps its outlay in capital employed, and cannot be restarted | PASS | capital employed unchanged at 63757 |
+| 37 | Holding price against the rival's cut costs under a twentieth of matching it, in every Cordell market | PASS | urban: hold 0.19 vs match 21.3; suburban: hold 0.12 vs match 24.8; rural: hold 0.02 vs match 14.2; interstate: hold 0.04 vs match 10.6 ($M a quarter) |
+| 38 | Matching everywhere costs 6c on every Cordell gallon and shows as its own line | PASS | -70.95 |
+| 39 | Before the rival moves, the answer levers change nothing | PASS | Q2 2028 EBITDA equal |
+| 40 | Capacity game: at a 70% chance the rival builds, holding (-$28M a year) beats matching (-$80M); breakeven is 37.5% | PASS | hold -28, match -80, breakeven 0.375 |
+| 41 | Once the rival builds, holding costs $10M a quarter and matching $35M, under Refineries | PASS | -10 / -35; 0 before it builds |
+| 42 | Window 3 reproduces the ledger: a price war 0.38, base 0.42, disciplined 0.45 a fill, bounded within 15% of base | PASS | 0.38 / 0.42 / 0.45; floor 0.357 at full aggression |
+| 43 | A team that matches in two of four Cordell markets is half aggressive | PASS | 0.5 |
+| 44 | Expected WTI across the three OPEC+ outcomes is $80.70 from a $74 start | PASS | 80.70 |
+| 45 | Outcomes: the cut holds WTI 88 / margin 16.60; partly holds 81 / 19.05; fails 70 / 22.90 (crack -0.35 a dollar, Window 2 at pivot) | PASS | 88/16.60, 81/19.05, 70/22.90 |
+| 46 | Integration conflict: when the cut holds, the oil fields earn more and Baton Rouge earns less than when it fails | PASS | Permian 935 vs 703; Baton Rouge 700 vs 987 |
+| 47 | Drivers barely react: a $14 crude rise moves station volume -0.31% | PASS | -0.3125% |
+| 48 | Planning for the cut to hold buys 30 days of Baton Rouge crude ahead: +$210M if it holds, -$60M if it fails, less $24M of interest either way | PASS | +209.7 / -59.9; carry 23.5; planning for failure buys nothing |
+| 49 | Outside the OPEC+ quarter the planning case changes nothing | PASS | Q3 2028 EBITDA equal |
+| 50 | Window 2: all building -$3.00; half 0; none +$1.50; overbuilding costs twice what restraint earns | PASS | -3.00 / 0 / +1.50 |
+| 51 | Worst case (the cut holds and everyone built): Gulf Coast margin $13.60 | PASS | 13.60 |
+| 52 | Putting the Halden name on a station costs $79,070 (a $340M programme over 4,300 sites) | PASS | $79,069.77 |
+| 53 | At a $0.42 shop margin the rebrand earns -$15.0M a year in the heartland, +$7.6M on the Gulf Coast, +$15.1M on the Southeast edge | PASS | core -14.985, gulf 7.560, edge 15.120 |
+| 54 | Paybacks: Southeast edge 5.5 years, Gulf Coast 14.6; both together 8.5 years on $193.7M; all three regions earn only $7.7M a year | PASS | edge 5.49, gulf 14.64, both 8.54; all three 7.695/yr |
+| 55 | After a price war (shop margin $0.38) the same rebrand takes 9.4 years to pay back | PASS | 9.44 years |
+| 56 | Rebranding the Southeast edge costs $83.0M of capital now (added back in the score) and pays $3.78M a quarter in the shop from the next quarter | PASS | outlay 83.02, then 3.780 a quarter, charged once |
+| 57 | Window 3 lands: a class that fought a price war earns less in the shops than one that held its prices | PASS | 161.6 < 178.6 < 191.3 |
+| 58 | Demand falls 1.05% for gasoline, 2.55% for diesel and 4.8% for jet when the economy shrinks 3% | PASS | gasoline -1.05%, diesel -2.55%, jet -4.80% |
+| 59 | Runs fall 1.99% at Baton Rouge, 2.23% at Rotterdam and 2.62% at Singapore (Week 10 package: -1.992, -2.226, -2.622): jet-heavy plants fall furthest | PASS | br -1.99%, rot -2.23%, sg -2.62% |
+| 60 | In the recession quarter Baton Rouge runs 1.99% below what the team asked for, Singapore 2.62% | PASS | throughput cut; the accepted request itself unchanged |
+| 61 | Marcus has cover after a crude price at cost or well below market (46.20), none after market or near-market (70) | PASS | cost yes, 46.20 yes, market no, 70 no |
+| 62 | With cover, a cut from 96% to 90% is only half delivered (93%); without it, the cut lands; a cut outside the recession is never resisted | PASS | 93% vs 90% |
+| 63 | Asking Singapore for 100% in two of the last four quarters strains the partnership; once does not | PASS | 2 of 4 yes, 1 of 4 no |
+| 64 | A strained Straits Pacific runs Singapore at 80% in the recession whatever Halden asks; a cooperative one honours the request | PASS | 80 vs 90; no effect outside the recession |
+| 65 | Rotterdam sits just above its shutdown point in the recession: running still beats pausing, barely | PASS | margin 2.90 vs shutdown point 2.60 |
+| 66 | Kessana valuation reproduces the Week 11 package: profit oil $67, annuity 5.2161, staying worth $4,515M at 62%, $3,802M at 68%, $3,089M at 74%, $2,376M at 80% | PASS | current 4515.28, mid 3802.34, demanded 3089.40, harsh 2376.46 |
+| 67 | Staying beats the $180M exit at every take on the grid, including 80%, and falls as the take rises | PASS | worst case 2376 vs exit 180 |
+| 68 | On economics alone the government could push the take to 98.5% before Halden walks (package 0.984851); sunk capital never enters | PASS | 0.9849 |
+| 69 | The 74% demand sits inside the range of comparable fiscal terms (50% to 85%) | PASS | 0.50-0.85 |
+| 70 | At $68 oil the bigger share shows as its own line: signing at 74% costs $100M a quarter, settling at 68% $50M, a called bluff at 80% $150M | PASS | accept -100.2, counter -50.1, threaten -150.3 |
+| 71 | Leaving Kessana ends the line, pays $180M off the debt and takes the $2,300M book value off capital employed; the write-down never touches EBITDA | PASS | EBITDA loses 317.3; net debt 19222.3 vs 19180.2 |
+| 72 | The settled take carries into every later quarter, and the position only acts in the quarter the government asks | PASS | 0.68 carried; 0.62 outside Q3 2029 |
+| 73 | Over ten years signing at 74% is worth $2,909M more than leaving, and settling at 68% another $713M on top | PASS | 2909.4; 712.9 |
+| 74 | Project values across the nine worlds reproduce the Week 12 package (Helix at Rotterdam -180 to +308, Permian +220 to -126, biofuels -40 to +136, wind -90 to +120, selling Europe -60 to +102) | PASS | helix_rotterdam -180..308; permian_expansion -126..220; biofuel_conversion -40..136; offshore_wind -90..120; euro_retail_divest -60..102 |
+| 75 | Every project swings sign across the worlds: there is no portfolio that wins everywhere | PASS | Permian wins when carbon stays cheap and demand holds; Helix at Rotterdam wins when carbon is dear and demand collapses |
+| 76 | After the $600M sustaining floor, $1,200M is free; 17 sets of projects can be funded, 3 of them with Helix at Rotterdam, and 2 only because the European stations are sold | PASS | 17 fundable, 3 with Helix at Rotterdam, 2 unlocked by the sale |
+| 77 | The full transition bet (Helix at Rotterdam plus offshore wind, $1,750M) is affordable only with the $550M from selling the European stations; Helix and biofuels together break the $1,200M adjacent ceiling | PASS | envelope; ok with the sale; adjacent ceiling |
+| 78 | A closed Rotterdam cannot be converted to biofuels (the Q3 2027 call reaches Q4 2029) | PASS | 10 fundable sets with Rotterdam closed |
+| 79 | Selling the European stations brings $550M in now (off the debt, not into EBITDA) and the stations' line is gone from the next quarter, with Europe's share of the retail fixed cost | PASS | next quarter Europe 82.3 -> 0; fixed -60.0 -> -47.8 |
+| 80 | Helix at Rotterdam's $1,200M goes out evenly over five years from the quarter after the go-ahead ($60M a quarter, added back in the score); nothing goes out in the go-ahead quarter | PASS | 60 a quarter |
+| 81 | Outside Q4 2029 the portfolio page does nothing | PASS | same net debt |
+| 82 | The union's 8% costs $33.6M a year gross and $7.39M after Norway's 78% tax: the concession costs Halden 22% of its face value (Week 13 package) | PASS | 33.6 gross, 7.392 after tax |
+| 83 | A marginal Permian worker earns Halden $507.6k a year against a $145k wage (3.5 times): Halden takes the market wage and competes on keeping people | PASS | 507.6k, 3.5007x |
+| 84 | The turnaround costs $81M at the contractor peak now, or an expected $78M off-peak next quarter (60 plus a 12% chance of a $150M breakdown): a $3M saving, within 5%, for three points of plant condition | PASS | 81 vs 78 |
+| 85 | Accepting the 8% costs $8.4M a quarter on the Norway line and $1.85M after the tax shield; nothing stops | PASS | wages -8.40; after tax 1.848 |
+| 86 | Refusing brings a two-week stoppage on the operated fields and the union's 8% anyway by arbitration; half brings a one-week stoppage and 4%: both cost more than accepting, even after tax | PASS | stoppage refuse -181.5, half -90.8 |
+| 87 | The settled raise stays on the wage bill in every later quarter; outside Q1 2030 the answer changes nothing | PASS | 8.4 a quarter carried |
+| 88 | Doing the turnaround now costs $81M under Refineries this quarter; waiting costs nothing now, three points of plant condition, then $60M next quarter, or $210M if the plant breaks down first | PASS | now -81; later -60 / -210 |
+| 89 | The world the portfolio is valued in is drawn from nine futures whose odds add up to one (carbon 30/45/25, demand 45/35/20); the likeliest is pricier carbon with a slow decline | PASS | mid:slow |
+| 90 | A set of projects is valued in the drawn world as the sum of its projects' values there: Helix at Rotterdam plus wind plus the sale is worth -$330M if carbon stays cheap and demand holds, +$530M if carbon is dear and demand collapses | PASS | -330 / +530 |
+| 91 | In the board quarter every page carries and the one-time answers do nothing new: the delayed turnaround's crews come ($60M), the raise stays, no new stoppage | PASS | 60; 8.4; 0 |
+| 92 | Score order careful > average > careless in all fourteen quarters | PASS | Q1: 88.1 / 82.2 / 12.2; Q2: 89.2 / 80.8 / 11.2; Q3: 92.2 / 84.6 / 7.8; Q4: 92.3 / 86.1 / 7.7; Q5: 90.4 / 84.9 / 9.3; Q6: 89.1 / 88.7 / 8.6; Q7: 90.9 / 83.3 / 9.0; Q8: 91.0 / 79.4 / 8.9; Q9: 91.2 / 83.3 / 8.7; Q10: 94.4 / 68.2 / 9.0; Q11: 94.9 / 79.4 / 8.7; Q12: 95.0 / 78.4 / 8.7; Q13: 95.1 / 77.9 / 8.7; Q14: 95.1 / 72.4 / 8.7 |
+| 93 | Fixtures rebuild identically | PASS | e14b74c5fe687503 |

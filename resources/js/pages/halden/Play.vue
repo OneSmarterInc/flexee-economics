@@ -136,6 +136,33 @@ function fmt(v: number, digits = 0): string {
     });
 }
 
+function pickProject(
+    key: string,
+    choice: string,
+    label: string,
+    outlay: number,
+) {
+    if (
+        choice === 'cancel' &&
+        !window.confirm(
+            `Cancel ${label} for good? The $${fmt(outlay)}M stays spent and it can't be restarted.`,
+        )
+    ) {
+        return;
+    }
+    draft[`proj_${key}`] = choice;
+}
+
+function fill(
+    text: string | undefined,
+    values: Record<string, string>,
+): string {
+    return Object.entries(values).reduce(
+        (t, [k, v]) => t.replaceAll(`{${k}}`, v),
+        text ?? '',
+    );
+}
+
 function money(m: number): string {
     const sign = m < 0 ? '−' : '';
 
@@ -2522,21 +2549,81 @@ function quarterHref(id: number): string {
                             <div class="hx-hint mt-1 mb-3">
                                 {{ leverText.help[`proj_${pr.key}`] }}
                             </div>
-                            <div
+                            <template
                                 v-if="
                                     desk.capital.committedBefore.includes(
                                         pr.key,
                                     )
                                 "
-                                class="font-semibold"
-                                style="color: var(--hx-teal)"
                             >
-                                {{
-                                    desk.portfolio
-                                        ? leverText.portfolio.under_way
-                                        : "Committed. It's under way."
-                                }}
-                            </div>
+                                <div
+                                    class="font-semibold"
+                                    :style="
+                                        pr.was === 'cancel'
+                                            ? 'color: var(--hx-amber-text)'
+                                            : 'color: var(--hx-teal)'
+                                    "
+                                >
+                                    {{
+                                        pr.was === 'cancel'
+                                            ? fill(
+                                                  leverText.pages.capital
+                                                      .cancelled,
+                                                  { outlay: fmt(pr.outlay) },
+                                              )
+                                            : pr.was === 'pause'
+                                              ? fill(
+                                                    leverText.pages.capital
+                                                        .paused,
+                                                    {
+                                                        cost: fmt(
+                                                            pr.pauseCost,
+                                                            1,
+                                                        ),
+                                                    },
+                                                )
+                                              : desk.portfolio
+                                                ? leverText.portfolio.under_way
+                                                : leverText.pages.capital
+                                                      .under_way
+                                    }}
+                                </div>
+                                <div
+                                    v-if="
+                                        pr.was !== 'cancel' &&
+                                        isOpenLever(`proj_${pr.key}`)
+                                    "
+                                    class="mt-2 flex flex-wrap gap-2.5"
+                                >
+                                    <button
+                                        v-for="(label, choice) in leverText
+                                            .choices.project_under_way"
+                                        :key="choice"
+                                        type="button"
+                                        class="hx-opt"
+                                        :aria-pressed="
+                                            draft[`proj_${pr.key}`] === choice
+                                        "
+                                        :disabled="!editable"
+                                        @click="
+                                            pickProject(
+                                                pr.key,
+                                                String(choice),
+                                                pr.label,
+                                                pr.outlay,
+                                            )
+                                        "
+                                    >
+                                        {{ label }}
+                                    </button>
+                                    <span class="hx-hint self-center">{{
+                                        fill(
+                                            leverText.pages.capital.pause_note,
+                                            { cost: fmt(pr.pauseCost, 1) },
+                                        )
+                                    }}</span>
+                                </div>
+                            </template>
                             <div
                                 v-else-if="!isOpenLever(`proj_${pr.key}`)"
                                 class="hx-hint"

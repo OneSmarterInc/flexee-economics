@@ -29,7 +29,11 @@
     },
     "capital": {
       "title": "Big projects",
-      "intro": "Each project costs its full price now and pays back over about ten years. Once you go ahead with one, there's no turning back. Ingrid takes them to the board, and the board caps what she can spend this quarter."
+      "intro": "Each project costs its full price now and pays back over about ten years. Once you go ahead with one, the money is spent: you can pause it (the clock stops, and Halden pays the cost of capital on the money for the quarter) or cancel it (nothing comes back), but you can't un-spend it. Ingrid takes them to the board, and the board caps what she can spend this quarter.",
+      "under_way": "Under way.",
+      "paused": "Paused. It picks up where it left off when you set it going again; pausing costs ${cost}M a quarter.",
+      "cancelled": "Cancelled. Its ${outlay}M stays on the books, and it can't be restarted.",
+      "pause_note": "Pausing costs ${cost}M this quarter. Cancelling can't be undone."
     }
   },
   "help": {
@@ -112,6 +116,11 @@
     "turnaround": {
       "now": "Do it now, at peak rates",
       "wait": "Wait for off-peak rates next quarter"
+    },
+    "project_under_way": {
+      "commit": "Keep going",
+      "pause": "Pause this quarter",
+      "cancel": "Cancel for good"
     }
   },
   "badges": {

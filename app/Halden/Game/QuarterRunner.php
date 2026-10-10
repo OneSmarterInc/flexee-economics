@@ -386,6 +386,9 @@ final class QuarterRunner
         if ($quarter->event_outcome === 'outage') {
             $m['outage'] = true;
         }
+        if ($quarter->company_quarter >= '2028Q2') {   // the class's cost of capital (Window 2), charged on a paused project
+            $m['capital_rate'] = $this->capitalTerms($quarter)['rate'];
+        }
         if (str_starts_with($quarter->company_quarter, '2029')) {   // Window 3 lands for all of 2029
             $aggression = $this->classAggression($quarter);
             if ($aggression !== null) {

@@ -183,7 +183,13 @@ export interface PlayProps {
         capital: {
             envelope: number;
             rate: number;
-            projects: { key: string; label: string; outlay: number }[];
+            projects: {
+                key: string;
+                label: string;
+                outlay: number;
+                was: string;
+                pauseCost: number;
+            }[];
             committedBefore: string[];
             capacityMatchedBefore: boolean;
         } | null;
@@ -326,6 +332,10 @@ export interface LeverText {
             intro: string;
             rival?: { title: string; intro: string; means: string };
             rebrand?: { title: string; intro: string; means: string };
+            under_way?: string;
+            paused?: string;
+            cancelled?: string;
+            pause_note?: string;
         }
     >;
     help: Record<string, string>;

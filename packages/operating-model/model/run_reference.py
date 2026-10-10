@@ -199,7 +199,7 @@ def main():
                 rows.append((team, q, f"kpi.{k}", v))
             for k in ("tp", "market_tp", "cost_tp", "permian_prod", "br_throughput", "rot_throughput", "sg_accepted", "fx_effect", "project_outlay", "nwe",
                       "rival_match_cost", "rival_ignore_cost", "wti_shock", "gc", "wti", "rebrand_outlay", "nonfuel_per_gal", "br_run",
-                      "kessana_take", "kessana_exit_proceeds", "kessana_forgone", "portfolio_capex", "divest_proceeds", "carbon",
+                      "kessana_take", "kessana_exit_proceeds", "kessana_forgone", "portfolio_capex", "divest_proceeds", "carbon", "project_pause_cost",
                       "norway_wage_uplift", "norway_stoppage_weeks", "norway_tax_shield", "turnaround_pending"):
                 rows.append((team, q, f"ops.{k}", ops[k]))
             rows.append((team, q, "score.composite", scores[team]))
@@ -220,7 +220,7 @@ def main():
                                "capital_employed": st.capital_employed, "net_debt": st.net_debt, "asset_health": st.asset_health,
                                "europe_volume_factor": st.europe_volume_factor,
                                "held_up": json.dumps(st.held_up, sort_keys=True), "held_down": json.dumps(st.held_down, sort_keys=True),
-                               "hedges": json.dumps(st.hedges, sort_keys=True), "projects": json.dumps(st.projects, sort_keys=True),
+                               "hedges": json.dumps(st.hedges, sort_keys=True), "projects": json.dumps(st.projects, sort_keys=True), "cancelled": json.dumps(st.cancelled),
                                "rebranded": json.dumps(st.rebranded, sort_keys=True), "prev_br_run": st.prev_br_run,
                                "kessana_take": st.kessana_take, "kessana_exited": int(st.kessana_exited),
                                "portfolio": json.dumps(st.portfolio, sort_keys=True), "europe_sold": int(st.europe_sold),

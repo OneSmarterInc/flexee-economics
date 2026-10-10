@@ -173,7 +173,7 @@ class Decisions:
     eur_hedge: float = 0.0         # USD m of euros sold forward for next quarter
     nok_hedge: float = 0.0         # USD m of kroner bought forward for next quarter
     sgd_hedge: float = 0.0         # USD m of Singapore dollars sold forward for next quarter
-    projects: dict = field(default_factory=dict)  # project key -> "commit" | "hold"
+    projects: dict = field(default_factory=dict)  # project key -> "hold" | "commit" | "pause" | "cancel" (pause and cancel act on a project under way)
     responses: dict = field(default_factory=dict)  # Cordell cluster -> "ignore" | "match" the rival's street cut
     capacity_response: str = "hold"  # hold | match the rival's Gulf Coast expansion
     opec_case: str = "fails"       # fails | partial | full: the OPEC+ outcome Geneva plans for (sets crude bought ahead)
@@ -199,7 +199,8 @@ class State:
     held_up: dict = field(default_factory=dict)    # consecutive quarters each price held above base
     held_down: dict = field(default_factory=dict)  # consecutive quarters each price held below base
     hedges: dict = field(default_factory=dict)     # hedges opened last quarter, settled this quarter
-    projects: dict = field(default_factory=dict)   # committed project key -> quarters since commitment
+    projects: dict = field(default_factory=dict)   # committed project key -> quarters since commitment (a paused quarter does not count)
+    cancelled: list = field(default_factory=list)  # projects cancelled after going ahead: their cash flows stopped; the outlay stays on the books
     rebranded: dict = field(default_factory=dict)  # rebranded region -> quarters since the rebrand
     prev_br_run: float = 96.0                      # how hard Baton Rouge ran last quarter (a run cut in a recession can be resisted)
     kessana_take: float = 0.62                     # the government's share of Kessana profit oil (opening_state sets it from the data)
@@ -601,10 +602,27 @@ def step(state: State, dec: Decisions, mkt: dict):
     lines["singapore"] = sg_tp * (mkt["sg"] + C["sg_complexity"] - C["sg_opex"]) * D / 1e6 * sgd_f
     # Projects committed in earlier quarters pay a quarter of each year's cash flow, cut to what such
     # projects really deliver. A Rotterdam project stops if Rotterdam closes.
+    # A project under way can be paused (its clock stops for the quarter and Halden pays the cost of capital on the
+    # outlay) or cancelled (its cash flows stop for good; nothing comes back, and the outlay stays in capital employed).
     proj_age = {}
     proj_lines = {"refineries": 0.0, "oil_fields": 0.0}
+    cancelled = list(state.cancelled)
+    pause_cost = 0.0
+    capital_rate = mkt.get("capital_rate", capital_terms(0.5)["rate"])
     for key, age in state.projects.items():
         p = PROJECTS[key]
+        choice = dec.projects.get(key, "commit")
+        if choice == "cancel":
+            cancelled.append(key)
+            notes.setdefault("projects_cancelled", []).append(key)
+            continue
+        if choice == "pause":
+            proj_age[key] = age
+            charge = p["outlay"] * capital_rate / 4
+            proj_lines[p["segment"]] -= charge
+            pause_cost += charge
+            notes.setdefault("projects_paused", []).append(key)
+            continue
         age = age + 1
         proj_age[key] = age
         year = (age - 1) // 4 + 1
@@ -613,7 +631,7 @@ def step(state: State, dec: Decisions, mkt: dict):
         proj_lines[p["segment"]] += p["cf"][year - 1] * p["haircut"] / 4
     commit_outlay = 0.0
     for key, choice in dec.projects.items():
-        if choice == "commit" and key not in state.projects:
+        if choice == "commit" and key not in state.projects and key not in cancelled:
             proj_age[key] = 0
             commit_outlay += PROJECTS[key]["outlay"]
     lines["projects_refining"] = proj_lines["refineries"]
@@ -835,14 +853,14 @@ def step(state: State, dec: Decisions, mkt: dict):
     new_state = State(permian_prod=next_prod, prev_rigs=dec.rigs, rot_status=rot_status,
                       capital_employed=new_ce, net_debt=new_nd, asset_health=health,
                       europe_volume_factor=eu_factor, held_up=held_up, held_down=held_down,
-                      hedges=new_hedges, projects=proj_age, rebranded=rebrand_age, prev_br_run=br_run,
+                      hedges=new_hedges, projects=proj_age, cancelled=cancelled, rebranded=rebrand_age, prev_br_run=br_run,
                       kessana_take=kes_take, kessana_exited=kes_exited, portfolio=portfolio_age, europe_sold=europe_sold,
                       norway_wage_uplift=wage_uplift, turnaround_pending=turnaround_pending)
     money = {"ebitda": ebitda, "da": da, "tax": tax, "capex": capex, "fcf": fcf,
              "capital_employed_end": new_ce, "net_debt_end": new_nd}
     ops = {"tp": tp, "market_tp": market_tp, "cost_tp": cost_tp, "permian_prod": prod,
            "br_throughput": br_tp_bbl, "rot_throughput": rot_tp, "sg_accepted": sg_run, "rot_status": rot_status,
-           "fx_effect": fx_effect, "project_outlay": commit_outlay, "nwe": mkt["nwe"],
+           "fx_effect": fx_effect, "project_outlay": commit_outlay, "project_pause_cost": pause_cost, "nwe": mkt["nwe"],
            "rival_match_cost": match_cost / 1e6, "rival_ignore_cost": ignore_cost / 1e6,
            "wti_shock": shock, "gc": mkt["gc"], "wti": wti, "rebrand_outlay": rebrand_outlay,
            "nonfuel_per_gal": nonfuel_per_gal, "br_run": br_run,
