@@ -1,0 +1,8 @@
+parameter,value,note
+economy_change,-0.03,how far the economy shrinks this year
+oil_price_usd_bbl,62.0,last quarter 79.0
+gulf_coast_margin_usd_bbl,17.5,last quarter 20.8
+european_margin_usd_bbl,2.9,last quarter 4.8
+asian_margin_usd_bbl,9.8,last quarter 12.3
+rotterdam_shutdown_point_usd_bbl,2.6,"below this, pausing Rotterdam beats running it"
+rotterdam_restart_cost_musd,85.0,what it costs to restart after a pause

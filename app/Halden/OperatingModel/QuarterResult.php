@@ -42,7 +42,7 @@ final class QuarterResult
         foreach ($this->kpi as $k => $v) {
             $out["kpi.$k"] = $v;
         }
-        foreach (['tp', 'market_tp', 'cost_tp', 'permian_prod', 'br_throughput', 'rot_throughput', 'sg_accepted', 'fx_effect', 'project_outlay', 'nwe', 'rival_match_cost', 'rival_ignore_cost', 'wti_shock', 'gc', 'wti', 'rebrand_outlay', 'nonfuel_per_gal'] as $k) {
+        foreach (['tp', 'market_tp', 'cost_tp', 'permian_prod', 'br_throughput', 'rot_throughput', 'sg_accepted', 'fx_effect', 'project_outlay', 'nwe', 'rival_match_cost', 'rival_ignore_cost', 'wti_shock', 'gc', 'wti', 'rebrand_outlay', 'nonfuel_per_gal', 'br_run'] as $k) {
             $out["ops.$k"] = (float) $this->ops[$k];
         }
 

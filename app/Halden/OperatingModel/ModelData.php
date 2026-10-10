@@ -34,6 +34,12 @@ final class ModelData
     /** @var array<string, array{label: string, equity: string, sites: float, keep: float, halden: float}> Cordell regions by what the name is worth */
     public readonly array $rebrand;
 
+    /** @var array<string, float> product => income elasticity */
+    public readonly array $elasticity;
+
+    /** @var array<string, array<string, float>> refinery => product => yield */
+    public readonly array $yields;
+
     /** @var list<array{key: string, label: string, share: float, e: float, pt: float, base: float}> */
     public readonly array $europe;
 
@@ -67,6 +73,7 @@ final class ModelData
             'rival_cut' => (float) ($r['rival_cut'] ?? 0),
             'rival_builds' => ($r['rival_builds'] ?? '0') === '1',
             'opec' => ($r['opec'] ?? '0') === '1',
+            'recession' => ($r['recession'] ?? '0') === '1',
         ], self::csv("$root/data/market_path.csv"));
 
         $projects = [];
@@ -98,6 +105,16 @@ final class ModelData
                 'keep' => (float) $r['keep_uplift_per_fill'], 'halden' => (float) $r['halden_benefit_per_fill']];
         }
         $this->rebrand = $rebrand;
+        $el = [];
+        foreach (self::csv("$root/data/product_elasticities.csv") as $r) {
+            $el[$r['product']] = (float) $r['income_elasticity'];
+        }
+        $this->elasticity = $el;
+        $yields = [];
+        foreach (self::csv("$root/data/refinery_yields.csv") as $r) {
+            $yields[$r['refinery']] = ['gasoline' => (float) $r['gasoline'], 'diesel' => (float) $r['diesel'], 'jet' => (float) $r['jet'], 'other' => (float) $r['other']];
+        }
+        $this->yields = $yields;
 
         $this->cordell = self::clusters("$root/data/cordell_clusters.csv", 'cluster');
         $this->europe = self::clusters("$root/data/europe_countries.csv", 'country');

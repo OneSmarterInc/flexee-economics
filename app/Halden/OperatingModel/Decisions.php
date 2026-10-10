@@ -33,6 +33,9 @@ final class Decisions
         public string $capacityResponse = 'hold',  // hold | match the rival's Gulf Coast expansion
         public string $opecCase = 'fails',         // fails | partial | full: the OPEC+ outcome Geneva plans for
         public array $rebrand = [],
+        // Carried from the team's own history, not set on a page (the runner works them out):
+        public bool $delacroixCover = false,       // the Q4 2027 crude price left Baton Rouge reporting strong, so Marcus can resist run cuts
+        public bool $straitsStrained = false,      // the team kept asking Singapore for more than Straits Pacific allows
     ) {}
 
     /** @param  array<string, mixed>  $row  a row shaped like fixtures/reference_decisions.csv */
@@ -64,6 +67,8 @@ final class Decisions
             capacityResponse: (string) ($row['capacity_response'] ?? 'hold'),
             opecCase: (string) ($row['opec_case'] ?? 'fails'),
             rebrand: self::rebrandFromRow($row, $data),
+            delacroixCover: (int) ($row['delacroix_cover'] ?? 0) === 1,
+            straitsStrained: (int) ($row['straits_strained'] ?? 0) === 1,
         );
     }
 

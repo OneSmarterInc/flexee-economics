@@ -1023,5 +1023,122 @@
         ]
       }
     }
+  },
+  "10": {
+    "briefing": {
+      "dateline": "Q2 2029 · Monday 2 April · Houston",
+      "headline": "The economy turns",
+      "paragraphs": [
+        "The recession everyone had been predicting for two years arrived in March. The economy is shrinking about 3% this year. Oil has fallen to $62, every refining margin has narrowed, and Rotterdam's margin is sitting at $2.90 a barrel, a few cents above the point where it's worth pausing.",
+        "People are still driving to work, so gasoline sales are down only about 1%. Freight is down more, and flying has fallen off a cliff: jet fuel demand is down nearly 5%. A refinery that makes a lot of jet fuel is having a worse spring than one that makes mostly gasoline.",
+        "There's no new decision this quarter. Every decision you've already made is the decision. The projects you went ahead with, the hedges you set, the crude price you chose two years ago, how you've treated Straits Pacific, what you spent on crude ahead of Vienna: they all come due at once, and you'll find out which ones left you free to act and which ones tied your hands."
+      ],
+      "question": "With nothing new to decide, how should Halden run through the recession, and which of your earlier choices are helping or hurting now?"
+    },
+    "rule": "The economy shrinks 3% this quarter. Demand falls by product: gasoline about 1%, diesel about 2.5%, jet fuel nearly 5%. Each refinery's runs fall by its product mix: Baton Rouge, which makes mostly gasoline, loses about 2%; Rotterdam about 2.2%; Singapore, which makes a lot of jet fuel, about 2.6%. Fuel sales at the stations fall about 1%. Oil, the margins and the krone have all fallen on the Prices page. Two things from your own history also bite. If the crude price you set in Q4 2027 left Baton Rouge reporting well above target, Marcus has cover to resist a run cut now, and he'll deliver only half of any cut you ask for. If you asked Singapore for more than Straits Pacific allows in two or more of the last four quarters, they'll run it at 80% this quarter whatever you ask. Hedges you set last quarter settle now at this quarter's prices.",
+    "new_pages_note": "Nothing new this quarter. Every page is open, and every number on them is the decision.",
+    "exhibits": [
+      {
+        "title": "How the recession reaches each product, each refinery and the stations, and which of your earlier choices bind now",
+        "file": "q10/halden-q10-recession.xlsx"
+      },
+      {
+        "title": "Python notebook with the same data (optional)",
+        "file": "q10/halden-q10-analysis.ipynb"
+      },
+      {
+        "title": "Data files the notebook reads (unzip them next to it)",
+        "file": "q10/halden-q10-notebook-data.zip"
+      }
+    ],
+    "marchetti": "Oil is at $62, the Gulf Coast margin at $17.50, and Rotterdam's at $2.90, a few cents above its shutdown point. A recession doesn't hit a company evenly. It hits each product by how far people can do without it, and so it hits each refinery by what it makes. Before you set anything, work out where the demand went.",
+    "story": {
+      "band_on": "recession",
+      "bands": [
+        {
+          "key": "room",
+          "title": "Your hands were free",
+          "paragraphs": [
+            "The recession took about 2% off Baton Rouge's runs and nearly 3% off Singapore's, and nobody could do anything about that. What you could do, you did: the plants ran where you set them, Straits Pacific went along with your request, and the hedges you set last quarter settled at {hedges}.",
+            "Marcus and Straits Pacific both did what you asked. Grant called it a quiet quarter, which from Grant is praise."
+          ]
+        },
+        {
+          "key": "bound",
+          "title": "Your earlier choices came due",
+          "paragraphs": [
+            "The recession took about 2% off Baton Rouge's runs and nearly 3% off Singapore's, and nobody could do anything about that. But this quarter also collected on earlier decisions. {binding_lines}",
+            "The hedges you set last quarter settled at {hedges}. Grant read the quarter's numbers and asked which of them you'd chosen and which had chosen you."
+          ]
+        }
+      ],
+      "closing": "Halden made {ebitda} before interest, tax and depreciation, down from last quarter as every margin narrowed. Next quarter, the government of Kessana asks for a bigger share."
+    },
+    "fills": {
+      "{binding_lines}": {
+        "on": "band:binding",
+        "cover": "You asked Marcus to run Baton Rouge slower and he delivered half the cut: with the crude price you set two years ago, his refinery reports a margin he can point to, and he pointed to it.",
+        "partner": "Straits Pacific cut Singapore to 80% without asking you. After the last year of requests, they've stopped treating Halden as a partner who takes no for an answer.",
+        "both": "You asked Marcus to run Baton Rouge slower and he delivered half the cut: with the crude price you set two years ago, his refinery reports a margin he can point to, and he pointed to it. And Straits Pacific cut Singapore to 80% without asking you. After the last year of requests, they've stopped treating Halden as a partner who takes no for an answer.",
+        "none": ""
+      }
+    },
+    "news": [
+      {
+        "title": "Jet fuel leads the way down",
+        "body": "Airlines parked planes in March. Jet fuel demand is down nearly 5%, diesel 2.5%, gasoline barely 1%. Refineries that lean on jet fuel, including Singapore's, are running well below what they'd like; gasoline-heavy Gulf Coast plants are coping."
+      },
+      {
+        "title": "Rotterdam on the edge",
+        "body": "Europe's refining margin fell to $2.90 a barrel this quarter, a few cents above the point where running a plant like Rotterdam stops covering its own costs. Several European refiners paused units. Others are holding on and watching the margin."
+      },
+      {
+        "title": "The krone follows oil down",
+        "body": "With oil at $62, the krone weakened to 11.30 to the dollar. Companies that pay their costs in kroner and sell in dollars, Halden's Norwegian fields among them, got some relief."
+      }
+    ],
+    "relations": {
+      "band_on": "binding",
+      "bands": {
+        "none": [
+          {
+            "who": "Grant Whitaker",
+            "was": "Cooperative",
+            "now": "Supportive",
+            "why": "The company went into the downturn free to act."
+          }
+        ],
+        "cover": [
+          {
+            "who": "Marcus Delacroix",
+            "was": "Cooperative",
+            "now": "Guarded",
+            "why": "You asked him to slow his refinery and he pushed back, with numbers."
+          }
+        ],
+        "partner": [
+          {
+            "who": "Straits Pacific",
+            "was": "Watchful",
+            "now": "Strained",
+            "why": "They ran Singapore the way they wanted, not the way you asked."
+          }
+        ],
+        "both": [
+          {
+            "who": "Marcus Delacroix",
+            "was": "Cooperative",
+            "now": "Guarded",
+            "why": "You asked him to slow his refinery and he pushed back, with numbers."
+          },
+          {
+            "who": "Straits Pacific",
+            "was": "Watchful",
+            "now": "Strained",
+            "why": "They ran Singapore the way they wanted, not the way you asked."
+          }
+        ]
+      }
+    }
   }
 }

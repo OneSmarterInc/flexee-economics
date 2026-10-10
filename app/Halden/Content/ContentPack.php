@@ -196,6 +196,15 @@ final class ContentPack
                 $margin = (float) ($results['ops.nonfuel_per_gal'] ?? 0.42);
 
                 return ['key' => $margin < 0.42 - 0.005 ? 'war' : ($margin > 0.42 + 0.005 ? 'calm' : 'base'), 'value' => $margin];
+            case 'binding':
+                $cover = (float) ($results['history.delacroix_cover'] ?? 0) > 0;
+                $partner = (float) ($results['history.sg_cut_by_partner'] ?? 0) > 0;
+
+                return ['key' => $cover && $partner ? 'both' : ($cover ? 'cover' : ($partner ? 'partner' : 'none')), 'value' => (float) ((int) $cover + (int) $partner)];
+            case 'recession':
+                $bound = $this->band('binding', $results, $decisions, $baseOffsets);
+
+                return ['key' => $bound['key'] === 'none' ? 'room' : 'bound', 'value' => $bound['value']];
             case 'opec':
                 $shock = (float) ($results['ops.wti_shock'] ?? 0);
 

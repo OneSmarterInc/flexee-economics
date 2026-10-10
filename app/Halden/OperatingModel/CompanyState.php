@@ -27,6 +27,7 @@ final class CompanyState
         public array $hedges = [],
         public array $projects = [],
         public array $rebranded = [],
+        public float $prevBrRun = 96.0,    // how hard Baton Rouge ran last quarter (a run cut in a recession can be resisted)
     ) {}
 
     /** @return array<string, mixed> */
@@ -51,6 +52,7 @@ final class CompanyState
             hedges: array_map('floatval', (array) ($a['hedges'] ?? [])),
             projects: array_map('intval', (array) ($a['projects'] ?? [])),
             rebranded: array_map('intval', (array) ($a['rebranded'] ?? [])),
+            prevBrRun: (float) ($a['prevBrRun'] ?? 96.0),
         );
     }
 }

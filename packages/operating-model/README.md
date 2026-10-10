@@ -1,8 +1,8 @@
-# Halden Energy · Quarterly Operating Model · v0.5 (Quarters 1–9)
+# Halden Energy · Quarterly Operating Model · v0.6 (Quarters 1–10)
 
-**What this is:** the economics engine for the quarterly play-through, for Quarters 1–9 (Q1 2027 to Q1 2029) plus the four history quarters of 2026. The Python model in `model/` is the reference. The Laravel engine has to reproduce `fixtures/golden_quarters.csv` (tolerance: relative 1e-6, absolute 1e-4).
+**What this is:** the economics engine for the quarterly play-through, for Quarters 1–10 (Q1 2027 to Q2 2029) plus the four history quarters of 2026. The Python model in `model/` is the reference. The Laravel engine has to reproduce `fixtures/golden_quarters.csv` (tolerance: relative 1e-6, absolute 1e-4).
 
-**Status:** provisional calibration. 55 of 55 validation checks pass (`VALIDATION.md`).
+**Status:** provisional calibration. 63 of 63 validation checks pass (`VALIDATION.md`).
 
 ---
 
@@ -32,7 +32,8 @@
 9. **From Quarter 7: the rival's moves.** A rival cuts street prices 6c a gallon in every Cordell market. Where a team holds its price, drivers drift to the rival by the cluster's elasticity × 6c ÷ $3.20 (a fraction of a percent). Where it matches, Cordell gives up 6c on every gallon there. The rival also announces a Gulf Coast expansion; once it builds (Q4 2028 on), holding costs Halden $40M a year and matching $140M, under Refineries (`data/capacity_game.csv`).
 10. **From Quarter 8: OPEC+.** The quarter opens at pre-decision prices (WTI $74, Gulf Coast margin $21.50). At the close the outcome is drawn (holds in full +$14, 35%; partly holds +$7, 40%; falls apart −$4, 25%) and WTI moves by it; the Gulf Coast margin compresses 35 cents a dollar; station volumes move by −0.05 × 0.60 × the pump change. Geneva buys crude for Baton Rouge ahead of the decision according to the case the team plans for (30, 15 or 0 days), gaining or losing the move and paying 8.5% a year on the money tied up.
 11. **From Quarter 9: the rebrand.** Cordell's 4,300 stations sit in three regions by what the name is worth (`data/rebrand_markets.csv`): Louisiana and Mississippi (1,850 sites, the Cordell name adds 5.5 cents a fill), the Gulf Coast beyond the core (1,400, 1.5 cents) and the Southeast edge (1,050, where it costs half a cent). Putting the Halden name on a region costs $79,070 a site (a $340M programme), paid now as capital like a project, and from the next quarter earns (Halden's pull − Cordell's) × sites × 180,000 fills a year in the shop, scaled by the shop margin the class is living with (Window 3). The heartland loses $15M a year if rebranded; the edge earns $15M and pays back in 5.5 years. A rebrand is permanent.
-12. **Plant condition:** loses 0.5 points for each point Baton Rouge runs above 97%. It loses another 0.5 for each quarter Rotterdam runs below 80%.
+12. **Quarter 10: the recession.** No new decision. The economy shrinks 3%; demand falls by product (gasoline 0.35 × 3%, diesel 0.85 ×, jet 1.60 ×), so each refinery's runs fall by its product mix (Baton Rouge −1.99%, Rotterdam −2.23%, Singapore −2.62%; `data/product_elasticities.csv`, `data/refinery_yields.csv`) and station volumes by the gasoline hit. Oil, every margin and the krone fall on the price path. Two threads from the team's own history bite: Marcus delivers only half of a requested Baton Rouge run cut if the Q4 2027 crude price left his refinery reporting above target (at cost, or well below market), and a Straits Pacific strained by repeated asks above 95% runs Singapore at 80% whatever Halden asks. The runner works both flags out from the team's record.
+13. **Plant condition:** loses 0.5 points for each point Baton Rouge runs above 97%. It loses another 0.5 for each quarter Rotterdam runs below 80%.
 8. **Score:** the seven published measures, weighted 30/15/15/10/10/10/10, each scaled 0–100 from the worst team to the best team in the section. Proposed change S1 applies (see below).
 
 ## What the reference teams show (Q4 2027)
@@ -76,7 +77,7 @@ These are the numbers the quarterly loop needed that the weekly design never fix
 | `data/` | Prices by quarter (with the rival's moves), constants, Cordell clusters, European countries, projects, capital terms by class behaviour, the capacity game, decisions and their on-screen labels |
 | `model/halden_model.py` | The reference model |
 | `model/run_reference.py` | Runs the three reference teams and writes the fixtures |
-| `model/validate.py` | 55 checks; writes `VALIDATION.md` |
+| `model/validate.py` | 63 checks; writes `VALIDATION.md` |
 | `fixtures/golden_quarters.csv` | Every line, segment, money figure, measure, score and rank, by team and quarter |
 | `fixtures/reference_decisions.csv`, `state_after_quarter.csv`, `calibration.json`, `class_effects.json` | Inputs, carried state and class effects for the engine tests |
 | `halden-operating-model-summary.xlsx` | The same results laid out for reading |
@@ -86,4 +87,4 @@ These are the numbers the quarterly loop needed that the weekly design never fix
 
 ## Next
 
-Quarter 10 is the recession, with no new decision: five earlier threads land at once. Quarter 11 is the Kessana hold-up. Each arrives as a module and its fixtures, the same way.
+Quarter 11 is the Kessana hold-up: a one-time negotiating position. Quarter 12 replaces the project list with a four-bucket portfolio. Each arrives as a module and its fixtures, the same way.

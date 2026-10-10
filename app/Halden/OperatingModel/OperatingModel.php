@@ -219,6 +219,57 @@ final class OperatingModel
         return ($m['halden'] - $m['keep']) * $m['sites'] * $this->data->c('rebrand_fills_per_site_year') / 1e6 * $nonfuelPerGal / $this->data->c('window3_base_nonfuel');
     }
 
+    /** How far demand for one product falls in the recession quarter: its income elasticity times the fall in the economy. */
+    public function demandHit(string $product): float
+    {
+        return $this->data->elasticity[$product] * $this->data->c('recession_gdp_change');
+    }
+
+    /** How far a refinery's runs fall in the recession: its product mix, product by product. Jet-heavy plants fall furthest. */
+    public function refineryHit(string $key): float
+    {
+        $sum = 0.0;
+        foreach (['gasoline', 'diesel', 'jet'] as $p) {
+            $sum += $this->data->yields[$key][$p] * $this->demandHit($p);
+        }
+
+        return $sum;
+    }
+
+    /**
+     * Marcus can resist a run cut if the Q4 2027 crude price left Baton Rouge reporting above target: at cost, or a
+     * price well below market. A market price gives him nothing to point to.
+     */
+    public function delacroixHasCover(Decisions $q4, float $q4Wti): bool
+    {
+        [$market] = $this->transferPrices($q4Wti);
+        if ($q4->tpMethod === 'cost') {
+            return true;
+        }
+        if ($q4->tpMethod === 'market') {
+            return false;
+        }
+
+        return (float) $q4->tpValue < $market * (1 - $this->data->c('geneva_band'));
+    }
+
+    /**
+     * Asking Singapore for more than Straits Pacific allows, again and again, strains the partnership.
+     *
+     * @param  list<Decisions>  $recent  the last few quarters' decisions
+     */
+    public function straitsIsStrained(array $recent): bool
+    {
+        $over = 0;
+        foreach ($recent as $d) {
+            if ($d->sgRequest > $this->data->c('sg_accept_max')) {
+                $over++;
+            }
+        }
+
+        return $over >= (int) $this->data->c('straits_strained_quarters');
+    }
+
     public function inventoryDays(string $case): float
     {
         return $this->data->c("opec_inventory_days_$case");
@@ -269,7 +320,17 @@ final class OperatingModel
         $upstreamBase = $lines['permian'] + $lines['norway_operated'] + $lines['norway_partner_run'] + $lines['kessana'] + $lines['gas_other'];
 
         // Refineries
-        $brTpBbl = $c('br_capacity') * $dec->brRun / 100.0;
+        $recession = (bool) ($mkt['recession'] ?? false);
+        // In the recession, a Baton Rouge run cut can be resisted: Marcus delivers only part of it if he has cover.
+        $brRun = $dec->brRun;
+        if ($recession && $dec->delacroixCover && $dec->brRun < $state->prevBrRun) {
+            $brRun = $dec->brRun + $c('delacroix_cover_share') * ($state->prevBrRun - $dec->brRun);
+            $notes['br_run_resisted'] = $brRun;
+        }
+        $brTpBbl = $c('br_capacity') * $brRun / 100.0;
+        if ($recession) {
+            $brTpBbl *= 1 + $this->refineryHit('br');   // product demand falls by the plant's mix; unsold barrels aren't run
+        }
         $brCrackMargin = $brTpBbl * ($mkt['gc'] + $c('br_complexity') - $c('br_variable_opex')) * $D / 1e6;
         $brFixed = $c('br_capacity') * $c('br_fixed_opex_per_bbl_capacity') * $D / 1e6;
         $internalShift = ($marketTp - $tp) * $internal * $D / 1e6;
@@ -301,14 +362,24 @@ final class OperatingModel
             }
             $rotStatus = 'running';
             $rotTp = $c('rot_capacity') * $dec->rotRun / 100.0;
+            if ($recession) {
+                $rotTp *= 1 + $this->refineryHit('rot');
+            }
             $rot = $rotTp * ($mkt['nwe'] + $c('rot_complexity') - $c('rot_variable_opex')) * $D / 1e6 - $rotFixed;
         }
         $lines['rotterdam'] = $rot * $eurF;
         $lines['rotterdam_one_time'] = $oneTime;
 
         $sgRun = min(max($dec->sgRequest, $c('sg_accept_min')), $c('sg_accept_max'));
+        if ($recession && $dec->straitsStrained) {
+            $sgRun = $c('sg_accept_min');   // a strained partner protects itself and runs Singapore at the minimum, whatever Halden asks
+            $notes['sg_cut_by_partner'] = true;
+        }
         $notes['sg_accepted'] = $sgRun;
         $sgTp = $c('sg_capacity') * $c('sg_halden_share') * $sgRun / 100.0;
+        if ($recession) {
+            $sgTp *= 1 + $this->refineryHit('sg');
+        }
         $lines['singapore'] = $sgTp * ($mkt['sg'] + $c('sg_complexity') - $c('sg_opex')) * $D / 1e6 * $sgdF;
 
         // Projects committed earlier pay a quarter of each year's cash flow, cut to what such projects deliver.
@@ -384,6 +455,9 @@ final class OperatingModel
         // where it matches, Cordell gives up the cut on every gallon and keeps the drivers.
         // A crude shock reaches the pump at 60 cents on the dollar, and drivers barely react.
         $crudeVf = 1 + $c('retail_crude_elasticity') * $c('retail_crude_passthrough') * ($shock / $c('gal_per_bbl')) / $c('pump_base');
+        if ($recession) {
+            $crudeVf *= 1 + $this->demandHit('gasoline');   // drivers still drive to work; gasoline falls least
+        }
         $cordGalTotal = $c('cordell_sites') * $c('cordell_gal_per_site_qtr') * $crudeVf;
         $nonfuelPerGal = (float) ($mkt['cordell_nonfuel'] ?? 0) > 0 ? (float) $mkt['cordell_nonfuel'] : $c('cordell_nonfuel_per_gal');
         $rivalCut = (float) ($mkt['rival_cut'] ?? 0.0);
@@ -479,7 +553,7 @@ final class OperatingModel
 
         // Plant condition
         $health = $state->assetHealth;
-        $health -= 0.5 * max(0.0, $dec->brRun - $c('br_wear_threshold'));
+        $health -= 0.5 * max(0.0, $brRun - $c('br_wear_threshold'));
         if ($rotStatus === 'running' && $dec->rotRun < $c('rot_sticky_threshold')) {
             $health -= 0.5;
         }
@@ -538,6 +612,7 @@ final class OperatingModel
             hedges: $newHedges,
             projects: $projAge,
             rebranded: $rebrandAge,
+            prevBrRun: $brRun,
         );
 
         return new QuarterResult(
@@ -551,7 +626,7 @@ final class OperatingModel
                 'fx_effect' => $fxEffect, 'project_outlay' => $commitOutlay, 'nwe' => $mkt['nwe'],
                 'rival_match_cost' => $matchCost / 1e6, 'rival_ignore_cost' => $ignoreCost / 1e6,
                 'wti_shock' => $shock, 'gc' => $mkt['gc'], 'wti' => $wti, 'rebrand_outlay' => $rebrandOutlay,
-                'nonfuel_per_gal' => $nonfuelPerGal],
+                'nonfuel_per_gal' => $nonfuelPerGal, 'br_run' => $brRun],
             notes: $notes,
             state: $newState,
         );
