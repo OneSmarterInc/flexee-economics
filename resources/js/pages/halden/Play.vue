@@ -730,7 +730,7 @@ function quarterHref(id: number): string {
     <Head :title="`${quarter.label} · ${team.name}`" />
     <div class="hx">
         <header
-            class="flex flex-wrap items-center justify-between gap-x-7 gap-y-3 px-7 py-3.5"
+            class="flex flex-wrap items-center justify-between gap-x-7 gap-y-3 px-4 py-3.5 md:px-7"
             style="background: var(--hx-night); color: #e6ecef"
         >
             <div class="flex flex-wrap items-baseline gap-x-4 gap-y-1.5">
@@ -781,14 +781,14 @@ function quarterHref(id: number): string {
             </div>
         </header>
         <div
-            class="hx-serif px-7 py-2 text-[15px] italic"
+            class="hx-serif px-4 py-2 text-[15px] italic md:px-7"
             style="background: var(--hx-night-2); color: #c9d4da"
         >
             What the CEO wants: {{ mandate }}
         </div>
         <div
             v-if="readOnly"
-            class="mx-7 mt-3 rounded-md px-3 py-2 text-[13px]"
+            class="mx-4 mt-3 rounded-md px-3 py-2 text-[13px] md:mx-7"
             style="
                 background: #fff4e5;
                 border: 1px solid #e9c48f;
@@ -800,13 +800,13 @@ function quarterHref(id: number): string {
         </div>
         <div
             v-if="quarter.pairedNote"
-            class="mx-7 mt-3 rounded-md px-3 py-2 text-[13px]"
+            class="mx-4 mt-3 rounded-md px-3 py-2 text-[13px] md:mx-7"
             style="background: var(--hx-soft); border: 1px solid var(--hx-line)"
         >
             {{ quarter.pairedNote }}
         </div>
 
-        <div class="flex flex-wrap items-center gap-2.5 px-7 pt-3.5">
+        <div class="flex flex-wrap items-center gap-2.5 px-4 pt-3.5 md:px-7">
             <button
                 v-for="r in rail"
                 :key="r.label"
@@ -823,10 +823,48 @@ function quarterHref(id: number): string {
             </button>
         </div>
 
-        <div class="flex flex-wrap items-start gap-6 px-7 pt-4 pb-10">
+        <div class="flex flex-wrap items-start gap-6 px-4 pt-4 pb-10 md:px-7">
+            <!-- On a phone the menu is a picker above the page; on wider screens it is the column on the left. -->
+            <div class="w-full md:hidden">
+                <label class="hx-sr" for="section-picker">Go to</label>
+                <select
+                    id="section-picker"
+                    class="hx-in hx-in-wide w-full"
+                    :value="section"
+                    @change="
+                        go(
+                            ($event.target as HTMLSelectElement)
+                                .value as Section,
+                        )
+                    "
+                >
+                    <optgroup
+                        v-for="g in navGroups"
+                        :key="g.title"
+                        :label="g.title"
+                    >
+                        <option
+                            v-for="it in g.items"
+                            :key="it.key"
+                            :value="it.key"
+                        >
+                            {{ it.label
+                            }}{{ 'tag' in it && it.tag ? ` · ${it.tag}` : '' }}
+                        </option>
+                    </optgroup>
+                </select>
+                <p class="hx-hint mt-1.5 text-[12px]">
+                    Your team:
+                    <template v-for="(m, i) in team.members" :key="m.name"
+                        >{{ i ? ', ' : '' }}{{ m.name }} ({{
+                            m.seat
+                        }})</template
+                    >
+                </p>
+            </div>
             <nav
                 aria-label="Quarter menu"
-                class="flex max-w-[260px] flex-[1_1_220px] flex-col gap-4"
+                class="hidden max-w-[260px] flex-[1_1_220px] flex-col gap-4 md:flex"
             >
                 <div v-for="g in navGroups" :key="g.title">
                     <div class="hx-eyebrow mb-1.5">{{ g.title }}</div>
