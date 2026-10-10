@@ -67,8 +67,11 @@ final class QuarterView
         $projects = [];
         $committed = [];
         foreach ($this->model->data->projects as $key => $p) {
-            $projects[] = ['key' => $key, 'label' => $p['label'], 'outlay' => $p['outlay']];
-            if (($previous["proj_$key"] ?? 'hold') === 'commit') {
+            $was = (string) ($previous["proj_$key"] ?? 'hold');
+            // What last quarter left the project as: not started, under way, paused, or cancelled.
+            $projects[] = ['key' => $key, 'label' => $p['label'], 'outlay' => $p['outlay'], 'was' => $was,
+                'pauseCost' => round($p['outlay'] * $terms['rate'] / 4, 1)];
+            if (in_array($was, ['commit', 'pause', 'cancel'], true)) {
                 $committed[] = $key;
             }
         }
@@ -574,9 +577,31 @@ final class QuarterView
             $named[] = ['name' => 'Currency moves (already in the lines above)', 'amount' => (float) $r['ops.fx_effect'],
                 'why' => 'How much the euro, the krone and the Singapore dollar changed earnings compared with last year\'s rates.'];
         }
-        $projectsPaying = (float) ($r['line.projects_refining'] ?? 0) + (float) ($r['line.projects_upstream'] ?? 0);
+        $pauseCost = (float) ($r['ops.project_pause_cost'] ?? 0);
+        $projectsPaying = (float) ($r['line.projects_refining'] ?? 0) + (float) ($r['line.projects_upstream'] ?? 0) + $pauseCost;
         if (abs($projectsPaying) > 0.05) {
             $named[] = ['name' => 'Big projects paying back', 'amount' => $projectsPaying, 'why' => 'This quarter\'s share of what your projects deliver.'];
+        }
+        $paused = [];
+        $cancelled = [];
+        $before = $prevTq === null ? [] : ($prevTq->effective_decisions ?? []);
+        foreach ($this->model->data->projects as $key => $p) {
+            $was = (string) ($before["proj_$key"] ?? 'hold');
+            $now = (string) ($d["proj_$key"] ?? 'hold');
+            if ($now === 'pause') {
+                $paused[] = $p['label'];
+            } elseif ($now === 'cancel' && $was !== 'cancel') {
+                $cancelled[] = sprintf('%s ($%sM)', $p['label'], number_format($p['outlay']));
+            }
+        }
+        if ($pauseCost > 0.05) {
+            $named[] = ['name' => 'Projects paused', 'amount' => -$pauseCost,
+                'why' => sprintf('%s on pause: the cost of capital on the money for a quarter, at %s%% a year. The clock stops until you set it going again.',
+                    implode(' and ', $paused), self::n($this->runner->capitalTerms($quarter)['rate'] * 100))];
+        }
+        if ($cancelled !== []) {
+            $named[] = ['name' => 'Projects cancelled', 'amount' => null,
+                'why' => implode(' and ', $cancelled).' cancelled for good. Nothing comes back: the money stays on the books and keeps weighing on return on capital.'];
         }
         if (abs((float) ($r['line.cordell_price_match'] ?? 0)) > 0.05) {
             $named[] = ['name' => 'Matching Pelican\'s price cut (already in Gas stations)', 'amount' => (float) $r['line.cordell_price_match'],

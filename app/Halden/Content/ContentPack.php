@@ -185,7 +185,8 @@ final class ContentPack
                 $crude = (float) ($decisions['crude_hedge'] ?? 0);
                 $eur = (float) ($decisions['eur_hedge'] ?? 0);
                 $nok = (float) ($decisions['nok_hedge'] ?? 0);
-                $key = $crude + $eur + $nok <= 0 ? 'none' : (($crude >= 40 || $eur >= 450 || $nok >= 450) ? 'heavy' : 'measured');
+                $sgd = (float) ($decisions['sgd_hedge'] ?? 0);
+                $key = $crude + $eur + $nok + $sgd <= 0 ? 'none' : (($crude >= 40 || $eur >= 450 || $nok >= 450 || $sgd >= 450) ? 'heavy' : 'measured');
 
                 return ['key' => $key, 'value' => $crude];
             case 'rival':

@@ -123,11 +123,15 @@ final class DecisionBook
                 $out[$key] = $value;
             }
         }
-        // A project, once committed, stays committed. Matching the rival's expansion is a build, and a rebrand is
-        // paint on 1,000 stations, so those stick too.
+        // A project, once under way, never goes back to "hold": it keeps going, or it is paused or cancelled, and a
+        // cancelled project stays cancelled. Matching the rival's expansion is a build, and a rebrand is paint on
+        // 1,000 stations, so those stick too.
         foreach ($previous as $key => $value) {
-            if ((str_starts_with($key, 'proj_') && $value === 'commit') || ($key === 'capacity_response' && $value === 'match')
-                || (str_starts_with($key, 'rebrand_') && $value === 'rebrand')) {
+            if (str_starts_with($key, 'proj_') && $value === 'cancel') {
+                $out[$key] = 'cancel';
+            } elseif (str_starts_with($key, 'proj_') && in_array($value, ['commit', 'pause'], true)) {
+                $out[$key] = in_array($out[$key] ?? null, ['commit', 'pause', 'cancel'], true) ? $out[$key] : $value;
+            } elseif (($key === 'capacity_response' && $value === 'match') || (str_starts_with($key, 'rebrand_') && $value === 'rebrand')) {
                 $out[$key] = $value;
             }
         }
@@ -145,7 +149,7 @@ final class DecisionBook
     {
         $sum = 0.0;
         foreach ($this->data->projects as $key => $p) {
-            if (($decisions["proj_$key"] ?? 'hold') === 'commit' && ($previous["proj_$key"] ?? 'hold') !== 'commit') {
+            if (($decisions["proj_$key"] ?? 'hold') === 'commit' && ! in_array($previous["proj_$key"] ?? 'hold', ['commit', 'pause', 'cancel'], true)) {
                 $sum += $p['outlay'];
             }
         }
@@ -251,6 +255,7 @@ final class DecisionBook
             crudeHedgePct: (float) ($d['crude_hedge'] ?? 0),
             eurHedge: (float) ($d['eur_hedge'] ?? 0),
             nokHedge: (float) ($d['nok_hedge'] ?? 0),
+            sgdHedge: (float) ($d['sgd_hedge'] ?? 0),
             projects: array_map(fn (string $k): string => (string) ($d["proj_$k"] ?? 'hold'), array_combine(array_keys($this->data->projects), array_keys($this->data->projects))),
             responses: $responses,
             capacityResponse: (string) ($d['capacity_response'] ?? 'hold'),

@@ -168,6 +168,77 @@ class QuarterFlowTest extends TestCase
         $this->assertSame('match', $book->effective($team, $q8)['resp_suburban'], 'last quarter\'s answer carries forward');
     }
 
+    public function test_a_project_under_way_can_be_paused_or_cancelled_but_never_put_back_on_hold(): void
+    {
+        $book = app(DecisionBook::class);
+        [$section, $teams] = $this->section(['a']);
+        $runner = app(QuarterRunner::class);
+        $team = $teams['a'];
+        $play = function (int $n, array $decisions) use ($section, $runner, $team): TeamQuarter {
+            $q = $section->quarters()->where('number', $n)->firstOrFail();
+            $runner->open($q);
+            if ($decisions !== []) {
+                TeamQuarter::query()->create(['team_id' => $team->id, 'quarter_id' => $q->id, 'decisions' => $decisions]);
+            }
+            $runner->close($q->refresh());
+            $runner->publish($q->refresh());
+
+            return TeamQuarter::query()->where('team_id', $team->id)->where('quarter_id', $q->id)->firstOrFail();
+        };
+        foreach ([1, 2, 3, 4, 5] as $n) {
+            $play($n, []);
+        }
+        $q6 = $play(6, ['proj_br_upgrade' => 'commit', 'proj_rot_upgrade' => 'commit']);
+        $this->assertEqualsWithDelta(1040.0, $q6->results['ops.project_outlay'], 1e-9);
+
+        // Quarter 7: pause Baton Rouge (the clock stops, the money's cost is charged) and cancel Rotterdam (nothing comes back).
+        // The page takes both; a "hold" on a project under way is turned back into what it was.
+        $student = User::factory()->create(['role' => User::ROLE_STUDENT, 'opening_seen_at' => now()]);
+        TeamMember::query()->create(['team_id' => $team->id, 'user_id' => $student->id, 'seat' => 'evp']);
+        $q7row = $section->quarters()->where('number', 7)->firstOrFail();
+        $runner->open($q7row);
+        $this->actingAs($student)->post("/play/{$q7row->id}/page/capital", ['proj_br_upgrade' => 'hold', 'proj_rot_upgrade' => 'cancel'])->assertSessionHasNoErrors();
+        $saved = TeamQuarter::query()->where('team_id', $team->id)->where('quarter_id', $q7row->id)->firstOrFail()->decisions;
+        $this->assertSame('commit', $saved['proj_br_upgrade'], 'the money is spent; hold is not an option');
+        $this->assertSame('cancel', $saved['proj_rot_upgrade']);
+        $this->actingAs($student)->post("/play/{$q7row->id}/page/capital", ['proj_br_upgrade' => 'pause', 'proj_rot_upgrade' => 'commit'])->assertSessionHasNoErrors();
+        $saved = TeamQuarter::query()->where('team_id', $team->id)->where('quarter_id', $q7row->id)->firstOrFail()->decisions;
+        $this->assertSame('pause', $saved['proj_br_upgrade']);
+        $this->assertSame('commit', $saved['proj_rot_upgrade'], 'a cancel can still be taken back until the quarter closes');
+        TeamQuarter::query()->where('team_id', $team->id)->where('quarter_id', $q7row->id)->delete();
+        $q7row->update(['status' => Quarter::UPCOMING, 'opened_at' => null]);
+        $rate = $runner->capitalTerms($q7row)['rate'];
+        $q7 = $play(7, ['proj_br_upgrade' => 'pause', 'proj_rot_upgrade' => 'cancel']);
+        $this->assertSame('pause', $q7->effective_decisions['proj_br_upgrade']);
+        $this->assertSame('cancel', $q7->effective_decisions['proj_rot_upgrade']);
+        $this->assertEqualsWithDelta(640 * $rate / 4, $q7->results['ops.project_pause_cost'], 1e-6);
+        $this->assertEqualsWithDelta(-640 * $rate / 4, $q7->results['line.projects_refining'], 1e-6, 'nothing paid back; only the pause charge');
+        $this->assertSame(['br_upgrade' => 0], $q7->state_after['projects']);
+        $this->assertSame(['rot_upgrade'], $q7->state_after['cancelled']);
+        $this->assertEqualsWithDelta(0.0, $q7->results['ops.project_outlay'], 1e-9);
+
+        // Quarter 8: nothing saved, so the pause carries; the cancelled project cannot come back even if asked to.
+        $q8 = $play(8, ['proj_rot_upgrade' => 'commit', 'proj_helix' => 'hold']);
+        $this->assertSame('pause', $q8->effective_decisions['proj_br_upgrade']);
+        $this->assertSame('cancel', $q8->effective_decisions['proj_rot_upgrade']);
+        $this->assertEqualsWithDelta(0.0, $q8->results['ops.project_outlay'], 1e-9, 'no second outlay on a cancelled project');
+
+        // Quarter 9: set Baton Rouge going again; it picks up year one. A later "hold" is ignored: the money is spent.
+        $q9 = $play(9, ['proj_br_upgrade' => 'commit']);
+        $this->assertSame('commit', $q9->effective_decisions['proj_br_upgrade']);
+        $this->assertEqualsWithDelta(180 * 0.88 / 4, $q9->results['line.projects_refining'], 1e-6);
+        $this->assertEqualsWithDelta(0.0, $q9->results['ops.project_outlay'], 1e-9);
+        $q10 = $play(10, ['proj_br_upgrade' => 'hold']);
+        $this->assertSame('commit', $q10->effective_decisions['proj_br_upgrade']);
+        $this->assertSame(['br_upgrade' => 2], $q10->state_after['projects']);
+
+        // The page accepts the new answers only from Quarter 6 and only until the list closes.
+        [$clean] = $book->validatePage('capital', ['proj_helix' => 'pause'], 7);
+        $this->assertSame(['proj_helix' => 'pause'], $clean);
+        [$clean] = $book->validatePage('capital', ['proj_helix' => 'cancel'], 12);
+        $this->assertSame([], $clean, 'the 2028 list is closed');
+    }
+
     public function test_seats_rotate_once_when_quarter_eight_opens_and_opec_is_drawn_at_the_close(): void
     {
         [$section, $teams] = $this->section(['a']);

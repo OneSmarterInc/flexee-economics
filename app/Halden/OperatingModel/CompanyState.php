@@ -11,7 +11,8 @@ final class CompanyState
      * @param  array<string, int>  $heldUp  consecutive quarters each station price has been held above its going rate
      * @param  array<string, int>  $heldDown  consecutive quarters each station price has been held below its going rate
      * @param  array<string, float>  $hedges  hedges opened last quarter, settled this quarter
-     * @param  array<string, int>  $projects  committed project key => quarters since commitment
+     * @param  array<string, int>  $projects  committed project key => quarters since commitment (a paused quarter does not count)
+     * @param  list<string>  $cancelled  projects cancelled after going ahead: their cash flows stopped; the outlay stays on the books
      * @param  array<string, int>  $rebranded  rebranded Cordell region => quarters since the rebrand
      * @param  array<string, int>  $portfolio  Q4 2029 portfolio project key => quarters since the go-ahead
      */
@@ -35,6 +36,7 @@ final class CompanyState
         public bool $europeSold = false,    // the European stations have been sold (the line stops the quarter after)
         public float $norwayWageUplift = 0.0, // the raise settled with the Norwegian union, on the wage bill, for good
         public bool $turnaroundPending = false, // Baton Rouge's turnaround was put off to next quarter
+        public array $cancelled = [],       // projects cancelled after going ahead
     ) {}
 
     /** @return array<string, mixed> */
@@ -66,6 +68,7 @@ final class CompanyState
             europeSold: (bool) ($a['europeSold'] ?? false),
             norwayWageUplift: (float) ($a['norwayWageUplift'] ?? 0.0),
             turnaroundPending: (bool) ($a['turnaroundPending'] ?? false),
+            cancelled: array_values(array_map('strval', (array) ($a['cancelled'] ?? []))),
         );
     }
 }

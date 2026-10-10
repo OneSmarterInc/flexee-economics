@@ -142,6 +142,11 @@ check("A crude hedge gains when oil falls and loses when it rises (euro and kron
       f"oil -$5: {falls:.1f}; oil +$5: {rises:.1f}")
 eur_leg = 600 * (m5["eurusd"] - m6["eurusd"]) / m5["eurusd"]
 check("Selling $600M of euros at 1.015 loses when the euro recovers to 1.031", eur_leg < 0, f"${eur_leg:.2f}M")
+s5 = hm.step(copy.deepcopy(start), hm.Decisions(sgd_hedge=400), dict(m5, existing_eur_hedge=False))[-1]
+sgd_up = hm.step(copy.deepcopy(s5), hm.Decisions(), dict(m6, usdsgd=m5["usdsgd"] * 1.02))[0]["hedges"]
+sgd_down = hm.step(copy.deepcopy(s5), hm.Decisions(), dict(m6, usdsgd=m5["usdsgd"] * 0.98))[0]["hedges"]
+check("Selling $400M of Singapore dollars forward pays when the US dollar strengthens 2% and costs when it weakens 2%",
+      abs(sgd_up - 400 * (1 - 1 / 1.02)) < 1e-9 and abs(sgd_down - 400 * (1 - 1 / 0.98)) < 1e-9, f"+2%: ${sgd_up:.2f}M; -2%: ${sgd_down:.2f}M")
 
 # 13 Window 1: the class's Q3 2027 European run rates set the Q1 2028 European margin
 check("Window 1: at a 75% average the margin stays $4.60; at 90% it falls to $3.25; it never goes below $2.60",
@@ -170,6 +175,25 @@ check("A Rotterdam project stops paying if Rotterdam closes", r2[0]["projects_re
 check("The score counts free cash flow before new projects; net debt still carries the outlay",
       abs(p1[3]["free_cash_flow"] - p1[2]["fcf"] - 640) < 1e-9 and p1[2]["net_debt_end"] > hm.step(copy.deepcopy(start), hm.Decisions(), m6)[2]["net_debt_end"],
       f"score FCF {p1[3]['free_cash_flow']:.1f} vs cash FCF {p1[2]['fcf']:.1f}")
+
+# 15b Pause and cancel on a project under way (no package numbers: the cost of capital on the outlay for a paused
+# quarter; nothing recovered on cancel and the outlay stays in capital employed)
+paused = hm.step(p1[-1], hm.Decisions(projects={"br_upgrade": "pause"}), m6)
+rate = hm.capital_terms(0.5)["rate"]
+check("A paused project pays nothing that quarter, costs the cost of capital on its outlay, and its clock stops",
+      abs(paused[0]["projects_refining"] + 640 * rate / 4) < 1e-9 and paused[-1].projects["br_upgrade"] == p1[-1].projects["br_upgrade"]
+      and abs(paused[4]["project_pause_cost"] - 640 * rate / 4) < 1e-9, f"-${640 * rate / 4:.2f}M; age stays {paused[-1].projects['br_upgrade']}")
+resumed = hm.step(paused[-1], hm.Decisions(projects={"br_upgrade": "commit"}), m6)
+check("Resuming picks up where it left off: year one's quarter, and no second outlay",
+      abs(resumed[0]["projects_refining"] - 180 * 0.88 / 4) < 1e-9 and resumed[4]["project_outlay"] == 0, f"{resumed[0]['projects_refining']:.2f}")
+cancelled = hm.step(p1[-1], hm.Decisions(projects={"br_upgrade": "cancel"}), m6)
+plain = hm.step(copy.deepcopy(p1[-1]), hm.Decisions(), m6)
+after = hm.step(cancelled[-1], hm.Decisions(projects={"br_upgrade": "commit"}), m6)
+check("A cancelled project stops paying for good, gets nothing back, keeps its outlay in capital employed, and cannot be restarted",
+      cancelled[0]["projects_refining"] == 0 and "br_upgrade" in cancelled[-1].cancelled and "br_upgrade" not in cancelled[-1].projects
+      and abs(cancelled[2]["capital_employed_end"] - plain[2]["capital_employed_end"]) < 1e-9 and abs(cancelled[2]["net_debt_end"] - (plain[2]["net_debt_end"] + plain[0]["projects_refining"] * (1 - hm.C["tax_rate"]))) < 1e-6
+      and after[4]["project_outlay"] == 0 and after[0]["projects_refining"] == 0,
+      f"capital employed unchanged at {cancelled[2]['capital_employed_end']:.0f}")
 
 # 16 Competitive response (Q3 2028, Week 7 package): a rival cuts 6c a gallon in every Cordell market
 m7 = q("2028Q3")

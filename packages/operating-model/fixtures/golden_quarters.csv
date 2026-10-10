@@ -278,6 +278,7 @@ careful,2027Q1,ops.kessana_forgone,0.000000
 careful,2027Q1,ops.portfolio_capex,0.000000
 careful,2027Q1,ops.divest_proceeds,0.000000
 careful,2027Q1,ops.carbon,0.000000
+careful,2027Q1,ops.project_pause_cost,0.000000
 careful,2027Q1,ops.norway_wage_uplift,0.000000
 careful,2027Q1,ops.norway_stoppage_weeks,0.000000
 careful,2027Q1,ops.norway_tax_shield,0.000000
@@ -359,6 +360,7 @@ average,2027Q1,ops.kessana_forgone,0.000000
 average,2027Q1,ops.portfolio_capex,0.000000
 average,2027Q1,ops.divest_proceeds,0.000000
 average,2027Q1,ops.carbon,0.000000
+average,2027Q1,ops.project_pause_cost,0.000000
 average,2027Q1,ops.norway_wage_uplift,0.000000
 average,2027Q1,ops.norway_stoppage_weeks,0.000000
 average,2027Q1,ops.norway_tax_shield,0.000000
@@ -440,6 +442,7 @@ careless,2027Q1,ops.kessana_forgone,0.000000
 careless,2027Q1,ops.portfolio_capex,0.000000
 careless,2027Q1,ops.divest_proceeds,0.000000
 careless,2027Q1,ops.carbon,0.000000
+careless,2027Q1,ops.project_pause_cost,0.000000
 careless,2027Q1,ops.norway_wage_uplift,0.000000
 careless,2027Q1,ops.norway_stoppage_weeks,0.000000
 careless,2027Q1,ops.norway_tax_shield,0.000000
@@ -521,6 +524,7 @@ careful,2027Q2,ops.kessana_forgone,0.000000
 careful,2027Q2,ops.portfolio_capex,0.000000
 careful,2027Q2,ops.divest_proceeds,0.000000
 careful,2027Q2,ops.carbon,0.000000
+careful,2027Q2,ops.project_pause_cost,0.000000
 careful,2027Q2,ops.norway_wage_uplift,0.000000
 careful,2027Q2,ops.norway_stoppage_weeks,0.000000
 careful,2027Q2,ops.norway_tax_shield,0.000000
@@ -602,6 +606,7 @@ average,2027Q2,ops.kessana_forgone,0.000000
 average,2027Q2,ops.portfolio_capex,0.000000
 average,2027Q2,ops.divest_proceeds,0.000000
 average,2027Q2,ops.carbon,0.000000
+average,2027Q2,ops.project_pause_cost,0.000000
 average,2027Q2,ops.norway_wage_uplift,0.000000
 average,2027Q2,ops.norway_stoppage_weeks,0.000000
 average,2027Q2,ops.norway_tax_shield,0.000000
@@ -683,6 +688,7 @@ careless,2027Q2,ops.kessana_forgone,0.000000
 careless,2027Q2,ops.portfolio_capex,0.000000
 careless,2027Q2,ops.divest_proceeds,0.000000
 careless,2027Q2,ops.carbon,0.000000
+careless,2027Q2,ops.project_pause_cost,0.000000
 careless,2027Q2,ops.norway_wage_uplift,0.000000
 careless,2027Q2,ops.norway_stoppage_weeks,0.000000
 careless,2027Q2,ops.norway_tax_shield,0.000000
@@ -764,6 +770,7 @@ careful,2027Q3,ops.kessana_forgone,0.000000
 careful,2027Q3,ops.portfolio_capex,0.000000
 careful,2027Q3,ops.divest_proceeds,0.000000
 careful,2027Q3,ops.carbon,0.000000
+careful,2027Q3,ops.project_pause_cost,0.000000
 careful,2027Q3,ops.norway_wage_uplift,0.000000
 careful,2027Q3,ops.norway_stoppage_weeks,0.000000
 careful,2027Q3,ops.norway_tax_shield,0.000000
@@ -845,6 +852,7 @@ average,2027Q3,ops.kessana_forgone,0.000000
 average,2027Q3,ops.portfolio_capex,0.000000
 average,2027Q3,ops.divest_proceeds,0.000000
 average,2027Q3,ops.carbon,0.000000
+average,2027Q3,ops.project_pause_cost,0.000000
 average,2027Q3,ops.norway_wage_uplift,0.000000
 average,2027Q3,ops.norway_stoppage_weeks,0.000000
 average,2027Q3,ops.norway_tax_shield,0.000000
@@ -926,6 +934,7 @@ careless,2027Q3,ops.kessana_forgone,0.000000
 careless,2027Q3,ops.portfolio_capex,0.000000
 careless,2027Q3,ops.divest_proceeds,0.000000
 careless,2027Q3,ops.carbon,0.000000
+careless,2027Q3,ops.project_pause_cost,0.000000
 careless,2027Q3,ops.norway_wage_uplift,0.000000
 careless,2027Q3,ops.norway_stoppage_weeks,0.000000
 careless,2027Q3,ops.norway_tax_shield,0.000000
@@ -1007,6 +1016,7 @@ careful,2027Q4,ops.kessana_forgone,0.000000
 careful,2027Q4,ops.portfolio_capex,0.000000
 careful,2027Q4,ops.divest_proceeds,0.000000
 careful,2027Q4,ops.carbon,0.000000
+careful,2027Q4,ops.project_pause_cost,0.000000
 careful,2027Q4,ops.norway_wage_uplift,0.000000
 careful,2027Q4,ops.norway_stoppage_weeks,0.000000
 careful,2027Q4,ops.norway_tax_shield,0.000000
@@ -1088,6 +1098,7 @@ average,2027Q4,ops.kessana_forgone,0.000000
 average,2027Q4,ops.portfolio_capex,0.000000
 average,2027Q4,ops.divest_proceeds,0.000000
 average,2027Q4,ops.carbon,0.000000
+average,2027Q4,ops.project_pause_cost,0.000000
 average,2027Q4,ops.norway_wage_uplift,0.000000
 average,2027Q4,ops.norway_stoppage_weeks,0.000000
 average,2027Q4,ops.norway_tax_shield,0.000000
@@ -1169,6 +1180,7 @@ careless,2027Q4,ops.kessana_forgone,0.000000
 careless,2027Q4,ops.portfolio_capex,0.000000
 careless,2027Q4,ops.divest_proceeds,0.000000
 careless,2027Q4,ops.carbon,0.000000
+careless,2027Q4,ops.project_pause_cost,0.000000
 careless,2027Q4,ops.norway_wage_uplift,0.000000
 careless,2027Q4,ops.norway_stoppage_weeks,0.000000
 careless,2027Q4,ops.norway_tax_shield,0.000000
@@ -1250,6 +1262,7 @@ careful,2028Q1,ops.kessana_forgone,0.000000
 careful,2028Q1,ops.portfolio_capex,0.000000
 careful,2028Q1,ops.divest_proceeds,0.000000
 careful,2028Q1,ops.carbon,0.000000
+careful,2028Q1,ops.project_pause_cost,0.000000
 careful,2028Q1,ops.norway_wage_uplift,0.000000
 careful,2028Q1,ops.norway_stoppage_weeks,0.000000
 careful,2028Q1,ops.norway_tax_shield,0.000000
@@ -1331,6 +1344,7 @@ average,2028Q1,ops.kessana_forgone,0.000000
 average,2028Q1,ops.portfolio_capex,0.000000
 average,2028Q1,ops.divest_proceeds,0.000000
 average,2028Q1,ops.carbon,0.000000
+average,2028Q1,ops.project_pause_cost,0.000000
 average,2028Q1,ops.norway_wage_uplift,0.000000
 average,2028Q1,ops.norway_stoppage_weeks,0.000000
 average,2028Q1,ops.norway_tax_shield,0.000000
@@ -1412,6 +1426,7 @@ careless,2028Q1,ops.kessana_forgone,0.000000
 careless,2028Q1,ops.portfolio_capex,0.000000
 careless,2028Q1,ops.divest_proceeds,0.000000
 careless,2028Q1,ops.carbon,0.000000
+careless,2028Q1,ops.project_pause_cost,0.000000
 careless,2028Q1,ops.norway_wage_uplift,0.000000
 careless,2028Q1,ops.norway_stoppage_weeks,0.000000
 careless,2028Q1,ops.norway_tax_shield,0.000000
@@ -1493,6 +1508,7 @@ careful,2028Q2,ops.kessana_forgone,0.000000
 careful,2028Q2,ops.portfolio_capex,0.000000
 careful,2028Q2,ops.divest_proceeds,0.000000
 careful,2028Q2,ops.carbon,0.000000
+careful,2028Q2,ops.project_pause_cost,0.000000
 careful,2028Q2,ops.norway_wage_uplift,0.000000
 careful,2028Q2,ops.norway_stoppage_weeks,0.000000
 careful,2028Q2,ops.norway_tax_shield,0.000000
@@ -1574,6 +1590,7 @@ average,2028Q2,ops.kessana_forgone,0.000000
 average,2028Q2,ops.portfolio_capex,0.000000
 average,2028Q2,ops.divest_proceeds,0.000000
 average,2028Q2,ops.carbon,0.000000
+average,2028Q2,ops.project_pause_cost,0.000000
 average,2028Q2,ops.norway_wage_uplift,0.000000
 average,2028Q2,ops.norway_stoppage_weeks,0.000000
 average,2028Q2,ops.norway_tax_shield,0.000000
@@ -1655,6 +1672,7 @@ careless,2028Q2,ops.kessana_forgone,0.000000
 careless,2028Q2,ops.portfolio_capex,0.000000
 careless,2028Q2,ops.divest_proceeds,0.000000
 careless,2028Q2,ops.carbon,0.000000
+careless,2028Q2,ops.project_pause_cost,0.000000
 careless,2028Q2,ops.norway_wage_uplift,0.000000
 careless,2028Q2,ops.norway_stoppage_weeks,0.000000
 careless,2028Q2,ops.norway_tax_shield,0.000000
@@ -1736,6 +1754,7 @@ careful,2028Q3,ops.kessana_forgone,0.000000
 careful,2028Q3,ops.portfolio_capex,0.000000
 careful,2028Q3,ops.divest_proceeds,0.000000
 careful,2028Q3,ops.carbon,0.000000
+careful,2028Q3,ops.project_pause_cost,0.000000
 careful,2028Q3,ops.norway_wage_uplift,0.000000
 careful,2028Q3,ops.norway_stoppage_weeks,0.000000
 careful,2028Q3,ops.norway_tax_shield,0.000000
@@ -1817,6 +1836,7 @@ average,2028Q3,ops.kessana_forgone,0.000000
 average,2028Q3,ops.portfolio_capex,0.000000
 average,2028Q3,ops.divest_proceeds,0.000000
 average,2028Q3,ops.carbon,0.000000
+average,2028Q3,ops.project_pause_cost,0.000000
 average,2028Q3,ops.norway_wage_uplift,0.000000
 average,2028Q3,ops.norway_stoppage_weeks,0.000000
 average,2028Q3,ops.norway_tax_shield,0.000000
@@ -1898,6 +1918,7 @@ careless,2028Q3,ops.kessana_forgone,0.000000
 careless,2028Q3,ops.portfolio_capex,0.000000
 careless,2028Q3,ops.divest_proceeds,0.000000
 careless,2028Q3,ops.carbon,0.000000
+careless,2028Q3,ops.project_pause_cost,0.000000
 careless,2028Q3,ops.norway_wage_uplift,0.000000
 careless,2028Q3,ops.norway_stoppage_weeks,0.000000
 careless,2028Q3,ops.norway_tax_shield,0.000000
@@ -1979,6 +2000,7 @@ careful,2028Q4,ops.kessana_forgone,0.000000
 careful,2028Q4,ops.portfolio_capex,0.000000
 careful,2028Q4,ops.divest_proceeds,0.000000
 careful,2028Q4,ops.carbon,0.000000
+careful,2028Q4,ops.project_pause_cost,0.000000
 careful,2028Q4,ops.norway_wage_uplift,0.000000
 careful,2028Q4,ops.norway_stoppage_weeks,0.000000
 careful,2028Q4,ops.norway_tax_shield,0.000000
@@ -2060,6 +2082,7 @@ average,2028Q4,ops.kessana_forgone,0.000000
 average,2028Q4,ops.portfolio_capex,0.000000
 average,2028Q4,ops.divest_proceeds,0.000000
 average,2028Q4,ops.carbon,0.000000
+average,2028Q4,ops.project_pause_cost,0.000000
 average,2028Q4,ops.norway_wage_uplift,0.000000
 average,2028Q4,ops.norway_stoppage_weeks,0.000000
 average,2028Q4,ops.norway_tax_shield,0.000000
@@ -2141,6 +2164,7 @@ careless,2028Q4,ops.kessana_forgone,0.000000
 careless,2028Q4,ops.portfolio_capex,0.000000
 careless,2028Q4,ops.divest_proceeds,0.000000
 careless,2028Q4,ops.carbon,0.000000
+careless,2028Q4,ops.project_pause_cost,0.000000
 careless,2028Q4,ops.norway_wage_uplift,0.000000
 careless,2028Q4,ops.norway_stoppage_weeks,0.000000
 careless,2028Q4,ops.norway_tax_shield,0.000000
@@ -2222,6 +2246,7 @@ careful,2029Q1,ops.kessana_forgone,0.000000
 careful,2029Q1,ops.portfolio_capex,0.000000
 careful,2029Q1,ops.divest_proceeds,0.000000
 careful,2029Q1,ops.carbon,0.000000
+careful,2029Q1,ops.project_pause_cost,0.000000
 careful,2029Q1,ops.norway_wage_uplift,0.000000
 careful,2029Q1,ops.norway_stoppage_weeks,0.000000
 careful,2029Q1,ops.norway_tax_shield,0.000000
@@ -2303,6 +2328,7 @@ average,2029Q1,ops.kessana_forgone,0.000000
 average,2029Q1,ops.portfolio_capex,0.000000
 average,2029Q1,ops.divest_proceeds,0.000000
 average,2029Q1,ops.carbon,0.000000
+average,2029Q1,ops.project_pause_cost,0.000000
 average,2029Q1,ops.norway_wage_uplift,0.000000
 average,2029Q1,ops.norway_stoppage_weeks,0.000000
 average,2029Q1,ops.norway_tax_shield,0.000000
@@ -2384,6 +2410,7 @@ careless,2029Q1,ops.kessana_forgone,0.000000
 careless,2029Q1,ops.portfolio_capex,0.000000
 careless,2029Q1,ops.divest_proceeds,0.000000
 careless,2029Q1,ops.carbon,0.000000
+careless,2029Q1,ops.project_pause_cost,0.000000
 careless,2029Q1,ops.norway_wage_uplift,0.000000
 careless,2029Q1,ops.norway_stoppage_weeks,0.000000
 careless,2029Q1,ops.norway_tax_shield,0.000000
@@ -2465,6 +2492,7 @@ careful,2029Q2,ops.kessana_forgone,0.000000
 careful,2029Q2,ops.portfolio_capex,0.000000
 careful,2029Q2,ops.divest_proceeds,0.000000
 careful,2029Q2,ops.carbon,0.000000
+careful,2029Q2,ops.project_pause_cost,0.000000
 careful,2029Q2,ops.norway_wage_uplift,0.000000
 careful,2029Q2,ops.norway_stoppage_weeks,0.000000
 careful,2029Q2,ops.norway_tax_shield,0.000000
@@ -2546,6 +2574,7 @@ average,2029Q2,ops.kessana_forgone,0.000000
 average,2029Q2,ops.portfolio_capex,0.000000
 average,2029Q2,ops.divest_proceeds,0.000000
 average,2029Q2,ops.carbon,0.000000
+average,2029Q2,ops.project_pause_cost,0.000000
 average,2029Q2,ops.norway_wage_uplift,0.000000
 average,2029Q2,ops.norway_stoppage_weeks,0.000000
 average,2029Q2,ops.norway_tax_shield,0.000000
@@ -2627,6 +2656,7 @@ careless,2029Q2,ops.kessana_forgone,0.000000
 careless,2029Q2,ops.portfolio_capex,0.000000
 careless,2029Q2,ops.divest_proceeds,0.000000
 careless,2029Q2,ops.carbon,0.000000
+careless,2029Q2,ops.project_pause_cost,0.000000
 careless,2029Q2,ops.norway_wage_uplift,0.000000
 careless,2029Q2,ops.norway_stoppage_weeks,0.000000
 careless,2029Q2,ops.norway_tax_shield,0.000000
@@ -2708,6 +2738,7 @@ careful,2029Q3,ops.kessana_forgone,0.000000
 careful,2029Q3,ops.portfolio_capex,0.000000
 careful,2029Q3,ops.divest_proceeds,0.000000
 careful,2029Q3,ops.carbon,0.000000
+careful,2029Q3,ops.project_pause_cost,0.000000
 careful,2029Q3,ops.norway_wage_uplift,0.000000
 careful,2029Q3,ops.norway_stoppage_weeks,0.000000
 careful,2029Q3,ops.norway_tax_shield,0.000000
@@ -2789,6 +2820,7 @@ average,2029Q3,ops.kessana_forgone,0.000000
 average,2029Q3,ops.portfolio_capex,0.000000
 average,2029Q3,ops.divest_proceeds,0.000000
 average,2029Q3,ops.carbon,0.000000
+average,2029Q3,ops.project_pause_cost,0.000000
 average,2029Q3,ops.norway_wage_uplift,0.000000
 average,2029Q3,ops.norway_stoppage_weeks,0.000000
 average,2029Q3,ops.norway_tax_shield,0.000000
@@ -2870,6 +2902,7 @@ careless,2029Q3,ops.kessana_forgone,0.000000
 careless,2029Q3,ops.portfolio_capex,0.000000
 careless,2029Q3,ops.divest_proceeds,0.000000
 careless,2029Q3,ops.carbon,0.000000
+careless,2029Q3,ops.project_pause_cost,0.000000
 careless,2029Q3,ops.norway_wage_uplift,0.000000
 careless,2029Q3,ops.norway_stoppage_weeks,0.000000
 careless,2029Q3,ops.norway_tax_shield,0.000000
@@ -2951,6 +2984,7 @@ careful,2029Q4,ops.kessana_forgone,0.000000
 careful,2029Q4,ops.portfolio_capex,0.000000
 careful,2029Q4,ops.divest_proceeds,0.000000
 careful,2029Q4,ops.carbon,40.000000
+careful,2029Q4,ops.project_pause_cost,0.000000
 careful,2029Q4,ops.norway_wage_uplift,0.000000
 careful,2029Q4,ops.norway_stoppage_weeks,0.000000
 careful,2029Q4,ops.norway_tax_shield,0.000000
@@ -3032,6 +3066,7 @@ average,2029Q4,ops.kessana_forgone,0.000000
 average,2029Q4,ops.portfolio_capex,0.000000
 average,2029Q4,ops.divest_proceeds,0.000000
 average,2029Q4,ops.carbon,40.000000
+average,2029Q4,ops.project_pause_cost,0.000000
 average,2029Q4,ops.norway_wage_uplift,0.000000
 average,2029Q4,ops.norway_stoppage_weeks,0.000000
 average,2029Q4,ops.norway_tax_shield,0.000000
@@ -3113,6 +3148,7 @@ careless,2029Q4,ops.kessana_forgone,0.000000
 careless,2029Q4,ops.portfolio_capex,0.000000
 careless,2029Q4,ops.divest_proceeds,550.000000
 careless,2029Q4,ops.carbon,40.000000
+careless,2029Q4,ops.project_pause_cost,0.000000
 careless,2029Q4,ops.norway_wage_uplift,0.000000
 careless,2029Q4,ops.norway_stoppage_weeks,0.000000
 careless,2029Q4,ops.norway_tax_shield,0.000000
@@ -3194,6 +3230,7 @@ careful,2030Q1,ops.kessana_forgone,0.000000
 careful,2030Q1,ops.portfolio_capex,51.500000
 careful,2030Q1,ops.divest_proceeds,0.000000
 careful,2030Q1,ops.carbon,45.000000
+careful,2030Q1,ops.project_pause_cost,0.000000
 careful,2030Q1,ops.norway_wage_uplift,0.080000
 careful,2030Q1,ops.norway_stoppage_weeks,0.000000
 careful,2030Q1,ops.norway_tax_shield,6.552000
@@ -3275,6 +3312,7 @@ average,2030Q1,ops.kessana_forgone,0.000000
 average,2030Q1,ops.portfolio_capex,32.500000
 average,2030Q1,ops.divest_proceeds,0.000000
 average,2030Q1,ops.carbon,45.000000
+average,2030Q1,ops.project_pause_cost,0.000000
 average,2030Q1,ops.norway_wage_uplift,0.040000
 average,2030Q1,ops.norway_stoppage_weeks,1.000000
 average,2030Q1,ops.norway_tax_shield,3.276000
@@ -3356,6 +3394,7 @@ careless,2030Q1,ops.kessana_forgone,0.000000
 careless,2030Q1,ops.portfolio_capex,87.500000
 careless,2030Q1,ops.divest_proceeds,0.000000
 careless,2030Q1,ops.carbon,45.000000
+careless,2030Q1,ops.project_pause_cost,0.000000
 careless,2030Q1,ops.norway_wage_uplift,0.080000
 careless,2030Q1,ops.norway_stoppage_weeks,2.000000
 careless,2030Q1,ops.norway_tax_shield,6.552000
@@ -3437,6 +3476,7 @@ careful,2030Q2,ops.kessana_forgone,0.000000
 careful,2030Q2,ops.portfolio_capex,51.500000
 careful,2030Q2,ops.divest_proceeds,0.000000
 careful,2030Q2,ops.carbon,48.000000
+careful,2030Q2,ops.project_pause_cost,0.000000
 careful,2030Q2,ops.norway_wage_uplift,0.080000
 careful,2030Q2,ops.norway_stoppage_weeks,0.000000
 careful,2030Q2,ops.norway_tax_shield,6.552000
@@ -3518,6 +3558,7 @@ average,2030Q2,ops.kessana_forgone,0.000000
 average,2030Q2,ops.portfolio_capex,32.500000
 average,2030Q2,ops.divest_proceeds,0.000000
 average,2030Q2,ops.carbon,48.000000
+average,2030Q2,ops.project_pause_cost,0.000000
 average,2030Q2,ops.norway_wage_uplift,0.040000
 average,2030Q2,ops.norway_stoppage_weeks,0.000000
 average,2030Q2,ops.norway_tax_shield,3.276000
@@ -3599,6 +3640,7 @@ careless,2030Q2,ops.kessana_forgone,0.000000
 careless,2030Q2,ops.portfolio_capex,87.500000
 careless,2030Q2,ops.divest_proceeds,0.000000
 careless,2030Q2,ops.carbon,48.000000
+careless,2030Q2,ops.project_pause_cost,0.000000
 careless,2030Q2,ops.norway_wage_uplift,0.080000
 careless,2030Q2,ops.norway_stoppage_weeks,0.000000
 careless,2030Q2,ops.norway_tax_shield,6.552000

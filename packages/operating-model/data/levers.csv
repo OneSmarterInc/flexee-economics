@@ -16,9 +16,10 @@ tp,trading_finance,What Baton Rouge pays for Texas crude,usd_bbl,0,120,0.05,mark
 crude_hedge,trading_finance,Crude sold forward for next quarter,pct,0,50,5,0,5,cfo_has_to_agree,0,
 eur_hedge,trading_finance,Euros sold forward for next quarter,usd_m,0,600,25,0,5,cfo_has_to_agree,0,
 nok_hedge,trading_finance,Kroner bought forward for next quarter,usd_m,0,600,25,0,5,cfo_has_to_agree,0,
-proj_br_upgrade,capital,Baton Rouge upgrade,choice hold|commit,,,,hold,6,your_call,0,11
-proj_rot_upgrade,capital,Rotterdam upgrade,choice hold|commit,,,,hold,6,your_call,0,11
-proj_helix,capital,Helix,choice hold|commit,,,,hold,6,your_call,0,11
+sgd_hedge,trading_finance,Singapore dollars sold forward for next quarter,usd_m,0,600,25,0,5,cfo_has_to_agree,0,
+proj_br_upgrade,capital,Baton Rouge upgrade,choice hold|commit|pause|cancel,,,,hold,6,your_call,0,11
+proj_rot_upgrade,capital,Rotterdam upgrade,choice hold|commit|pause|cancel,,,,hold,6,your_call,0,11
+proj_helix,capital,Helix,choice hold|commit|pause|cancel,,,,hold,6,your_call,0,11
 resp_urban,gas_stations,Cordell · cities: the rival's cut,choice ignore|match,,,,ignore,7,your_call,0,
 resp_suburban,gas_stations,Cordell · suburbs: the rival's cut,choice ignore|match,,,,ignore,7,your_call,0,
 resp_rural,gas_stations,Cordell · small towns: the rival's cut,choice ignore|match,,,,ignore,7,your_call,0,

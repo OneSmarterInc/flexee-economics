@@ -69,11 +69,17 @@ class PlayController extends Controller
         }
         $tq = TeamQuarter::query()->firstOrCreate(['team_id' => $team->id, 'quarter_id' => $quarter->id]);
         if ($page === 'capital') {
-            // Committed projects stay committed, and new commitments must fit this quarter's envelope.
+            // A project under way never goes back to "hold" (it keeps going, pauses or is cancelled), a cancelled one
+            // stays cancelled, and new commitments must fit this quarter's envelope.
             $previous = $book->previousEffective($team, $quarter);
             foreach ($previous as $key => $value) {
-                if (str_starts_with($key, 'proj_') && $value === 'commit') {
-                    $clean[$key] = 'commit';
+                if (! str_starts_with($key, 'proj_')) {
+                    continue;
+                }
+                if ($value === 'cancel') {
+                    $clean[$key] = 'cancel';
+                } elseif (in_array($value, ['commit', 'pause'], true) && ! in_array($clean[$key] ?? 'hold', ['commit', 'pause', 'cancel'], true)) {
+                    $clean[$key] = $value;
                 }
             }
             $envelope = $runner->capitalTerms($quarter)['envelope'];

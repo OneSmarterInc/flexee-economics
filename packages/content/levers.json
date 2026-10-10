@@ -29,7 +29,11 @@
     },
     "capital": {
       "title": "Big projects",
-      "intro": "Each project costs its full price now and pays back over about ten years. Once you go ahead with one, there's no turning back. Ingrid takes them to the board, and the board caps what she can spend this quarter."
+      "intro": "Each project costs its full price now and pays back over about ten years. Once you go ahead with one, the money is spent: you can pause it (the clock stops, and Halden pays the cost of capital on the money for the quarter) or cancel it (nothing comes back), but you can't un-spend it. Ingrid takes them to the board, and the board caps what she can spend this quarter.",
+      "under_way": "Under way.",
+      "paused": "Paused. It picks up where it left off when you set it going again; pausing costs ${cost}M a quarter.",
+      "cancelled": "Cancelled. Its ${outlay}M stays on the books, and it can't be restarted.",
+      "pause_note": "Pausing costs ${cost}M this quarter. Cancelling can't be undone."
     }
   },
   "help": {
@@ -43,6 +47,7 @@
     "crude_hedge": "Sell part of next quarter's oil now, at this quarter's price. If oil falls next quarter, the hedge pays; if it rises, it costs you.",
     "eur_hedge": "Sell euros now for dollars next quarter, at today's rate. If the euro falls further, the hedge pays; if it recovers, it costs you.",
     "nok_hedge": "Buy kroner now for next quarter, at today's rate. If the krone strengthens, the hedge pays; if it weakens further, it costs you.",
+    "sgd_hedge": "Sell Singapore dollars now for next quarter, at today's rate. Singapore earns in its own dollar, so if the US dollar strengthens the hedge pays; if it weakens, it costs you. The exposure is smaller than the euro's.",
     "proj_br_upgrade": "Lets Baton Rouge make more of the high-value fuels from each barrel. Pays back over ten years, most of it early.",
     "proj_rot_upgrade": "Cuts Rotterdam's costs and lifts what it earns per barrel. It only pays while Rotterdam is running.",
     "proj_helix": "A new business: a West Texas supply contract with a customer in Rotterdam. Slow to start, and paying most in later years.",
@@ -111,6 +116,11 @@
     "turnaround": {
       "now": "Do it now, at peak rates",
       "wait": "Wait for off-peak rates next quarter"
+    },
+    "project_under_way": {
+      "commit": "Keep going",
+      "pause": "Pause this quarter",
+      "cancel": "Cancel for good"
     }
   },
   "badges": {
