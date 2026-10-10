@@ -293,7 +293,14 @@ function fmt(n: number): string {
                 </section>
             </div>
 
-            <h2 class="hx-h2 mt-8">Schedule</h2>
+            <h2 class="hx-h2 mt-8">
+                Schedule
+                <a
+                    :href="`/faculty/schedule?section=${props.section.id}`"
+                    class="hx-hint ml-2 font-normal underline"
+                    >Change deadlines</a
+                >
+            </h2>
             <div class="hx-card mt-3 overflow-x-auto p-0">
                 <table class="hx-tbl w-full">
                     <thead>
