@@ -107,9 +107,11 @@ final class DecisionBook
                 $out[$key] = $value;
             }
         }
-        // A project, once committed, stays committed. Matching the rival's expansion is a build, so it sticks too.
+        // A project, once committed, stays committed. Matching the rival's expansion is a build, and a rebrand is
+        // paint on 1,000 stations, so those stick too.
         foreach ($previous as $key => $value) {
-            if ((str_starts_with($key, 'proj_') && $value === 'commit') || ($key === 'capacity_response' && $value === 'match')) {
+            if ((str_starts_with($key, 'proj_') && $value === 'commit') || ($key === 'capacity_response' && $value === 'match')
+                || (str_starts_with($key, 'rebrand_') && $value === 'rebrand')) {
                 $out[$key] = $value;
             }
         }
@@ -203,6 +205,10 @@ final class DecisionBook
             }
         }
 
+        $rebrand = [];
+        foreach (array_keys($this->data->rebrand) as $k) {
+            $rebrand[$k] = (string) ($d["rebrand_$k"] ?? 'keep');
+        }
         $responses = [];
         foreach ($this->data->cordell as $cl) {
             $responses[$cl['key']] = (string) ($d['resp_'.$cl['key']] ?? 'ignore');
@@ -226,6 +232,7 @@ final class DecisionBook
             responses: $responses,
             capacityResponse: (string) ($d['capacity_response'] ?? 'hold'),
             opecCase: (string) ($d['opec_case'] ?? 'fails'),
+            rebrand: $rebrand,
         );
     }
 

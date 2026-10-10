@@ -175,6 +175,17 @@ export interface PlayProps {
             wti: number;
             carryRate: number;
         } | null;
+        rebrand: {
+            regions: {
+                key: string;
+                label: string;
+                sites: number;
+                keep: number;
+                halden: number;
+                cost: number;
+                rebrandedBefore: boolean;
+            }[];
+        } | null;
     };
     memo: { text: string; savedAt: string | null };
     ready: string | null;
@@ -199,6 +210,7 @@ export interface LeverText {
             title: string;
             intro: string;
             rival?: { title: string; intro: string; means: string };
+            rebrand?: { title: string; intro: string; means: string };
         }
     >;
     help: Record<string, string>;
@@ -206,6 +218,7 @@ export interface LeverText {
     capacity_matched: string;
     opec_means: string;
     opec_means_none: string;
+    rebranded: string;
     badges: Record<string, string>;
     station_notes: Record<string, string>;
     fixed_items: Record<

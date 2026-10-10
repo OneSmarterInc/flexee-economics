@@ -12,6 +12,7 @@ final class CompanyState
      * @param  array<string, int>  $heldDown  consecutive quarters each station price has been held below its going rate
      * @param  array<string, float>  $hedges  hedges opened last quarter, settled this quarter
      * @param  array<string, int>  $projects  committed project key => quarters since commitment
+     * @param  array<string, int>  $rebranded  rebranded Cordell region => quarters since the rebrand
      */
     public function __construct(
         public float $permianProd,
@@ -25,6 +26,7 @@ final class CompanyState
         public array $heldDown = [],
         public array $hedges = [],
         public array $projects = [],
+        public array $rebranded = [],
     ) {}
 
     /** @return array<string, mixed> */
@@ -48,6 +50,7 @@ final class CompanyState
             heldDown: (array) ($a['heldDown'] ?? []),
             hedges: array_map('floatval', (array) ($a['hedges'] ?? [])),
             projects: array_map('intval', (array) ($a['projects'] ?? [])),
+            rebranded: array_map('intval', (array) ($a['rebranded'] ?? [])),
         );
     }
 }

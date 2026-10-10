@@ -57,7 +57,7 @@ class QuarterFlowTest extends TestCase
             $golden[$r['team']][$r['quarter']][$r['metric']] = (float) $r['value'];
         }
 
-        $keys = [1 => '2027Q1', 2 => '2027Q2', 3 => '2027Q3', 4 => '2027Q4', 5 => '2028Q1', 6 => '2028Q2', 7 => '2028Q3', 8 => '2028Q4'];
+        $keys = [1 => '2027Q1', 2 => '2027Q2', 3 => '2027Q3', 4 => '2027Q4', 5 => '2028Q1', 6 => '2028Q2', 7 => '2028Q3', 8 => '2028Q4', 9 => '2029Q1'];
         foreach ($keys as $n => $key) {
             $quarter = $section->quarters()->where('number', $n)->firstOrFail();
             if ($n === 8) {
@@ -78,7 +78,7 @@ class QuarterFlowTest extends TestCase
                 $r = $tq->results;
                 $this->assertEqualsWithDelta($r['money.ebitda'] - $r['bridge.previous'],
                     $r['bridge.prices'] + $r['bridge.decisions'] + $r['bridge.carried_over'], 1e-6, "$name Q$n bridge adds up");
-                foreach (['money.ebitda', 'money.fcf', 'segment.oil_fields', 'kpi.plant_condition', 'ops.permian_prod', 'line.hedges', 'ops.nwe', 'ops.project_outlay', 'line.projects_refining', 'line.cordell_price_match', 'line.capacity_game', 'line.crude_bought_ahead', 'ops.wti_shock', 'ops.gc'] as $m) {
+                foreach (['money.ebitda', 'money.fcf', 'segment.oil_fields', 'kpi.plant_condition', 'ops.permian_prod', 'line.hedges', 'ops.nwe', 'ops.project_outlay', 'line.projects_refining', 'line.cordell_price_match', 'line.capacity_game', 'line.crude_bought_ahead', 'ops.wti_shock', 'ops.gc', 'line.rebrand_gain', 'ops.rebrand_outlay', 'ops.nonfuel_per_gal'] as $m) {
                     $this->assertEqualsWithDelta($expected[$m], $tq->results[$m], max(1e-4, abs($expected[$m]) * 1e-6), "$name Q$n $m");
                 }
             }
@@ -206,17 +206,17 @@ class QuarterFlowTest extends TestCase
         $this->assertEqualsWithDelta(-10.0, $tq->results['line.capacity_game'], 1e-9, 'Pelican built; the team held, so $10M a quarter');
     }
 
-    public function test_quarter_nine_cannot_open_until_its_economics_exist(): void
+    public function test_quarter_ten_cannot_open_until_its_economics_exist(): void
     {
         [$section] = $this->section(['a']);
         $runner = app(QuarterRunner::class);
-        foreach ([1, 2, 3, 4, 5, 6, 7, 8] as $n) {
+        foreach ([1, 2, 3, 4, 5, 6, 7, 8, 9] as $n) {
             $q = $section->quarters()->where('number', $n)->firstOrFail();
             $runner->open($q);
             $runner->close($q->refresh());
             $runner->publish($q->refresh());
         }
-        $this->expectExceptionMessage("The economics for Q1 2029 aren't built yet.");
-        $runner->open($section->quarters()->where('number', 9)->firstOrFail());
+        $this->expectExceptionMessage("The economics for Q2 2029 aren't built yet.");
+        $runner->open($section->quarters()->where('number', 10)->firstOrFail());
     }
 }

@@ -25,3 +25,6 @@ resp_rural,gas_stations,Cordell · small towns: the rival's cut,choice ignore|ma
 resp_interstate,gas_stations,Cordell · highways: the rival's cut,choice ignore|match,,,,ignore,7,your_call
 capacity_response,capital,Pelican's new Gulf Coast refining unit,choice hold|match,,,,hold,7,your_call
 opec_case,trading_finance,What Geneva plans for at the OPEC+ meeting,choice fails|partial|full,,,,fails,8,geneva_has_to_agree
+rebrand_core,gas_stations,Louisiana and Mississippi: keep Cordell or go Halden,choice keep|rebrand,,,,keep,9,your_call
+rebrand_gulf,gas_stations,Gulf Coast beyond the core: keep Cordell or go Halden,choice keep|rebrand,,,,keep,9,your_call
+rebrand_edge,gas_stations,Southeast edge: keep Cordell or go Halden,choice keep|rebrand,,,,keep,9,your_call

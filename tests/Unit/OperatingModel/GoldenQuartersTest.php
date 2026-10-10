@@ -91,7 +91,7 @@ class GoldenQuartersTest extends TestCase
                 $this->assertClose((float) $effects['opec_wti'], $quarter['wti'], 'OPEC WTI');
                 $this->assertClose((float) $effects['opec_gc'], $quarter['gc'], 'OPEC Gulf Coast margin');
             }
-            if ($key === '2029Q1') {
+            if (str_starts_with($key, '2029')) {
                 $quarter['cordell_nonfuel'] = (float) $effects['window3_nonfuel'];
             }
             $results = [];
@@ -111,7 +111,7 @@ class GoldenQuartersTest extends TestCase
                 }
             }
         }
-        $this->assertCount(8, $quarters);
+        $this->assertCount(9, $quarters);
         $this->assertGreaterThan(800, $checked);
     }
 }

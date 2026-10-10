@@ -183,6 +183,9 @@ const pageKeys: Record<string, string[]> = {
         'resp_suburban',
         'resp_rural',
         'resp_interstate',
+        'rebrand_core',
+        'rebrand_gulf',
+        'rebrand_edge',
     ],
     trading_finance: [
         'tp_method',
@@ -349,6 +352,27 @@ const matchCost = computed(() =>
         0,
     ),
 );
+const newlyRebranded = computed(() =>
+    (props.desk.rebrand?.regions ?? []).filter(
+        (r) => !r.rebrandedBefore && draft[`rebrand_${r.key}`] === 'rebrand',
+    ),
+);
+function rebrandMeans(): string {
+    const rs = newlyRebranded.value;
+
+    return (props.leverText.pages.gas_stations.rebrand?.means ?? '')
+        .replace('{n}', String(rs.length))
+        .replace('{regions}', rs.length === 1 ? 'region' : 'regions')
+        .replace(
+            '{cost}',
+            fmt(
+                rs.reduce((sum, r) => sum + r.cost, 0),
+                1,
+            ),
+        )
+        .replace('{sites}', fmt(rs.reduce((sum, r) => sum + r.sites, 0)));
+}
+
 function rivalMeans(): string {
     const n = matchedMarkets.value.length;
 
@@ -1603,10 +1627,111 @@ function quarterHref(id: number): string {
                                 </table>
                             </div>
                         </div>
+                        <div
+                            v-if="desk.rebrand && isOpenLever('rebrand_core')"
+                            class="hx-lever mt-4"
+                        >
+                            <div class="flex flex-wrap items-center gap-2">
+                                <span class="text-[16px] font-semibold">{{
+                                    leverText.pages.gas_stations.rebrand?.title
+                                }}</span>
+                                <span
+                                    v-if="lever('rebrand_core').isNew"
+                                    class="hx-badge hx-badge-new"
+                                    >NEW</span
+                                >
+                            </div>
+                            <div class="hx-hint mt-1 mb-3">
+                                {{
+                                    leverText.pages.gas_stations.rebrand?.intro
+                                }}
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="hx-tbl">
+                                    <thead>
+                                        <tr>
+                                            <th>Region</th>
+                                            <th>Stations</th>
+                                            <th>Cordell adds, per fill</th>
+                                            <th>Halden would add, per fill</th>
+                                            <th>Cost to repaint</th>
+                                            <th>Your answer</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr
+                                            v-for="r in desk.rebrand.regions"
+                                            :key="r.key"
+                                        >
+                                            <td class="font-medium">
+                                                {{ r.label }}
+                                            </td>
+                                            <td class="hx-mono">
+                                                {{ fmt(r.sites) }}
+                                            </td>
+                                            <td class="hx-mono">
+                                                {{ cents(r.keep * 100) }}¢
+                                            </td>
+                                            <td class="hx-mono">
+                                                {{ cents(r.halden * 100) }}¢
+                                            </td>
+                                            <td class="hx-mono">
+                                                ${{ fmt(r.cost, 1) }}M
+                                            </td>
+                                            <td>
+                                                <div
+                                                    v-if="r.rebrandedBefore"
+                                                    class="font-semibold"
+                                                    style="
+                                                        color: var(--hx-teal);
+                                                    "
+                                                >
+                                                    {{ leverText.rebranded }}
+                                                </div>
+                                                <div
+                                                    v-else
+                                                    class="flex flex-wrap gap-2"
+                                                >
+                                                    <button
+                                                        v-for="(
+                                                            label, choice
+                                                        ) in leverText.choices
+                                                            .rebrand"
+                                                        :key="choice"
+                                                        type="button"
+                                                        class="hx-opt"
+                                                        :aria-pressed="
+                                                            draft[
+                                                                `rebrand_${r.key}`
+                                                            ] === choice
+                                                        "
+                                                        :disabled="!editable"
+                                                        @click="
+                                                            draft[
+                                                                `rebrand_${r.key}`
+                                                            ] = String(choice)
+                                                        "
+                                                    >
+                                                        {{ label }}
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                         <div class="hx-desk mt-4">
                             <div>
                                 <span class="hx-eyebrow">What this means</span>
                                 <div class="hx-mono mt-1 text-[14px]">
+                                    <template
+                                        v-if="
+                                            desk.rebrand &&
+                                            isOpenLever('rebrand_core')
+                                        "
+                                        >{{ rebrandMeans() }}&nbsp;
+                                    </template>
                                     <template
                                         v-if="
                                             desk.rival &&

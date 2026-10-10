@@ -197,6 +197,28 @@ final class OperatingModel
         return $wtiPre + $sum;
     }
 
+    /** Putting the Halden name on one region's stations: the programme cost, charged per site. */
+    public function rebrandCost(string $key): float
+    {
+        $sites = 0.0;
+        foreach ($this->data->rebrand as $m) {
+            $sites += $m['sites'];
+        }
+
+        return $this->data->c('rebrand_total_cost') / $sites * $this->data->rebrand[$key]['sites'];
+    }
+
+    /**
+     * What a rebranded region earns a year: the Halden name's pull less the Cordell name's, per fill, times fills,
+     * scaled by the shop margin the class is living with (a price war shrinks what a better name is worth).
+     */
+    public function rebrandGainPerYear(string $key, float $nonfuelPerGal): float
+    {
+        $m = $this->data->rebrand[$key];
+
+        return ($m['halden'] - $m['keep']) * $m['sites'] * $this->data->c('rebrand_fills_per_site_year') / 1e6 * $nonfuelPerGal / $this->data->c('window3_base_nonfuel');
+    }
+
     public function inventoryDays(string $case): float
     {
         return $this->data->c("opec_inventory_days_$case");
@@ -386,9 +408,25 @@ final class OperatingModel
             $cordFuel += $gal * ($c('cordell_fuel_margin') + $delta - $cutGiven);
             $cordNonfuel += $gal * $nonfuelPerGal * $c('cordell_nonfuel_halden_share');
         }
+        // Regions rebranded in an earlier quarter earn the Halden name's pull from the quarter after the work.
+        $rebrandAge = [];
+        $rebrandGain = 0.0;
+        foreach ($state->rebranded as $key => $age) {
+            $rebrandAge[$key] = $age + 1;
+            $rebrandGain += $this->rebrandGainPerYear($key, $nonfuelPerGal) / 4;
+        }
+        $rebrandOutlay = 0.0;
+        foreach ($dec->rebrand as $key => $choice) {
+            if ($choice === 'rebrand' && ! array_key_exists($key, $state->rebranded)) {
+                $rebrandAge[$key] = 0;
+                $rebrandOutlay += $this->rebrandCost($key);
+            }
+        }
+        $cordNonfuel += $rebrandGain * 1e6;
         $lines['cordell_fuel'] = $cordFuel / 1e6;
         $lines['cordell_shop'] = $cordNonfuel / 1e6;
         $lines['cordell_price_match'] = -$matchCost / 1e6;   // already inside cordell_fuel; shown on its own
+        $lines['rebrand_gain'] = $rebrandGain;                // already inside cordell_shop; shown on its own
 
         $euFactor = $state->europeVolumeFactor * (1 - $c('europe_volume_decline_qtr'));
         $euGalTotal = $c('europe_sites') * $c('europe_gal_per_site_qtr') * $euFactor * $crudeVf;
@@ -433,7 +471,8 @@ final class OperatingModel
         // Money
         $da = $state->capitalEmployed * $c('da_rate_annual') / 4;
         $tax = $c('tax_rate') * max(0.0, $ebitda - $da);
-        $capex = $c('other_sustaining_capex') + $dec->rigs * $c('rig_capex_per_qtr') + $commitOutlay;
+        $newCapital = $commitOutlay + $rebrandOutlay;   // the rebrand is capital spending, treated like a project (decision S2)
+        $capex = $c('other_sustaining_capex') + $dec->rigs * $c('rig_capex_per_qtr') + $newCapital;
         $fcf = $ebitda - $tax - $capex;
         $newCe = $state->capitalEmployed + $capex - $da;
         $newNd = $state->netDebt - $fcf + $c('shareholder_payout');
@@ -455,7 +494,7 @@ final class OperatingModel
             'profit_per_barrel' => ($ebitda - $corporate) * 1e6 / ($c('total_production') * $D),
             'roace_pct' => 100 * 4 * ($ebitda - $da) * (1 - $c('tax_rate')) / $state->capitalEmployed,
             // Before growth projects (decision S2, Vikram 9 Oct 2026): a sound project isn't punished in the quarter its money goes out.
-            'free_cash_flow' => $fcf + $commitOutlay,
+            'free_cash_flow' => $fcf + $newCapital,
             'refining_vs_industry' => $refinedBbl > 0 ? $refiningExInternal * 1e6 / $refinedBbl - $benchMargin : -$benchMargin,
             'shop_profit_per_station_k' => $cordNonfuel / $c('cordell_sites') / 1e3,
             'debt_to_earnings' => $ebitda > 0 ? $newNd / (4 * $ebitda) : 99.0,
@@ -498,6 +537,7 @@ final class OperatingModel
             heldDown: $heldDown,
             hedges: $newHedges,
             projects: $projAge,
+            rebranded: $rebrandAge,
         );
 
         return new QuarterResult(
@@ -510,7 +550,8 @@ final class OperatingModel
                 'br_throughput' => $brTpBbl, 'rot_throughput' => $rotTp, 'sg_accepted' => $sgRun, 'rot_status' => $rotStatus,
                 'fx_effect' => $fxEffect, 'project_outlay' => $commitOutlay, 'nwe' => $mkt['nwe'],
                 'rival_match_cost' => $matchCost / 1e6, 'rival_ignore_cost' => $ignoreCost / 1e6,
-                'wti_shock' => $shock, 'gc' => $mkt['gc'], 'wti' => $wti],
+                'wti_shock' => $shock, 'gc' => $mkt['gc'], 'wti' => $wti, 'rebrand_outlay' => $rebrandOutlay,
+                'nonfuel_per_gal' => $nonfuelPerGal],
             notes: $notes,
             state: $newState,
         );

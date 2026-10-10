@@ -244,7 +244,34 @@ check("Window 2: all building -$3.00; half 0; none +$1.50; overbuilding costs tw
 worst = hm.opec_market(m8, "full", 1.0)
 check("Worst case (the cut holds and everyone built): Gulf Coast margin $13.60", abs(worst["gc"] - 13.60) < 1e-9, f"{worst['gc']:.2f}")
 
-# 22 Reference teams: careful > average > careless in every quarter
+# 22 The rebrand (Q1 2029, Week 9 package): the Halden name is worth more where the Cordell name is worth less
+cps = hm.C["rebrand_total_cost"] * 1e6 / sum(m["sites"] for m in hm.REBRAND.values())
+check("Putting the Halden name on a station costs $79,070 (a $340M programme over 4,300 sites)", abs(cps - 79069.767442) < 1e-3, f"${cps:,.2f}")
+gains = {k: hm.rebrand_gain_per_year(k, 0.42) for k in hm.REBRAND}
+check("At a $0.42 shop margin the rebrand earns -$15.0M a year in the heartland, +$7.6M on the Gulf Coast, +$15.1M on the Southeast edge",
+      abs(gains["core"] + 14.985) < 1e-6 and abs(gains["gulf"] - 7.56) < 1e-6 and abs(gains["edge"] - 15.12) < 1e-6, ", ".join(f"{k} {v:.3f}" for k, v in gains.items()))
+pb = {k: hm.rebrand_cost(k) / gains[k] for k in ("gulf", "edge")}
+partial = (hm.rebrand_cost("gulf") + hm.rebrand_cost("edge")) / (gains["gulf"] + gains["edge"])
+check("Paybacks: Southeast edge 5.5 years, Gulf Coast 14.6; both together 8.5 years on $193.7M; all three regions earn only $7.7M a year",
+      abs(pb["edge"] - 5.490956) < 1e-5 and abs(pb["gulf"] - 14.64255) < 1e-4 and abs(partial - 8.541487) < 1e-5 and abs(sum(gains.values()) - 7.695) < 1e-6,
+      f"edge {pb['edge']:.2f}, gulf {pb['gulf']:.2f}, both {partial:.2f}; all three {sum(gains.values()):.3f}/yr")
+war = (hm.rebrand_cost("gulf") + hm.rebrand_cost("edge")) / sum(hm.rebrand_gain_per_year(k, 0.38) for k in ("gulf", "edge"))
+check("After a price war (shop margin $0.38) the same rebrand takes 9.4 years to pay back", abs(war - 9.440591) < 1e-5, f"{war:.2f} years")
+m9 = q("2029Q1")
+rb1 = hm.step(copy.deepcopy(start), hm.Decisions(rebrand={"edge": "rebrand"}), m9)
+rb2 = hm.step(rb1[-1], hm.Decisions(rebrand={"edge": "rebrand"}), m9)
+base9 = hm.step(copy.deepcopy(start), hm.Decisions(), m9)
+check("Rebranding the Southeast edge costs $83.0M of capital now (added back in the score) and pays $3.78M a quarter in the shop from the next quarter",
+      abs(rb1[4]["rebrand_outlay"] - 83.023256) < 1e-5 and rb1[0]["rebrand_gain"] == 0.0 and abs(rb1[3]["free_cash_flow"] - rb1[2]["fcf"] - 83.023256) < 1e-5
+      and abs(rb2[0]["rebrand_gain"] - 15.12 / 4) < 1e-6 and abs(rb2[0]["cordell_shop"] - base9[0]["cordell_shop"] - 15.12 / 4) < 1e-6
+      and rb2[4]["rebrand_outlay"] == 0.0, f"outlay {rb1[4]['rebrand_outlay']:.2f}, then {rb2[0]['rebrand_gain']:.3f} a quarter, charged once")
+# Window 3 landing: a price-war class earns less in every Cordell shop in 2029
+war9 = hm.step(copy.deepcopy(start), hm.Decisions(), dict(m9, cordell_nonfuel=hm.window3_nonfuel(0.9)))
+calm9 = hm.step(copy.deepcopy(start), hm.Decisions(), dict(m9, cordell_nonfuel=hm.window3_nonfuel(0.2)))
+check("Window 3 lands: a class that fought a price war earns less in the shops than one that held its prices",
+      war9[0]["cordell_shop"] < base9[0]["cordell_shop"] < calm9[0]["cordell_shop"], f"{war9[0]['cordell_shop']:.1f} < {base9[0]['cordell_shop']:.1f} < {calm9[0]['cordell_shop']:.1f}")
+
+# 23 Reference teams: careful > average > careless in every quarter
 summary = rr.main()
 ok = True
 detail = []
@@ -252,16 +279,16 @@ for i in range(len(summary["careful"])):
     c, a, l = (summary[t][i][2] for t in ("careful", "average", "careless"))
     ok &= c > a > l
     detail.append(f"Q{i+1}: {c:.1f} / {a:.1f} / {l:.1f}")
-check("Score order careful > average > careless in all eight quarters", ok, "; ".join(detail))
+check("Score order careful > average > careless in all nine quarters", ok, "; ".join(detail))
 
-# 23 Determinism: fixtures rebuild byte-identical
+# 24 Determinism: fixtures rebuild byte-identical
 h1 = hashlib.sha256((ROOT / "fixtures/golden_quarters.csv").read_bytes()).hexdigest()
 rr.main()
 h2 = hashlib.sha256((ROOT / "fixtures/golden_quarters.csv").read_bytes()).hexdigest()
 check("Fixtures rebuild identically", h1 == h2, h1[:16])
 
 passed = sum(1 for c in checks if c[1])
-lines = ["# Operating model validation (v0.4, Quarters 1-8)", "", f"**Result: {passed} of {len(checks)} checks pass.**", "",
+lines = ["# Operating model validation (v0.5, Quarters 1-9)", "", f"**Result: {passed} of {len(checks)} checks pass.**", "",
          "| # | Check | Result | Detail |", "| --- | --- | --- | --- |"]
 for i, (n, okk, d) in enumerate(checks, 1):
     lines.append(f"| {i} | {n} | {'PASS' if okk else 'FAIL'} | {d} |")

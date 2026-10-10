@@ -93,9 +93,10 @@ final class ContentPack
      * @param  array<string, float|string>  $results
      * @param  array<string, string|float|int|null>  $decisions
      * @param  array<string, float>  $baseOffsets
+     * @param  array<string, string>  $extra  placeholders the caller supplies (names from the model data, say)
      * @return array{title: string, paragraphs: list<string>, band: string}
      */
-    public function story(int $n, array $results, array $decisions, array $baseOffsets): array
+    public function story(int $n, array $results, array $decisions, array $baseOffsets, array $extra = []): array
     {
         $story = $this->quarter($n)['story'];
         $band = $this->band((string) $story['band_on'], $results, $decisions, $baseOffsets);
@@ -107,9 +108,9 @@ final class ContentPack
             }
         }
         $chosen ??= end($story['bands']);
-        $vars = self::placeholders($results, $decisions);
-        // A fill is a sentence picked by a choice; it can hold placeholders of its own, so fill those first.
-        $vars += array_map(fn (string $t): string => strtr($t, $vars), $this->fills($n, $decisions));
+        $vars = self::placeholders($results, $decisions) + $extra;
+        // A fill is a sentence picked by a choice (or a band); it can hold placeholders of its own, so fill those first.
+        $vars += array_map(fn (string $t): string => strtr($t, $vars), $this->fills($n, $results, $decisions, $baseOffsets));
         $fill = fn (string $t): string => strtr($t, $vars);
 
         return [
@@ -184,6 +185,17 @@ final class ContentPack
                 }
 
                 return ['key' => $matched === 0 ? 'held' : ($matched >= 3 ? 'matched' : 'mixed'), 'value' => (float) $matched];
+            case 'rebrand':
+                $n = 0;
+                foreach (['core', 'gulf', 'edge'] as $k) {
+                    $n += ($decisions["rebrand_$k"] ?? 'keep') === 'rebrand' ? 1 : 0;
+                }
+
+                return ['key' => $n === 0 ? 'none' : ($n === 3 ? 'full' : 'partial'), 'value' => (float) $n];
+            case 'window3':
+                $margin = (float) ($results['ops.nonfuel_per_gal'] ?? 0.42);
+
+                return ['key' => $margin < 0.42 - 0.005 ? 'war' : ($margin > 0.42 + 0.005 ? 'calm' : 'base'), 'value' => $margin];
             case 'opec':
                 $shock = (float) ($results['ops.wti_shock'] ?? 0);
 
@@ -199,19 +211,23 @@ final class ContentPack
     }
 
     /**
-     * Sentences a quarter's story picks by one of the team's choices ("fills" in quarters.json).
+     * Sentences a quarter's story picks by one of the team's choices, or by a band ("fills" in quarters.json;
+     * "on" names a decision, or "band:<name>").
      *
+     * @param  array<string, float|string>  $r
      * @param  array<string, string|float|int|null>  $d
+     * @param  array<string, float>  $baseOffsets
      * @return array<string, string>
      */
-    private function fills(int $n, array $d): array
+    private function fills(int $n, array $r, array $d, array $baseOffsets): array
     {
         $out = [];
         foreach ((array) ($this->quarter($n)['fills'] ?? []) as $placeholder => $fill) {
             if (! is_array($fill)) {
                 continue;
             }
-            $choice = (string) ($d[(string) $fill['on']] ?? '');
+            $on = (string) $fill['on'];
+            $choice = str_starts_with($on, 'band:') ? $this->band(substr($on, 5), $r, $d, $baseOffsets)['key'] : (string) ($d[$on] ?? '');
             $out[(string) $placeholder] = (string) ($fill[$choice] ?? '');
         }
 
@@ -246,6 +262,9 @@ final class ContentPack
             '{gc}' => '$'.number_format((float) ($r['ops.gc'] ?? 0), 2),
             '{bought_ahead}' => $money('line.crude_bought_ahead'),
             '{inventory_carry}' => self::money(abs((float) ($r['line.inventory_carry'] ?? 0))),   // always a cost, so shown without a sign
+            '{rebrand_outlay}' => $money('ops.rebrand_outlay'),
+            '{cordell_shop}' => $money('line.cordell_shop'),
+            '{nonfuel}' => rtrim(rtrim(number_format((float) ($r['ops.nonfuel_per_gal'] ?? 0) * 100, 1), '0'), '.').' cents',
         ];
     }
 

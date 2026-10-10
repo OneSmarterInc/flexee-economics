@@ -1,0 +1,5 @@
+parameter,value,note
+programme_cost_all_stations_musd,340.0,"the Halden name on all 4,300 stations"
+stations,4300,
+fills_per_station_per_year,180000,a calibration figure; it scales every payback
+usual_shop_margin_usd_gal,0.42,what a brand is worth is scaled by this year's shop margin divided by this

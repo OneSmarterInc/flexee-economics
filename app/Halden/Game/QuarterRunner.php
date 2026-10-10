@@ -215,7 +215,7 @@ final class QuarterRunner
         if ((bool) $m['opec'] && $quarter->event_outcome !== null) {
             $m = $this->model->opecMarket($m, $quarter->event_outcome, $this->classBrUpgradeShare($quarter) ?? 0.5);
         }
-        if ($quarter->company_quarter === '2029Q1') {
+        if (str_starts_with($quarter->company_quarter, '2029')) {   // Window 3 lands for all of 2029
             $aggression = $this->classAggression($quarter);
             if ($aggression !== null) {
                 $m['cordell_nonfuel'] = $this->model->window3Nonfuel($aggression);

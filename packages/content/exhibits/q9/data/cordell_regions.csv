@@ -1,0 +1,4 @@
+region,label,what_the_name_means,stations,cordell_adds_per_fill_usd,halden_would_add_per_fill_usd
+core,Louisiana and Mississippi,strong,1850,0.055,0.01
+gulf,Gulf Coast beyond the core,medium,1400,0.015,0.045
+edge,Southeast edge,weak,1050,-0.005,0.075

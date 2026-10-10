@@ -16,6 +16,11 @@
         "title": "Pelican's price cut",
         "intro": "Pelican cut what drivers pay by 6¢ a gallon near Cordell stations, in every kind of market. For each market, hold your price or match the cut. Matching gives up 6¢ on every gallon Cordell sells there; holding lets some drivers drift to Pelican.",
         "means": "Matching in {n} {markets} gives up about ${cost}M of fuel margin this quarter."
+      },
+      "rebrand": {
+        "title": "The Cordell name",
+        "intro": "Danielle wants the Halden name on the US stations. Region by region, keep Cordell or go Halden. A rebrand costs about $79,000 a station, paid now, and can't be undone. From the next quarter the region earns the difference between what the two names are worth per fill, scaled by this year's shop margin.",
+        "means": "Repainting {n} {regions} this quarter: about ${cost}M of capital, {sites} stations."
       }
     },
     "trading_finance": {
@@ -75,6 +80,10 @@
       "fails": "Plan for the cut to fail",
       "partial": "Plan for a partial cut",
       "full": "Plan for the cut to hold"
+    },
+    "rebrand": {
+      "keep": "Keep Cordell",
+      "rebrand": "Go Halden"
     }
   },
   "badges": {
@@ -108,5 +117,6 @@
   },
   "capacity_matched": "You're building. It's under way.",
   "opec_means": "Geneva buys {days} days of Baton Rouge's crude ahead of the meeting: about {barrels}M barrels, ${tied}M tied up until Vienna decides, costing about ${carry}M in interest.",
-  "opec_means_none": "Geneva buys nothing ahead of the meeting."
+  "opec_means_none": "Geneva buys nothing ahead of the meeting.",
+  "rebranded": "Halden-branded. The signs are up."
 }

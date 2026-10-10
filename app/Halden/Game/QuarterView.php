@@ -116,6 +116,26 @@ final class QuarterView
         return ['days' => $days, 'wti' => (float) $m['wti'], 'carryRate' => $this->model->data->c('opec_inventory_carry_annual')];
     }
 
+    /**
+     * The Gas stations page from Quarter 9: the three Cordell regions, what each name is worth there, the cost to repaint.
+     *
+     * @param  array<string, mixed>  $previous
+     * @return array{regions: list<array{key: string, label: string, sites: float, keep: float, halden: float, cost: float, rebrandedBefore: bool}>}|null
+     */
+    private function rebrandDesk(Quarter $quarter, array $previous): ?array
+    {
+        if (! $this->book->isUnlocked('rebrand_core', $quarter->number)) {
+            return null;
+        }
+        $regions = [];
+        foreach ($this->model->data->rebrand as $key => $m) {
+            $regions[] = ['key' => $key, 'label' => $m['label'], 'sites' => $m['sites'], 'keep' => $m['keep'], 'halden' => $m['halden'],
+                'cost' => $this->model->rebrandCost($key), 'rebrandedBefore' => ($previous["rebrand_$key"] ?? 'keep') === 'rebrand'];
+        }
+
+        return ['regions' => $regions];
+    }
+
     /** @return array{title: string, text: string|null, reason: string|null}|null */
     private function carryingFor(?TeamQuarter $tq, bool $forFaculty): ?array
     {
@@ -209,6 +229,7 @@ final class QuarterView
                 'capital' => $this->capitalDesk($quarter, $previous),
                 'rival' => $this->rivalDesk($quarter),
                 'opec' => $this->opecDesk($quarter),
+                'rebrand' => $this->rebrandDesk($quarter, $previous),
             ],
             'memo' => [
                 'text' => $tq->memo ?? '',
@@ -279,7 +300,7 @@ final class QuarterView
             'name' => $name, 'last' => $last[$k] ?? null, 'now' => $now[$k], 'unit' => $unit, 'what' => $what,
         ];
 
-        return [
+        $rows = [
             $row('US oil price (WTI)', 'wti', 'usd', 'Dollars per barrel'),
             ['name' => 'International oil price (Brent)', 'last' => $last === null ? null : $last['wti'] + $data->c('brent_spread'),
                 'now' => $now['wti'] + $data->c('brent_spread'), 'unit' => 'usd', 'what' => 'Usually $4.50 above the US price'],
@@ -290,6 +311,13 @@ final class QuarterView
             $row('Norwegian krone', 'usdnok', 'rate', 'Kroner you get for one dollar'),
             $row('Singapore dollar', 'usdsgd', 'rate', 'Singapore dollars you get for one US dollar'),
         ];
+        if (isset($now['cordell_nonfuel'])) {
+            $usual = $data->c('window3_base_nonfuel');
+            $rows[] = ['name' => 'Cordell shop margin', 'last' => $last === null ? null : (float) ($last['cordell_nonfuel'] ?? $usual), 'now' => (float) $now['cordell_nonfuel'],
+                'unit' => 'usd', 'what' => sprintf('What a Cordell shop makes per gallon of fuel sold, this year. The usual figure is $%.2f; last summer\'s price war across your class set this one.', $usual)];
+        }
+
+        return $rows;
     }
 
     /** @return list<array{label: string, value: float, current: bool}> */
@@ -387,6 +415,14 @@ final class QuarterView
             $named[] = ['name' => 'Interest on the crude bought ahead', 'amount' => (float) ($r['line.inventory_carry'] ?? 0),
                 'why' => 'The cost of the money tied up until Vienna decided.'];
         }
+        if (abs((float) ($r['line.rebrand_gain'] ?? 0)) > 0.05) {
+            $named[] = ['name' => 'The Halden name in the shops (already in Gas stations)', 'amount' => (float) $r['line.rebrand_gain'],
+                'why' => 'What the Halden name earns, or costs, per fill in the regions you repainted, at this year\'s shop margin.'];
+        }
+        if ((float) ($r['ops.rebrand_outlay'] ?? 0) > 0) {
+            $named[] = ['name' => 'Repainting the stations (capital spending, not in EBITDA)', 'amount' => -(float) $r['ops.rebrand_outlay'],
+                'why' => 'Paid up front this quarter, like a big project. It adds to debt but not to your free cash flow score.'];
+        }
         if ((float) ($r['ops.project_outlay'] ?? 0) > 0) {
             $named[] = ['name' => 'Big projects started (capital spending, not in EBITDA)', 'amount' => -(float) $r['ops.project_outlay'],
                 'why' => 'Paid up front this quarter. It adds to debt but not to your free cash flow score.'];
@@ -441,6 +477,15 @@ final class QuarterView
                     $share <= 0 ? 'None' : ($share >= 1 ? 'All' : sprintf('About %d%%', (int) round($share * 100))), '$'.number_format(abs($shift), 2), $shift < 0 ? 'lower' : 'higher')];
             }
         }
+        if (str_starts_with($quarter->company_quarter, '2029')) {
+            $aggression = $this->runner->classAggression($quarter);
+            if ($aggression !== null) {
+                $margin = $this->model->window3Nonfuel($aggression);
+                $usual = $data->c('window3_base_nonfuel');
+                $earlier[] = ['when' => 'From Q3 2028', 'text' => sprintf('%s of the Cordell markets across your class matched Pelican\'s cut. Drivers learned to shop on price, and the shop margin this year is %s cents a gallon instead of the usual %s.',
+                    $aggression <= 0 ? 'None' : ($aggression >= 1 ? 'All' : sprintf('About %d%%', (int) round($aggression * 100))), self::n($margin * 100), self::n($usual * 100))];
+            }
+        }
         if ($quarter->number >= 2 && $team->first_meeting !== null) {
             $earlier[] = ['when' => 'From your first day', 'text' => $team->first_meeting === 'ingrid'
                 ? 'You met Ingrid Vestergaard first. She has been quicker to approve your plans for the oil fields.'
@@ -450,7 +495,7 @@ final class QuarterView
         $content = $this->content->quarter($quarter->number);
 
         return [
-            'story' => $this->content->story($quarter->number, $r, $d, $base),
+            'story' => $this->content->story($quarter->number, $r, $d, $base, ['{rebranded_regions}' => $this->rebrandedRegions($d)]),
             'pnl' => $pnl,
             'named' => $named,
             'bridge' => [
@@ -473,6 +518,23 @@ final class QuarterView
             'relations' => $this->content->relations($quarter->number, $r, $d, $base, $team->first_meeting),
             'money' => ['fcf' => (float) $r['money.fcf'], 'netDebt' => (float) $r['money.net_debt_end'], 'capex' => (float) $r['money.capex'], 'tax' => (float) $r['money.tax']],
         ];
+    }
+
+    /** @param  array<string, string|float|int|null>  $d */
+    private function rebrandedRegions(array $d): string
+    {
+        $names = [];
+        foreach ($this->model->data->rebrand as $key => $m) {
+            if (($d["rebrand_$key"] ?? 'keep') === 'rebrand') {
+                $names[] = $m['label'];
+            }
+        }
+        if ($names === []) {
+            return 'no region';
+        }
+        $last = array_pop($names);
+
+        return $names === [] ? $last : implode(', ', $names).' and '.$last;
     }
 
     private static function n(float $v): string

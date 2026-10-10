@@ -1,0 +1,6 @@
+parameter,value,note
+town_a_halden_minus_cordell_per_fill,-0.03,a town where the old name is worth more
+town_b_halden_minus_cordell_per_fill,0.06,a town where the new name is worth more
+stations_each,100,
+cost_per_station_usd,80000,
+fills_per_station_per_year,150000,

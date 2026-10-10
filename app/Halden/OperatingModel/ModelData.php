@@ -31,6 +31,9 @@ final class ModelData
     /** @var array<string, array{label: string, p: float, dwti: float}> OPEC+ outcomes by key */
     public readonly array $opec;
 
+    /** @var array<string, array{label: string, equity: string, sites: float, keep: float, halden: float}> Cordell regions by what the name is worth */
+    public readonly array $rebrand;
+
     /** @var list<array{key: string, label: string, share: float, e: float, pt: float, base: float}> */
     public readonly array $europe;
 
@@ -89,6 +92,12 @@ final class ModelData
             $opec[$r['key']] = ['label' => $r['label'], 'p' => (float) $r['probability'], 'dwti' => (float) $r['delta_wti']];
         }
         $this->opec = $opec;
+        $rebrand = [];
+        foreach (self::csv("$root/data/rebrand_markets.csv") as $r) {
+            $rebrand[$r['key']] = ['label' => $r['label'], 'equity' => $r['equity'], 'sites' => (float) $r['sites'],
+                'keep' => (float) $r['keep_uplift_per_fill'], 'halden' => (float) $r['halden_benefit_per_fill']];
+        }
+        $this->rebrand = $rebrand;
 
         $this->cordell = self::clusters("$root/data/cordell_clusters.csv", 'cluster');
         $this->europe = self::clusters("$root/data/europe_countries.csv", 'country');
