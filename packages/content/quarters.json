@@ -110,7 +110,8 @@
           }
         ]
       }
-    }
+    },
+    "new_pages_note_paired": "This week you can change the oil fields, the refineries and the gas station prices. Gas station prices are new in Q2 2027, which runs with the settings you make now."
   },
   "2": {
     "briefing": {
@@ -1699,5 +1700,16 @@
         ]
       }
     }
+  },
+  "paired": {
+    "_about": "Words for the 7-week course, where each week of the course covers two quarters with the same settings (design D1). Placeholders: {week}, {total}, {label} (\"Q1 and Q2 2027\"), {first} (\"Q1 2027\"), {second} (\"Q2 2027\").",
+    "heading": "Week {week} of {total}",
+    "also_title": "Also this week: {second}",
+    "also_intro": "This week covers two quarters, and your settings hold for both. {second} brings its own question, below. Its pages are open now, and its results come in with {first}'s.",
+    "rule": "Two quarters this week: {label}. Everything you set runs through both, and {second} runs on its own at the close with the same settings. Your memo answers {first}'s question; think {second}'s through as well, because its decisions are on your pages now.",
+    "last_week": "This week also brings the board meeting. Settle this quarter's decisions first, then write your board defense. Both are due at the deadline.",
+    "results_note": "{second}'s results are on the next quarter in the strip at the top. Your score for the week is {second}'s, where the settings had fully landed.",
+    "second_note": "{second} ran on its own with the settings you made for {first}. Your pages, your advisors and your memo for the week are on {first}.",
+    "faculty_coverage": "A 7-week class: each week covers two quarters with the same settings. Students work on the first quarter's pages; the second quarter's question appears as \"Also this week\" with its pages open, and it runs at the close with the same settings. One memo a week, on the first quarter's question; the second is analysed but not written up. What this compresses against the 14-week course: the midterm comparison lands on Q4 2028 (week 4), seats rotate when week 5 opens, Kessana and the five-year plan share week 6, and week 7 carries the union, the turnaround and the board defense together."
   }
 }

@@ -42,7 +42,13 @@ const props = defineProps<{
         deadline: string | null;
         deadlineText: string | null;
         isBoard: boolean;
+        boardQuarterId: number | null;
+        boardLabel: string | null;
         world: string | null;
+        week: number;
+        weeks: number;
+        paired: boolean;
+        coverage: string | null;
     } | null;
     next: { id: number; label: string; buildable: boolean } | null;
     feedbackQuarter: { id: number; label: string } | null;
@@ -196,13 +202,22 @@ function teamHref(teamId: number): string {
             <template v-else>
                 <div class="flex flex-wrap items-start justify-between gap-4">
                     <div>
-                        <p class="hx-eyebrow">This quarter</p>
+                        <p class="hx-eyebrow">
+                            {{ quarter.paired ? 'This week' : 'This quarter' }}
+                        </p>
                         <h1 class="hx-h1 mt-1">
-                            Quarter {{ quarter.number }} · {{ quarter.label }}
+                            {{ quarter.paired ? 'Week' : 'Quarter' }}
+                            {{ quarter.week }} · {{ quarter.label }}
                         </h1>
                         <p class="mt-1">{{ statusText[quarter.status] }}</p>
                         <p v-if="quarter.deadlineText" class="hx-hint">
                             Deadline: {{ quarter.deadlineText }} (Eastern)
+                        </p>
+                        <p
+                            v-if="quarter.coverage"
+                            class="hx-hint mt-2 max-w-[720px]"
+                        >
+                            {{ quarter.coverage }}
                         </p>
                     </div>
                     <div class="flex flex-wrap gap-2">
@@ -240,7 +255,7 @@ function teamHref(teamId: number): string {
                             :disabled="busy"
                             @click="act(quarter.id, 'open')"
                         >
-                            Open Quarter {{ quarter.number }}
+                            Open {{ quarter.label }}
                         </button>
                         <template v-else-if="next">
                             <button
@@ -448,11 +463,29 @@ function teamHref(teamId: number): string {
                                                   ? 'Finish feedback'
                                                   : quarter?.isBoard &&
                                                       feedbackQuarter.id ===
-                                                          quarter.id
+                                                          quarter.boardQuarterId
                                                     ? 'Feedback and the verdict'
                                                     : 'Write feedback'
                                         }}
                                         · {{ feedbackQuarter.label }}</a
+                                    >
+                                    <a
+                                        v-if="
+                                            feedbackQuarter &&
+                                            quarter?.isBoard &&
+                                            quarter.boardQuarterId !== null &&
+                                            quarter.boardQuarterId !==
+                                                feedbackQuarter.id &&
+                                            feedbackQuarter.id === quarter.id
+                                        "
+                                        class="mt-1 block"
+                                        :href="`/faculty/teams/${t.id}/quarters/${quarter.boardQuarterId}/feedback?section=${section.id}`"
+                                        >{{
+                                            t.verdict === 'published'
+                                                ? 'Verdict sent'
+                                                : 'The defense and the verdict'
+                                        }}
+                                        · {{ quarter.boardLabel }}</a
                                     >
                                 </td>
                             </tr>

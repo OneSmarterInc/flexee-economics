@@ -86,6 +86,10 @@ final class FacultyDrafts
             $names[$c['key']] = $c['name'];
         }
         $key = array_values(array_map('strval', (array) ($this->book['key_advisors'][(string) $tq->quarter->number] ?? [])));
+        $partner = $tq->quarter->isFirstOfWeek() ? $tq->quarter->partner() : null;
+        if ($partner !== null) {
+            $key = array_values(array_unique([...$key, ...array_map('strval', (array) ($this->book['key_advisors'][(string) $partner->number] ?? []))]));
+        }
         $board = $tq->quarter->isBoardQuarter();
 
         return [

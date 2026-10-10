@@ -63,7 +63,7 @@ class PlayController extends Controller
             throw ValidationException::withMessages([$page => 'Nothing is set this quarter. Every page carries, and the board meets.']);
         }
 
-        [$clean, $errors] = $book->validatePage($page, $request->all(), $quarter->number);
+        [$clean, $errors] = $book->validatePage($page, $request->all(), $quarter->number, $quarter->playEnd());
         if ($errors !== []) {
             throw ValidationException::withMessages($errors);
         }
@@ -84,7 +84,7 @@ class PlayController extends Controller
                     number_format($outlay), number_format($envelope),
                 )]);
             }
-            if ($book->isOpen('port_helix_rotterdam', $quarter->number)) {
+            if ($book->isOpen('port_helix_rotterdam', $quarter->number, $quarter->playEnd())) {
                 $chosen = $book->portfolioChosen(array_merge($tq->decisions ?? [], $clean));
                 $closed = $runner->startState($team, $quarter)->rotStatus === 'closed';
                 $problems = $model->portfolioCheck($chosen, $closed);
@@ -122,8 +122,10 @@ class PlayController extends Controller
         $user = $this->user($request);
         $team = $this->teamOf($user);
         $this->assertOpen($team, $quarter);
-        abort_unless($quarter->isBoardQuarter(), 404);
-        $parts = $content->quarter($quarter->number)['defense']['parts'];
+        // In the last week of a 7-week course the board quarter is the week's second half; the defense lives there.
+        $board = $quarter->boardQuarter();
+        abort_unless($board !== null, 404);
+        $parts = $content->quarter($board->number)['defense']['parts'];
         $rules = [];
         foreach ($parts as $p) {
             $rules[$p['key']] = ['nullable', 'string', 'max:40000'];
@@ -135,7 +137,7 @@ class PlayController extends Controller
             $defense[$p['key']] = (string) ($data[$p['key']] ?? '');
             $memo[] = $p['title'].":\n".$defense[$p['key']];
         }
-        $tq = TeamQuarter::query()->firstOrCreate(['team_id' => $team->id, 'quarter_id' => $quarter->id]);
+        $tq = TeamQuarter::query()->firstOrCreate(['team_id' => $team->id, 'quarter_id' => $board->id]);
         $tq->update(['defense' => $defense, 'defense_saved_by' => $user->id, 'defense_saved_at' => now(),
             'memo' => implode("\n\n", $memo), 'memo_saved_by' => $user->id, 'memo_saved_at' => now()]);
 

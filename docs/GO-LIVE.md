@@ -113,6 +113,16 @@ SEED_DEMO_PASSWORD='choose-a-long-password-here' php artisan db:seed --force
 The demo logins are `alpha1@example.test` to `alpha5@example.test` (and `bravo…`, `charlie…`), all with that
 password. `alpha1` is the EVP, who marks the team ready. The faculty login is `faculty@example.test`.
 
+A real class, with no demo logins: create the instructor with `halden:user`, then the class with its fourteen
+quarters and weekly deadlines (Thursdays 5 pm Eastern from the next Thursday, or `--first-deadline="2027-01-14 17:00"`).
+`--weeks=7` makes a 7-week class, which plays two quarters a week with the same settings.
+
+```bash
+php artisan halden:class "MBA 7250 Spring 2027" --faculty=instructor@example.edu --weeks=14 --teams=6
+```
+
+Teams are named Team A, Team B, … and start empty; students are added to them from the database for now.
+
 ## 7. Finish
 
 ```bash

@@ -557,7 +557,7 @@ const rail = computed(() => [
 
 const navGroups = computed(() => [
     {
-        title: 'This quarter',
+        title: props.quarter.paired ? 'This week' : 'This quarter',
         items: props.board
             ? [
                   { key: 'briefing' as Section, label: "What's happening" },
@@ -713,10 +713,7 @@ function quarterHref(id: number): string {
                     >HALDEN</span
                 >
                 <span class="font-semibold">{{ team.name }}</span>
-                <span
-                    >{{ quarter.label }} · Quarter {{ quarter.number }} of
-                    {{ quarter.total }}</span
-                >
+                <span>{{ quarter.heading }}</span>
                 <span
                     class="rounded px-2 py-0.5 text-[13px]"
                     :style="
@@ -773,6 +770,13 @@ function quarterHref(id: number): string {
         >
             You're viewing {{ team.name }}'s screens as they see them. Nothing
             can be changed here.
+        </div>
+        <div
+            v-if="quarter.pairedNote"
+            class="mx-7 mt-3 rounded-md px-3 py-2 text-[13px]"
+            style="background: var(--hx-soft); border: 1px solid var(--hx-line)"
+        >
+            {{ quarter.pairedNote }}
         </div>
 
         <div class="flex flex-wrap items-center gap-2.5 px-7 pt-3.5">
@@ -955,6 +959,32 @@ function quarterHref(id: number): string {
                                     {{ content.briefing.question }}
                                 </div>
                             </div>
+                            <div
+                                v-if="content.also"
+                                class="mt-4 rounded-lg px-4 py-3.5"
+                                style="
+                                    background: var(--hx-soft);
+                                    border: 1px solid var(--hx-line);
+                                "
+                            >
+                                <div class="hx-eyebrow mb-1">
+                                    {{ content.also.title }}
+                                </div>
+                                <p class="hx-p">{{ content.also.intro }}</p>
+                                <h3 class="hx-h2 mt-2">
+                                    {{ content.also.headline }}
+                                </h3>
+                                <p
+                                    v-for="(p, i) in content.also.paragraphs"
+                                    :key="i"
+                                    class="hx-p"
+                                >
+                                    {{ p }}
+                                </p>
+                                <div class="hx-serif mt-2 text-[18px]">
+                                    {{ content.also.question }}
+                                </div>
+                            </div>
                             <div class="mt-4 flex flex-wrap gap-2.5">
                                 <button
                                     type="button"
@@ -1081,6 +1111,9 @@ function quarterHref(id: number): string {
                                 watching
                             </div>
                             <p class="hx-p mt-1.5">{{ content.marchetti }}</p>
+                            <p v-if="content.also" class="hx-p mt-1.5">
+                                {{ content.also.marchetti }}
+                            </p>
                         </div>
                     </div>
                 </template>
@@ -1113,7 +1146,26 @@ function quarterHref(id: number): string {
                             "
                         >
                             <div class="mb-1 font-semibold">How it works</div>
-                            <p class="hx-p m-0">{{ content.rule }}</p>
+                            <p class="hx-p m-0 whitespace-pre-line">
+                                {{ content.rule }}
+                            </p>
+                        </div>
+                        <div
+                            v-if="content.also"
+                            class="mb-4 rounded-lg px-4 py-3.5"
+                            style="
+                                background: var(--hx-soft);
+                                border: 1px solid var(--hx-line);
+                            "
+                        >
+                            <div class="hx-eyebrow mb-1.5">
+                                {{ content.also.title }}
+                            </div>
+                            <h2 class="hx-h2 mb-2">
+                                {{ content.also.question }}
+                            </h2>
+                            <div class="mb-1 font-semibold">How it works</div>
+                            <p class="hx-p m-0">{{ content.also.rule }}</p>
                         </div>
                         <h2 class="hx-h2">The data</h2>
                         <div class="mb-4 flex flex-col gap-2">

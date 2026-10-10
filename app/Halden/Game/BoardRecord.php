@@ -34,7 +34,10 @@ final class BoardRecord
     public function world(Team $team, Quarter $quarter): array
     {
         $world = $this->runner->worldOf($quarter);
-        $chosen = $this->book->portfolioChosen($this->book->previousEffective($team, $quarter));
+        // The plan the team placed: what the quarter before is running with (its working set while it is still open,
+        // which is the case in the last week of a 7-week course, where the board quarter is the week's second half).
+        $prev = $quarter->previous();
+        $chosen = $this->book->portfolioChosen($prev === null ? $this->book->historyDefaults() : $this->book->effective($team, $prev));
         $lower = fn (string $s): string => strtolower(substr($s, 0, 1)).substr($s, 1);
 
         return [

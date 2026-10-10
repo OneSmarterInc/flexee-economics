@@ -25,6 +25,9 @@ export interface QuarterInfo {
     status: 'upcoming' | 'open' | 'closed' | 'published';
     deadline: string | null;
     deadlineText: string;
+    heading: string;
+    paired: boolean;
+    pairedNote: string | null;
 }
 
 export interface QuarterLink {
@@ -43,6 +46,15 @@ export interface Briefing {
 
 export interface QuarterContent {
     briefing: Briefing;
+    also: {
+        title: string;
+        intro: string;
+        headline: string;
+        paragraphs: string[];
+        question: string;
+        rule: string;
+        marchetti: string;
+    } | null;
     rule: string;
     newPagesNote: string;
     marchetti: string;

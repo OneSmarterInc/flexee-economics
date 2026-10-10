@@ -12,6 +12,9 @@ final class ContentPack
     /** @var array<int, array<string, mixed>> quarter number => content */
     private array $quarters;
 
+    /** @var array<string|int, mixed> */
+    private array $raw;
+
     /** @var array<string, mixed> */
     private array $opening;
 
@@ -23,7 +26,8 @@ final class ContentPack
         $root ??= base_path('packages/content');
         $this->quarters = [];
         $raw = json_decode((string) file_get_contents("$root/quarters.json"), true, flags: JSON_THROW_ON_ERROR);
-        foreach (is_array($raw) ? $raw : [] as $n => $q) {
+        $this->raw = is_array($raw) ? $raw : [];
+        foreach ($this->raw as $n => $q) {
             if (is_int($n) && is_array($q)) {
                 $this->quarters[$n] = $q;
             }
@@ -42,6 +46,12 @@ final class ContentPack
     public function opening(): array
     {
         return $this->opening;
+    }
+
+    /** @return array<string, string> words for the 7-week course, where a week covers two quarters */
+    public function paired(): array
+    {
+        return array_filter(array_map('strval', (array) ($this->raw['paired'] ?? [])), fn ($k) => ! str_starts_with((string) $k, '_'), ARRAY_FILTER_USE_KEY);
     }
 
     public function hasQuarter(int $n): bool
