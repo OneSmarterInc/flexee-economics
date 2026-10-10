@@ -8,12 +8,12 @@ The Kessana government asks for 74% of the field's profit oil instead of 62%. Ha
 
 ## 2. The decision and what each answer does
 
-| On screen | Outcome | At $68 oil, 150,000 bbl/day |
-| --- | --- | --- |
-| Sign the new terms: 74% | 74% from this quarter | costs about $100M a quarter against the old contract |
-| Counter at 68%, with Halden's reserve figures on the table | the talks settle at 68% | about $50M a quarter |
-| Counter at 68%, and say Halden will leave if he refuses | Tetteh calls the bluff: 80% | about $150M a quarter |
-| Leave Kessana: hand the block back for $180M | the line ends; $180M pays down debt; $2.3B book value comes off capital employed; write-down never touches EBITDA | about $317M a quarter forgone |
+| On screen                                                  | Outcome                                                                                                           | At $68 oil, 150,000 bbl/day                          |
+| ---------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------- |
+| Sign the new terms: 74%                                    | 74% from this quarter                                                                                             | costs about $100M a quarter against the old contract |
+| Counter at 68%, with Halden's reserve figures on the table | the talks settle at 68%                                                                                           | about $50M a quarter                                 |
+| Counter at 68%, and say Halden will leave if he refuses    | Tetteh calls the bluff: 80%                                                                                       | about $150M a quarter                                |
+| Leave Kessana: hand the block back for $180M               | the line ends; $180M pays down debt; $2.3B book value comes off capital employed; write-down never touches EBITDA | about $317M a quarter forgone                        |
 
 A team that doesn't answer signs (the government's terms go through). The rules box tells students the mechanics they can know (the takes, the exit value, that they answer once) but **not** Tetteh's response to each counter; that signal comes from Osei's record of his three renegotiations and Priya's prediction. The results story explains the outcome either way.
 
@@ -42,6 +42,7 @@ You answer once, and the terms you end up with run for the rest of the contract.
 **Kessana: the government's new terms** (badge YOUR CALL, NEW). Help text: The government wants 74% of Kessana's profit oil instead of 62%. You answer once, and the terms you end up with run for the rest of the course. Sign, counter, counter with a threat, or leave. The exhibit has what the field is worth at each take and what leaving is worth.
 
 What this means, by answer:
+
 - Sign: The government keeps 74 cents of every dollar of Kessana profit oil and Halden keeps 26, down from 38, on about 150,000 barrels a day.
 - Counter: Halden offers 68%, with its reserve figures to back it up. Where the talks land depends on how Tetteh answers; you'll know with the results.
 - Threaten: Halden offers 68% and says it will leave at 74%. Where the talks land depends on how Tetteh answers; you'll know with the results.
