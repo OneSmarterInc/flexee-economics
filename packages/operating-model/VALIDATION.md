@@ -1,6 +1,6 @@
-# Operating model validation (v0.3, Quarters 1-7)
+# Operating model validation (v0.4, Quarters 1-8)
 
-**Result: 41 of 41 checks pass.**
+**Result: 49 of 49 checks pass.**
 
 | # | Check | Result | Detail |
 | --- | --- | --- | --- |
@@ -43,5 +43,13 @@
 | 37 | Once the rival builds, holding costs $10M a quarter and matching $35M, under Refineries | PASS | -10 / -35; 0 before it builds |
 | 38 | Window 3 reproduces the ledger: a price war 0.38, base 0.42, disciplined 0.45 a fill, bounded within 15% of base | PASS | 0.38 / 0.42 / 0.45; floor 0.357 at full aggression |
 | 39 | A team that matches in two of four Cordell markets is half aggressive | PASS | 0.5 |
-| 40 | Score order careful > average > careless in all seven quarters | PASS | Q1: 88.1 / 82.2 / 12.2; Q2: 89.2 / 80.8 / 11.2; Q3: 92.2 / 84.6 / 7.8; Q4: 92.3 / 86.1 / 7.7; Q5: 90.4 / 84.9 / 9.3; Q6: 89.1 / 88.7 / 8.6; Q7: 90.9 / 83.3 / 9.0 |
-| 41 | Fixtures rebuild identically | PASS | e061914516927627 |
+| 40 | Expected WTI across the three OPEC+ outcomes is $80.70 from a $74 start | PASS | 80.70 |
+| 41 | Outcomes: the cut holds WTI 88 / margin 16.60; partly holds 81 / 19.05; fails 70 / 22.90 (crack -0.35 a dollar, Window 2 at pivot) | PASS | 88/16.60, 81/19.05, 70/22.90 |
+| 42 | Integration conflict: when the cut holds, the oil fields earn more and Baton Rouge earns less than when it fails | PASS | Permian 935 vs 703; Baton Rouge 700 vs 987 |
+| 43 | Drivers barely react: a $14 crude rise moves station volume -0.31% | PASS | -0.3125% |
+| 44 | Planning for the cut to hold buys 30 days of Baton Rouge crude ahead: +$210M if it holds, -$60M if it fails, less $24M of interest either way | PASS | +209.7 / -59.9; carry 23.5; planning for failure buys nothing |
+| 45 | Outside the OPEC+ quarter the planning case changes nothing | PASS | Q3 2028 EBITDA equal |
+| 46 | Window 2: all building -$3.00; half 0; none +$1.50; overbuilding costs twice what restraint earns | PASS | -3.00 / 0 / +1.50 |
+| 47 | Worst case (the cut holds and everyone built): Gulf Coast margin $13.60 | PASS | 13.60 |
+| 48 | Score order careful > average > careless in all eight quarters | PASS | Q1: 88.1 / 82.2 / 12.2; Q2: 89.2 / 80.8 / 11.2; Q3: 92.2 / 84.6 / 7.8; Q4: 92.3 / 86.1 / 7.7; Q5: 90.4 / 84.9 / 9.3; Q6: 89.1 / 88.7 / 8.6; Q7: 90.9 / 83.3 / 9.0; Q8: 91.0 / 79.4 / 8.9 |
+| 49 | Fixtures rebuild identically | PASS | 4dad40e30039e3ab |

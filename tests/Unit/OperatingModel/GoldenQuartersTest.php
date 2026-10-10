@@ -84,6 +84,13 @@ class GoldenQuartersTest extends TestCase
                 $this->assertClose((float) $effects['window3_avg_aggression'], $agg, 'Window 3 aggression');
                 $this->assertClose((float) $effects['window3_nonfuel'], $model->window3Nonfuel($agg), 'Window 3 shop margin');
             }
+            if ($key === '2028Q4') {
+                $share = array_sum(array_map(fn (array $byRound) => $byRound[6]->projects['br_upgrade'] === 'commit' ? 1.0 : 0.0, $plans)) / count($plans);
+                $this->assertClose((float) $effects['window2_shift'], $model->window2Shift($share), 'Window 2 shift');
+                $quarter = $model->opecMarket($quarter, (string) $effects['opec_outcome'], $share);
+                $this->assertClose((float) $effects['opec_wti'], $quarter['wti'], 'OPEC WTI');
+                $this->assertClose((float) $effects['opec_gc'], $quarter['gc'], 'OPEC Gulf Coast margin');
+            }
             if ($key === '2029Q1') {
                 $quarter['cordell_nonfuel'] = (float) $effects['window3_nonfuel'];
             }
@@ -104,7 +111,7 @@ class GoldenQuartersTest extends TestCase
                 }
             }
         }
-        $this->assertCount(7, $quarters);
+        $this->assertCount(8, $quarters);
         $this->assertGreaterThan(800, $checked);
     }
 }

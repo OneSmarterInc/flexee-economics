@@ -24,3 +24,4 @@ resp_suburban,gas_stations,Cordell · suburbs: the rival's cut,choice ignore|mat
 resp_rural,gas_stations,Cordell · small towns: the rival's cut,choice ignore|match,,,,ignore,7,your_call
 resp_interstate,gas_stations,Cordell · highways: the rival's cut,choice ignore|match,,,,ignore,7,your_call
 capacity_response,capital,Pelican's new Gulf Coast refining unit,choice hold|match,,,,hold,7,your_call
+opec_case,trading_finance,What Geneva plans for at the OPEC+ meeting,choice fails|partial|full,,,,fails,8,geneva_has_to_agree

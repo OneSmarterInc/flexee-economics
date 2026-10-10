@@ -225,6 +225,7 @@ final class DecisionBook
             projects: array_map(fn (string $k): string => (string) ($d["proj_$k"] ?? 'hold'), array_combine(array_keys($this->data->projects), array_keys($this->data->projects))),
             responses: $responses,
             capacityResponse: (string) ($d['capacity_response'] ?? 'hold'),
+            opecCase: (string) ($d['opec_case'] ?? 'fails'),
         );
     }
 

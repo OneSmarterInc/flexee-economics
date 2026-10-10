@@ -1,0 +1,4 @@
+outcome,label,chance_analysts_quote,oil_price_move_usd_bbl,oil_price_usd_bbl
+full,The cut holds in full,0.35,14.0,88.0
+partial,The cut partly holds,0.4,7.0,81.0
+fails,The cut falls apart,0.25,-4.0,70.0

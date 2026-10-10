@@ -89,3 +89,14 @@ window3_base_nonfuel,0.42,usd_gal,Wk7 window3_params.csv,Cordell shop margin per
 window3_slope,0.10,usd_gal_per_unit,Wk7 window3_params.csv,each 0.1 of class aggression moves the shop margin a cent
 window3_pivot,0.50,share,Wk7 window3_params.csv,class aggression at which the shop margin is unchanged
 window3_bound,0.15,fraction,Wk7 package,the shop margin moves at most 15% either way
+crack_per_wti,-0.35,usd_bbl_per_usd,ledger Wk8,the Gulf Coast margin compresses 35 cents for every dollar crude rises (short run)
+retail_crude_passthrough,0.60,fraction,ledger Wk8,share of a crude move that reaches the pump
+retail_crude_elasticity,-0.05,elasticity,ledger Wk8,short-run demand response to the pump price
+gal_per_bbl,42,gal,physical,
+opec_inventory_days_full,30,days,design (provisional),crude bought ahead of the decision when planning for the cut to hold
+opec_inventory_days_partial,15,days,design (provisional),crude bought ahead when planning for a partial cut
+opec_inventory_days_fails,0,days,design (provisional),nothing bought ahead when planning for the cut to fail
+opec_inventory_carry_annual,0.085,fraction,ledger Wk6 base hurdle,cost of money tied up in crude bought ahead
+window2_pivot,0.50,share,Wk3 window2 addendum,share of the class going ahead with the Baton Rouge upgrade at which the Gulf Coast margin is unchanged
+window2_slope_above,6.0,usd_bbl_per_share,Wk3 window2 addendum,margin lost per unit of share above the pivot
+window2_slope_below,3.0,usd_bbl_per_share,Wk3 window2 addendum,margin gained per unit of share below the pivot

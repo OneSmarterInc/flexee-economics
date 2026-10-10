@@ -46,6 +46,7 @@ export interface QuarterContent {
     rule: string;
     newPagesNote: string;
     marchetti: string;
+    rotationNote: string | null;
     exhibits: { title: string; url: string }[];
 }
 
@@ -169,6 +170,11 @@ export interface PlayProps {
             cut: number;
             clusters: { key: string; label: string; gallons: number }[];
         } | null;
+        opec: {
+            days: Record<string, number>;
+            wti: number;
+            carryRate: number;
+        } | null;
     };
     memo: { text: string; savedAt: string | null };
     ready: string | null;
@@ -198,6 +204,8 @@ export interface LeverText {
     help: Record<string, string>;
     choices: Record<string, Record<string, string>>;
     capacity_matched: string;
+    opec_means: string;
+    opec_means_none: string;
     badges: Record<string, string>;
     station_notes: Record<string, string>;
     fixed_items: Record<

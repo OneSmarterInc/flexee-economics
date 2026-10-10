@@ -780,5 +780,124 @@
         "match": "On the refinery, you answered Pelican's announcement with a new unit of your own at Baton Rouge. You'll find out next quarter whether they meant it."
       }
     }
+  },
+  "8": {
+    "briefing": {
+      "dateline": "Q4 2028 · Monday 2 October · Houston",
+      "headline": "OPEC+ meets in Vienna, and your team has new jobs",
+      "paragraphs": [
+        "Two things happened over the summer. Your team swapped seats: everyone now looks after a part of Halden they haven't run before, and the EVP chair has a new occupant. And OPEC+ called a meeting in Vienna for the end of November to agree a production cut.",
+        "If the cut holds, crude goes up. Lorenz in Geneva wants to buy crude for Baton Rouge now, before the meeting, and bank the rise. Marcus wants nothing of the sort: dearer crude squeezes his refinery, and he doesn't trust OPEC+ to deliver. Kwame has the history of past cuts on his desk. Elena has the odds.",
+        "You'll decide how much crude Geneva buys ahead, and what else to set across the company, without knowing which way Vienna goes. The answer arrives with your results."
+      ],
+      "question": "What should Halden plan for at the OPEC+ meeting, and how should each part of the company be set so the whole company comes out ahead whichever way it goes?"
+    },
+    "rule": "Prices this quarter are shown before the meeting: oil at $74 and the Gulf Coast margin at $21.50. Three things can happen in Vienna. The cut holds in full and oil goes to about $88. It partly holds and oil goes to about $81. It falls apart and oil slips to about $70. For every dollar crude rises, the Gulf Coast refining margin falls about 35 cents in the short run, so what helps the oil fields hurts Baton Rouge. Drivers barely notice: about 60 cents of each dollar reaches the pump, and volume moves a fraction of a percent. Geneva can buy crude for Baton Rouge ahead of the meeting at today's price: 30 days' worth if you plan for the cut to hold, 15 if you plan for a partial cut, none if you plan for it to fail. Crude bought ahead gains if oil rises and loses if it falls, and the money tied up costs interest. Hedges you set this quarter settle next quarter, as always. Gulf Coast refiners that added capacity last spring, including companies in your class, are also now in the margin.",
+    "new_pages_note": "New this quarter: what Geneva plans for, on the Trading & finance page. Grant and Lorenz have to agree to it. Your team's seats have changed; check Your team in the left column.",
+    "rotation_note": "Your team swapped seats this quarter. Everyone now looks after a part of Halden they haven't run before. The pages you can edit haven't changed; who's expected to lead on each one has.",
+    "exhibits": [
+      {
+        "title": "The three OPEC+ outcomes, how a crude move reaches each part of Halden, and what past cuts delivered",
+        "file": "q8/halden-q8-opec.xlsx"
+      },
+      {
+        "title": "Python notebook with the same data (optional)",
+        "file": "q8/halden-q8-analysis.ipynb"
+      },
+      {
+        "title": "Data files the notebook reads (unzip them next to it)",
+        "file": "q8/halden-q8-notebook-data.zip"
+      }
+    ],
+    "marchetti": "Oil is at $74 going into Vienna. Weighting the three outcomes by the odds the market is pricing gives an expected $80.70, but nobody gets the expected price; you get one of the three. Work out what each outcome does to each part of Halden before you decide what to plan for, and look hardest at the one that hurts.",
+    "story": {
+      "band_on": "opec",
+      "bands": [
+        {
+          "key": "full",
+          "title": "The cut held",
+          "paragraphs": [
+            "OPEC+ agreed the full cut in Vienna and, for once, delivered it. Oil jumped to {wti}. The oil fields had their best quarter since you took the job. Baton Rouge's margin fell to {gc} a barrel, and Marcus sent you a one-line note: told you so, about the margin, not the cut.",
+            "{opec_plan}"
+          ]
+        },
+        {
+          "key": "partial",
+          "title": "The cut partly held",
+          "paragraphs": [
+            "OPEC+ agreed its cut, and about half of it showed up in the market. Oil rose to {wti}. The oil fields earned more, Baton Rouge's margin eased to {gc} a barrel, and the stations barely noticed.",
+            "{opec_plan}"
+          ]
+        },
+        {
+          "key": "fails",
+          "title": "The cut fell apart",
+          "paragraphs": [
+            "OPEC+ announced a cut and then its members quietly pumped anyway. Oil slipped to {wti}. Baton Rouge's margin widened to {gc} a barrel, and Marcus was in a good mood for the first time since July. The oil fields were not.",
+            "{opec_plan}"
+          ]
+        }
+      ],
+      "closing": "Halden made {ebitda} before interest, tax and depreciation. Next quarter, Danielle brings a proposal to put the Halden name on Cordell's stations, and the shop counters tell you what the price war did."
+    },
+    "fills": {
+      "{opec_plan}": {
+        "on": "opec_case",
+        "full": "You planned for the cut to hold, so Geneva bought 30 days of Baton Rouge's crude ahead of the meeting. That came out at {bought_ahead}, after {inventory_carry} of interest on the money tied up.",
+        "partial": "You planned for a partial cut, so Geneva bought 15 days of Baton Rouge's crude ahead of the meeting. That came out at {bought_ahead}, after {inventory_carry} of interest on the money tied up.",
+        "fails": "You planned for the cut to fail, so Geneva bought nothing ahead. Lorenz says you left money on the table; Grant says you kept it in the bank. Both are describing the same quarter."
+      }
+    },
+    "news": [
+      {
+        "title": "Vienna, and what it did to the Gulf Coast",
+        "body": "Oil moved on the OPEC+ decision, and refining margins on the Gulf Coast moved the other way, as they usually do in the short run. On top of that, the refiners that added capacity last spring, including companies in your class, are now running those units, and every refinery on the coast is sharing the margin with them. Check the Gulf Coast margin on the Prices page."
+      },
+      {
+        "title": "Drivers shrug",
+        "body": "Pump prices moved about 60 cents for every dollar on crude, and fuel sales hardly changed. Fuel is the last thing people stop buying. The shop counters are a different story, and they'll show next quarter."
+      }
+    ],
+    "relations": {
+      "band_on": "opec",
+      "bands": {
+        "full": [
+          {
+            "who": "Lorenz Kuhn",
+            "was": "Cooperative",
+            "now": "Supportive",
+            "why": "Crude went up and Geneva had a good quarter."
+          },
+          {
+            "who": "Marcus Delacroix",
+            "was": "Cooperative",
+            "now": "Guarded",
+            "why": "His margin took the hit he warned about."
+          }
+        ],
+        "partial": [
+          {
+            "who": "Lorenz Kuhn",
+            "was": "Cooperative",
+            "now": "Cooperative",
+            "why": "A middling quarter for the desk."
+          }
+        ],
+        "fails": [
+          {
+            "who": "Marcus Delacroix",
+            "was": "Cooperative",
+            "now": "Supportive",
+            "why": "Cheap crude and a wide margin. He thinks you listened to him."
+          },
+          {
+            "who": "Lorenz Kuhn",
+            "was": "Cooperative",
+            "now": "Watchful",
+            "why": "He wanted to buy ahead and the market went against him."
+          }
+        ]
+      }
+    }
   }
 }

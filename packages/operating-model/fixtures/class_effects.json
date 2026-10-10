@@ -3,8 +3,13 @@
   "capital_discipline": 0.5,
   "capital_envelope": 1150.0,
   "capital_rate": 0.085,
+  "opec_gc": 19.55,
+  "opec_outcome": "partial",
+  "opec_wti": 81.0,
   "window1_avg_util": 0.58,
   "window1_nwe": 6.13,
+  "window2_br_share": 0.3333333333333333,
+  "window2_shift": 0.5,
   "window3_avg_aggression": 0.3333333333333333,
   "window3_nonfuel": 0.43666666666666665
 }

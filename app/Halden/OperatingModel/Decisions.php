@@ -30,6 +30,7 @@ final class Decisions
         public array $projects = [],
         public array $responses = [],
         public string $capacityResponse = 'hold',  // hold | match the rival's Gulf Coast expansion
+        public string $opecCase = 'fails',         // fails | partial | full: the OPEC+ outcome Geneva plans for
     ) {}
 
     /** @param  array<string, mixed>  $row  a row shaped like fixtures/reference_decisions.csv */
@@ -59,6 +60,7 @@ final class Decisions
             projects: array_filter(array_map(fn (string $k): string => (string) ($row["proj_$k"] ?? 'hold'), array_combine(array_keys($data->projects), array_keys($data->projects)))),
             responses: self::responsesFromRow($row, $data),
             capacityResponse: (string) ($row['capacity_response'] ?? 'hold'),
+            opecCase: (string) ($row['opec_case'] ?? 'fails'),
         );
     }
 

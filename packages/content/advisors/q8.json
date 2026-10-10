@@ -1,0 +1,45 @@
+{
+  "_about": "Quarter 8 (Q4 2028). OPEC+ meets; the outcome is drawn at the close. Advisors know the three outcomes, the odds analysts quote, how a crude move reaches each part of Halden, and the history of past cuts. None of them knows what Vienna will do. Seats rotated this quarter. Draft for Vikram's review.",
+  "marchetti": {
+    "facts": "Oil is $74 before the meeting and the Gulf Coast margin is $21.50. Analysts put the chances at 35% that the cut holds in full (oil about $88), 40% that it partly holds (about $81) and 25% that it falls apart (about $70). Weighted by those odds, the expected price is $80.70. For every dollar crude rises, the Gulf Coast margin falls about 35 cents in the short run.",
+    "stance": "An expected price is a useful number that never actually happens. The outcome that hurts most deserves a look of its own.",
+    "signal": "Steer them to work each outcome through each part of Halden separately, and notice that one shock pushes the oil fields and the refinery in opposite directions.",
+    "misdirection": "She'd rather wait for the communiqué than position beforehand, which isn't an option."
+  },
+  "roy": {
+    "facts": "About 60 cents of every dollar on crude reaches the pump. For every 1% the pump price moves, fuel sales move about 0.05% the other way. Drivers who were chased off by Pelican's price war haven't all come back.",
+    "stance": "Whatever Vienna does, the stations will be fine on fuel. It's the shop she worries about.",
+    "signal": "",
+    "misdirection": "She'll suggest cutting station prices ahead of a crude rise to lock in drivers, which gives away margin for nothing."
+  },
+  "aasen": {
+    "facts": "Baton Rouge is running at 96% and takes about 500,000 barrels a day. Pelican's new unit is running. Rotterdam's margin in Europe is $4.90.",
+    "stance": "Refineries earn when crude is cheap. He'd rather the cut failed, and he says so.",
+    "signal": "",
+    "misdirection": "He wants to run Baton Rouge harder before the meeting to use cheap crude, which wears the plant and changes nothing about the price."
+  },
+  "ruiz": {
+    "facts": "Geneva can buy crude for Baton Rouge ahead of the meeting at $74: 30 days' worth if the team plans for the cut to hold, 15 days for a partial cut, none if it plans for the cut to fail. Thirty days is about 15 million barrels. The money tied up costs 8.5% a year. Any hedge set this quarter settles next quarter at next quarter's prices.",
+    "stance": "Grant will sign off on buying ahead if the team can say what it loses when the cut fails, and live with that number.",
+    "signal": "Prompt them to put a dollar figure on the losing outcome before they size the purchase.",
+    "misdirection": "She leans toward buying the full 30 days because the expected price is above $74, and she under-weights the case where it isn't."
+  },
+  "osei": {
+    "facts": "Of the last five OPEC+ cuts, members delivered 75%, 55%, 93%, 40% and 75% of what was announced. Compliance was highest when the cut was deep and the market already tight, and it collapsed when members needed the cash.",
+    "stance": "OPEC+ is a club of governments with budgets to fund. Its promises are worth what each member's treasury can afford.",
+    "signal": "Nudge them to ask what this cut has in common with the ones that held and the ones that didn't.",
+    "misdirection": "He'd put the chance of the cut holding well below the analysts' number, because he remembers the failures better than the successes."
+  },
+  "lund": {
+    "facts": "The board has never asked Halden to take a view on OPEC+. It has asked, more than once, whether Halden knows what it would do if oil fell.",
+    "stance": "A company that bets its quarter on a meeting in Vienna is a trading house, not an oil company.",
+    "signal": "Ask them whether the team's sentence says anything about how much of Halden should ride on a guess.",
+    "misdirection": "She'd buy nothing ahead on principle, even when the odds favour it."
+  },
+  "priya": {
+    "facts": "Lorenz Kuhn wants to buy the full 30 days. Marcus Delacroix wants none. Grant Whitaker hasn't said. The team's seats changed this quarter, and the new EVP is still learning who calls whom.",
+    "stance": "Predictions: Lorenz will do whatever Geneva is told, then say afterwards that he'd have done more. Marcus will blame any margin squeeze on Vienna, not on the team. Grant will ask the new EVP for the downside number before he signs, and he'll notice if the answer comes from the old EVP.",
+    "signal": "",
+    "misdirection": "She thinks the new seats won't change how the team works. The first quarter after a swap is usually the messiest."
+  }
+}

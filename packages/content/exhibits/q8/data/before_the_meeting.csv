@@ -1,0 +1,5 @@
+parameter,value,note
+oil_price_usd_bbl,74.0,WTI before the meeting
+brent_usd_bbl,78.5,"Brent, always $4.50 above WTI"
+gulf_coast_margin_usd_bbl,21.5,what a Gulf Coast refinery makes per barrel before the meeting
+pump_price_usd_gal,3.2,typical pump price

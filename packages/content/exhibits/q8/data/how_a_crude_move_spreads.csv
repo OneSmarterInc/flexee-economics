@@ -1,0 +1,6 @@
+parameter,value,note
+oil_fields_per_dollar,1.0,"the oil fields get every dollar of a crude move, per barrel"
+gulf_coast_margin_per_dollar,-0.35,the refining margin moves this much for each dollar crude moves (short run)
+share_reaching_the_pump,0.6,share of a crude move that drivers see at the pump
+driver_response,-0.05,percent change in fuel sales for each 1% change in the pump price
+gallons_per_barrel,42.0,

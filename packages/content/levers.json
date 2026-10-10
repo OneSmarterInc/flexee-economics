@@ -41,7 +41,8 @@
     "proj_br_upgrade": "Lets Baton Rouge make more of the high-value fuels from each barrel. Pays back over ten years, most of it early.",
     "proj_rot_upgrade": "Cuts Rotterdam's costs and lifts what it earns per barrel. It only pays while Rotterdam is running.",
     "proj_helix": "A new business: a West Texas supply contract with a customer in Rotterdam. Slow to start, and paying most in later years.",
-    "capacity_response": "Pelican says it will build a new refining unit on the Gulf Coast. Build one too, or hold. You'll learn next quarter whether Pelican meant it, and building is for good: a new unit takes two years and can't be unbuilt."
+    "capacity_response": "Pelican says it will build a new refining unit on the Gulf Coast. Build one too, or hold. You'll learn next quarter whether Pelican meant it, and building is for good: a new unit takes two years and can't be unbuilt.",
+    "opec_case": "OPEC+ meets this quarter. Pick the outcome Geneva plans for, and it buys that much of Baton Rouge's crude ahead of the meeting at today's price: 30 days if you plan for the cut to hold, 15 for a partial cut, none if you plan for it to fail. If oil then rises, the crude bought ahead gains; if it falls, it loses. The money tied up costs interest either way."
   },
   "choices": {
     "norway": {
@@ -69,6 +70,11 @@
     "capacity": {
       "hold": "Hold",
       "match": "Build too"
+    },
+    "opec_case": {
+      "fails": "Plan for the cut to fail",
+      "partial": "Plan for a partial cut",
+      "full": "Plan for the cut to hold"
     }
   },
   "badges": {
@@ -100,5 +106,7 @@
       }
     ]
   },
-  "capacity_matched": "You're building. It's under way."
+  "capacity_matched": "You're building. It's under way.",
+  "opec_means": "Geneva buys {days} days of Baton Rouge's crude ahead of the meeting: about {barrels}M barrels, ${tied}M tied up until Vienna decides, costing about ${carry}M in interest.",
+  "opec_means_none": "Geneva buys nothing ahead of the meeting."
 }

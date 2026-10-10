@@ -8,6 +8,7 @@ use App\Halden\OperatingModel\ModelData;
 use App\Models\Quarter;
 use App\Models\Section;
 use App\Models\Team;
+use App\Models\TeamMember;
 use App\Models\TeamQuarter;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -56,9 +57,12 @@ class QuarterFlowTest extends TestCase
             $golden[$r['team']][$r['quarter']][$r['metric']] = (float) $r['value'];
         }
 
-        $keys = [1 => '2027Q1', 2 => '2027Q2', 3 => '2027Q3', 4 => '2027Q4', 5 => '2028Q1', 6 => '2028Q2', 7 => '2028Q3'];
+        $keys = [1 => '2027Q1', 2 => '2027Q2', 3 => '2027Q3', 4 => '2027Q4', 5 => '2028Q1', 6 => '2028Q2', 7 => '2028Q3', 8 => '2028Q4'];
         foreach ($keys as $n => $key) {
             $quarter = $section->quarters()->where('number', $n)->firstOrFail();
+            if ($n === 8) {
+                $quarter->update(['event_outcome' => 'partial']);   // the fixtures use the likeliest OPEC+ outcome
+            }
             $runner->open($quarter);
             foreach ($teams as $name => $team) {
                 TeamQuarter::query()->create(['team_id' => $team->id, 'quarter_id' => $quarter->id, 'decisions' => $plans[$name][$n]]);
@@ -74,7 +78,7 @@ class QuarterFlowTest extends TestCase
                 $r = $tq->results;
                 $this->assertEqualsWithDelta($r['money.ebitda'] - $r['bridge.previous'],
                     $r['bridge.prices'] + $r['bridge.decisions'] + $r['bridge.carried_over'], 1e-6, "$name Q$n bridge adds up");
-                foreach (['money.ebitda', 'money.fcf', 'segment.oil_fields', 'kpi.plant_condition', 'ops.permian_prod', 'line.hedges', 'ops.nwe', 'ops.project_outlay', 'line.projects_refining', 'line.cordell_price_match', 'line.capacity_game'] as $m) {
+                foreach (['money.ebitda', 'money.fcf', 'segment.oil_fields', 'kpi.plant_condition', 'ops.permian_prod', 'line.hedges', 'ops.nwe', 'ops.project_outlay', 'line.projects_refining', 'line.cordell_price_match', 'line.capacity_game', 'line.crude_bought_ahead', 'ops.wti_shock', 'ops.gc'] as $m) {
                     $this->assertEqualsWithDelta($expected[$m], $tq->results[$m], max(1e-4, abs($expected[$m]) * 1e-6), "$name Q$n $m");
                 }
             }
@@ -162,17 +166,57 @@ class QuarterFlowTest extends TestCase
         $this->assertSame('match', $book->effective($team, $q8)['resp_suburban'], 'last quarter\'s answer carries forward');
     }
 
-    public function test_quarter_eight_cannot_open_until_its_economics_exist(): void
+    public function test_seats_rotate_once_when_quarter_eight_opens_and_opec_is_drawn_at_the_close(): void
     {
-        [$section] = $this->section(['a']);
+        [$section, $teams] = $this->section(['a']);
         $runner = app(QuarterRunner::class);
+        $team = $teams['a'];
+        $users = User::factory()->count(5)->create(['role' => User::ROLE_STUDENT]);
+        $seats = array_keys(TeamMember::SEATS);
+        foreach ($users as $i => $u) {
+            TeamMember::query()->create(['team_id' => $team->id, 'user_id' => $u->id, 'seat' => $seats[$i]]);
+        }
         foreach ([1, 2, 3, 4, 5, 6, 7] as $n) {
             $q = $section->quarters()->where('number', $n)->firstOrFail();
             $runner->open($q);
             $runner->close($q->refresh());
             $runner->publish($q->refresh());
+            $this->assertSame('evp', TeamMember::query()->where('user_id', $users[0]->id)->firstOrFail()->seat, "no rotation before Quarter 8 (Q$n)");
         }
-        $this->expectExceptionMessage("The economics for Q4 2028 aren't built yet.");
-        $runner->open($section->quarters()->where('number', 8)->firstOrFail());
+        $q8 = $section->quarters()->where('number', 8)->firstOrFail();
+        $this->assertTrue($q8->isRotationQuarter());
+        $runner->open($q8);
+        $this->assertSame('oil_fields', TeamMember::query()->where('user_id', $users[0]->id)->firstOrFail()->seat, 'the EVP moves to Oil fields');
+        $this->assertSame('evp', TeamMember::query()->where('user_id', $users[4]->id)->firstOrFail()->seat, 'Trading & finance becomes the EVP');
+        $this->assertNotNull($q8->refresh()->seats_rotated_at);
+        $runner->rotateSeats($q8->refresh());
+        $this->assertSame('refineries', TeamMember::query()->where('user_id', $users[0]->id)->firstOrFail()->seat, 'a second call rotates again; open() guards against that');
+
+        $this->assertNull($q8->refresh()->event_outcome);
+        $this->assertEqualsWithDelta(74.0, $runner->marketFor($q8)['wti'], 1e-9, 'before the decision, students see pre-decision prices');
+        TeamQuarter::query()->create(['team_id' => $team->id, 'quarter_id' => $q8->id, 'decisions' => ['opec_case' => 'full']]);
+        $runner->close($q8->refresh());
+        $q8->refresh();
+        $this->assertContains($q8->event_outcome, ['full', 'partial', 'fails']);
+        $tq = TeamQuarter::query()->where('team_id', $team->id)->where('quarter_id', $q8->id)->firstOrFail();
+        $expectedWti = 74.0 + ['full' => 14.0, 'partial' => 7.0, 'fails' => -4.0][$q8->event_outcome];
+        $this->assertEqualsWithDelta($expectedWti - 74.0, $tq->results['ops.wti_shock'], 1e-9);
+        $this->assertEqualsWithDelta($expectedWti, $runner->marketFor($q8)['wti'], 1e-9, 'after the close, the prices page shows the outcome');
+        $this->assertEqualsWithDelta(30 * 520000 * 0.96 * ($expectedWti - 74.0) / 1e6, $tq->results['line.crude_bought_ahead'], 1e-3, '30 days bought ahead when planning for the cut to hold');
+        $this->assertEqualsWithDelta(-10.0, $tq->results['line.capacity_game'], 1e-9, 'Pelican built; the team held, so $10M a quarter');
+    }
+
+    public function test_quarter_nine_cannot_open_until_its_economics_exist(): void
+    {
+        [$section] = $this->section(['a']);
+        $runner = app(QuarterRunner::class);
+        foreach ([1, 2, 3, 4, 5, 6, 7, 8] as $n) {
+            $q = $section->quarters()->where('number', $n)->firstOrFail();
+            $runner->open($q);
+            $runner->close($q->refresh());
+            $runner->publish($q->refresh());
+        }
+        $this->expectExceptionMessage("The economics for Q1 2029 aren't built yet.");
+        $runner->open($section->quarters()->where('number', 9)->firstOrFail());
     }
 }
