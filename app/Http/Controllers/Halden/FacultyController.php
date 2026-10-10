@@ -12,6 +12,7 @@ use App\Halden\Game\BoardVerdict;
 use App\Halden\Game\DecisionBook;
 use App\Halden\Game\QuarterRunner;
 use App\Halden\Game\QuarterView;
+use App\Halden\Mail\Outgoing;
 use App\Http\Controllers\Controller;
 use App\Models\AdvisorMessage;
 use App\Models\FacultyDraft;
@@ -79,6 +80,8 @@ class FacultyController extends Controller
             'section' => ['id' => $section->id, 'name' => $section->name, 'course' => $section->course_name],
             'classes' => ClassAccess::choices($viewer),
             'isAdmin' => $viewer->isAdmin(),
+            'mailEnabled' => Outgoing::enabled(),
+            'done' => $request->session()->get('done'),
             'quarter' => $quarter === null ? null : [
                 'id' => $quarter->id, 'number' => $quarter->number, 'label' => $quarter->weekLabel(), 'status' => $quarter->status,
                 'week' => $quarter->week(), 'weeks' => (int) $section->weeks, 'paired' => $quarter->isPaired(),
@@ -163,6 +166,22 @@ class FacultyController extends Controller
         }
 
         return back()->with('done', $action);
+    }
+
+    /** Emails every student on a team that hasn't pressed Ready for this open quarter. */
+    public function remind(Request $request, Quarter $quarter): RedirectResponse
+    {
+        $section = $this->section($request);
+        abort_unless($quarter->section_id === $section->id, 404);
+        if (! Outgoing::enabled()) {
+            throw ValidationException::withMessages(['action' => 'Outgoing mail isn\'t switched on yet.']);
+        }
+        if ($quarter->status !== Quarter::OPEN || $quarter->deadline_at === null) {
+            throw ValidationException::withMessages(['action' => 'Reminders go out for an open quarter with a deadline.']);
+        }
+        $sent = Outgoing::remind($quarter, 'soon', 'nudge');
+
+        return back()->with('done', "reminded:$sent");
     }
 
     /** Sets a class-wide draw ahead of time (OPEC+, the breakdown, the world), or hands it back to chance. */

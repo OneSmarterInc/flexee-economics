@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Halden;
 
 use App\Halden\Admin\ClassAccess;
 use App\Halden\Admin\Roster;
+use App\Halden\Mail\Outgoing;
 use App\Http\Controllers\Controller;
 use App\Models\Enrolment;
 use App\Models\Section;
@@ -41,6 +42,7 @@ class RosterController extends Controller
 
         return Inertia::render('halden/FacultyRoster', [
             'classes' => ClassAccess::choices($viewer),
+            'mailEnabled' => Outgoing::enabled(),
             'section' => [
                 'id' => $section->id, 'name' => $section->name, 'course' => $section->course_name, 'seats' => $section->seats,
                 'joinUrl' => $section->join_code === null ? null : route('join.show', $section->join_code),
@@ -64,6 +66,7 @@ class RosterController extends Controller
             'list' => ['nullable', 'string', 'max:200000'],
             'file' => ['nullable', 'file', 'max:2048', 'mimes:csv,txt'],
             'team' => ['nullable', 'integer', Rule::exists('teams', 'id')->where('section_id', $section->id)],
+            'email' => ['sometimes', 'boolean'],
         ]);
         $text = (string) ($data['list'] ?? '');
         if ($request->hasFile('file')) {
@@ -74,7 +77,7 @@ class RosterController extends Controller
             throw ValidationException::withMessages(['list' => 'No email addresses found. One student per line: an email, or "Name <email>", or "email, name".']);
         }
         $team = empty($data['team']) ? null : Team::query()->find((int) $data['team']);
-        $added = $this->run(fn () => $roster->add($section, $parsed['people'], $team));
+        $added = $this->run(fn () => $roster->add($section, $parsed['people'], $team, $request->boolean('email')));
 
         return $this->back($section)->with('added', $added)->with('rejected', $parsed['rejected']);
     }

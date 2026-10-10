@@ -2,6 +2,7 @@
 
 namespace App\Halden\Admin;
 
+use App\Halden\Mail\Outgoing;
 use App\Models\Enrolment;
 use App\Models\Section;
 use App\Models\Team;
@@ -79,7 +80,7 @@ final class Roster
      * @param  list<array{email: string, name: string}>  $people
      * @return list<array{email: string, name: string, password: string|null, note: string}>
      */
-    public function add(Section $section, array $people, ?Team $team = null): array
+    public function add(Section $section, array $people, ?Team $team = null, bool $email = false): array
     {
         if ($team !== null && $team->section_id !== $section->id) {
             throw new RuntimeException('That team is in another class.');
@@ -108,8 +109,13 @@ final class Roster
             if ($team !== null && ! $this->memberIn($section, $user)) {
                 TeamMember::query()->create(['team_id' => $team->id, 'user_id' => $user->id, 'seat' => $this->freeSeat($team)]);
             }
+            $mailed = false;
+            if ($email && ! $existing && Outgoing::enabled()) {
+                $password !== null ? Outgoing::login($section, $user, $password) : Outgoing::added($section, $user);
+                $mailed = true;
+            }
             $out[] = ['email' => $user->email, 'name' => $user->name, 'password' => $password,
-                'note' => $password !== null ? 'New login.' : ($existing ? 'Already in the class.' : 'Had a login already; added to the class.')];
+                'note' => ($password !== null ? 'New login.' : ($existing ? 'Already in the class.' : 'Had a login already; added to the class.')).($mailed ? ' Emailed.' : '')];
         }
 
         return $out;

@@ -11,3 +11,5 @@ Artisan::command('inspire', function () {
 // Quarters close on their own at the deadline. Needs one cron line on the server:
 // * * * * * cd ~/public_html/economics.flexee.org && php artisan schedule:run >> /dev/null 2>&1
 Schedule::command('halden:close-due')->everyMinute()->withoutOverlapping();
+// Deadline reminders (24 h, 4 h, 1 h) when outgoing mail is on.
+Schedule::command('halden:remind')->everyFiveMinutes()->withoutOverlapping();
