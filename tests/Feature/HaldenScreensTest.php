@@ -204,6 +204,16 @@ class HaldenScreensTest extends TestCase
         $q3 = $this->quarter(3);
         $this->actingAs($this->faculty)->from('/faculty')->post("/faculty/quarters/{$q3->id}/open")->assertSessionHasErrors(['action']);
 
+        // With two quarters published, the board shows the latest one and offers the next (it once showed Quarter 1 again).
+        $q2 = $this->quarter(2);
+        foreach (['open', 'close', 'publish'] as $step) {
+            $this->actingAs($this->faculty)->post("/faculty/quarters/{$q2->id}/$step")->assertSessionHasNoErrors();
+        }
+        $this->actingAs($this->faculty)->get('/faculty')->assertInertia(fn (Assert $page) => $page
+            ->where('quarter.number', 2)
+            ->where('quarter.status', 'published')
+            ->where('next.label', 'Q3 2027'));
+
         $this->actingAs($this->faculty)->get("/faculty/teams/{$this->team->id}/quarters/{$q1->id}")
             ->assertInertia(fn (Assert $page) => $page
                 ->component('halden/Play')

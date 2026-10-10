@@ -135,7 +135,7 @@ function teamHref(teamId: number): string {
             <template v-else>
                 <div class="flex flex-wrap items-start justify-between gap-4">
                     <div>
-                        <p class="hx-eyebrow">This week</p>
+                        <p class="hx-eyebrow">This quarter</p>
                         <h1 class="hx-h1 mt-1">
                             Quarter {{ quarter.number }} · {{ quarter.label }}
                         </h1>

@@ -33,8 +33,9 @@ class Section extends Model
 
     public function currentQuarter(): ?Quarter
     {
-        return $this->quarters()->whereIn('status', [Quarter::OPEN, Quarter::CLOSED])->orderBy('number')->first()
-            ?? $this->quarters()->where('status', Quarter::PUBLISHED)->orderByDesc('number')->first()
-            ?? $this->quarters()->orderBy('number')->first();
+        // quarters() already orders by number, so the "latest published" lookup must replace that order, not add to it.
+        return $this->quarters()->whereIn('status', [Quarter::OPEN, Quarter::CLOSED])->first()
+            ?? $this->quarters()->where('status', Quarter::PUBLISHED)->reorder('number', 'desc')->first()
+            ?? $this->quarters()->first();
     }
 }
