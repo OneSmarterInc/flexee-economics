@@ -857,7 +857,7 @@ function quarterHref(id: number): string {
                     Your team:
                     <template v-for="(m, i) in team.members" :key="m.name"
                         >{{ i ? ', ' : '' }}{{ m.name }} ({{
-                            m.seat
+                            m.seat.replace(/\s*\(.*\)/, '')
                         }})</template
                     >
                 </p>
