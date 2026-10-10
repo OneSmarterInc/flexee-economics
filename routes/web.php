@@ -39,6 +39,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('admin/instructors', [AdminController::class, 'storeInstructor'])->name('admin.instructors.store');
 
     Route::get('faculty', [FacultyController::class, 'board'])->name('faculty.board');
+    Route::get('faculty/results.csv', [FacultyController::class, 'results'])->name('faculty.results');
     Route::get('faculty/roster', [RosterController::class, 'show'])->name('faculty.roster');
     Route::post('faculty/roster/students', [RosterController::class, 'add'])->name('faculty.roster.add');
     Route::post('faculty/roster/students/{user}/{action}', [RosterController::class, 'student'])->whereIn('action', ['move', 'block', 'unblock', 'remove', 'reset-password'])->name('faculty.roster.student');
