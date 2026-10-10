@@ -4,11 +4,13 @@ namespace Tests\Feature;
 
 use App\Halden\Admin\ClassFactory;
 use App\Halden\Admin\Roster;
+use App\Halden\Game\QuarterRunner;
 use App\Models\Enrolment;
 use App\Models\Quarter;
 use App\Models\Section;
 use App\Models\Team;
 use App\Models\TeamMember;
+use App\Models\TeamQuarter;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -224,6 +226,34 @@ class RosterTest extends TestCase
         $other = app(ClassFactory::class)->create('Someone else', 'x', 14, $stranger, CarbonImmutable::now());
         $this->actingAs($this->faculty)->get("/faculty?section={$other->id}")->assertInertia(fn (Assert $p) => $p->where('section.id', $this->section->id));
         $this->actingAs($stranger)->get('/faculty')->assertInertia(fn (Assert $p) => $p->where('section.id', $other->id)->has('classes', 1));
+    }
+
+    public function test_a_student_in_two_classes_switches_between_them_and_opens_either_quarter(): void
+    {
+        $roster = app(Roster::class);
+        $roster->add($this->section, [['email' => 'ada@u.edu', 'name' => 'Ada']]);
+        $roster->formTeams($this->section);
+        $second = app(ClassFactory::class)->create('MBA 7250 Evening', 'Managerial Economics', 14, $this->faculty, CarbonImmutable::now());
+        $roster->add($second, [['email' => 'ada@u.edu', 'name' => 'Ada']]);
+        $roster->formTeams($second);
+        $ada = User::query()->where('email', 'ada@u.edu')->firstOrFail();
+        $ada->forceFill(['opening_seen_at' => now()])->save();
+        $runner = app(QuarterRunner::class);
+        $q1a = $this->section->quarters()->where('number', 1)->firstOrFail();
+        $q1b = $second->quarters()->where('number', 1)->firstOrFail();
+        $runner->open($q1a);
+        $runner->open($q1b);
+
+        // The first class by default, with both listed; ?class= switches and the choice sticks.
+        $this->actingAs($ada)->get('/play')->assertRedirect("/play/{$q1a->id}");
+        $this->actingAs($ada)->get("/play/{$q1a->id}")->assertInertia(fn (Assert $p) => $p->where('section.id', $this->section->id)->has('section.classes', 2));
+        $this->actingAs($ada)->get("/play?class={$second->id}")->assertRedirect("/play/{$q1b->id}");
+        $this->actingAs($ada)->get('/play')->assertRedirect("/play/{$q1b->id}");
+        // A quarter of the other class opens as that class's team.
+        $this->actingAs($ada)->get("/play/{$q1a->id}")->assertOk()->assertInertia(fn (Assert $p) => $p->where('section.id', $this->section->id));
+        $this->actingAs($ada)->post("/play/{$q1a->id}/page/oil_fields", ['rigs' => 12])->assertSessionHasNoErrors();
+        $this->assertSame(12, TeamQuarter::query()->where('quarter_id', $q1a->id)->firstOrFail()->decisions['rigs']);
+        $this->assertNull(TeamQuarter::query()->where('quarter_id', $q1b->id)->first());
     }
 
     public function test_demo_students_are_enrolled_too(): void

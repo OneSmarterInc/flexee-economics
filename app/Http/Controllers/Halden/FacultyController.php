@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Halden;
 
+use App\Halden\Admin\Benchmarks;
 use App\Halden\Admin\ClassAccess;
 use App\Halden\Admin\ResultsExport;
 use App\Halden\Admin\Schedule;
@@ -136,6 +137,20 @@ class FacultyController extends Controller
         }
 
         return redirect()->route('faculty.schedule', ['section' => $section->id])->with('done', "changed:$changed");
+    }
+
+    /** The class against every other class that has run the same quarters. */
+    public function benchmarks(Request $request): Response
+    {
+        $section = $this->section($request);
+        /** @var User $viewer */
+        $viewer = $request->user();
+
+        return Inertia::render('halden/FacultyBenchmarks', [
+            'section' => ['id' => $section->id, 'name' => $section->name, 'course' => $section->course_name],
+            'classes' => ClassAccess::choices($viewer),
+            'rows' => Benchmarks::rows($section),
+        ]);
     }
 
     /** Every team's results, memos and feedback for the class as a CSV, for grading in a spreadsheet. */

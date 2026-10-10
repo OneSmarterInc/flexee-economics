@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers\Halden;
 
+use App\Halden\Admin\ClassAccess;
 use App\Halden\Content\ContentPack;
 use App\Http\Controllers\Controller;
 use App\Models\Quarter;
 use App\Models\Team;
-use App\Models\TeamMember;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -19,7 +19,7 @@ class OpeningController extends Controller
     {
         /** @var User $user */
         $user = $request->user();
-        $member = TeamMember::query()->where('user_id', $user->id)->with('team.section')->first();
+        $member = ClassAccess::membership($request, $user);
         $team = $member?->team;
         $opening = $content->opening();
         $weeks = (string) ($team?->section->weeks ?? 14);
@@ -53,7 +53,7 @@ class OpeningController extends Controller
             'become' => ['nullable', 'string', 'max:300'],
             'by' => ['nullable', 'string', 'max:300'],
         ]);
-        $member = TeamMember::query()->where('user_id', $user->id)->with('team.section')->first();
+        $member = ClassAccess::membership($request, $user);
         if ($member !== null && $member->seat === 'evp' && $this->stillOpen($member->team)) {
             $team = $member->team;
             if (! empty($data['first_meeting'])) {

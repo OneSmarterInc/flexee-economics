@@ -154,7 +154,12 @@ export interface PlayProps {
         members: { name: string; seat: string; isMe: boolean }[];
     };
     me: { seat: string; seatLabel: string } | null;
-    section: { name: string; teamCount: number };
+    section: {
+        id: number;
+        name: string;
+        teamCount: number;
+        classes: { id: number; name: string; team: string }[];
+    };
     quarter: QuarterInfo;
     quarters: QuarterLink[];
     content: QuarterContent | null;

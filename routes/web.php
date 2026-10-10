@@ -42,6 +42,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('faculty', [FacultyController::class, 'board'])->name('faculty.board');
     Route::get('faculty/results.csv', [FacultyController::class, 'results'])->name('faculty.results');
     Route::get('faculty/schedule', [FacultyController::class, 'schedule'])->name('faculty.schedule');
+    Route::get('faculty/benchmarks', [FacultyController::class, 'benchmarks'])->name('faculty.benchmarks');
     Route::post('faculty/schedule', [FacultyController::class, 'saveSchedule'])->name('faculty.schedule.save');
     Route::get('faculty/roster', [RosterController::class, 'show'])->name('faculty.roster');
     Route::post('faculty/roster/students', [RosterController::class, 'add'])->name('faculty.roster.add');

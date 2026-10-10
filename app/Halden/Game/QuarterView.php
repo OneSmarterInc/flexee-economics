@@ -2,6 +2,7 @@
 
 namespace App\Halden\Game;
 
+use App\Halden\Admin\ClassAccess;
 use App\Halden\Ai\AdvisorRoom;
 use App\Halden\Ai\Carrying;
 use App\Halden\Ai\FacultyDrafts;
@@ -307,7 +308,9 @@ final class QuarterView
                 ])->values(),
             ],
             'me' => $me === null ? null : ['seat' => $me->seat, 'seatLabel' => TeamMember::SEATS[$me->seat] ?? $me->seat],
-            'section' => ['name' => $section->name, 'teamCount' => $section->teams()->count()],
+            'section' => ['id' => $section->id, 'name' => $section->name, 'teamCount' => $section->teams()->count(),
+                // A student in more than one class can switch between them from the header.
+                'classes' => $viewer === null ? [] : ClassAccess::memberships($viewer)->map(fn (TeamMember $m) => ['id' => $m->team->section_id, 'name' => $m->team->section->name, 'team' => $m->team->name])->values()->all()],
             'quarter' => [
                 'id' => $quarter->id,
                 'number' => $quarter->number,

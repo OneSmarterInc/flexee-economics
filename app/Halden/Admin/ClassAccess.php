@@ -3,9 +3,11 @@
 namespace App\Halden\Admin;
 
 use App\Models\Section;
+use App\Models\TeamMember;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 
 /**
  * Which classes an instructor or admin may open: an instructor's own, every class for an admin. The faculty
@@ -46,6 +48,37 @@ final class ClassAccess
         $request->session()->put(self::SESSION_KEY, $section->id);
 
         return $section;
+    }
+
+    /** Session key holding the class a student in more than one class is working in. */
+    public const STUDENT_KEY = 'halden.student_section';
+
+    /**
+     * A student's team places, one per class they are on a team in, oldest class first.
+     *
+     * @return Collection<int, TeamMember>
+     */
+    public static function memberships(User $user): Collection
+    {
+        return TeamMember::query()->where('user_id', $user->id)->with('team.section')->get()
+            ->sortBy(fn (TeamMember $m) => $m->team->section_id)->values();
+    }
+
+    /**
+     * The team place a student is working from: the class asked for, else the one they were in last, else the
+     * first. Null when they are on no team. The choice is remembered for the session.
+     */
+    public static function membership(Request $request, User $user, ?int $sectionId = null): ?TeamMember
+    {
+        $all = self::memberships($user);
+        if ($all->isEmpty()) {
+            return null;
+        }
+        $wanted = $sectionId ?? (int) $request->session()->get(self::STUDENT_KEY, 0);
+        $member = $all->first(fn (TeamMember $m) => $m->team->section_id === $wanted) ?? $all->first();
+        $request->session()->put(self::STUDENT_KEY, $member->team->section_id);
+
+        return $member;
     }
 
     /**

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Halden;
 
+use App\Halden\Admin\ClassAccess;
 use App\Halden\Admin\Roster;
 use App\Halden\Ai\AdvisorRoom;
 use App\Halden\Ai\HelpDesk;
@@ -33,7 +34,7 @@ class PlayController extends Controller
         if (! $user->isStudent()) {
             return redirect()->route('faculty.board');
         }
-        $member = TeamMember::query()->where('user_id', $user->id)->with('team.section')->first();
+        $member = ClassAccess::membership($request, $user, $request->query('class') ? (int) $request->query('class') : null);
         if ($member === null) {
             // Enrolled but not on a team yet (or in no class at all): the opening first, then a waiting page.
             if ($user->opening_seen_at === null && Enrolment::query()->where('user_id', $user->id)->exists()) {
@@ -49,7 +50,7 @@ class PlayController extends Controller
         if (Roster::reasonCannotPlay($member->team->section, $user) !== null) {
             return Inertia::render('halden/Waiting', ['className' => $member->team->section->name, 'course' => $member->team->section->course_name, 'reason' => 'blocked']);
         }
-        $team = $this->teamOf($user);
+        $team = $this->teamOf($user, $request);
         if ($user->opening_seen_at === null) {
             return redirect()->route('opening');
         }
@@ -62,7 +63,7 @@ class PlayController extends Controller
     public function show(Request $request, Quarter $quarter, QuarterView $view): Response|RedirectResponse
     {
         $user = $this->user($request);
-        $team = $this->teamOf($user);
+        $team = $this->teamOf($user, $request, $quarter);
         abort_unless($quarter->section_id === $team->section_id, 404);
         if ($user->opening_seen_at === null) {
             return redirect()->route('opening');
@@ -74,7 +75,7 @@ class PlayController extends Controller
     public function savePage(Request $request, Quarter $quarter, string $page, DecisionBook $book, QuarterRunner $runner, OperatingModel $model): RedirectResponse
     {
         $user = $this->user($request);
-        $team = $this->teamOf($user);
+        $team = $this->teamOf($user, $request, $quarter);
         $this->assertOpen($team, $quarter);
         abort_unless(array_key_exists($page, QuarterView::PAGE_TITLES), 404);
         if ($quarter->isBoardQuarter()) {
@@ -144,7 +145,7 @@ class PlayController extends Controller
     public function saveDefense(Request $request, Quarter $quarter, ContentPack $content): RedirectResponse
     {
         $user = $this->user($request);
-        $team = $this->teamOf($user);
+        $team = $this->teamOf($user, $request, $quarter);
         $this->assertOpen($team, $quarter);
         // In the last week of a 7-week course the board quarter is the week's second half; the defense lives there.
         $board = $quarter->boardQuarter();
@@ -171,7 +172,7 @@ class PlayController extends Controller
     public function saveMemo(Request $request, Quarter $quarter): RedirectResponse
     {
         $user = $this->user($request);
-        $team = $this->teamOf($user);
+        $team = $this->teamOf($user, $request, $quarter);
         $this->assertOpen($team, $quarter);
         $data = $request->validate(['memo' => ['nullable', 'string', 'max:20000']], ['memo.max' => 'Your memo is too long for the box. Aim for about 250 words.']);
 
@@ -184,7 +185,7 @@ class PlayController extends Controller
     public function toggleReady(Request $request, Quarter $quarter): RedirectResponse
     {
         $user = $this->user($request);
-        $team = $this->teamOf($user);
+        $team = $this->teamOf($user, $request, $quarter);
         $this->assertOpen($team, $quarter);
         $member = TeamMember::query()->where('team_id', $team->id)->where('user_id', $user->id)->firstOrFail();
         if ($member->seat !== 'evp') {
@@ -209,7 +210,7 @@ class PlayController extends Controller
     public function ask(Request $request, Quarter $quarter, string $advisor, AdvisorRoom $room): RedirectResponse
     {
         $user = $this->user($request);
-        $team = $this->teamOf($user);
+        $team = $this->teamOf($user, $request, $quarter);
         abort_unless($quarter->section_id === $team->section_id, 404);
         $data = $request->validate(
             ['question' => ['required', 'string', 'max:4000']],
@@ -232,7 +233,7 @@ class PlayController extends Controller
     public function meet(Request $request, Quarter $quarter, AdvisorRoom $room): RedirectResponse
     {
         $user = $this->user($request);
-        $team = $this->teamOf($user);
+        $team = $this->teamOf($user, $request, $quarter);
         abort_unless($quarter->section_id === $team->section_id, 404);
         $data = $request->validate(
             ['question' => ['required', 'string', 'max:4000'], 'invited' => ['required', 'array'], 'invited.*' => ['string', 'max:40']],
@@ -257,7 +258,7 @@ class PlayController extends Controller
         abort_if($n === null, 404);
         $user = $this->user($request);
         if ($user->isStudent()) {
-            $quarter = $this->teamOf($user)->section->quarters()->where('number', $n)->first();
+            $quarter = $this->teamOf($user, $request)->section->quarters()->where('number', $n)->first();
             abort_if($quarter === null || $quarter->status === Quarter::UPCOMING, 404);
         }
         try {
@@ -277,9 +278,10 @@ class PlayController extends Controller
         return $user;
     }
 
-    private function teamOf(User $user): Team
+    /** The student's team: in the quarter's class when a quarter is given, otherwise the class they are working in. */
+    private function teamOf(User $user, Request $request, ?Quarter $quarter = null): Team
     {
-        $member = TeamMember::query()->where('user_id', $user->id)->with('team.section')->first();
+        $member = ClassAccess::membership($request, $user, $quarter?->section_id);
         abort_if($member === null, 403, "You haven't been put on a team yet. Your instructor will add you.");
         $paused = Roster::reasonCannotPlay($member->team->section, $user);
         abort_if($paused !== null, 403, (string) $paused);
