@@ -2,11 +2,17 @@
 
 use App\Http\Controllers\Halden\AdminController;
 use App\Http\Controllers\Halden\FacultyController;
+use App\Http\Controllers\Halden\JoinController;
 use App\Http\Controllers\Halden\OpeningController;
 use App\Http\Controllers\Halden\PlayController;
+use App\Http\Controllers\Halden\RosterController;
 use Illuminate\Support\Facades\Route;
 
 Route::inertia('/', 'Welcome')->name('home');
+
+// The join link an instructor hands out; works signed out (make a login) or signed in (join the class).
+Route::get('join/{code}', [JoinController::class, 'show'])->whereAlphaNumeric('code')->name('join.show');
+Route::post('join/{code}', [JoinController::class, 'store'])->whereAlphaNumeric('code')->middleware('throttle:10,1')->name('join.store');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', [PlayController::class, 'home'])->name('dashboard');
@@ -33,6 +39,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('admin/instructors', [AdminController::class, 'storeInstructor'])->name('admin.instructors.store');
 
     Route::get('faculty', [FacultyController::class, 'board'])->name('faculty.board');
+    Route::get('faculty/roster', [RosterController::class, 'show'])->name('faculty.roster');
+    Route::post('faculty/roster/students', [RosterController::class, 'add'])->name('faculty.roster.add');
+    Route::post('faculty/roster/students/{user}/{action}', [RosterController::class, 'student'])->whereIn('action', ['move', 'block', 'unblock', 'remove', 'reset-password'])->name('faculty.roster.student');
+    Route::post('faculty/roster/join-link', [RosterController::class, 'joinLink'])->name('faculty.roster.join');
+    Route::post('faculty/roster/form-teams', [RosterController::class, 'formTeams'])->name('faculty.roster.form');
+    Route::post('faculty/roster/teams', [RosterController::class, 'newTeam'])->name('faculty.roster.team.new');
+    Route::post('faculty/roster/teams/{team}', [RosterController::class, 'renameTeam'])->name('faculty.roster.team.rename');
+    Route::delete('faculty/roster/teams/{team}', [RosterController::class, 'deleteTeam'])->name('faculty.roster.team.delete');
     Route::post('faculty/quarters/{quarter}/{action}', [FacultyController::class, 'action'])->whereIn('action', ['open', 'close', 'publish', 'extend'])->name('faculty.quarter');
     Route::post('faculty/quarters/{quarter}/draws', [FacultyController::class, 'setDraw'])->name('faculty.draw');
     Route::get('faculty/teams/{team}/quarters/{quarter}', [FacultyController::class, 'viewTeam'])->name('faculty.team');

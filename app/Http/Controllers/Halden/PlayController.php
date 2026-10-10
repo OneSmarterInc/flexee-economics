@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Halden;
 
+use App\Halden\Admin\Roster;
 use App\Halden\Ai\AdvisorRoom;
 use App\Halden\Ai\HelpDesk;
 use App\Halden\Content\ContentPack;
@@ -10,6 +11,7 @@ use App\Halden\Game\QuarterRunner;
 use App\Halden\Game\QuarterView;
 use App\Halden\OperatingModel\OperatingModel;
 use App\Http\Controllers\Controller;
+use App\Models\Enrolment;
 use App\Models\Quarter;
 use App\Models\Team;
 use App\Models\TeamMember;
@@ -25,11 +27,27 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class PlayController extends Controller
 {
-    public function home(Request $request): RedirectResponse
+    public function home(Request $request): RedirectResponse|Response
     {
         $user = $this->user($request);
         if (! $user->isStudent()) {
             return redirect()->route('faculty.board');
+        }
+        $member = TeamMember::query()->where('user_id', $user->id)->with('team.section')->first();
+        if ($member === null) {
+            // Enrolled but not on a team yet (or in no class at all): the opening first, then a waiting page.
+            if ($user->opening_seen_at === null && Enrolment::query()->where('user_id', $user->id)->exists()) {
+                return redirect()->route('opening');
+            }
+            $enrolment = Enrolment::query()->where('user_id', $user->id)->with('section')->first();
+
+            return Inertia::render('halden/Waiting', [
+                'className' => $enrolment?->section->name, 'course' => $enrolment?->section->course_name,
+                'reason' => $enrolment === null ? 'no-class' : ($enrolment->status === Enrolment::BLOCKED ? 'blocked' : 'no-team'),
+            ]);
+        }
+        if (Roster::reasonCannotPlay($member->team->section, $user) !== null) {
+            return Inertia::render('halden/Waiting', ['className' => $member->team->section->name, 'course' => $member->team->section->course_name, 'reason' => 'blocked']);
         }
         $team = $this->teamOf($user);
         if ($user->opening_seen_at === null) {
@@ -263,6 +281,8 @@ class PlayController extends Controller
     {
         $member = TeamMember::query()->where('user_id', $user->id)->with('team.section')->first();
         abort_if($member === null, 403, "You haven't been put on a team yet. Your instructor will add you.");
+        $paused = Roster::reasonCannotPlay($member->team->section, $user);
+        abort_if($paused !== null, 403, (string) $paused);
 
         return $member->team;
     }

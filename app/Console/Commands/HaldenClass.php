@@ -11,7 +11,7 @@ use Illuminate\Support\Str;
 
 /**
  * Creates a class: a section for one instructor, its fourteen company quarters with weekly deadlines, and optionally
- * empty teams (five seats, filled with `halden:user --team`) or, outside production, demo teams with known logins.
+ * empty teams (filled from the "Students and teams" page on the faculty board) or, outside production, demo teams with known logins.
  *
  * A 7-week class plays two quarters a week: the deadline sits on the first quarter of each pair.
  */
