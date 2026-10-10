@@ -11,6 +11,7 @@ const props = defineProps<{
         instructor: number;
         seats: number | null;
         advisorsEnabled: boolean;
+        coInstructors: { id: number; name: string; email: string }[];
         firstDeadline: string | null;
         started: boolean;
         teams: { name: string; members: number }[];
@@ -72,6 +73,33 @@ function remove() {
     router.delete(`/admin/classes/${props.section.id}`, {
         onFinish: () => (busy.value = false),
     });
+}
+
+const newCo = ref<number | ''>('');
+
+function addCo() {
+    if (newCo.value === '') {
+        return;
+    }
+    busy.value = true;
+    router.post(
+        `/admin/classes/${props.section.id}/co-instructors`,
+        { instructor: newCo.value },
+        {
+            preserveScroll: true,
+            onSuccess: () => (newCo.value = ''),
+            onFinish: () => (busy.value = false),
+        },
+    );
+}
+
+function removeCo(id: number) {
+    busy.value = true;
+    router.post(
+        `/admin/classes/${props.section.id}/co-instructors`,
+        { instructor: id, remove: true },
+        { preserveScroll: true, onFinish: () => (busy.value = false) },
+    );
 }
 
 function fmt(n: number): string {
@@ -245,6 +273,65 @@ function fmt(n: number): string {
                 </section>
 
                 <section class="flex flex-col gap-6">
+                    <div class="hx-card">
+                        <h2 class="hx-h2">Co-instructors</h2>
+                        <p class="hx-hint mt-1">
+                            They see and run the same board as the instructor.
+                        </p>
+                        <ul
+                            v-if="props.section.coInstructors.length"
+                            class="mt-2 text-[14px] leading-relaxed"
+                        >
+                            <li
+                                v-for="c in props.section.coInstructors"
+                                :key="c.id"
+                            >
+                                {{ c.name }}
+                                <span class="hx-hint"> · {{ c.email }}</span>
+                                <button
+                                    type="button"
+                                    class="ml-2 text-[13px] underline"
+                                    :disabled="busy"
+                                    @click="removeCo(c.id)"
+                                >
+                                    Remove
+                                </button>
+                            </li>
+                        </ul>
+                        <div class="mt-3 flex flex-wrap items-center gap-2">
+                            <select
+                                v-model="newCo"
+                                class="hx-in"
+                                style="width: 100%; max-width: 260px"
+                            >
+                                <option value="">Add an instructor…</option>
+                                <option
+                                    v-for="i in instructors.filter(
+                                        (x) =>
+                                            x.id !== props.section.instructor &&
+                                            !props.section.coInstructors.some(
+                                                (c) => c.id === x.id,
+                                            ),
+                                    )"
+                                    :key="i.id"
+                                    :value="i.id"
+                                >
+                                    {{ i.name }} ({{ i.email }})
+                                </option>
+                            </select>
+                            <button
+                                type="button"
+                                class="hx-btn hx-btn-outline"
+                                :disabled="busy || newCo === ''"
+                                @click="addCo"
+                            >
+                                Add
+                            </button>
+                        </div>
+                        <span v-if="errors.co_instructor" class="hx-error">{{
+                            errors.co_instructor
+                        }}</span>
+                    </div>
                     <div class="hx-card">
                         <h2 class="hx-h2">Teams</h2>
                         <p

@@ -36,6 +36,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('admin/classes/{section}', [AdminController::class, 'showClass'])->name('admin.class');
     Route::post('admin/classes/{section}', [AdminController::class, 'updateClass'])->name('admin.class.update');
     Route::delete('admin/classes/{section}', [AdminController::class, 'destroyClass'])->name('admin.class.delete');
+    Route::post('admin/classes/{section}/co-instructors', [AdminController::class, 'coInstructor'])->name('admin.class.co');
     Route::post('admin/instructors', [AdminController::class, 'storeInstructor'])->name('admin.instructors.store');
 
     Route::get('faculty', [FacultyController::class, 'board'])->name('faculty.board');
