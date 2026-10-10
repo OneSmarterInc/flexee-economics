@@ -74,6 +74,8 @@ class FacultyController extends Controller
             ],
             'feedbackQuarter' => $fbQuarter === null ? null : ['id' => $fbQuarter->id, 'label' => $fbQuarter->label()],
             'next' => $next === null ? null : ['id' => $next->id, 'label' => $next->label(), 'buildable' => $runner->hasMarket($next) && $content->hasQuarter($next->number)],
+            // The class-wide draws on this quarter and the next, so the instructor can set one before the quarter that draws it opens or closes.
+            'draws' => $this->draws($runner, array_values(array_filter([$quarter, $next]))),
             'pages' => array_map(fn (string $p) => ['page' => $p, 'title' => QuarterView::PAGE_TITLES[$p]], $openPages),
             'teams' => $teams,
             'quarters' => $section->quarters()->get()->map(fn (Quarter $q) => ['number' => $q->number, 'label' => $q->label(), 'status' => $q->status])->values(),
@@ -97,6 +99,37 @@ class FacultyController extends Controller
         }
 
         return back()->with('done', $action);
+    }
+
+    /** Sets a class-wide draw ahead of time (OPEC+, the breakdown, the world), or hands it back to chance. */
+    public function setDraw(Request $request, Quarter $quarter, QuarterRunner $runner): RedirectResponse
+    {
+        $section = $this->section($request);
+        abort_unless($quarter->section_id === $section->id, 404);
+        $data = $request->validate(['draw' => ['required', 'string', 'in:opec,outage,world'], 'value' => ['nullable', 'string', 'max:40']]);
+        try {
+            $runner->setDraw($quarter, $data['draw'], ($data['value'] ?? '') === '' ? null : $data['value']);
+        } catch (RuntimeException $e) {
+            throw ValidationException::withMessages(['draw' => $e->getMessage()]);
+        }
+
+        return back()->with('done', 'draw');
+    }
+
+    /**
+     * @param  list<Quarter>  $quarters
+     * @return list<array<string, mixed>>
+     */
+    private function draws(QuarterRunner $runner, array $quarters): array
+    {
+        $out = [];
+        foreach ($quarters as $q) {
+            foreach ($runner->draws($q) as $draw) {
+                $out[] = [...$draw, 'quarterId' => $q->id, 'quarterLabel' => $q->label(), 'quarterNumber' => $q->number, 'open' => $q->status === Quarter::OPEN];
+            }
+        }
+
+        return $out;
     }
 
     public function viewTeam(Request $request, Team $team, Quarter $quarter, QuarterView $view): Response

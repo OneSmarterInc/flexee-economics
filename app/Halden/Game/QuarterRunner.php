@@ -263,6 +263,66 @@ final class QuarterRunner
         return random_int(1, 1000) / 1000 <= $this->model->data->c('turnaround_outage_probability') ? 'outage' : 'no_outage';
     }
 
+    /**
+     * The class-wide draws a quarter carries, for the instructor to leave to chance or set ahead of time: the OPEC+
+     * outcome (drawn at the close of its quarter), whether a plant run past its turnaround broke down (drawn at the
+     * close of the quarter after the labor quarter) and the world the five-year plan is valued in (drawn when the
+     * board quarter opens). Each one can be set while its quarter has not yet run.
+     *
+     * @return list<array{key: string, title: string, when: string, value: string|null, settable: bool, options: list<array{value: string, label: string, chance: int}>}>
+     */
+    public function draws(Quarter $quarter): array
+    {
+        $settable = in_array($quarter->status, [Quarter::UPCOMING, Quarter::OPEN], true);
+        $draws = [];
+        if ($this->hasMarket($quarter) && (bool) $this->model->data->quarter($quarter->company_quarter)['opec']) {
+            $options = [];
+            foreach ($this->model->data->opec as $key => $s) {
+                $options[] = ['value' => (string) $key, 'label' => $s['label'], 'chance' => (int) round($s['p'] * 100)];
+            }
+            $draws[] = ['key' => 'opec', 'title' => 'What OPEC+ does', 'when' => 'at the close', 'value' => $quarter->event_outcome, 'settable' => $settable, 'options' => $options];
+        }
+        if ($this->followsLaborQuarter($quarter)) {
+            $p = (int) round($this->model->data->c('turnaround_outage_probability') * 100);
+            $draws[] = ['key' => 'outage', 'title' => 'Whether a plant run past its turnaround breaks down', 'when' => 'at the close', 'value' => $quarter->event_outcome, 'settable' => $settable, 'options' => [
+                ['value' => 'no_outage', 'label' => 'The plant holds', 'chance' => 100 - $p],
+                ['value' => 'outage', 'label' => 'The plant breaks down', 'chance' => $p],
+            ]];
+        }
+        if ($quarter->isBoardQuarter()) {
+            $options = [];
+            foreach ($this->model->data->scenarios['carbon'] as $ck => $c) {
+                foreach ($this->model->data->scenarios['demand'] as $dk => $d) {
+                    $options[] = ['value' => $ck.':'.$dk, 'label' => $c['label'].'; '.lcfirst($d['label']), 'chance' => (int) round($c['p'] * $d['p'] * 100)];
+                }
+            }
+            $draws[] = ['key' => 'world', 'title' => 'The world the five-year plan is judged in', 'when' => 'when the quarter opens', 'value' => $quarter->world, 'settable' => $settable, 'options' => $options];
+        }
+
+        return $draws;
+    }
+
+    /** Sets one of the quarter's draws ahead of time, or hands it back to chance with a null value. */
+    public function setDraw(Quarter $quarter, string $key, ?string $value): void
+    {
+        $draw = null;
+        foreach ($this->draws($quarter) as $d) {
+            if ($d['key'] === $key) {
+                $draw = $d;
+            }
+        }
+        if ($draw === null) {
+            throw new RuntimeException("{$quarter->label()} has no such draw.");
+        }
+        if (! $draw['settable']) {
+            throw new RuntimeException("{$quarter->label()} has already run, so that is settled.");
+        }
+        if ($value !== null && ! in_array($value, array_column($draw['options'], 'value'), true)) {
+            throw new RuntimeException('Pick one of the outcomes listed.');
+        }
+        $quarter->update([$key === 'world' ? 'world' : 'event_outcome' => $value]);
+    }
+
     /** Share of this class that went ahead with the Baton Rouge upgrade in Q2 2028 (Window 2's input). */
     public function classBrUpgradeShare(Quarter $quarter): ?float
     {
