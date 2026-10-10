@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Halden\AdminController;
 use App\Http\Controllers\Halden\FacultyController;
 use App\Http\Controllers\Halden\OpeningController;
 use App\Http\Controllers\Halden\PlayController;
@@ -23,6 +24,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('help', [PlayController::class, 'help'])->middleware('throttle:10,1')->name('help');
     Route::get('opening', [OpeningController::class, 'show'])->name('opening');
     Route::post('opening', [OpeningController::class, 'finish'])->name('opening.finish');
+
+    Route::get('admin', [AdminController::class, 'index'])->name('admin.index');
+    Route::post('admin/classes', [AdminController::class, 'storeClass'])->name('admin.classes.store');
+    Route::get('admin/classes/{section}', [AdminController::class, 'showClass'])->name('admin.class');
+    Route::post('admin/classes/{section}', [AdminController::class, 'updateClass'])->name('admin.class.update');
+    Route::delete('admin/classes/{section}', [AdminController::class, 'destroyClass'])->name('admin.class.delete');
+    Route::post('admin/instructors', [AdminController::class, 'storeInstructor'])->name('admin.instructors.store');
 
     Route::get('faculty', [FacultyController::class, 'board'])->name('faculty.board');
     Route::post('faculty/quarters/{quarter}/{action}', [FacultyController::class, 'action'])->whereIn('action', ['open', 'close', 'publish', 'extend'])->name('faculty.quarter');

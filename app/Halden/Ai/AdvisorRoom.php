@@ -54,6 +54,14 @@ final class AdvisorRoom
         return $this->enabled;
     }
 
+    /** The admin can switch the advisors off for one class. */
+    public function enabledFor(Team $team): bool
+    {
+        $team->loadMissing('section');
+
+        return (bool) ($team->section->advisors_enabled ?? true);
+    }
+
     /** @return array<string, string> words on the advisors screen, with the cost filled in */
     public function screenText(): array
     {
@@ -151,7 +159,7 @@ final class AdvisorRoom
         }
 
         return [
-            'enabled' => $this->enabled,
+            'enabled' => $this->enabled && $this->enabledFor($team),
             'open' => $quarter->status === Quarter::OPEN,
             'text' => $screen,
             'cards' => $cards,
@@ -246,7 +254,7 @@ final class AdvisorRoom
      */
     public function ask(Team $team, Quarter $quarter, string $advisor, User $user, string $question): AdvisorMessage
     {
-        if (! $this->enabled) {
+        if (! $this->enabled || ! $this->enabledFor($team)) {
             throw new RuntimeException((string) $this->book['screen']['unavailable']);
         }
         if (! in_array($advisor, $this->keys(), true)) {
@@ -311,7 +319,7 @@ final class AdvisorRoom
     {
         $screen = (array) $this->book['screen'];
         $limits = (array) $this->book['limits'];
-        if (! $this->enabled) {
+        if (! $this->enabled || ! $this->enabledFor($team)) {
             throw new RuntimeException((string) $screen['unavailable']);
         }
         if ($quarter->status !== Quarter::OPEN) {

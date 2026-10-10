@@ -10,9 +10,21 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 /**
  * One class running Halden: a faculty member, its teams and its quarters.
  */
-#[Fillable(['name', 'course_name', 'weeks', 'faculty_user_id'])]
+#[Fillable(['name', 'course_name', 'weeks', 'faculty_user_id', 'seats', 'advisors_enabled'])]
 class Section extends Model
 {
+    /** @return array<string, string> */
+    protected function casts(): array
+    {
+        return ['advisors_enabled' => 'boolean'];
+    }
+
+    /** Whether any quarter has opened: after that the class's shape (weeks, schedule) is fixed. */
+    public function hasStarted(): bool
+    {
+        return $this->quarters()->where('status', '!=', Quarter::UPCOMING)->exists();
+    }
+
     /** @return BelongsTo<User, $this> */
     public function faculty(): BelongsTo
     {

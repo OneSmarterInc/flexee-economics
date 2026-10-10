@@ -34,6 +34,7 @@ interface Draw {
 
 const props = defineProps<{
     section: { id: number; name: string; course: string };
+    isAdmin: boolean;
     quarter: {
         id: number;
         number: number;
@@ -186,12 +187,14 @@ function teamHref(teamId: number): string {
                 <span class="font-semibold">{{ section.name }}</span>
                 <span style="color: #c9d4da">{{ section.course }}</span>
             </div>
-            <a
-                href="/settings/profile"
-                class="text-[13px]"
-                style="color: var(--hx-mint)"
-                >Settings</a
-            >
+            <div class="flex gap-4 text-[13px]">
+                <a v-if="isAdmin" href="/admin" style="color: var(--hx-mint)"
+                    >Admin</a
+                >
+                <a href="/settings/profile" style="color: var(--hx-mint)"
+                    >Settings</a
+                >
+            </div>
         </header>
 
         <main class="mx-auto max-w-[1100px] px-5 py-7">

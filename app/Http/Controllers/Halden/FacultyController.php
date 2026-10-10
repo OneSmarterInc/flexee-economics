@@ -69,8 +69,12 @@ class FacultyController extends Controller
         }
         $next = $quarter === null ? null : $section->quarters()->where('number', $quarter->playEnd() + 1)->first();
 
+        /** @var User $viewer */
+        $viewer = $request->user();
+
         return Inertia::render('halden/FacultyBoard', [
             'section' => ['id' => $section->id, 'name' => $section->name, 'course' => $section->course_name],
+            'isAdmin' => $viewer->isAdmin(),
             'quarter' => $quarter === null ? null : [
                 'id' => $quarter->id, 'number' => $quarter->number, 'label' => $quarter->weekLabel(), 'status' => $quarter->status,
                 'week' => $quarter->week(), 'weeks' => (int) $section->weeks, 'paired' => $quarter->isPaired(),
@@ -292,7 +296,10 @@ class FacultyController extends Controller
             $query->where('faculty_user_id', $user->id);
         }
         $section = $request->query('section') ? (clone $query)->whereKey((int) $request->query('section'))->first() : $query->first();
-        abort_if($section === null, 404, 'You have no class yet.');
+        if ($section === null && $user->isAdmin()) {
+            abort(redirect()->route('admin.index'));
+        }
+        abort_if($section === null, 404, 'You have no class yet. Ask your admin to set one up.');
 
         return $section;
     }
