@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 /**
  * One class running Halden: a faculty member, its teams and its quarters.
  */
-#[Fillable(['name', 'course_name', 'weeks', 'faculty_user_id', 'seats', 'advisors_enabled'])]
+#[Fillable(['name', 'course_name', 'weeks', 'faculty_user_id', 'seats', 'advisors_enabled', 'join_code'])]
 class Section extends Model
 {
     /** @return array<string, string> */
@@ -35,6 +35,18 @@ class Section extends Model
     public function teams(): HasMany
     {
         return $this->hasMany(Team::class);
+    }
+
+    /** @return HasMany<Enrolment, $this> */
+    public function enrolments(): HasMany
+    {
+        return $this->hasMany(Enrolment::class);
+    }
+
+    /** Whether the class can take one more student (the seat count is a cap; blank means no limit). */
+    public function hasRoom(): bool
+    {
+        return $this->seats === null || $this->enrolments()->count() < (int) $this->seats;
     }
 
     /** @return HasMany<Quarter, $this> */

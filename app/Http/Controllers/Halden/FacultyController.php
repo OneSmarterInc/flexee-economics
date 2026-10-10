@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Halden;
 
+use App\Halden\Admin\ClassAccess;
 use App\Halden\Ai\Carrying;
 use App\Halden\Ai\FacultyDrafts;
 use App\Halden\Content\ContentPack;
@@ -288,19 +289,6 @@ class FacultyController extends Controller
 
     private function section(Request $request): Section
     {
-        /** @var User $user */
-        $user = $request->user();
-        abort_unless($user->isFaculty() || $user->isAdmin(), 403);
-        $query = Section::query()->orderBy('id');
-        if (! $user->isAdmin()) {
-            $query->where('faculty_user_id', $user->id);
-        }
-        $section = $request->query('section') ? (clone $query)->whereKey((int) $request->query('section'))->first() : $query->first();
-        if ($section === null && $user->isAdmin()) {
-            abort(redirect()->route('admin.index'));
-        }
-        abort_if($section === null, 404, 'You have no class yet. Ask your admin to set one up.');
-
-        return $section;
+        return ClassAccess::pick($request);
     }
 }

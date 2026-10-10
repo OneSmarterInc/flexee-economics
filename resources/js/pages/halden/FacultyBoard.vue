@@ -188,6 +188,11 @@ function teamHref(teamId: number): string {
                 <span style="color: #c9d4da">{{ section.course }}</span>
             </div>
             <div class="flex gap-4 text-[13px]">
+                <a
+                    :href="`/faculty/roster?section=${section.id}`"
+                    style="color: var(--hx-mint)"
+                    >Students and teams</a
+                >
                 <a v-if="isAdmin" href="/admin" style="color: var(--hx-mint)"
                     >Admin</a
                 >

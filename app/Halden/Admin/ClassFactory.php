@@ -2,6 +2,7 @@
 
 namespace App\Halden\Admin;
 
+use App\Models\Enrolment;
 use App\Models\Quarter;
 use App\Models\Section;
 use App\Models\Team;
@@ -63,6 +64,7 @@ final class ClassFactory
             foreach (array_keys(TeamMember::SEATS) as $k => $seat) {
                 $student = User::query()->updateOrCreate(['email' => "$slug$letter".($k + 1).'@example.test'],
                     ['name' => "{$team->name} student ".($k + 1), 'password' => Hash::make($password), 'role' => User::ROLE_STUDENT, 'email_verified_at' => now()]);
+                Enrolment::query()->updateOrCreate(['section_id' => $section->id, 'user_id' => $student->id], ['status' => Enrolment::ACTIVE]);
                 TeamMember::query()->updateOrCreate(['team_id' => $team->id, 'user_id' => $student->id], ['seat' => $seat]);
             }
         }

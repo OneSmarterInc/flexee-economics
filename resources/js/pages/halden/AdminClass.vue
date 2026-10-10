@@ -110,8 +110,13 @@ function fmt(n: number): string {
                 class="mb-4 rounded-md px-4 py-3 text-[14px]"
                 style="background: var(--hx-teal-wash)"
             >
-                The class is set up. Add the instructor's students from the
-                faculty board, then open Quarter 1 there.
+                The class is set up. Add students on the
+                <a
+                    :href="`/faculty/roster?section=${props.section.id}`"
+                    class="underline"
+                    >students and teams</a
+                >
+                page, then open Quarter 1 from the faculty board.
             </p>
             <p
                 v-else-if="props.done === 'saved'"
@@ -257,8 +262,12 @@ function fmt(n: number): string {
                             </li>
                         </ul>
                         <p class="hx-hint mt-2">
-                            Students and teams are managed from the faculty
-                            board.
+                            <a
+                                :href="`/faculty/roster?section=${props.section.id}`"
+                                class="underline"
+                                >Students and teams</a
+                            >
+                            are managed from the faculty board.
                         </p>
                     </div>
                     <div class="hx-card">
