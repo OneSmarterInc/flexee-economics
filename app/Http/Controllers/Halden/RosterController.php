@@ -36,7 +36,11 @@ class RosterController extends Controller
                 'seenOpening' => $e->user->opening_seen_at !== null,
             ])->values();
 
+        /** @var User $viewer */
+        $viewer = $request->user();
+
         return Inertia::render('halden/FacultyRoster', [
+            'classes' => ClassAccess::choices($viewer),
             'section' => [
                 'id' => $section->id, 'name' => $section->name, 'course' => $section->course_name, 'seats' => $section->seats,
                 'joinUrl' => $section->join_code === null ? null : route('join.show', $section->join_code),

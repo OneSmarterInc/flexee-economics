@@ -211,6 +211,21 @@ class RosterTest extends TestCase
         $this->assertSame(4, $section->teams()->where('name', 'Team C')->firstOrFail()->members()->count());
     }
 
+    public function test_an_instructor_with_two_classes_switches_between_them_and_the_choice_sticks(): void
+    {
+        $second = app(ClassFactory::class)->create('MBA 7250 Evening', 'Managerial Economics', 7, $this->faculty, CarbonImmutable::now());
+        $this->actingAs($this->faculty)->get('/faculty')->assertInertia(fn (Assert $p) => $p->where('section.id', $this->section->id)->has('classes', 2));
+        $this->actingAs($this->faculty)->get("/faculty?section={$second->id}")->assertInertia(fn (Assert $p) => $p->where('section.name', 'MBA 7250 Evening'));
+        // Without ?section= the last class opened comes back, on the board and the roster alike.
+        $this->actingAs($this->faculty)->get('/faculty')->assertInertia(fn (Assert $p) => $p->where('section.id', $second->id));
+        $this->actingAs($this->faculty)->get('/faculty/roster')->assertInertia(fn (Assert $p) => $p->where('section.id', $second->id)->has('classes', 2));
+        // A class that isn't theirs falls back to the first.
+        $stranger = User::factory()->create(['role' => User::ROLE_FACULTY]);
+        $other = app(ClassFactory::class)->create('Someone else', 'x', 14, $stranger, CarbonImmutable::now());
+        $this->actingAs($this->faculty)->get("/faculty?section={$other->id}")->assertInertia(fn (Assert $p) => $p->where('section.id', $this->section->id));
+        $this->actingAs($stranger)->get('/faculty')->assertInertia(fn (Assert $p) => $p->where('section.id', $other->id)->has('classes', 1));
+    }
+
     public function test_demo_students_are_enrolled_too(): void
     {
         $section = app(ClassFactory::class)->create('Rehearsal', 'Managerial Economics', 14, $this->faculty, CarbonImmutable::now(), 2);

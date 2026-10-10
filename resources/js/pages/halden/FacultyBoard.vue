@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Head, router, usePage } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
+import ClassSwitcher from '@/components/halden/ClassSwitcher.vue';
 
 interface TeamRow {
     id: number;
@@ -34,6 +35,7 @@ interface Draw {
 
 const props = defineProps<{
     section: { id: number; name: string; course: string };
+    classes: { id: number; name: string; course: string }[];
     isAdmin: boolean;
     quarter: {
         id: number;
@@ -184,7 +186,11 @@ function teamHref(teamId: number): string {
                     style="color: var(--hx-mint)"
                     >HALDEN · FACULTY</span
                 >
-                <span class="font-semibold">{{ section.name }}</span>
+                <ClassSwitcher
+                    :classes="classes"
+                    :current="section.id"
+                    path="/faculty"
+                />
                 <span style="color: #c9d4da">{{ section.course }}</span>
             </div>
             <div class="flex gap-4 text-[13px]">

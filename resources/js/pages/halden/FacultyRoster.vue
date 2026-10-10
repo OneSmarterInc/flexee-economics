@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Head, router, usePage } from '@inertiajs/vue3';
 import { computed, reactive, ref } from 'vue';
+import ClassSwitcher from '@/components/halden/ClassSwitcher.vue';
 
 interface Student {
     id: number;
@@ -28,6 +29,7 @@ const props = defineProps<{
         joinUrl: string | null;
         started: boolean;
     };
+    classes: { id: number; name: string; course: string }[];
     students: Student[];
     teams: { id: number; name: string }[];
     seats: Record<string, string>;
@@ -250,7 +252,11 @@ function downloadLogins() {
                     style="color: var(--hx-mint)"
                     >HALDEN · FACULTY</span
                 >
-                <span class="font-semibold">{{ section.name }}</span>
+                <ClassSwitcher
+                    :classes="classes"
+                    :current="section.id"
+                    path="/faculty/roster"
+                />
                 <span class="hx-hint" style="color: #b8c4c9"
                     >Students and teams</span
                 >

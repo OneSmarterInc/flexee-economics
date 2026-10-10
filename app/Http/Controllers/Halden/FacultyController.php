@@ -75,6 +75,7 @@ class FacultyController extends Controller
 
         return Inertia::render('halden/FacultyBoard', [
             'section' => ['id' => $section->id, 'name' => $section->name, 'course' => $section->course_name],
+            'classes' => ClassAccess::choices($viewer),
             'isAdmin' => $viewer->isAdmin(),
             'quarter' => $quarter === null ? null : [
                 'id' => $quarter->id, 'number' => $quarter->number, 'label' => $quarter->weekLabel(), 'status' => $quarter->status,
