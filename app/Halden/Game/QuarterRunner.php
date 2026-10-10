@@ -81,6 +81,10 @@ final class QuarterRunner
         if ($this->model->data->quarter($quarter->company_quarter)['opec'] && $quarter->event_outcome === null) {
             $quarter->update(['event_outcome' => $this->drawOpecOutcome()]);
         }
+        // The quarter after the turnaround choice: whether a plant run past due breaks down is drawn once per class.
+        if ($this->followsLaborQuarter($quarter) && $quarter->event_outcome === null) {
+            $quarter->update(['event_outcome' => $this->drawTurnaroundOutcome()]);
+        }
         $market = $this->marketFor($quarter);
 
         DB::transaction(function () use ($quarter, $market): void {
@@ -105,7 +109,8 @@ final class QuarterRunner
                     [
                         'effective_decisions' => $effective[$teamId],
                         'results' => $result->metrics() + $bridges[$teamId] + ['ops.rot_status' => $result->ops['rot_status'], 'advisor.answers' => $answers[$teamId]]
-                            + ['history.delacroix_cover' => (int) ($result->notes['br_run_resisted'] ?? 0) > 0 ? 1.0 : 0.0, 'history.sg_cut_by_partner' => isset($result->notes['sg_cut_by_partner']) ? 1.0 : 0.0],
+                            + ['history.delacroix_cover' => (int) ($result->notes['br_run_resisted'] ?? 0) > 0 ? 1.0 : 0.0, 'history.sg_cut_by_partner' => isset($result->notes['sg_cut_by_partner']) ? 1.0 : 0.0,
+                                'history.turnaround_outage' => isset($result->notes['turnaround_outage']) ? 1.0 : 0.0],
                         'state_after' => $result->state->toArray(),
                         'score' => $scores[$teamId],
                         'rank' => $ranks[$teamId],
@@ -207,6 +212,20 @@ final class QuarterRunner
         return $last;
     }
 
+    /** Whether this quarter comes right after the one with the turnaround choice (Q1 2030). */
+    public function followsLaborQuarter(Quarter $quarter): bool
+    {
+        $prev = $quarter->previous();
+
+        return $prev !== null && $this->hasMarket($prev) && (bool) ($this->model->data->quarter($prev->company_quarter)['labor'] ?? false);
+    }
+
+    /** 'outage' with the package's 12% chance, otherwise 'no_outage'. */
+    public function drawTurnaroundOutcome(): string
+    {
+        return random_int(1, 1000) / 1000 <= $this->model->data->c('turnaround_outage_probability') ? 'outage' : 'no_outage';
+    }
+
     /** Share of this class that went ahead with the Baton Rouge upgrade in Q2 2028 (Window 2's input). */
     public function classBrUpgradeShare(Quarter $quarter): ?float
     {
@@ -242,6 +261,9 @@ final class QuarterRunner
         }
         if ((bool) $m['opec'] && $quarter->event_outcome !== null) {
             $m = $this->model->opecMarket($m, $quarter->event_outcome, $this->classBrUpgradeShare($quarter) ?? 0.5);
+        }
+        if ($quarter->event_outcome === 'outage') {
+            $m['outage'] = true;
         }
         if (str_starts_with($quarter->company_quarter, '2029')) {   // Window 3 lands for all of 2029
             $aggression = $this->classAggression($quarter);

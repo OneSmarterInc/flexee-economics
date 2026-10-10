@@ -184,6 +184,27 @@ final class QuarterView
             'rotterdamClosed' => $closed, 'buckets' => $buckets, 'projects' => $projects];
     }
 
+    /**
+     * Quarter 13's two one-time answers: the union on the Oil fields page, the turnaround on the Refineries page.
+     *
+     * @param  array<string, mixed>  $previous
+     * @return array{open: bool, wageBill: float, demand: float, half: float, taxRate: float, uplift: float, peakCost: float, offPeakCost: float, outageChance: float, outageCost: float, healthPenalty: float, turnaroundBefore: string, pending: bool, markets: list<array{market: string, structure: string, wage_k: float, note: string}>}|null
+     */
+    private function laborDesk(Quarter $quarter, array $previous, ?CompanyState $start): ?array
+    {
+        if (! $this->book->isUnlocked('norway_wage', $quarter->number)) {
+            return null;
+        }
+        $data = $this->model->data;
+
+        return ['open' => $this->book->isOpen('norway_wage', $quarter->number) && $this->runner->hasMarket($quarter),
+            'wageBill' => $data->c('norway_wage_bill'), 'demand' => $data->c('norway_union_demand'), 'half' => $data->c('norway_half_offer'), 'taxRate' => $data->c('norway_tax_rate'),
+            'uplift' => $start === null ? 0.0 : $start->norwayWageUplift,
+            'peakCost' => $this->model->turnaroundPeakCost(), 'offPeakCost' => $data->c('turnaround_labor_base'), 'outageChance' => $data->c('turnaround_outage_probability'),
+            'outageCost' => $data->c('turnaround_outage_cost'), 'healthPenalty' => $data->c('turnaround_health_penalty'),
+            'turnaroundBefore' => (string) ($previous['turnaround'] ?? 'now'), 'pending' => $start !== null && $start->turnaroundPending, 'markets' => $data->labor];
+    }
+
     /** @return array{title: string, text: string|null, reason: string|null}|null */
     private function carryingFor(?TeamQuarter $tq, bool $forFaculty): ?array
     {
@@ -280,6 +301,7 @@ final class QuarterView
                 'rebrand' => $this->rebrandDesk($quarter, $previous),
                 'kessana' => $this->kessanaDesk($quarter, $start),
                 'portfolio' => $this->portfolioDesk($quarter, $previous, $start),
+                'labor' => $this->laborDesk($quarter, $previous, $start),
             ],
             'memo' => [
                 'text' => $tq->memo ?? '',
@@ -487,6 +509,22 @@ final class QuarterView
                 'why' => sprintf('The $%sM paid down debt. The field\'s %s book value came off capital employed, and the Kessana line is gone from the oil fields: %s this quarter.',
                     number_format((float) $r['ops.kessana_exit_proceeds']), ContentPack::money($data->c('kessana_book_value')), ContentPack::money((float) ($r['ops.kessana_forgone'] ?? 0)))];
         }
+        if (abs((float) ($r['line.norway_stoppage'] ?? 0)) > 0.05) {
+            $named[] = ['name' => 'Norway: the stoppage (already in Oil fields)', 'amount' => (float) $r['line.norway_stoppage'],
+                'why' => sprintf('%s %s with the operated fields idle: the margin on the barrels that stayed in the ground.', self::n((float) ($r['ops.norway_stoppage_weeks'] ?? 0)), (float) ($r['ops.norway_stoppage_weeks'] ?? 0) == 1.0 ? 'week' : 'weeks')];
+        }
+        if (abs((float) ($r['line.norway_wages'] ?? 0)) > 0.05) {
+            $named[] = ['name' => 'Norway: the raise (already in Oil fields)', 'amount' => (float) $r['line.norway_wages'],
+                'why' => sprintf('The wage bill is %s%% higher since Q1 2030. Norway\'s 78%% tax gives %s of this back in the tax line, so Halden\'s own cost is about a fifth.', self::n((float) ($r['ops.norway_wage_uplift'] ?? 0) * 100), ContentPack::money((float) ($r['ops.norway_tax_shield'] ?? 0)))];
+        }
+        if (abs((float) ($r['line.turnaround'] ?? 0)) > 0.05) {
+            $named[] = ['name' => 'Baton Rouge turnaround', 'amount' => (float) $r['line.turnaround'],
+                'why' => (float) $r['line.turnaround'] < -70 ? 'Contractor crews at the spring peak. Counted under Refineries.' : 'Contractor crews at off-peak rates. Counted under Refineries.'];
+        }
+        if (abs((float) ($r['line.turnaround_outage'] ?? 0)) > 0.05) {
+            $named[] = ['name' => 'Baton Rouge broke down before the turnaround', 'amount' => (float) $r['line.turnaround_outage'],
+                'why' => 'The plant ran past due and a unit failed. Counted under Refineries.'];
+        }
         if ((float) ($r['ops.divest_proceeds'] ?? 0) > 0) {
             $named[] = ['name' => 'Selling the European stations (proceeds, not in EBITDA)', 'amount' => (float) $r['ops.divest_proceeds'],
                 'why' => 'The buyer\'s money paid down debt this quarter. The stations\' earnings leave the Gas stations line from next quarter.'];
@@ -592,6 +630,21 @@ final class QuarterView
                 ? sprintf('You left Kessana. The field would have earned Halden about %s this quarter at the old terms.', ContentPack::money((float) $r['ops.kessana_forgone']))
                 : sprintf('The terms you settled with the Kessana government: it takes %s%% of the field\'s profit oil. Against the old contract, that costs %s this quarter.',
                     self::n((float) ($r['ops.kessana_take'] ?? 0) * 100), ContentPack::money(abs((float) $r['line.kessana_take_change'])))];
+        }
+        if ((float) ($r['ops.turnaround_pending'] ?? 0) > 0) {
+            $earlier[] = ['when' => 'This quarter', 'text' => sprintf('Baton Rouge is running past its turnaround. Plant condition dropped %s points for the wait; the crews come next quarter.', self::n($data->c('turnaround_health_penalty')))];
+        }
+        if ($quarter->company_quarter > '2030Q1' && (abs((float) ($r['line.turnaround'] ?? 0)) > 0.05 || abs((float) ($r['line.norway_wages'] ?? 0)) > 0.05)) {
+            $bits = [];
+            if (abs((float) ($r['line.turnaround'] ?? 0)) > 0.05) {
+                $bits[] = (float) ($r['history.turnaround_outage'] ?? 0) > 0
+                    ? 'You put Baton Rouge\'s turnaround off to save on crews, and the plant broke down before they arrived: the off-peak crews and the breakdown are both on this quarter\'s Refineries line.'
+                    : 'You put Baton Rouge\'s turnaround off; the off-peak crews did it this quarter, and the plant held until they came.';
+            }
+            if (abs((float) ($r['line.norway_wages'] ?? 0)) > 0.05) {
+                $bits[] = sprintf('The Norwegian wage bill is %s%% higher since the settlement, %s a quarter before Norway\'s tax.', self::n((float) ($r['ops.norway_wage_uplift'] ?? 0) * 100), ContentPack::money(abs((float) $r['line.norway_wages'])));
+            }
+            $earlier[] = ['when' => 'From Q1 2030', 'text' => implode(' ', $bits)];
         }
         if ($quarter->company_quarter > '2029Q4') {
             $names = $this->portfolioChosenLabels($d);

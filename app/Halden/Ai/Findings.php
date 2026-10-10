@@ -111,6 +111,15 @@ final class Findings
             $lines[] = 'The five-year portfolio (Q4 2029): '.($names === [] ? 'nothing placed' : implode('; ', $names)).'.';
         }
 
+        if ($q->number === 13) {
+            $lines[] = 'The Norwegian union\'s 8%: '.match ((string) ($d['norway_wage'] ?? 'accept')) {
+                'refuse' => 'refused (a two-week stoppage, then arbitration at 8%)',
+                'half' => 'offered 4% (a one-week stoppage, then settled at 4%)',
+                default => 'accepted (no stoppage)',
+            };
+            $lines[] = 'Baton Rouge turnaround: '.(($d['turnaround'] ?? 'now') === 'wait' ? 'put off to off-peak next quarter (three points off plant condition; 12% chance of a $150M breakdown)' : 'done now at the $81M peak');
+        }
+
         if ($q->number === 11) {
             $lines[] = 'Kessana, the government\'s demand for 74% of profit oil: '.match ((string) ($d['kessana_position'] ?? 'accept')) {
                 'counter' => 'countered at 68% with Halden\'s reserve figures on the table',
@@ -208,6 +217,13 @@ final class Findings
         if ((float) ($r['ops.kessana_exit_proceeds'] ?? 0) > 0) {
             $out[] = sprintf('Kessana: the team handed the block back for %s and wrote off $2.3B of book value. The field would have earned about %s this quarter at the old terms, and staying was worth about $3.1B over ten years even at the government\'s 74%%.',
                 $this->money((float) $r['ops.kessana_exit_proceeds']), $this->money((float) ($r['ops.kessana_forgone'] ?? 0)));
+        }
+        if ($q->number === 13) {
+            $out[] = sprintf('Factor markets: the union\'s 8%% is $33.6M a year gross and $7.4M after Norway\'s 78%% tax (22%% of face). The team\'s stoppage cost %s of margin; its settled raise is %s%% (%s a quarter gross, %s of which the tax line gives back). A marginal Permian worker earns $507.6k against a $145k wage, so Halden takes the market wage and competes on keeping crews. The turnaround costs $81M at the peak or an expected $78M off-peak (60 plus 12%% of 150), within 5%%, for three points of plant condition.',
+                $this->money(abs((float) ($r['line.norway_stoppage'] ?? 0))), number_format((float) ($r['ops.norway_wage_uplift'] ?? 0) * 100), $this->money(abs((float) ($r['line.norway_wages'] ?? 0))), $this->money((float) ($r['ops.norway_tax_shield'] ?? 0)));
+        }
+        if ((float) ($r['history.turnaround_outage'] ?? 0) > 0) {
+            $out[] = 'Baton Rouge broke down before the delayed turnaround: $150M on top of the $60M off-peak crews.';
         }
         if ($q->number === 12) {
             $chosen = [];

@@ -36,6 +36,8 @@ final class Decisions
         public array $rebrand = [],
         public string $kessanaPosition = 'none',   // none | accept | counter | threaten | exit: the one-time answer to the Kessana government (Q3 2029)
         public array $portfolio = [],              // Q4 2029 portfolio: project key => go | hold (one-time; the money goes out over five years)
+        public string $norwayWage = 'none',        // none | refuse | half | accept: the answer to the Norwegian union's 8% (Q1 2030, one-time)
+        public string $turnaround = 'none',        // none | now | wait: Baton Rouge's turnaround at the peak now or off-peak next quarter (Q1 2030, one-time)
         // Carried from the team's own history, not set on a page (the runner works them out):
         public bool $delacroixCover = false,       // the Q4 2027 crude price left Baton Rouge reporting strong, so Marcus can resist run cuts
         public bool $straitsStrained = false,      // the team kept asking Singapore for more than Straits Pacific allows
@@ -72,6 +74,8 @@ final class Decisions
             rebrand: self::rebrandFromRow($row, $data),
             kessanaPosition: (string) ($row['kessana_position'] ?? 'none'),
             portfolio: self::portfolioFromRow($row, $data),
+            norwayWage: (string) ($row['norway_wage'] ?? 'none'),
+            turnaround: (string) ($row['turnaround'] ?? 'none'),
             delacroixCover: (int) ($row['delacroix_cover'] ?? 0) === 1,
             straitsStrained: (int) ($row['straits_strained'] ?? 0) === 1,
         );

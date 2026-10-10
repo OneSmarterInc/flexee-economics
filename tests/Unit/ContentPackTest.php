@@ -87,6 +87,23 @@ class ContentPackTest extends TestCase
         $this->assertStringContainsString('You kept the European stations.', implode(' ', $none['paragraphs']));
     }
 
+    public function test_quarter_thirteen_story_is_picked_by_the_union_answer_and_tells_the_turnaround(): void
+    {
+        $results = ['line.norway_wages' => -8.4, 'line.norway_stoppage' => -62.3, 'ops.norway_tax_shield' => 6.55, 'ops.norway_wage_uplift' => 0.08, 'money.ebitda' => 3300.0];
+        $story = $this->pack()->story(13, $results, ['rigs' => 14, 'norway_wage' => 'refuse', 'turnaround' => 'wait'], []);
+        $this->assertSame('refuse', $story['band']);
+        $text = implode(' ', $story['paragraphs']);
+        $this->assertStringContainsString('The stoppage cost $62M of margin', $text);
+        $this->assertStringContainsString('costs $8.4M a quarter from here anyway', $text);
+        $this->assertStringContainsString('booked the crews for the summer', $text);
+        $this->assertStringNotContainsString('{', $text);
+        $accept = $this->pack()->story(13, ['line.norway_stoppage' => 0.0] + $results, ['rigs' => 14, 'norway_wage' => 'accept', 'turnaround' => 'now'], []);
+        $this->assertSame('Paid, and paid for by Norway', $accept['title']);
+        $this->assertStringContainsString('took $6.6M of that back', implode(' ', $accept['paragraphs']));
+        $this->assertStringContainsString('did the turnaround at the peak', implode(' ', $accept['paragraphs']));
+        $this->assertSame('accept', $this->pack()->story(13, $results, ['rigs' => 14], [])['band'], 'an unanswered team accepts');
+    }
+
     public function test_quarter_seven_story_is_picked_by_how_many_markets_were_matched(): void
     {
         $results = ['ops.rival_match_cost' => 46.1, 'ops.rival_ignore_cost' => 0.07, 'money.ebitda' => 3862.0];

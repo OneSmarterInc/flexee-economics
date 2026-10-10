@@ -52,6 +52,9 @@ final class ModelData
     /** @var array{carbon: array<string, array{label: string, value: float}>, demand: array<string, array{label: string, value: float}>} */
     public readonly array $scenarios;
 
+    /** @var list<array{market: string, structure: string, wage_k: float, note: string}> the three labor markets of Quarter 13 */
+    public readonly array $labor;
+
     /** @var array<string, array<string, float>> refinery => product => yield */
     public readonly array $yields;
 
@@ -91,6 +94,7 @@ final class ModelData
             'recession' => ($r['recession'] ?? '0') === '1',
             'kessana' => ($r['kessana'] ?? '0') === '1',
             'carbon' => (float) ($r['carbon'] ?? 0),
+            'labor' => ($r['labor'] ?? '0') === '1',
         ], self::csv("$root/data/market_path.csv"));
 
         $projects = [];
@@ -158,6 +162,8 @@ final class ModelData
             $scenarios[$r['kind'] === 'carbon' ? 'carbon' : 'demand'][$r['key']] = ['label' => $r['label'], 'value' => (float) $r['value']];
         }
         $this->scenarios = $scenarios;
+        $this->labor = array_map(fn (array $r): array => ['market' => $r['market'], 'structure' => $r['structure'], 'wage_k' => (float) $r['benchmark_wage_k'], 'note' => $r['note']],
+            self::csv("$root/data/labor_markets.csv"));
 
         $this->cordell = self::clusters("$root/data/cordell_clusters.csv", 'cluster');
         $this->europe = self::clusters("$root/data/europe_countries.csv", 'country');

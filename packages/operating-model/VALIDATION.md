@@ -1,6 +1,6 @@
-# Operating model validation (v0.8, Quarters 1-12)
+# Operating model validation (v0.9, Quarters 1-13)
 
-**Result: 79 of 79 checks pass.**
+**Result: 86 of 86 checks pass.**
 
 | # | Check | Result | Detail |
 | --- | --- | --- | --- |
@@ -81,5 +81,12 @@
 | 75 | Selling the European stations brings $550M in now (off the debt, not into EBITDA) and the stations' line is gone from the next quarter, with Europe's share of the retail fixed cost | PASS | next quarter Europe 82.3 -> 0; fixed -60.0 -> -47.8 |
 | 76 | Helix at Rotterdam's $1,200M goes out evenly over five years from the quarter after the go-ahead ($60M a quarter, added back in the score); nothing goes out in the go-ahead quarter | PASS | 60 a quarter |
 | 77 | Outside Q4 2029 the portfolio page does nothing | PASS | same net debt |
-| 78 | Score order careful > average > careless in all twelve quarters | PASS | Q1: 88.1 / 82.2 / 12.2; Q2: 89.2 / 80.8 / 11.2; Q3: 92.2 / 84.6 / 7.8; Q4: 92.3 / 86.1 / 7.7; Q5: 90.4 / 84.9 / 9.3; Q6: 89.1 / 88.7 / 8.6; Q7: 90.9 / 83.3 / 9.0; Q8: 91.0 / 79.4 / 8.9; Q9: 91.2 / 83.3 / 8.7; Q10: 94.4 / 68.2 / 9.0; Q11: 94.9 / 79.4 / 8.7; Q12: 95.0 / 78.4 / 8.7 |
-| 79 | Fixtures rebuild identically | PASS | bfea23043dc7fe71 |
+| 78 | The union's 8% costs $33.6M a year gross and $7.39M after Norway's 78% tax: the concession costs Halden 22% of its face value (Week 13 package) | PASS | 33.6 gross, 7.392 after tax |
+| 79 | A marginal Permian worker earns Halden $507.6k a year against a $145k wage (3.5 times): Halden takes the market wage and competes on keeping people | PASS | 507.6k, 3.5007x |
+| 80 | The turnaround costs $81M at the contractor peak now, or an expected $78M off-peak next quarter (60 plus a 12% chance of a $150M breakdown): a $3M saving, within 5%, for three points of plant condition | PASS | 81 vs 78 |
+| 81 | Accepting the 8% costs $8.4M a quarter on the Norway line and $1.85M after the tax shield; nothing stops | PASS | wages -8.40; after tax 1.848 |
+| 82 | Refusing brings a two-week stoppage on the operated fields and the union's 8% anyway by arbitration; half brings a one-week stoppage and 4%: both cost more than accepting, even after tax | PASS | stoppage refuse -181.5, half -90.8 |
+| 83 | The settled raise stays on the wage bill in every later quarter; outside Q1 2030 the answer changes nothing | PASS | 8.4 a quarter carried |
+| 84 | Doing the turnaround now costs $81M under Refineries this quarter; waiting costs nothing now, three points of plant condition, then $60M next quarter, or $210M if the plant breaks down first | PASS | now -81; later -60 / -210 |
+| 85 | Score order careful > average > careless in all thirteen quarters | PASS | Q1: 88.1 / 82.2 / 12.2; Q2: 89.2 / 80.8 / 11.2; Q3: 92.2 / 84.6 / 7.8; Q4: 92.3 / 86.1 / 7.7; Q5: 90.4 / 84.9 / 9.3; Q6: 89.1 / 88.7 / 8.6; Q7: 90.9 / 83.3 / 9.0; Q8: 91.0 / 79.4 / 8.9; Q9: 91.2 / 83.3 / 8.7; Q10: 94.4 / 68.2 / 9.0; Q11: 94.9 / 79.4 / 8.7; Q12: 95.0 / 78.4 / 8.7; Q13: 95.1 / 77.9 / 8.7 |
+| 86 | Fixtures rebuild identically | PASS | 65adea738ae1b141 |

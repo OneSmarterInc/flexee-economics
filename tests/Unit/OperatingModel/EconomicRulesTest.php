@@ -190,6 +190,46 @@ class EconomicRulesTest extends TestCase
         $this->assertSame(0.0, $this->play(['portfolio' => ['helix_rotterdam' => 'go']], '2029Q3')->ops['portfolio_capex'], 'outside Q4 2029 the page does nothing');
     }
 
+    public function test_the_norwegian_tax_shield_makes_accepting_the_union_cheapest(): void
+    {
+        $this->assertEqualsWithDelta(7.392, $this->model->norwayConcessionAfterTax(33.6), 1e-9, 'the Week 13 package');
+        $this->assertEqualsWithDelta(507.6, $this->model->permianMarginalRevenueProductK(), 1e-9);
+        $q = '2030Q1';
+        $none = $this->play([], $q);
+        $accept = $this->play(['norwayWage' => 'accept'], $q);
+        $half = $this->play(['norwayWage' => 'half'], $q);
+        $refuse = $this->play(['norwayWage' => 'refuse'], $q);
+        $this->assertEqualsWithDelta(-8.4, $accept->lines['norway_wages'], 1e-9);
+        $this->assertEqualsWithDelta(8.4 * 0.22, ($none->money['ebitda'] - $none->money['tax']) - ($accept->money['ebitda'] - $accept->money['tax']), 1e-9, 'after tax the raise costs 22% of face');
+        $this->assertSame(2.0, $refuse->ops['norway_stoppage_weeks']);
+        $this->assertSame(1.0, $half->ops['norway_stoppage_weeks']);
+        $this->assertEqualsWithDelta(0.08, $refuse->ops['norway_wage_uplift'], 1e-12, 'arbitration gives the union its rate');
+        $afterTax = fn ($r) => $r->money['ebitda'] - $r->money['tax'];
+        $this->assertTrue($afterTax($refuse) < $afterTax($half) && $afterTax($half) < $afterTax($accept));
+        $later = $this->play([], '2029Q4', $accept->state);
+        $this->assertEqualsWithDelta(-8.4, $later->lines['norway_wages'], 1e-9, 'the raise stays');
+        $this->assertSame(0.0, $this->play(['norwayWage' => 'refuse'], '2029Q4')->lines['norway_stoppage'], 'outside Q1 2030 nothing happens');
+    }
+
+    public function test_the_turnaround_costs_81m_now_or_60m_later_with_a_breakdown_risk_and_three_points_of_condition(): void
+    {
+        $this->assertEqualsWithDelta(81.0, $this->model->turnaroundPeakCost(), 1e-9);
+        $this->assertEqualsWithDelta(78.0, $this->model->turnaroundDelayExpectedCost(), 1e-9);
+        $now = $this->play(['turnaround' => 'now'], '2030Q1');
+        $wait = $this->play(['turnaround' => 'wait'], '2030Q1');
+        $this->assertEqualsWithDelta(-81.0, $now->lines['turnaround'], 1e-9);
+        $this->assertSame(0.0, $wait->lines['turnaround']);
+        $this->assertEqualsWithDelta(3.0, $now->kpi['plant_condition'] - $wait->kpi['plant_condition'], 1e-9);
+        $this->assertTrue($wait->state->turnaroundPending);
+        $later = $this->play([], '2029Q4', $wait->state);
+        $this->assertEqualsWithDelta(-60.0, $later->lines['turnaround'], 1e-9);
+        $this->assertSame(0.0, $later->lines['turnaround_outage']);
+        $this->assertFalse($later->state->turnaroundPending);
+        $market = $this->data->quarter('2029Q4') + ['outage' => true];
+        $broken = $this->model->step(clone $wait->state, new Decisions(offsets: $this->data->baseOffsets()), $market);
+        $this->assertEqualsWithDelta(-150.0, $broken->lines['turnaround_outage'], 1e-9);
+    }
+
     public function test_tiny_differences_do_not_swing_the_score(): void
     {
         $base = ['profit_per_barrel' => 37.0, 'roace_pct' => 12.0, 'free_cash_flow' => 1800.0, 'refining_vs_industry' => 0.6,

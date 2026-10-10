@@ -195,6 +195,27 @@ export interface PlayProps {
             exitValue: number;
             bookValue: number;
         } | null;
+        labor: {
+            open: boolean;
+            wageBill: number;
+            demand: number;
+            half: number;
+            taxRate: number;
+            uplift: number;
+            peakCost: number;
+            offPeakCost: number;
+            outageChance: number;
+            outageCost: number;
+            healthPenalty: number;
+            turnaroundBefore: string;
+            pending: boolean;
+            markets: {
+                market: string;
+                structure: string;
+                wage_k: number;
+                note: string;
+            }[];
+        } | null;
         portfolio: {
             open: boolean;
             envelope: number;
@@ -252,6 +273,13 @@ export interface LeverText {
         settled: { title: string; badge: string; text: string };
         exited: { title: string; badge: string; text: string };
         means: Record<string, string>;
+    };
+    labor: {
+        norway_means: Record<string, string>;
+        turnaround_means: Record<string, string>;
+        settled_norway: string;
+        settled_turnaround_now: string;
+        settled_turnaround_wait: string;
     };
     portfolio: {
         intro: string;

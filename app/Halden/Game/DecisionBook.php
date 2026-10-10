@@ -254,6 +254,8 @@ final class DecisionBook
             rebrand: $rebrand,
             kessanaPosition: (string) ($d['kessana_position'] ?? 'none'),
             portfolio: $portfolio,
+            norwayWage: (string) ($d['norway_wage'] ?? 'none'),
+            turnaround: (string) ($d['turnaround'] ?? 'none'),
             delacroixCover: (bool) ($history['delacroix_cover'] ?? false),
             straitsStrained: (bool) ($history['straits_strained'] ?? false),
         );

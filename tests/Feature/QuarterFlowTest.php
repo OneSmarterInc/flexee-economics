@@ -207,7 +207,7 @@ class QuarterFlowTest extends TestCase
         $this->assertEqualsWithDelta(-10.0, $tq->results['line.capacity_game'], 1e-9, 'Pelican built; the team held, so $10M a quarter');
     }
 
-    public function test_quarters_eleven_and_twelve_settle_kessana_and_the_portfolio_once(): void
+    public function test_quarters_eleven_to_thirteen_settle_their_one_time_answers(): void
     {
         [$section, $teams] = $this->section(['a', 'b']);
         $runner = app(QuarterRunner::class);
@@ -264,7 +264,28 @@ class QuarterFlowTest extends TestCase
         $this->assertTrue(collect($view12['market'])->contains(fn (array $row) => $row['name'] === 'Carbon price'));
         $this->assertFalse($view12['desk']['portfolio']['projects'][0]['available'] === false);
         $this->assertSame('go', $view12['decisions']['current']['port_helix_rotterdam']);
-        $this->expectExceptionMessage("The economics for Q1 2030 aren't built yet.");
-        $runner->open($section->quarters()->where('number', 13)->firstOrFail());
+        // Quarter 13: the factor markets. One-time answers to the union and on the turnaround; the breakdown draw comes next quarter.
+        $q13 = $section->quarters()->where('number', 13)->firstOrFail();
+        $runner->open($q13);
+        $this->assertTrue($book->isOpen('norway_wage', 13) && $book->isOpen('turnaround', 13));
+        $this->assertFalse($book->isOpen('norway_wage', 14));
+        TeamQuarter::query()->create(['team_id' => $teams['a']->id, 'quarter_id' => $q13->id, 'decisions' => ['norway_wage' => 'refuse', 'turnaround' => 'wait']]);
+        TeamQuarter::query()->create(['team_id' => $teams['b']->id, 'quarter_id' => $q13->id, 'decisions' => ['norway_wage' => 'accept', 'turnaround' => 'now']]);
+        $runner->close($q13->refresh());
+        $runner->publish($q13->refresh());
+        $this->assertNull($q13->refresh()->event_outcome, 'nothing is drawn in the turnaround quarter itself');
+        $a13 = TeamQuarter::query()->where('team_id', $teams['a']->id)->where('quarter_id', $q13->id)->firstOrFail();
+        $b13 = TeamQuarter::query()->where('team_id', $teams['b']->id)->where('quarter_id', $q13->id)->firstOrFail();
+        $this->assertSame(2.0, (float) $a13->results['ops.norway_stoppage_weeks']);
+        $this->assertEqualsWithDelta(0.08, $a13->results['ops.norway_wage_uplift'], 1e-12, 'arbitration');
+        $this->assertSame(1.0, (float) $a13->results['ops.turnaround_pending']);
+        $this->assertEqualsWithDelta(-81.0, $b13->results['line.turnaround'], 1e-9);
+        $this->assertEqualsWithDelta(3.0, $b13->results['kpi.plant_condition'] - $a13->results['kpi.plant_condition'], 1e-9, 'three points for running past due');
+        $view13 = app(QuarterView::class)->build($teams['a'], $q13->refresh(), null, readOnly: true);
+        $this->assertSame('refuse', $view13['results']['story']['band']);
+        $this->assertTrue(collect($view13['results']['named'])->contains(fn (array $l) => str_contains($l['name'], 'stoppage')));
+        $this->assertTrue($runner->followsLaborQuarter($section->quarters()->where('number', 14)->firstOrFail()));
+        $this->expectExceptionMessage("The economics for Q2 2030 aren't built yet.");
+        $runner->open($section->quarters()->where('number', 14)->firstOrFail());
     }
 }

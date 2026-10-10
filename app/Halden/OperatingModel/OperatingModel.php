@@ -386,6 +386,44 @@ final class OperatingModel
     }
 
     /**
+     * (stoppage weeks this quarter, raise for good). The union strikes over anything less than its demand, and the
+     * government ends a long stoppage by arbitration at the union's rate; a half offer is taken after a short one.
+     *
+     * @return array{0: float, 1: float}
+     */
+    public function norwayWageOutcome(string $answer): array
+    {
+        return match ($answer) {
+            'refuse' => [$this->data->c('strike_weeks_refuse'), $this->data->c('norway_union_demand')],
+            'half' => [$this->data->c('strike_weeks_half'), $this->data->c('norway_half_offer')],
+            'accept' => [0.0, $this->data->c('norway_union_demand')],
+            default => [0.0, 0.0],
+        };
+    }
+
+    /** What a Norwegian wage concession costs Halden after the 78% petroleum tax (the Week 13 tax shield). */
+    public function norwayConcessionAfterTax(float $gross): float
+    {
+        return $gross * (1 - $this->data->c('norway_tax_rate'));
+    }
+
+    /** What one more Permian worker earns Halden a year, in $k: barrels times margin. */
+    public function permianMarginalRevenueProductK(): float
+    {
+        return $this->data->c('permian_marginal_worker_bbl') * $this->data->c('permian_margin_per_bbl') / 1e3;
+    }
+
+    public function turnaroundPeakCost(): float
+    {
+        return $this->data->c('turnaround_labor_base') * $this->data->c('turnaround_peak_multiplier');
+    }
+
+    public function turnaroundDelayExpectedCost(): float
+    {
+        return $this->data->c('turnaround_labor_base') + $this->data->c('turnaround_outage_probability') * $this->data->c('turnaround_outage_cost');
+    }
+
+    /**
      * Where each negotiating position lands: signing takes the demand, a reasoned counter settles in the middle,
      * a threat Halden cannot carry out is called and the government goes harsh. Handing the block back exits.
      *
@@ -442,6 +480,22 @@ final class OperatingModel
         $lines['norway_operated'] = ($norVol * $norMarginFull
             - $norVol * $cut * ($brent - $c('norway_discount_to_brent') - $norSavedPerBbl)) * $D / 1e6;
         $lines['norway_cutback_effect'] = -$norVol * $cut * ($brent - $c('norway_discount_to_brent') - $norSavedPerBbl) * $D / 1e6;
+        // The Norwegian union (Q1 2030, one-time): a stoppage costs the operated fields' margin for its weeks (the barrels stay in
+        // the ground; the variable lifting is saved); the settled raise lands on the wage bill for good, and Norway's 78% tax
+        // absorbs most of it in the tax line.
+        $wageUplift = $state->norwayWageUplift;
+        $stoppageWeeks = 0.0;
+        if (($mkt['labor'] ?? false) && $dec->norwayWage !== 'none') {
+            [$stoppageWeeks, $wageUplift] = $this->norwayWageOutcome($dec->norwayWage);
+            if ($stoppageWeeks > 0) {
+                $notes['norway_stoppage_weeks'] = $stoppageWeeks;
+            }
+        }
+        $stoppageShare = $stoppageWeeks / $c('weeks_per_quarter');
+        $lines['norway_stoppage'] = -$norVol * (1 - $cut) * $stoppageShare * ($brent - $c('norway_discount_to_brent') - $norSavedPerBbl) * $D / 1e6;
+        $lines['norway_operated'] += $lines['norway_stoppage'];
+        $lines['norway_wages'] = -$c('norway_wage_bill') * $wageUplift / 4;
+        $lines['norway_operated'] += $lines['norway_wages'];
         $lines['norway_partner_run'] = $c('norway_nonop_volume') * $norMarginFull * $D / 1e6;
         // Kessana: the government's share of profit oil is set by the contract until the Q3 2029 talks, then by what Halden
         // answered. Handing the block back ends the line, returns the exit value and takes the book value off capital.
@@ -551,8 +605,28 @@ final class OperatingModel
         $lines['projects_upstream'] = $projLines['oil_fields'];
         // The rival's Gulf Coast expansion: once it is built (from Q4 2028), Halden's answer sets a yearly payoff.
         $lines['capacity_game'] = $this->capacityPayoff($dec->capacityResponse, (bool) ($mkt['rival_builds'] ?? false));
+        // Baton Rouge's turnaround (Q1 2030, one-time): contractor crews at the spring peak now, or off-peak next quarter with
+        // a chance of a breakdown in between and three points off plant condition for running past due.
+        $turnaroundPending = $state->turnaroundPending;
+        $lines['turnaround'] = 0.0;
+        $lines['turnaround_outage'] = 0.0;
+        $healthPenalty = 0.0;
+        if ($turnaroundPending) {
+            $lines['turnaround'] = -$c('turnaround_labor_base');
+            if ($mkt['outage'] ?? false) {
+                $lines['turnaround_outage'] = -$c('turnaround_outage_cost');
+                $notes['turnaround_outage'] = true;
+            }
+            $turnaroundPending = false;
+        } elseif (($mkt['labor'] ?? false) && $dec->turnaround === 'now') {
+            $lines['turnaround'] = -$this->turnaroundPeakCost();
+        } elseif (($mkt['labor'] ?? false) && $dec->turnaround === 'wait') {
+            $turnaroundPending = true;
+            $healthPenalty = $c('turnaround_health_penalty');
+            $notes['turnaround_delayed'] = true;
+        }
         $refining = $lines['baton_rouge'] + $lines['rotterdam'] + $lines['rotterdam_one_time'] + $lines['singapore']
-            + $lines['projects_refining'] + $lines['capacity_game'];
+            + $lines['projects_refining'] + $lines['capacity_game'] + $lines['turnaround'] + $lines['turnaround_outage'];
 
         // Geneva. Ahead of an OPEC+ decision it buys crude for Baton Rouge at the pre-decision price according to
         // the case the team plans for: it gains if crude rises, loses if it falls, and the money tied up costs interest.
@@ -717,7 +791,10 @@ final class OperatingModel
 
         // Money
         $da = $state->capitalEmployed * $c('da_rate_annual') / 4;
-        $tax = $c('tax_rate') * max(0.0, $ebitda - $da);
+        // Norway's petroleum tax absorbs 78% of the wage raise, not the usual rate. norway_tax_shield is the whole 78%
+        // (what the story quotes); the tax line already carries the usual rate on the lower EBITDA, so only the extra is taken off here.
+        $norwayTaxShield = -$lines['norway_wages'] * $c('norway_tax_rate');
+        $tax = $c('tax_rate') * max(0.0, $ebitda - $da) + $lines['norway_wages'] * ($c('norway_tax_rate') - $c('tax_rate'));
         $newCapital = $commitOutlay + $rebrandOutlay + $portfolioCapex;   // the rebrand and the portfolio are capital spending, treated like projects (decision S2)
         $capex = $c('other_sustaining_capex') + $dec->rigs * $c('rig_capex_per_qtr') + $newCapital;
         $fcf = $ebitda - $tax - $capex;
@@ -726,6 +803,7 @@ final class OperatingModel
 
         // Plant condition
         $health = $state->assetHealth;
+        $health -= $healthPenalty;
         $health -= 0.5 * max(0.0, $brRun - $c('br_wear_threshold'));
         if ($rotStatus === 'running' && $dec->rotRun < $c('rot_sticky_threshold')) {
             $health -= 0.5;
@@ -790,6 +868,8 @@ final class OperatingModel
             kessanaExited: $kesExited,
             portfolio: $portfolioAge,
             europeSold: $europeSold,
+            norwayWageUplift: $wageUplift,
+            turnaroundPending: $turnaroundPending,
         );
 
         return new QuarterResult(
@@ -805,7 +885,9 @@ final class OperatingModel
                 'wti_shock' => $shock, 'gc' => $mkt['gc'], 'wti' => $wti, 'rebrand_outlay' => $rebrandOutlay,
                 'nonfuel_per_gal' => $nonfuelPerGal, 'br_run' => $brRun,
                 'kessana_take' => $kesTake, 'kessana_exit_proceeds' => $kesExitProceeds, 'kessana_forgone' => $kesForgone,
-                'portfolio_capex' => $portfolioCapex, 'divest_proceeds' => $divestProceeds, 'carbon' => (float) ($mkt['carbon'] ?? 0)],
+                'portfolio_capex' => $portfolioCapex, 'divest_proceeds' => $divestProceeds, 'carbon' => (float) ($mkt['carbon'] ?? 0),
+                'norway_wage_uplift' => $wageUplift, 'norway_stoppage_weeks' => $stoppageWeeks, 'norway_tax_shield' => $norwayTaxShield,
+                'turnaround_pending' => $turnaroundPending ? 1.0 : 0.0],
             notes: $notes,
             state: $newState,
         );
