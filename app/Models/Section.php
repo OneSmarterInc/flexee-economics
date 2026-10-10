@@ -11,13 +11,13 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 /**
  * One class running Halden: a faculty member, its teams and its quarters.
  */
-#[Fillable(['name', 'course_name', 'weeks', 'faculty_user_id', 'seats', 'advisors_enabled', 'join_code'])]
+#[Fillable(['name', 'course_name', 'weeks', 'faculty_user_id', 'seats', 'advisors_enabled', 'join_code', 'requires_payment'])]
 class Section extends Model
 {
     /** @return array<string, string> */
     protected function casts(): array
     {
-        return ['advisors_enabled' => 'boolean'];
+        return ['advisors_enabled' => 'boolean', 'requires_payment' => 'boolean'];
     }
 
     /** Whether any quarter has opened: after that the class's shape (weeks, schedule) is fixed. */

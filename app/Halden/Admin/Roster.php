@@ -255,6 +255,18 @@ final class Roster
         TeamMember::query()->create(['team_id' => $team->id, 'user_id' => $user->id, 'seat' => $seat]);
     }
 
+    /** Marks a student's seat paid, or not. */
+    public function paid(Section $section, User $user, bool $paid): void
+    {
+        $this->assertEnrolled($section, $user)->update(['paid_at' => $paid ? now() : null]);
+    }
+
+    /** Marks every student in the class paid. */
+    public function allPaid(Section $section): int
+    {
+        return $section->enrolments()->whereNull('paid_at')->update(['paid_at' => now()]);
+    }
+
     public function block(Section $section, User $user, bool $blocked): void
     {
         $this->assertEnrolled($section, $user)->update(['status' => $blocked ? Enrolment::BLOCKED : Enrolment::ACTIVE]);
@@ -295,6 +307,9 @@ final class Roster
         $enrolment = Enrolment::query()->where('section_id', $section->id)->where('user_id', $user->id)->first();
         if ($enrolment !== null && $enrolment->status === Enrolment::BLOCKED) {
             return 'Your instructor has paused your access for now. Ask them about it.';
+        }
+        if ($enrolment !== null && $section->requires_payment && $enrolment->paid_at === null) {
+            return 'Your seat in this class hasn\'t been marked as paid yet. Once your instructor marks it, you can carry on.';
         }
 
         return null;

@@ -4,7 +4,7 @@ import { Head } from '@inertiajs/vue3';
 defineProps<{
     className: string | null;
     course: string | null;
-    reason: 'no-class' | 'no-team' | 'blocked';
+    reason: 'no-class' | 'no-team' | 'blocked' | 'unpaid';
 }>();
 </script>
 
@@ -21,15 +21,23 @@ defineProps<{
                 {{
                     reason === 'blocked'
                         ? 'Your access is paused'
-                        : reason === 'no-team'
-                          ? "You're in, and not on a team yet"
-                          : "You're not in a class yet"
+                        : reason === 'unpaid'
+                          ? 'One more step before you start'
+                          : reason === 'no-team'
+                            ? "You're in, and not on a team yet"
+                            : "You're not in a class yet"
                 }}
             </h1>
             <p v-if="reason === 'no-team'" class="hx-p mt-3">
                 You're enrolled in {{ className }} ({{ course }}). Your
                 instructor hasn't put you on a team yet. Once they have, signing
                 in brings you to the company. There's nothing to do until then.
+            </p>
+            <p v-else-if="reason === 'unpaid'" class="hx-p mt-3">
+                You're enrolled in {{ className }} ({{ course }}). Your seat
+                hasn't been marked as paid yet. Once your instructor marks it,
+                signing in brings you to the company. If you've paid, let them
+                know.
             </p>
             <p v-else-if="reason === 'blocked'" class="hx-p mt-3">
                 Your instructor has paused your access to {{ className }} for

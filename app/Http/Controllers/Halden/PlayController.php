@@ -44,11 +44,13 @@ class PlayController extends Controller
 
             return Inertia::render('halden/Waiting', [
                 'className' => $enrolment?->section->name, 'course' => $enrolment?->section->course_name,
-                'reason' => $enrolment === null ? 'no-class' : ($enrolment->status === Enrolment::BLOCKED ? 'blocked' : 'no-team'),
+                'reason' => $enrolment === null ? 'no-class' : ($enrolment->status === Enrolment::BLOCKED ? 'blocked'
+                    : ($enrolment->section->requires_payment && $enrolment->paid_at === null ? 'unpaid' : 'no-team')),
             ]);
         }
-        if (Roster::reasonCannotPlay($member->team->section, $user) !== null) {
-            return Inertia::render('halden/Waiting', ['className' => $member->team->section->name, 'course' => $member->team->section->course_name, 'reason' => 'blocked']);
+        if (($why = Roster::reasonCannotPlay($member->team->section, $user)) !== null) {
+            return Inertia::render('halden/Waiting', ['className' => $member->team->section->name, 'course' => $member->team->section->course_name,
+                'reason' => str_contains($why, 'paid') ? 'unpaid' : 'blocked']);
         }
         $team = $this->teamOf($user, $request);
         if ($user->opening_seen_at === null) {

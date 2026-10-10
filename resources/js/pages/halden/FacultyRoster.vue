@@ -11,6 +11,7 @@ interface Student {
     teamId: number | null;
     seat: string | null;
     seenOpening: boolean;
+    paid: boolean;
 }
 
 interface Added {
@@ -28,6 +29,7 @@ const props = defineProps<{
         seats: number | null;
         joinUrl: string | null;
         started: boolean;
+        requiresPayment: boolean;
     };
     classes: { id: number; name: string; course: string }[];
     mailEnabled: boolean;
@@ -78,6 +80,10 @@ const doneText = computed(() => {
     if (!d) {
         return null;
     }
+    if (d.startsWith('all-paid:')) {
+        const n = Number(d.slice(9));
+        return `${n} student${n === 1 ? '' : 's'} marked as paid.`;
+    }
     if (d.startsWith('placed:')) {
         const n = Number(d.slice(7));
         return `${n} student${n === 1 ? '' : 's'} placed on teams.`;
@@ -94,6 +100,8 @@ const doneText = computed(() => {
             unblock: 'Access is back on.',
             remove: 'Removed from the class. Their login stays.',
             'reset-password': null,
+            paid: 'Marked as paid.',
+            unpaid: 'Marked as not paid.',
         } as Record<string, string | null>
     )[d];
 });
@@ -518,6 +526,15 @@ function downloadLogins() {
                     >
                         Add an empty team
                     </button>
+                    <button
+                        v-if="section.requiresPayment"
+                        type="button"
+                        class="hx-btn hx-btn-outline"
+                        :disabled="busy || students.every((s) => s.paid)"
+                        @click="post('/faculty/roster/all-paid')"
+                    >
+                        Mark everyone paid
+                    </button>
                 </div>
             </div>
             <p class="hx-hint mt-1">
@@ -543,6 +560,11 @@ function downloadLogins() {
                                     v-if="s.blocked"
                                     class="hx-badge hx-badge-ask ml-1"
                                     >paused</span
+                                >
+                                <span
+                                    v-if="section.requiresPayment && !s.paid"
+                                    class="hx-badge hx-badge-call ml-1"
+                                    >not paid</span
                                 >
                                 <span class="hx-hint block">{{ s.email }}</span>
                             </td>
@@ -584,6 +606,23 @@ function downloadLogins() {
                                             : 'Pause access'
                                     }}
                                 </button>
+                                <template v-if="section.requiresPayment">
+                                    ·
+                                    <button
+                                        type="button"
+                                        class="underline"
+                                        :disabled="busy"
+                                        @click="
+                                            act(s, s.paid ? 'unpaid' : 'paid')
+                                        "
+                                    >
+                                        {{
+                                            s.paid
+                                                ? 'Mark not paid'
+                                                : 'Mark paid'
+                                        }}
+                                    </button>
+                                </template>
                                 ·
                                 <button
                                     type="button"
@@ -687,6 +726,13 @@ function downloadLogins() {
                                         class="hx-badge hx-badge-ask ml-1"
                                         >paused</span
                                     >
+                                    <span
+                                        v-if="
+                                            section.requiresPayment && !s.paid
+                                        "
+                                        class="hx-badge hx-badge-call ml-1"
+                                        >not paid</span
+                                    >
                                     <span class="hx-hint block">{{
                                         s.email
                                     }}</span>
@@ -757,6 +803,21 @@ function downloadLogins() {
                                             s.blocked
                                                 ? 'Resume access'
                                                 : 'Pause access'
+                                        }}
+                                    </button>
+                                    <button
+                                        v-if="section.requiresPayment"
+                                        type="button"
+                                        class="block underline"
+                                        :disabled="busy"
+                                        @click="
+                                            act(s, s.paid ? 'unpaid' : 'paid')
+                                        "
+                                    >
+                                        {{
+                                            s.paid
+                                                ? 'Mark not paid'
+                                                : 'Mark paid'
                                         }}
                                     </button>
                                     <button
