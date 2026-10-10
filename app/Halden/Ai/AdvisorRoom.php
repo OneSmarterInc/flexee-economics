@@ -22,6 +22,9 @@ use Throwable;
  */
 final class AdvisorRoom
 {
+    /** The thread a team's meetings live in: one per team and quarter, with several advisors speaking. */
+    public const MEETING = 'meeting';
+
     /** @var array<string, mixed> */
     private array $book;
 
@@ -111,12 +114,19 @@ final class AdvisorRoom
         $threads = AdvisorThread::query()->where('team_id', $team->id)->where('quarter_id', $quarter->id)
             ->with(['messages.user'])->get()->keyBy('advisor');
         $screen = $this->screenText();
+        $meeting = $threads->get(self::MEETING);
+        $spokeInMeeting = [];
+        foreach ($meeting->messages ?? [] as $m) {
+            if ($m->role === AdvisorMessage::ADVISOR && $m->status === AdvisorMessage::SHOWN && $m->advisor !== null) {
+                $spokeInMeeting[$m->advisor] = ($spokeInMeeting[$m->advisor] ?? 0) + 1;
+            }
+        }
         $cards = [];
         foreach ($this->cards() as $card) {
             $key = $card['key'];
             $first = $this->firstName($key);
             $messages = [];
-            $used = 0;
+            $used = $spokeInMeeting[$key] ?? 0;
             foreach ($threads->get($key)->messages ?? [] as $m) {
                 $shown = $m->status === AdvisorMessage::SHOWN;
                 if ($m->role === AdvisorMessage::ADVISOR && $shown) {
@@ -145,15 +155,79 @@ final class AdvisorRoom
             'open' => $quarter->status === Quarter::OPEN,
             'text' => $screen,
             'cards' => $cards,
+            'meeting' => $this->meetingView($meeting, $forFaculty, $screen),
         ];
+    }
+
+    /**
+     * The meeting transcript for the screen. A question that got no shown answer at all is followed by one notice.
+     *
+     * @param  array<string, string>  $screen
+     * @return array{messages: list<array<string, mixed>>, invited: list<string>, min: int, max: int}
+     */
+    private function meetingView(?AdvisorThread $thread, bool $forFaculty, array $screen): array
+    {
+        $messages = [];
+        $invited = [];
+        $turn = null;
+        $answered = true;
+        foreach ($thread->messages ?? [] as $m) {
+            if ($m->role === AdvisorMessage::STUDENT) {
+                if (! $answered && ! $forFaculty && $turn !== null) {
+                    $messages[] = ['id' => $turn.'-notice', 'from' => 'notice', 'who' => '', 'body' => $screen['meeting_dropped'], 'at' => null];
+                }
+                $turn = $m->id;
+                $answered = false;
+                $invited = array_values(array_filter((array) ($m->invited ?? []), 'is_string'));
+                $messages[] = ['id' => $m->id, 'from' => 'team', 'who' => $m->user->name ?? 'A teammate', 'body' => $m->body, 'invited' => $invited, 'at' => $m->created_at?->toIso8601String()];
+
+                continue;
+            }
+            $shown = $m->status === AdvisorMessage::SHOWN;
+            $answered = $answered || $shown;
+            if (! $shown && ! $forFaculty) {
+                continue;
+            }
+            $messages[] = ['id' => $m->id, 'from' => $shown ? 'advisor' : 'dropped', 'who' => $this->firstName((string) $m->advisor), 'body' => $m->body,
+                'reason' => $forFaculty ? $m->dropped_reason : null, 'at' => $m->created_at?->toIso8601String()];
+        }
+        if (! $answered && ! $forFaculty && $turn !== null) {
+            $messages[] = ['id' => $turn.'-notice', 'from' => 'notice', 'who' => '', 'body' => $screen['meeting_dropped'], 'at' => null];
+        }
+        $limits = (array) $this->book['limits'];
+
+        return ['messages' => $messages, 'invited' => $invited, 'min' => (int) $limits['meeting_min'], 'max' => (int) $limits['meeting_max']];
     }
 
     /** Shown answers this team has had from this advisor this quarter. */
     public function answersUsed(Team $team, Quarter $quarter, string $advisor): int
     {
-        return AdvisorMessage::query()
+        $oneToOne = AdvisorMessage::query()
             ->whereHas('thread', fn ($q) => $q->where('team_id', $team->id)->where('quarter_id', $quarter->id)->where('advisor', $advisor))
             ->where('role', AdvisorMessage::ADVISOR)->where('status', AdvisorMessage::SHOWN)->count();
+        $inMeetings = AdvisorMessage::query()
+            ->whereHas('thread', fn ($q) => $q->where('team_id', $team->id)->where('quarter_id', $quarter->id)->where('advisor', self::MEETING))
+            ->where('role', AdvisorMessage::ADVISOR)->where('status', AdvisorMessage::SHOWN)->where('advisor', $advisor)->count();
+
+        return $oneToOne + $inMeetings;
+    }
+
+    /**
+     * The advisors this team has heard from this quarter, one to one or in a meeting.
+     *
+     * @return list<string>
+     */
+    public function consulted(Team $team, Quarter $quarter): array
+    {
+        $shown = AdvisorMessage::query()->with('thread')
+            ->whereHas('thread', fn ($q) => $q->where('team_id', $team->id)->where('quarter_id', $quarter->id))
+            ->where('role', AdvisorMessage::ADVISOR)->where('status', AdvisorMessage::SHOWN)->get();
+        $keys = [];
+        foreach ($shown as $m) {
+            $keys[] = (string) ($m->advisor ?? $m->thread->advisor);
+        }
+
+        return array_values(array_unique(array_filter($keys, fn (string $k) => $k !== self::MEETING)));
     }
 
     /** All shown answers this team has had this quarter, which Halden pays for. */
@@ -221,6 +295,175 @@ final class AdvisorRoom
                 'model' => $reply->model,
             ]);
         });
+    }
+
+    /**
+     * The team calls a meeting: a question to two to four advisors at once. A hidden director picks who answers
+     * (one to three, in order), and each speaks in turn with the whole transcript in front of them, so they can
+     * take issue with each other. Every shown answer counts against that advisor and is billed like any other.
+     *
+     * @param  list<string>  $invited
+     * @return list<AdvisorMessage> the replies, shown or dropped
+     *
+     * @throws RuntimeException with a plain-English message when the meeting can't be held
+     */
+    public function meet(Team $team, Quarter $quarter, array $invited, User $user, string $question): array
+    {
+        $screen = (array) $this->book['screen'];
+        $limits = (array) $this->book['limits'];
+        if (! $this->enabled) {
+            throw new RuntimeException((string) $screen['unavailable']);
+        }
+        if ($quarter->status !== Quarter::OPEN) {
+            throw new RuntimeException((string) $screen['closed']);
+        }
+        $invited = array_values(array_unique(array_filter($invited, fn ($k) => in_array($k, $this->keys(), true))));
+        if (count($invited) < (int) $limits['meeting_min']) {
+            throw new RuntimeException((string) $screen['meeting_too_few']);
+        }
+        if (count($invited) > (int) $limits['meeting_max']) {
+            throw new RuntimeException((string) $screen['meeting_too_many']);
+        }
+
+        return DB::transaction(function () use ($team, $quarter, $invited, $user, $question, $screen, $limits): array {
+            $thread = AdvisorThread::query()->firstOrCreate(['team_id' => $team->id, 'quarter_id' => $quarter->id, 'advisor' => self::MEETING]);
+            AdvisorThread::query()->whereKey($thread->id)->lockForUpdate()->first();
+            $left = [];
+            foreach ($invited as $key) {
+                $left[$key] = $this->limitFor($key) - $this->answersUsed($team, $quarter, $key);
+                if ($left[$key] <= 0) {
+                    throw new RuntimeException(str_replace('{name}', $this->firstName($key), (string) $screen['meeting_done']));
+                }
+            }
+
+            AdvisorMessage::query()->create([
+                'advisor_thread_id' => $thread->id, 'user_id' => $user->id, 'role' => AdvisorMessage::STUDENT, 'invited' => $invited, 'body' => $question,
+            ]);
+
+            $transcript = $this->transcript($thread);
+            $teamText = array_column(array_filter($transcript, fn (array $l) => $l['team']), 'text');
+            $names = implode(', ', array_map(fn (string $k) => $this->firstName($k).' ('.$this->roleOf($k).')', $invited));
+            $speakers = $this->director($invited, $transcript, (int) $limits['meeting_speakers_max']);
+
+            $replies = [];
+            $saidThisTurn = [];
+            foreach ($speakers as $key) {
+                [$system, $sources] = $this->systemPrompt($team, $quarter, $key, $left[$key] === 1);
+                $system .= "
+
+You're in a meeting:
+".implode('
+', array_map(fn ($r) => "- $r", (array) $this->book['meeting']['rules']))
+                    .'
+'.str_replace('{names}', $names, (string) $this->book['meeting']['with_line']);
+                $lines = array_map(fn (array $l) => $l['who'].': '.$l['text'], [...$transcript, ...$saidThisTurn]);
+                $userMsg = 'The meeting so far:
+
+'.implode('
+
+', $lines).'
+
+'.str_replace('{first}', $this->firstName($key), (string) $this->book['meeting']['your_turn']);
+                try {
+                    $reply = $this->llm->complete($system, [['role' => 'user', 'content' => $userMsg]], $this->maxTokens);
+                    $heard = array_column($saidThisTurn, 'text');
+                    $reason = $reply->cutOff ? 'The reply was cut off before it finished.'
+                        : ReplyCheck::failure($reply->text, [...$sources, ...$teamText, ...$heard], $teamText, (int) $limits['words_min'], (int) $limits['words_max']);
+                } catch (Throwable $e) {
+                    Log::warning('Advisor call failed', ['advisor' => $key, 'team' => $team->id, 'error' => $e->getMessage()]);
+                    $reply = new LlmReply('');
+                    $reason = 'The advisor service did not answer: '.$e->getMessage();
+                }
+                $replies[] = AdvisorMessage::query()->create([
+                    'advisor_thread_id' => $thread->id,
+                    'role' => AdvisorMessage::ADVISOR,
+                    'advisor' => $key,
+                    'body' => $reply->text,
+                    'status' => $reason === null ? AdvisorMessage::SHOWN : AdvisorMessage::DROPPED,
+                    'dropped_reason' => $reason,
+                    'input_tokens' => $reply->inputTokens,
+                    'output_tokens' => $reply->outputTokens,
+                    'model' => $reply->model,
+                ]);
+                if ($reason === null) {
+                    $saidThisTurn[] = ['who' => $this->firstName($key), 'text' => $reply->text, 'team' => false];
+                }
+            }
+
+            return $replies;
+        });
+    }
+
+    /**
+     * The hidden director: which of the advisors in the meeting answer, and in what order. Falls back to the first
+     * one invited when the model's pick can't be read.
+     *
+     * @param  list<string>  $invited
+     * @param  list<array{who: string, text: string, team: bool}>  $transcript
+     * @return list<string>
+     */
+    private function director(array $invited, array $transcript, int $maxSpeakers): array
+    {
+        $system = implode('
+', array_map(fn ($r) => "- $r", (array) $this->book['meeting']['director']['rules']));
+        $roster = implode('
+', array_map(fn (string $k) => "$k: ".$this->firstName($k).', '.$this->roleOf($k), $invited));
+        $lines = array_map(fn (array $l) => $l['who'].': '.$l['text'], $transcript);
+        $user = "In the meeting, with answers left:
+$roster
+
+The conversation so far (the last message is the one to answer):
+
+".implode('
+
+', $lines);
+        try {
+            $reply = $this->llm->complete($system, [['role' => 'user', 'content' => $user]], 300);
+            $data = json_decode(trim((string) preg_replace('/^```(?:json)?|```$/m', '', $reply->text)), true);
+            $picked = [];
+            foreach ((array) ($data['speakers'] ?? []) as $k) {
+                if (is_string($k) && in_array($k, $invited, true) && ! in_array($k, $picked, true)) {
+                    $picked[] = $k;
+                }
+            }
+            if ($picked !== []) {
+                return array_slice($picked, 0, $maxSpeakers);
+            }
+        } catch (Throwable $e) {
+            Log::warning('Meeting director failed', ['error' => $e->getMessage()]);
+        }
+
+        return [$invited[0]];
+    }
+
+    /**
+     * The meeting as a list of lines: who spoke and what they said. Dropped replies are left out; nothing is shortened.
+     *
+     * @return list<array{who: string, text: string, team: bool}>
+     */
+    private function transcript(AdvisorThread $thread): array
+    {
+        $out = [];
+        foreach ($thread->messages()->with('user')->get() as $m) {
+            if ($m->role === AdvisorMessage::STUDENT) {
+                $out[] = ['who' => ($m->user->name ?? 'The team').' (the team)', 'text' => $m->body, 'team' => true];
+            } elseif ($m->status === AdvisorMessage::SHOWN) {
+                $out[] = ['who' => $this->firstName((string) $m->advisor), 'text' => $m->body, 'team' => false];
+            }
+        }
+
+        return $out;
+    }
+
+    private function roleOf(string $advisor): string
+    {
+        foreach ($this->cards() as $c) {
+            if ($c['key'] === $advisor) {
+                return $c['role'];
+            }
+        }
+
+        return '';
     }
 
     /**

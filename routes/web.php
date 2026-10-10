@@ -16,6 +16,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('play/{quarter}/memo', [PlayController::class, 'saveMemo'])->name('play.memo');
     Route::post('play/{quarter}/defense', [PlayController::class, 'saveDefense'])->name('play.defense');
     Route::post('play/{quarter}/ready', [PlayController::class, 'toggleReady'])->name('play.ready');
+    Route::post('play/{quarter}/meeting', [PlayController::class, 'meet'])->middleware('throttle:20,1')->name('play.meet');
     Route::post('play/{quarter}/advisors/{advisor}', [PlayController::class, 'ask'])->whereAlpha('advisor')->middleware('throttle:20,1')->name('play.ask');
     Route::get('files/{path}', [PlayController::class, 'exhibit'])->where('path', '[A-Za-z0-9_\-/\.]+')->name('exhibits.show');
 

@@ -17,15 +17,72 @@ const errors = computed(
     () => (page.props.errors ?? {}) as Record<string, string>,
 );
 
+const MEETING = 'meeting';
 const selectedKey = ref<string>(props.advisors.cards[0]?.key ?? '');
-const selected = computed(
-    () =>
-        props.advisors.cards.find((c) => c.key === selectedKey.value) ??
-        props.advisors.cards[0],
+const selected = computed(() =>
+    selectedKey.value === MEETING
+        ? undefined
+        : (props.advisors.cards.find((c) => c.key === selectedKey.value) ??
+          props.advisors.cards[0]),
 );
+const inMeeting = computed(() => selectedKey.value === MEETING);
 const question = ref('');
 const sending = ref(false);
 const thread = ref<HTMLElement | null>(null);
+
+// Who is in the meeting: last time's set, or everyone with answers left, trimmed to the most allowed.
+const invited = ref<string[]>(
+    props.advisors.meeting.invited.length > 0
+        ? [...props.advisors.meeting.invited]
+        : props.advisors.cards
+              .filter((c) => c.left > 0)
+              .slice(0, props.advisors.meeting.max)
+              .map((c) => c.key),
+);
+
+function toggleInvite(key: string) {
+    if (invited.value.includes(key)) {
+        invited.value = invited.value.filter((k) => k !== key);
+    } else if (invited.value.length < props.advisors.meeting.max) {
+        invited.value = [...invited.value, key];
+    }
+}
+
+const inviteProblem = computed(() => {
+    const done = invited.value
+        .map((k) => props.advisors.cards.find((c) => c.key === k))
+        .find((c) => c && c.left === 0);
+
+    if (done) {
+        return t('meeting_done', { name: done.first });
+    }
+
+    if (invited.value.length < props.advisors.meeting.min) {
+        return t('meeting_too_few');
+    }
+
+    return '';
+});
+
+const invitedNames = computed(() =>
+    invited.value
+        .map((k) => props.advisors.cards.find((c) => c.key === k)?.first ?? k)
+        .join(', '),
+);
+
+function namesOf(keys: string[] | undefined): string {
+    return (keys ?? [])
+        .map((k) => props.advisors.cards.find((c) => c.key === k)?.first ?? k)
+        .join(', ');
+}
+
+const canMeet = computed(
+    () =>
+        props.canAsk &&
+        props.advisors.enabled &&
+        props.advisors.open &&
+        inviteProblem.value === '',
+);
 
 const t = (key: string, fill: Record<string, string | number> = {}) =>
     Object.entries(fill).reduce(
@@ -51,18 +108,27 @@ function scrollDown() {
 
 watch(selectedKey, scrollDown);
 watch(() => selected.value?.messages.length, scrollDown);
+watch(() => props.advisors.meeting.messages.length, scrollDown);
 
 function ask() {
     const card = selected.value;
 
-    if (!card || question.value.trim() === '' || sending.value) {
+    if (question.value.trim() === '' || sending.value) {
+        return;
+    }
+
+    if (!card && !inMeeting.value) {
         return;
     }
 
     sending.value = true;
     router.post(
-        `/play/${props.quarterId}/advisors/${card.key}`,
-        { question: question.value },
+        card
+            ? `/play/${props.quarterId}/advisors/${card.key}`
+            : `/play/${props.quarterId}/meeting`,
+        card
+            ? { question: question.value }
+            : { question: question.value, invited: invited.value },
         {
             preserveScroll: true,
             preserveState: true,
@@ -120,6 +186,30 @@ function timeOf(iso: string | null): string {
     <div class="grid grid-cols-1 gap-3 lg:grid-cols-[260px_1fr]">
         <nav aria-label="Advisors" class="flex flex-col gap-1.5">
             <button
+                type="button"
+                class="hx-opt flex items-center gap-3 text-left"
+                :aria-pressed="inMeeting"
+                @click="selectedKey = MEETING"
+            >
+                <span
+                    class="flex h-9 w-9 flex-none items-center justify-center rounded-full text-[12px] font-semibold"
+                    style="
+                        background: var(--hx-amber-soft);
+                        color: var(--hx-amber-text);
+                    "
+                    aria-hidden="true"
+                    >{{ advisors.cards.length }}</span
+                >
+                <span class="min-w-0">
+                    <span class="block truncate font-semibold">{{
+                        advisors.text.meeting_name
+                    }}</span>
+                    <span class="hx-hint block">{{
+                        advisors.text.meeting_role
+                    }}</span>
+                </span>
+            </button>
+            <button
                 v-for="c in advisors.cards"
                 :key="c.key"
                 type="button"
@@ -154,7 +244,158 @@ function timeOf(iso: string | null): string {
         </nav>
 
         <section
-            v-if="selected"
+            v-if="inMeeting"
+            class="hx-card flex min-h-[460px] flex-col p-0"
+            :aria-label="advisors.text.meeting_name"
+        >
+            <header
+                class="border-b px-5 py-4"
+                style="border-color: var(--hx-line)"
+            >
+                <div class="font-semibold">
+                    {{ advisors.text.meeting_name }}
+                </div>
+                <p class="mt-1 text-[14px] leading-snug">
+                    {{ advisors.text.meeting_intro }}
+                </p>
+                <fieldset v-if="canAsk && advisors.open" class="mt-3">
+                    <legend class="hx-hint">
+                        {{ advisors.text.meeting_pick }}
+                    </legend>
+                    <div class="mt-1 flex flex-wrap gap-x-4 gap-y-1">
+                        <label
+                            v-for="c in advisors.cards"
+                            :key="c.key"
+                            class="flex items-center gap-1.5 text-[14px]"
+                            :style="
+                                c.left === 0 ? 'color: var(--hx-muted)' : ''
+                            "
+                        >
+                            <input
+                                type="checkbox"
+                                :checked="invited.includes(c.key)"
+                                :disabled="
+                                    sending ||
+                                    c.left === 0 ||
+                                    (!invited.includes(c.key) &&
+                                        invited.length >= advisors.meeting.max)
+                                "
+                                @change="toggleInvite(c.key)"
+                            />
+                            {{ c.first }}
+                            <span class="hx-hint">({{ c.left }} left)</span>
+                        </label>
+                    </div>
+                </fieldset>
+            </header>
+
+            <div
+                ref="thread"
+                class="flex flex-1 flex-col gap-3 overflow-y-auto px-5 py-4"
+                style="max-height: 520px"
+                aria-live="polite"
+            >
+                <p
+                    v-if="advisors.meeting.messages.length === 0"
+                    class="hx-hint"
+                >
+                    {{ advisors.text.meeting_empty }}
+                </p>
+                <div
+                    v-for="m in advisors.meeting.messages"
+                    :key="m.id"
+                    :class="m.from === 'team' ? 'self-end' : 'self-start'"
+                    class="max-w-[85%]"
+                >
+                    <div class="hx-hint mb-0.5 text-[12px]">
+                        {{ m.from === 'notice' ? '' : m.who }}
+                        <span v-if="m.at"> · {{ timeOf(m.at) }}</span>
+                        <span v-if="m.from === 'team' && m.invited?.length">
+                            ·
+                            {{
+                                t('meeting_with', { names: namesOf(m.invited) })
+                            }}</span
+                        >
+                    </div>
+                    <div
+                        class="rounded-lg px-3.5 py-2.5 text-[15px] leading-relaxed whitespace-pre-line"
+                        :style="
+                            m.from === 'team'
+                                ? 'background: var(--hx-teal); color: #fff'
+                                : m.from === 'advisor'
+                                  ? 'background: var(--hx-soft); border: 1px solid var(--hx-line)'
+                                  : m.from === 'dropped'
+                                    ? 'background: #fff4e5; border: 1px dashed #e9c48f; color: #6a4410'
+                                    : 'background: var(--hx-paper); color: var(--hx-muted); font-style: italic'
+                        "
+                    >
+                        {{ m.body || '(no reply)' }}
+                    </div>
+                    <div
+                        v-if="forFaculty && m.from === 'dropped'"
+                        class="mt-1 text-[12px]"
+                        style="color: #6a4410"
+                    >
+                        Not shown to the team. Reason: {{ m.reason }}
+                    </div>
+                </div>
+                <div v-if="sending" class="hx-hint self-start italic">
+                    {{ advisors.text.meeting_thinking }}
+                </div>
+            </div>
+
+            <footer
+                class="border-t px-5 py-4"
+                style="border-color: var(--hx-line)"
+            >
+                <template v-if="canAsk && advisors.enabled && advisors.open">
+                    <label class="hx-sr" for="ask-meeting">{{
+                        advisors.text.meeting_placeholder
+                    }}</label>
+                    <textarea
+                        id="ask-meeting"
+                        v-model="question"
+                        class="hx-in hx-in-wide w-full"
+                        rows="3"
+                        :placeholder="advisors.text.meeting_placeholder"
+                        :disabled="sending || !canMeet"
+                        @keydown="onKey"
+                    />
+                    <div
+                        class="mt-2 flex flex-wrap items-center justify-between gap-2"
+                    >
+                        <span class="hx-hint">{{
+                            inviteProblem ||
+                            t('meeting_with', { names: invitedNames })
+                        }}</span>
+                        <button
+                            type="button"
+                            class="hx-btn hx-btn-primary"
+                            :disabled="
+                                sending || !canMeet || question.trim() === ''
+                            "
+                            @click="ask"
+                        >
+                            {{ advisors.text.send }}
+                        </button>
+                    </div>
+                    <p v-if="errors.question" class="hx-error mt-2">
+                        {{ errors.question }}
+                    </p>
+                </template>
+                <button
+                    type="button"
+                    class="mt-2 text-[14px] underline"
+                    style="color: var(--hx-teal)"
+                    @click="emit('goDecide')"
+                >
+                    {{ advisors.text.go_decide }}
+                </button>
+            </footer>
+        </section>
+
+        <section
+            v-else-if="selected"
             class="hx-card flex min-h-[460px] flex-col p-0"
             :aria-label="`Conversation with ${selected.name}`"
         >

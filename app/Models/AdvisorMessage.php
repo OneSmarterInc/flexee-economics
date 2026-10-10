@@ -12,6 +12,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int $advisor_thread_id
  * @property int|null $user_id
  * @property string $role
+ * @property string|null $advisor who spoke, in a meeting
+ * @property list<string>|null $invited who was in the room, on a question in a meeting
  * @property string $body
  * @property string $status
  * @property string|null $dropped_reason
@@ -20,7 +22,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string|null $model
  * @property CarbonImmutable|null $created_at
  */
-#[Fillable(['advisor_thread_id', 'user_id', 'role', 'body', 'status', 'dropped_reason', 'input_tokens', 'output_tokens', 'model'])]
+#[Fillable(['advisor_thread_id', 'user_id', 'role', 'advisor', 'invited', 'body', 'status', 'dropped_reason', 'input_tokens', 'output_tokens', 'model'])]
 class AdvisorMessage extends Model
 {
     public const STUDENT = 'student';
@@ -30,6 +32,12 @@ class AdvisorMessage extends Model
     public const SHOWN = 'shown';
 
     public const DROPPED = 'dropped';
+
+    /** @return array<string, string> */
+    protected function casts(): array
+    {
+        return ['invited' => 'array'];
+    }
 
     /** Answers a team was shown in a quarter. Halden pays for each one. */
     public static function billable(int $teamId, int $quarterId): int
