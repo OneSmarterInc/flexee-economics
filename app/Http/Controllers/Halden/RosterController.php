@@ -34,6 +34,7 @@ class RosterController extends Controller
             ->map(fn (Enrolment $e) => [
                 'id' => $e->user->id, 'name' => $e->user->name, 'email' => $e->user->email, 'blocked' => $e->status === Enrolment::BLOCKED,
                 'teamId' => $members[$e->user->id]->team_id ?? null, 'seat' => $members[$e->user->id]->seat ?? null,
+                'paid' => $e->paid_at !== null,
                 'seenOpening' => $e->user->opening_seen_at !== null,
             ])->values();
 
@@ -46,7 +47,7 @@ class RosterController extends Controller
             'section' => [
                 'id' => $section->id, 'name' => $section->name, 'course' => $section->course_name, 'seats' => $section->seats,
                 'joinUrl' => $section->join_code === null ? null : route('join.show', $section->join_code),
-                'started' => $section->hasStarted(),
+                'started' => $section->hasStarted(), 'requiresPayment' => (bool) $section->requires_payment,
             ],
             'students' => $students,
             'teams' => $section->teams()->orderBy('name')->get()->map(fn (Team $t) => ['id' => $t->id, 'name' => $t->name])->values(),
@@ -92,6 +93,14 @@ class RosterController extends Controller
         }
 
         return $this->back($section)->with('done', 'join-link');
+    }
+
+    public function allPaid(Request $request, Roster $roster): RedirectResponse
+    {
+        $section = ClassAccess::pick($request);
+        $n = $roster->allPaid($section);
+
+        return $this->back($section)->with('done', "all-paid:$n");
     }
 
     public function formTeams(Request $request, Roster $roster): RedirectResponse
@@ -146,6 +155,10 @@ class RosterController extends Controller
             case 'block':
             case 'unblock':
                 $this->run(fn () => $roster->block($section, $user, $action === 'block'));
+                break;
+            case 'paid':
+            case 'unpaid':
+                $this->run(fn () => $roster->paid($section, $user, $action === 'paid'));
                 break;
             case 'remove':
                 $this->run(fn () => $roster->remove($section, $user));

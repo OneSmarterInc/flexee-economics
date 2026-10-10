@@ -256,6 +256,39 @@ class RosterTest extends TestCase
         $this->assertNull(TeamQuarter::query()->where('quarter_id', $q1b->id)->first());
     }
 
+    public function test_a_class_can_require_each_seat_to_be_marked_paid(): void
+    {
+        $roster = app(Roster::class);
+        $roster->add($this->section, [['email' => 'ada@u.edu', 'name' => 'Ada'], ['email' => 'bob@u.edu', 'name' => 'Bob']]);
+        $roster->formTeams($this->section);
+        $ada = User::query()->where('email', 'ada@u.edu')->firstOrFail();
+        $ada->forceFill(['opening_seen_at' => now()])->save();
+        $q1 = $this->section->quarters()->where('number', 1)->firstOrFail();
+        app(QuarterRunner::class)->open($q1);
+
+        // Off by default: nothing changes for anyone.
+        $this->actingAs($ada)->get('/play')->assertRedirect("/play/{$q1->id}");
+        $this->actingAs($this->faculty)->get('/faculty/roster')->assertInertia(fn (Assert $p) => $p->where('section.requiresPayment', false)->where('students.0.paid', false));
+
+        // On: an unmarked student waits; marking them lets them in; the mark can be undone; everyone at once.
+        $admin = User::factory()->create(['role' => User::ROLE_ADMIN]);
+        $this->actingAs($admin)->post("/admin/classes/{$this->section->id}", [
+            'name' => $this->section->name, 'course' => 'Managerial Economics', 'weeks' => 14, 'instructor' => $this->faculty->id,
+            'first_deadline' => null, 'seats' => 12, 'advisors_enabled' => true, 'requires_payment' => true,
+        ])->assertSessionHasNoErrors();
+        $this->assertTrue($this->section->refresh()->requires_payment);
+        $this->actingAs($ada)->get('/play')->assertInertia(fn (Assert $p) => $p->component('halden/Waiting')->where('reason', 'unpaid'));
+        $this->actingAs($ada)->get("/play/{$q1->id}")->assertForbidden();
+        $this->actingAs($this->faculty)->post("/faculty/roster/students/{$ada->id}/paid")->assertSessionHasNoErrors()->assertSessionHas('done', 'paid');
+        $this->actingAs($ada)->get('/play')->assertRedirect("/play/{$q1->id}");
+        $this->actingAs($ada)->get("/play/{$q1->id}")->assertOk();
+        $this->actingAs($this->faculty)->post("/faculty/roster/students/{$ada->id}/unpaid")->assertSessionHasNoErrors();
+        $this->actingAs($ada)->get("/play/{$q1->id}")->assertForbidden();
+        $this->actingAs($this->faculty)->post('/faculty/roster/all-paid')->assertSessionHas('done', 'all-paid:2');
+        $this->assertSame(0, $this->section->enrolments()->whereNull('paid_at')->count());
+        $this->actingAs($ada)->get("/play/{$q1->id}")->assertOk();
+    }
+
     public function test_demo_students_are_enrolled_too(): void
     {
         $section = app(ClassFactory::class)->create('Rehearsal', 'Managerial Economics', 14, $this->faculty, CarbonImmutable::now(), 2);

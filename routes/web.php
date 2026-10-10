@@ -46,9 +46,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('faculty/schedule', [FacultyController::class, 'saveSchedule'])->name('faculty.schedule.save');
     Route::get('faculty/roster', [RosterController::class, 'show'])->name('faculty.roster');
     Route::post('faculty/roster/students', [RosterController::class, 'add'])->name('faculty.roster.add');
-    Route::post('faculty/roster/students/{user}/{action}', [RosterController::class, 'student'])->whereIn('action', ['move', 'block', 'unblock', 'remove', 'reset-password'])->name('faculty.roster.student');
+    Route::post('faculty/roster/students/{user}/{action}', [RosterController::class, 'student'])->whereIn('action', ['move', 'block', 'unblock', 'remove', 'reset-password', 'paid', 'unpaid'])->name('faculty.roster.student');
     Route::post('faculty/roster/join-link', [RosterController::class, 'joinLink'])->name('faculty.roster.join');
     Route::post('faculty/roster/form-teams', [RosterController::class, 'formTeams'])->name('faculty.roster.form');
+    Route::post('faculty/roster/all-paid', [RosterController::class, 'allPaid'])->name('faculty.roster.all-paid');
     Route::post('faculty/roster/teams', [RosterController::class, 'newTeam'])->name('faculty.roster.team.new');
     Route::post('faculty/roster/teams/{team}', [RosterController::class, 'renameTeam'])->name('faculty.roster.team.rename');
     Route::delete('faculty/roster/teams/{team}', [RosterController::class, 'deleteTeam'])->name('faculty.roster.team.delete');

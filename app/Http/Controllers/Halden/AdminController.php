@@ -91,6 +91,7 @@ class AdminController extends Controller
             'section' => [
                 'id' => $section->id, 'name' => $section->name, 'course' => $section->course_name, 'weeks' => (int) $section->weeks,
                 'instructor' => $section->faculty_user_id, 'seats' => $section->seats, 'advisorsEnabled' => (bool) $section->advisors_enabled,
+                'requiresPayment' => (bool) $section->requires_payment,
                 'coInstructors' => $section->coInstructors()->orderBy('name')->get()->map(fn (User $u) => ['id' => $u->id, 'name' => $u->name, 'email' => $u->email])->values(),
                 'firstDeadline' => $first?->deadline_at?->setTimezone('America/New_York')->format('Y-m-d\TH:i'),
                 'started' => $section->hasStarted(),
@@ -119,6 +120,7 @@ class AdminController extends Controller
             'first_deadline' => ['nullable', 'date'],
             'seats' => ['nullable', 'integer', 'min:1', 'max:500'],
             'advisors_enabled' => ['required', 'boolean'],
+            'requires_payment' => ['sometimes', 'boolean'],
         ], ['name.unique' => 'There is already a class with that name.']);
         $started = $section->hasStarted();
         if ($started && (int) $data['weeks'] !== (int) $section->weeks) {
@@ -127,6 +129,7 @@ class AdminController extends Controller
         $section->update([
             'name' => $data['name'], 'course_name' => $data['course'], 'weeks' => (int) $data['weeks'], 'faculty_user_id' => (int) $data['instructor'],
             'seats' => isset($data['seats']) ? (int) $data['seats'] : null, 'advisors_enabled' => (bool) $data['advisors_enabled'],
+            'requires_payment' => (bool) ($data['requires_payment'] ?? false),
         ]);
         if (! $started && ! empty($data['first_deadline'])) {
             $factory->scheduleQuarters($section->refresh(), CarbonImmutable::parse((string) $data['first_deadline'], 'America/New_York')->utc());

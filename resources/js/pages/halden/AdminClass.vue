@@ -11,6 +11,7 @@ const props = defineProps<{
         instructor: number;
         seats: number | null;
         advisorsEnabled: boolean;
+        requiresPayment: boolean;
         coInstructors: { id: number; name: string; email: string }[];
         firstDeadline: string | null;
         started: boolean;
@@ -46,6 +47,7 @@ const form = reactive({
     first_deadline: props.section.firstDeadline ?? '',
     seats: (props.section.seats ?? '') as string | number,
     advisors_enabled: props.section.advisorsEnabled,
+    requires_payment: props.section.requiresPayment,
 });
 
 function save() {
@@ -245,6 +247,18 @@ function fmt(n: number): string {
                             <span
                                 >Advisors and meetings are switched on for this
                                 class</span
+                            >
+                        </label>
+                        <label class="flex items-center gap-2 sm:col-span-2">
+                            <input
+                                v-model="form.requires_payment"
+                                type="checkbox"
+                            />
+                            <span
+                                >Each student's seat must be marked paid before
+                                they play (the instructor marks them on the
+                                students page; no money moves through
+                                Halden)</span
                             >
                         </label>
                     </div>
