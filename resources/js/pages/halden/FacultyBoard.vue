@@ -217,6 +217,11 @@ function teamHref(teamId: number): string {
                     >Schedule</a
                 >
                 <a
+                    :href="`/faculty/benchmarks?section=${section.id}`"
+                    style="color: var(--hx-mint)"
+                    >Other classes</a
+                >
+                <a
                     :href="`/faculty/results.csv?section=${section.id}`"
                     style="color: var(--hx-mint)"
                     title="Every team's results, memos and feedback, one row per team per quarter"
