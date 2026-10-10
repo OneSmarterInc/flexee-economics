@@ -268,6 +268,11 @@ function fmt(n: number): string {
                                 >Students and teams</a
                             >
                             are managed from the faculty board.
+                            <a
+                                :href="`/faculty/results.csv?section=${props.section.id}`"
+                                class="mt-1 block underline"
+                                >Download the results (CSV)</a
+                            >
                         </p>
                     </div>
                     <div class="hx-card">

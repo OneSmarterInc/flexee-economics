@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Halden;
 
 use App\Halden\Admin\ClassAccess;
+use App\Halden\Admin\ResultsExport;
 use App\Halden\Ai\Carrying;
 use App\Halden\Ai\FacultyDrafts;
 use App\Halden\Content\ContentPack;
@@ -92,6 +93,17 @@ class FacultyController extends Controller
             'pages' => array_map(fn (string $p) => ['page' => $p, 'title' => QuarterView::PAGE_TITLES[$p]], $openPages),
             'teams' => $teams,
             'quarters' => $section->quarters()->get()->map(fn (Quarter $q) => ['number' => $q->number, 'label' => $q->label(), 'status' => $q->status])->values(),
+        ]);
+    }
+
+    /** Every team's results, memos and feedback for the class as a CSV, for grading in a spreadsheet. */
+    public function results(Request $request): \Illuminate\Http\Response
+    {
+        $section = $this->section($request);
+
+        return response(ResultsExport::csv($section), 200, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="'.ResultsExport::filename($section).'"',
         ]);
     }
 

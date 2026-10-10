@@ -23,6 +23,17 @@ use Carbon\CarbonImmutable;
  */
 final class QuarterView
 {
+    /** The seven score measures students see: name, weight, unit, plain-English meaning. */
+    public const KPI_NAMES = [
+        'profit_per_barrel' => ['Profit per barrel, whole company', '30%', 'usd2', 'What Halden makes on each barrel it produces, before head office costs'],
+        'roace_pct' => ['Return on capital', '15%', 'pct', 'Profit after tax, compared with all the money invested in the business (yearly rate)'],
+        'free_cash_flow' => ['Free cash flow', '15%', 'musd', 'Cash left over after tax and the spending needed to keep things running, before any new big projects'],
+        'refining_vs_industry' => ['Refining profit vs competitors', '10%', 'usd2', 'How much more (or less) your refineries make per barrel than a typical refinery'],
+        'shop_profit_per_station_k' => ['Shop profit per gas station', '10%', 'kusd', 'What each Cordell station earns Halden from snacks, coffee and the car wash'],
+        'debt_to_earnings' => ['Debt compared with earnings', '10%', 'x', 'Roughly how many years of earnings it would take to pay off debt. Lower is better.'],
+        'plant_condition' => ['Plant condition', '10%', 'pts', 'How well your refineries and oil fields are holding up, out of 100'],
+    ];
+
     public const PAGE_TITLES = [
         'oil_fields' => 'Oil fields',
         'refineries' => 'Refineries',
@@ -681,15 +692,7 @@ final class QuarterView
         $named[] = ['name' => 'Drilling in Texas (capital spending, not in EBITDA)', 'amount' => -(float) $d['rigs'] * $data->c('rig_capex_per_qtr'),
             'why' => sprintf('%d rigs at $%dM each this quarter.', (int) $d['rigs'], (int) $data->c('rig_capex_per_qtr'))];
 
-        $kpiNames = [
-            'profit_per_barrel' => ['Profit per barrel, whole company', '30%', 'usd2', 'What Halden makes on each barrel it produces, before head office costs'],
-            'roace_pct' => ['Return on capital', '15%', 'pct', 'Profit after tax, compared with all the money invested in the business (yearly rate)'],
-            'free_cash_flow' => ['Free cash flow', '15%', 'musd', 'Cash left over after tax and the spending needed to keep things running, before any new big projects'],
-            'refining_vs_industry' => ['Refining profit vs competitors', '10%', 'usd2', 'How much more (or less) your refineries make per barrel than a typical refinery'],
-            'shop_profit_per_station_k' => ['Shop profit per gas station', '10%', 'kusd', 'What each Cordell station earns Halden from snacks, coffee and the car wash'],
-            'debt_to_earnings' => ['Debt compared with earnings', '10%', 'x', 'Roughly how many years of earnings it would take to pay off debt. Lower is better.'],
-            'plant_condition' => ['Plant condition', '10%', 'pts', 'How well your refineries and oil fields are holding up, out of 100'],
-        ];
+        $kpiNames = self::KPI_NAMES;
         // The midterm and the end: every measure against the whole class (decision D4).
         $compare = $quarter->isComparisonQuarter();
         $classValues = [];
