@@ -1,0 +1,6 @@
+project,group,cost_musd,value_at_40_carbon_slow_decline,change_per_dollar_of_carbon,change_per_step_of_demand_decline,needs_rotterdam_open
+Expand in the Permian,More oil,650,220,-1.9,-40,no
+Helix at Rotterdam,Next to what we do,1200,-180,2.2,90,no
+Convert part of Rotterdam to biofuels,Next to what we do,480,-40,0.9,25,yes
+Offshore wind off Norway,Clean energy,550,-90,1.5,0,no
+Sell the European stations,Clean energy,-550,-60,0.3,60,no

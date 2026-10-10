@@ -168,40 +168,24 @@ function timeOf(iso: string | null | undefined): string {
 const editable = computed(() => props.canEdit);
 const isOpenQuarter = computed(() => props.quarter.status === 'open');
 
+// Every decision on each page, from the decision list the server sends (so a new decision is never left out of a save).
 const pageKeys: Record<string, string[]> = {
-    oil_fields: ['rigs', 'norway'],
-    refineries: ['br_run', 'rot_posture', 'rot_run', 'sg_request'],
-    gas_stations: [
-        'off_urban',
-        'off_suburban',
-        'off_rural',
-        'off_interstate',
-        'off_nl',
-        'off_be',
-        'off_de',
-        'resp_urban',
-        'resp_suburban',
-        'resp_rural',
-        'resp_interstate',
-        'rebrand_core',
-        'rebrand_gulf',
-        'rebrand_edge',
-    ],
-    trading_finance: [
-        'tp_method',
-        'tp_value',
-        'crude_hedge',
-        'eur_hedge',
-        'nok_hedge',
-        'opec_case',
-    ],
-    capital: [
-        'proj_br_upgrade',
-        'proj_rot_upgrade',
-        'proj_helix',
-        'capacity_response',
-    ],
+    oil_fields: [],
+    refineries: [],
+    gas_stations: [],
+    trading_finance: [],
+    capital: [],
 };
+for (const l of props.decisions.levers) {
+    if (!(l.page in pageKeys)) {
+        continue;
+    }
+    if (l.key === 'tp') {
+        pageKeys[l.page].push('tp_method', 'tp_value');
+    } else {
+        pageKeys[l.page].push(l.key);
+    }
+}
 
 function savePage(p: string): void {
     const payload: DecisionMap = {};
@@ -312,6 +296,12 @@ const checkRows = computed(() =>
     })),
 );
 
+const portfolioChosen = computed(() =>
+    (props.desk.portfolio?.projects ?? []).filter(
+        (p) => draft[`port_${p.key}`] === 'go',
+    ),
+);
+
 const commitText = computed(() => {
     const parts = [
         `${num(draft.rigs)} rigs in Texas`,
@@ -333,6 +323,12 @@ const commitText = computed(() => {
                 : draft.tp_method === 'cost'
                   ? 'Baton Rouge pays what the crude costs to pump and ship'
                   : 'Baton Rouge pays the market price for Texas crude',
+        );
+    }
+    if (props.desk.portfolio?.open && isOpenLever('port_helix_rotterdam')) {
+        const names = portfolioChosen.value.map((p) => p.label.toLowerCase());
+        parts.push(
+            `five-year portfolio: ${names.length ? names.join(', ') : 'nothing placed'}`,
         );
     }
     if (props.desk.kessana?.open && isOpenLever('kessana_position')) {
@@ -387,6 +383,62 @@ function rivalMeans(): string {
         .replace('{cost}', fmt(matchCost.value, 1));
 }
 const hedgeKeys = ['crude_hedge', 'eur_hedge', 'nok_hedge'];
+
+function portfolioMeans(): string {
+    const pf = props.desk.portfolio;
+    const t = props.leverText.portfolio;
+    if (!pf) {
+        return '';
+    }
+    const chosen = portfolioChosen.value;
+    if (chosen.length === 0) {
+        return t.means_none;
+    }
+    const sold = chosen.some((p) => p.cost < 0);
+    const cost = chosen.reduce((s, p) => s + Math.max(0, p.cost), 0);
+    const room = pf.discretionary + (sold ? 550 : 0);
+    const buckets = pf.buckets
+        .map((b) => {
+            const spend = chosen
+                .filter((p) => p.bucket === b.key && p.cost > 0)
+                .reduce((s, p) => s + p.cost, 0);
+
+            return spend > 0
+                ? `${b.label.toLowerCase()} $${fmt(spend)}M of $${fmt(b.ceiling)}M`
+                : null;
+        })
+        .filter((x) => x !== null)
+        .join(', ');
+    const problems: string[] = [];
+    if (cost > room + 1e-9) {
+        problems.push(
+            `$${fmt(cost)}M is more than the $${fmt(room)}M you can place`,
+        );
+    }
+    for (const b of pf.buckets) {
+        const spend = chosen
+            .filter((p) => p.bucket === b.key && p.cost > 0)
+            .reduce((s, p) => s + p.cost, 0);
+        if (spend > b.ceiling + 1e-9) {
+            problems.push(
+                `${b.label.toLowerCase()} is capped at $${fmt(b.ceiling)}M`,
+            );
+        }
+    }
+    if (chosen.some((p) => !p.available)) {
+        problems.push(t.not_possible.toLowerCase());
+    }
+    if (problems.length > 0) {
+        return t.over.replace('{why}', problems.join('; ') + '.');
+    }
+
+    return t.means
+        .replace('{cost}', `$${fmt(cost)}M`)
+        .replace('{room}', `$${fmt(room)}M`)
+        .replace('{sale}', sold ? t.sale_note : '')
+        .replace('{buckets}', buckets || 'none')
+        .replace('{quarterly}', `$${fmt(cost / (pf.years * 4))}M`);
+}
 
 const kessanaBlock = computed(() => {
     const k = props.desk.kessana;
@@ -2141,9 +2193,14 @@ function quarterHref(id: number): string {
                             }}</span>
                         </div>
                         <p class="hx-p mt-2">
-                            {{ leverText.pages.capital?.intro }}
+                            {{
+                                desk.portfolio
+                                    ? leverText.portfolio.old_list_closed
+                                    : leverText.pages.capital?.intro
+                            }}
                         </p>
                         <p
+                            v-if="!desk.portfolio"
                             class="mt-2 rounded-md px-3 py-2 text-[15px]"
                             style="background: var(--hx-teal-wash)"
                         >
@@ -2185,7 +2242,17 @@ function quarterHref(id: number): string {
                                 class="font-semibold"
                                 style="color: var(--hx-teal)"
                             >
-                                Committed. It's under way.
+                                {{
+                                    desk.portfolio
+                                        ? leverText.portfolio.under_way
+                                        : "Committed. It's under way."
+                                }}
+                            </div>
+                            <div
+                                v-else-if="!isOpenLever(`proj_${pr.key}`)"
+                                class="hx-hint"
+                            >
+                                {{ leverText.portfolio.not_taken }}
                             </div>
                             <div v-else class="flex flex-wrap gap-2.5">
                                 <button
@@ -2255,6 +2322,110 @@ function quarterHref(id: number): string {
                                 {{ errors.capacity_response }}
                             </div>
                         </div>
+                        <template v-if="desk.portfolio">
+                            <h2 class="hx-h2 mt-6">
+                                The five-year portfolio
+                                <span
+                                    v-if="lever('port_helix_rotterdam').isNew"
+                                    class="hx-badge hx-badge-new ml-2"
+                                    >NEW</span
+                                >
+                            </h2>
+                            <p class="hx-p mt-2">
+                                {{ leverText.portfolio.intro }}
+                            </p>
+                            <p
+                                class="mt-2 rounded-md px-3 py-2 text-[15px]"
+                                style="background: var(--hx-teal-wash)"
+                            >
+                                Carbon is
+                                <strong
+                                    >${{ fmt(desk.portfolio.carbon) }} a
+                                    tonne</strong
+                                >
+                                this quarter. The board caps each group:
+                                <template
+                                    v-for="(
+                                        b, i
+                                    ) in desk.portfolio.buckets.filter(
+                                        (x) => x.key !== 'sustaining',
+                                    )"
+                                    :key="b.key"
+                                    >{{ i > 0 ? ', ' : ''
+                                    }}{{ b.label.toLowerCase() }}
+                                    <strong
+                                        >${{ fmt(b.ceiling) }}M</strong
+                                    ></template
+                                >.
+                            </p>
+                            <div
+                                v-for="pr in desk.portfolio.projects"
+                                :key="pr.key"
+                                class="hx-lever"
+                            >
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <span class="text-[16px] font-semibold">{{
+                                        pr.label
+                                    }}</span>
+                                    <span class="hx-mono text-[14px]">{{
+                                        pr.cost < 0
+                                            ? `brings in $${fmt(-pr.cost)}M`
+                                            : `$${fmt(pr.cost)}M over five years`
+                                    }}</span>
+                                    <span class="hx-badge hx-badge-fixed">{{
+                                        pr.bucketLabel
+                                    }}</span>
+                                </div>
+                                <div class="hx-hint mt-1 mb-3">
+                                    {{ leverText.help[`port_${pr.key}`] }}
+                                </div>
+                                <div
+                                    v-if="!desk.portfolio.open"
+                                    class="font-semibold"
+                                    :style="
+                                        pr.before === 'go'
+                                            ? 'color: var(--hx-teal)'
+                                            : 'color: var(--hx-muted)'
+                                    "
+                                >
+                                    {{
+                                        pr.before === 'go'
+                                            ? pr.cost < 0
+                                                ? leverText.portfolio.sold
+                                                : leverText.portfolio.going
+                                            : leverText.portfolio.held
+                                    }}
+                                </div>
+                                <div v-else-if="!pr.available" class="hx-hint">
+                                    {{ leverText.portfolio.not_possible }}
+                                </div>
+                                <div v-else class="flex flex-wrap gap-2.5">
+                                    <button
+                                        v-for="(label, choice) in leverText
+                                            .choices.portfolio"
+                                        :key="choice"
+                                        type="button"
+                                        class="hx-opt"
+                                        :aria-pressed="
+                                            draft[`port_${pr.key}`] === choice
+                                        "
+                                        :disabled="!editable"
+                                        @click="
+                                            draft[`port_${pr.key}`] =
+                                                String(choice)
+                                        "
+                                    >
+                                        {{ label }}
+                                    </button>
+                                </div>
+                                <div
+                                    v-if="errors[`port_${pr.key}`]"
+                                    class="hx-error"
+                                >
+                                    {{ errors[`port_${pr.key}`] }}
+                                </div>
+                            </div>
+                        </template>
                         <div v-if="errors.capital" class="hx-error mt-2">
                             {{ errors.capital }}
                         </div>
@@ -2262,10 +2433,15 @@ function quarterHref(id: number): string {
                             <div>
                                 <span class="hx-eyebrow">What this means</span>
                                 <div class="hx-mono mt-1 text-[14px]">
-                                    ${{ fmt(newOutlay) }}M of new projects this
-                                    quarter, out of ${{
-                                        fmt(desk.capital.envelope)
-                                    }}M.
+                                    <template v-if="desk.portfolio">{{
+                                        portfolioMeans()
+                                    }}</template>
+                                    <template v-else>
+                                        ${{ fmt(newOutlay) }}M of new projects
+                                        this quarter, out of ${{
+                                            fmt(desk.capital.envelope)
+                                        }}M.
+                                    </template>
                                 </div>
                             </div>
                             <button

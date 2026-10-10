@@ -15,7 +15,7 @@ use App\Models\TeamQuarter;
  */
 final class DecisionBook
 {
-    /** @var array<string, array{key: string, page: string, label: string, unit: string, min: ?float, max: ?float, step: ?float, choices: list<string>, default: string, unlock: int, tier: string, once: bool}> */
+    /** @var array<string, array{key: string, page: string, label: string, unit: string, min: ?float, max: ?float, step: ?float, choices: list<string>, default: string, unlock: int, tier: string, once: bool, close: ?int}> */
     private array $levers = [];
 
     public function __construct(private readonly ModelData $data)
@@ -35,11 +35,12 @@ final class DecisionBook
                 'unlock' => (int) $r['unlock_round'],
                 'tier' => $r['tier'],
                 'once' => ($r['once'] ?? '0') === '1',   // answered in the quarter it opens, then settled for good
+                'close' => ($r['close_round'] ?? '') === '' ? null : (int) $r['close_round'],   // last quarter it can still be changed
             ];
         }
     }
 
-    /** @return array<string, array{key: string, page: string, label: string, unit: string, min: ?float, max: ?float, step: ?float, choices: list<string>, default: string, unlock: int, tier: string, once: bool}> */
+    /** @return array<string, array{key: string, page: string, label: string, unit: string, min: ?float, max: ?float, step: ?float, choices: list<string>, default: string, unlock: int, tier: string, once: bool, close: ?int}> */
     public function levers(): array
     {
         return $this->levers;
@@ -75,7 +76,8 @@ final class DecisionBook
     {
         $lever = $this->levers[$key] ?? null;
 
-        return $lever !== null && $lever['unlock'] <= $quarterNumber && (! $lever['once'] || $lever['unlock'] === $quarterNumber);
+        return $lever !== null && $lever['unlock'] <= $quarterNumber && (! $lever['once'] || $lever['unlock'] === $quarterNumber)
+            && ($lever['close'] === null || $quarterNumber <= $lever['close']);
     }
 
     /** @return list<string> pages a team can change in this quarter */
@@ -108,7 +110,8 @@ final class DecisionBook
     /** @return array<string, string|float|int|null> what will run this quarter if nothing else changes */
     public function effective(Team $team, Quarter $quarter): array
     {
-        $previous = $this->previousEffective($team, $quarter);
+        // A decision that did not exist when last quarter ran starts at its 2026 value.
+        $previous = array_merge($this->historyDefaults(), $this->previousEffective($team, $quarter));
         $out = $previous;
         $tq = TeamQuarter::query()->where('team_id', $team->id)->where('quarter_id', $quarter->id)->first();
         foreach ($tq === null ? [] : ($tq->decisions ?? []) as $key => $value) {
@@ -221,6 +224,10 @@ final class DecisionBook
         foreach (array_keys($this->data->rebrand) as $k) {
             $rebrand[$k] = (string) ($d["rebrand_$k"] ?? 'keep');
         }
+        $portfolio = [];
+        foreach (array_keys($this->data->portfolio) as $k) {
+            $portfolio[$k] = (string) ($d["port_$k"] ?? 'hold');
+        }
         $responses = [];
         foreach ($this->data->cordell as $cl) {
             $responses[$cl['key']] = (string) ($d['resp_'.$cl['key']] ?? 'ignore');
@@ -246,9 +253,28 @@ final class DecisionBook
             opecCase: (string) ($d['opec_case'] ?? 'fails'),
             rebrand: $rebrand,
             kessanaPosition: (string) ($d['kessana_position'] ?? 'none'),
+            portfolio: $portfolio,
             delacroixCover: (bool) ($history['delacroix_cover'] ?? false),
             straitsStrained: (bool) ($history['straits_strained'] ?? false),
         );
+    }
+
+    /**
+     * The portfolio projects a page's input goes ahead with, from clean values (keys port_*).
+     *
+     * @param  array<string, mixed>  $decisions
+     * @return list<string>
+     */
+    public function portfolioChosen(array $decisions): array
+    {
+        $out = [];
+        foreach (array_keys($this->data->portfolio) as $k) {
+            if (($decisions["port_$k"] ?? 'hold') === 'go') {
+                $out[] = $k;
+            }
+        }
+
+        return $out;
     }
 
     private static function fmt(float $v): string

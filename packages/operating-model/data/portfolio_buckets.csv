@@ -1,0 +1,5 @@
+bucket,label,floor,ceiling
+sustaining,Keeping what we have running,600,1000
+growth,More oil,0,800
+adjacent,Next to what we do,0,1200
+renewable,Clean energy,0,700

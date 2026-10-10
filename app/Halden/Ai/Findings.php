@@ -101,6 +101,16 @@ final class Findings
             $lines[] = 'The Cordell name: Halden signs on '.($painted === [] ? 'no region (Cordell kept everywhere)' : implode(', ', $painted)).'.';
         }
 
+        if ($q->number >= 12) {
+            $names = [];
+            foreach ($this->data->portfolio as $key => $p) {
+                if (($d["port_$key"] ?? 'hold') === 'go') {
+                    $names[] = $p['label'];
+                }
+            }
+            $lines[] = 'The five-year portfolio (Q4 2029): '.($names === [] ? 'nothing placed' : implode('; ', $names)).'.';
+        }
+
         if ($q->number === 11) {
             $lines[] = 'Kessana, the government\'s demand for 74% of profit oil: '.match ((string) ($d['kessana_position'] ?? 'accept')) {
                 'counter' => 'countered at 68% with Halden\'s reserve figures on the table',
@@ -198,6 +208,30 @@ final class Findings
         if ((float) ($r['ops.kessana_exit_proceeds'] ?? 0) > 0) {
             $out[] = sprintf('Kessana: the team handed the block back for %s and wrote off $2.3B of book value. The field would have earned about %s this quarter at the old terms, and staying was worth about $3.1B over ten years even at the government\'s 74%%.',
                 $this->money((float) $r['ops.kessana_exit_proceeds']), $this->money((float) ($r['ops.kessana_forgone'] ?? 0)));
+        }
+        if ($q->number === 12) {
+            $chosen = [];
+            foreach ($this->data->portfolio as $key => $p) {
+                if (($d["port_$key"] ?? 'hold') === 'go') {
+                    $chosen[] = $key;
+                }
+            }
+            $worst = $best = 0.0;
+            foreach ($this->data->scenarios['carbon'] as $c) {
+                foreach ($this->data->scenarios['demand'] as $dm) {
+                    $v = 0.0;
+                    foreach ($chosen as $k) {
+                        $v += $this->model->portfolioNpv($k, $c['value'], $dm['value']);
+                    }
+                    $worst = min($worst, $v);
+                    $best = max($best, $v);
+                }
+            }
+            $out[] = sprintf('Portfolio: across the nine futures (carbon $40 to $180, demand slow decline to collapse) the team\'s set is worth between %s and %s. Every project on the table loses money in some future; the lesson is a defended bet, not an optimum. The $600M sustaining floor leaves $1,200M; the sale of the European stations adds $550M.',
+                $this->money($worst), $this->money($best));
+            if ((float) ($r['ops.divest_proceeds'] ?? 0) > 0) {
+                $out[] = 'The team sold the European stations: $550M came in against about $75M a quarter of earnings that leave from next quarter.';
+            }
         }
         if ((float) ($r['history.delacroix_cover'] ?? 0) > 0) {
             $out[] = sprintf('Recession: the team asked for Baton Rouge at %s%% and got %s%%, because its Q4 2027 crude price gave Marcus Delacroix cover to resist the cut.', (string) ($d['br_run'] ?? '?'), number_format((float) ($r['ops.br_run'] ?? 0), 1));

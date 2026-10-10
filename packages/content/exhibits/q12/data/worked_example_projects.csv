@@ -1,0 +1,7 @@
+parameter,value
+project_1_value_at_cheap_carbon,-50
+project_1_change_per_dollar_of_carbon,1.0
+project_2_value_at_cheap_carbon,150
+project_2_change_per_dollar_of_carbon,-1.2
+cheap_carbon,40
+expensive_carbon,180

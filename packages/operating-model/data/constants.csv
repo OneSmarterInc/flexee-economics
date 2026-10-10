@@ -112,3 +112,7 @@ kessana_risk_rate,0.14,fraction,Wk11 reserves.csv,the discount rate for Kessana 
 kessana_exit_value,180,usd_m,Wk11 exit_and_sunk.csv,what Halden gets for handing the block back
 kessana_sunk_capital,2800,usd_m,Wk11 exit_and_sunk.csv,reference only: already spent and never enters the decision
 kessana_book_value,2300,usd_m,Wk1 book_values.csv,leaves capital employed if Halden exits
+portfolio_envelope,1800,usd_m,Wk12 envelope.csv,five-year capital envelope for the Q4 2029 portfolio
+portfolio_sustaining_floor,600,usd_m,Wk12 envelope.csv,must be spent keeping what Halden has running; leaves 1200 for choices
+portfolio_years,5,years,Wk12 package,the money goes out evenly over five years from Q4 2029
+portfolio_carbon_base,40,usd_tonne,Wk12 package,"the carbon price the project values are quoted at (NPV = base + carbon_sens x (carbon - 40) + demand_sens x demand code)"

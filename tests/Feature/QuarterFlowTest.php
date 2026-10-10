@@ -207,7 +207,7 @@ class QuarterFlowTest extends TestCase
         $this->assertEqualsWithDelta(-10.0, $tq->results['line.capacity_game'], 1e-9, 'Pelican built; the team held, so $10M a quarter');
     }
 
-    public function test_quarter_eleven_settles_kessana_once_and_quarter_twelve_cannot_open_yet(): void
+    public function test_quarters_eleven_and_twelve_settle_kessana_and_the_portfolio_once(): void
     {
         [$section, $teams] = $this->section(['a', 'b']);
         $runner = app(QuarterRunner::class);
@@ -241,7 +241,30 @@ class QuarterFlowTest extends TestCase
         $this->assertTrue(collect($view['results']['named'])->contains(fn (array $l) => str_starts_with($l['name'], 'Kessana')));
         $this->assertTrue($view['desk']['kessana']['open'], 'the Q3 2029 page keeps showing the answer the team gave');
         $this->assertEqualsWithDelta(0.62, $view['desk']['kessana']['take'], 1e-9, 'the page shows the take the quarter started with');
-        $this->expectExceptionMessage("The economics for Q4 2029 aren't built yet.");
-        $runner->open($section->quarters()->where('number', 12)->firstOrFail());
+
+        // Quarter 12: the five-year portfolio. The old project list is closed; the portfolio is placed once.
+        $q12 = $section->quarters()->where('number', 12)->firstOrFail();
+        $runner->open($q12);
+        $this->assertFalse($book->isOpen('proj_helix', 12), 'the 2028 project list is closed');
+        $this->assertTrue($book->isOpen('port_helix_rotterdam', 12));
+        $this->assertFalse($book->isOpen('port_helix_rotterdam', 13));
+        TeamQuarter::query()->create(['team_id' => $teams['a']->id, 'quarter_id' => $q12->id, 'decisions' => ['port_biofuel_conversion' => 'go', 'port_offshore_wind' => 'go']]);
+        TeamQuarter::query()->create(['team_id' => $teams['b']->id, 'quarter_id' => $q12->id, 'decisions' => ['port_helix_rotterdam' => 'go', 'port_offshore_wind' => 'go', 'port_euro_retail_divest' => 'go']]);
+        $runner->close($q12->refresh());
+        $runner->publish($q12->refresh());
+        $a12 = TeamQuarter::query()->where('team_id', $teams['a']->id)->where('quarter_id', $q12->id)->firstOrFail();
+        $b12 = TeamQuarter::query()->where('team_id', $teams['b']->id)->where('quarter_id', $q12->id)->firstOrFail();
+        $this->assertSame(0.0, (float) $a12->results['ops.portfolio_capex'], 'nothing goes out in the go-ahead quarter');
+        $this->assertEqualsWithDelta(550.0, $b12->results['ops.divest_proceeds'], 1e-9);
+        $this->assertSame(0.0, (float) $a12->results['ops.divest_proceeds']);
+        $view12 = app(QuarterView::class)->build($teams['b'], $q12->refresh(), null, readOnly: true);
+        $this->assertSame('transition', $view12['results']['story']['band']);
+        $this->assertStringContainsString('sold the European stations', implode(' ', $view12['results']['story']['paragraphs']));
+        $this->assertStringContainsString('Helix at Rotterdam and offshore wind off Norway, $1,750M over five years', implode(' ', $view12['results']['story']['paragraphs']));
+        $this->assertTrue(collect($view12['market'])->contains(fn (array $row) => $row['name'] === 'Carbon price'));
+        $this->assertFalse($view12['desk']['portfolio']['projects'][0]['available'] === false);
+        $this->assertSame('go', $view12['decisions']['current']['port_helix_rotterdam']);
+        $this->expectExceptionMessage("The economics for Q1 2030 aren't built yet.");
+        $runner->open($section->quarters()->where('number', 13)->firstOrFail());
     }
 }

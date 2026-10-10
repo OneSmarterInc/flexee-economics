@@ -70,6 +70,23 @@ class ContentPackTest extends TestCase
         $this->assertSame(['Minister Tetteh', 'Grant Whitaker'], $who);
     }
 
+    public function test_quarter_twelve_story_is_picked_by_the_shape_of_the_portfolio(): void
+    {
+        $results = ['ops.divest_proceeds' => 550.0, 'ops.carbon' => 40.0, 'money.ebitda' => 3300.0];
+        $d = ['rigs' => 14, 'port_helix_rotterdam' => 'go', 'port_offshore_wind' => 'go', 'port_euro_retail_divest' => 'go'];
+        $story = $this->pack()->story(12, $results, $d, [], ['{portfolio_list}' => 'Helix at Rotterdam and offshore wind', '{portfolio_cost}' => '$1,750M']);
+        $this->assertSame('transition', $story['band']);
+        $text = implode(' ', $story['paragraphs']);
+        $this->assertStringContainsString('Helix at Rotterdam and offshore wind, $1,750M over five years', $text);
+        $this->assertStringContainsString('$550M came in and paid down debt', $text);
+        $this->assertStringNotContainsString('{', $text);
+        $this->assertSame('oil', $this->pack()->story(12, $results, ['rigs' => 14, 'port_permian_expansion' => 'go'], [], ['{portfolio_list}' => 'x', '{portfolio_cost}' => '$650M'])['band']);
+        $this->assertSame('both', $this->pack()->story(12, $results, ['rigs' => 14, 'port_permian_expansion' => 'go', 'port_offshore_wind' => 'go'], [], ['{portfolio_list}' => 'x', '{portfolio_cost}' => '$1,200M'])['band']);
+        $none = $this->pack()->story(12, ['ops.divest_proceeds' => 0.0] + $results, ['rigs' => 14], [], ['{portfolio_list}' => 'nothing', '{portfolio_cost}' => '$0M']);
+        $this->assertSame('none', $none['band']);
+        $this->assertStringContainsString('You kept the European stations.', implode(' ', $none['paragraphs']));
+    }
+
     public function test_quarter_seven_story_is_picked_by_how_many_markets_were_matched(): void
     {
         $results = ['ops.rival_match_cost' => 46.1, 'ops.rival_ignore_cost' => 0.07, 'money.ebitda' => 3862.0];

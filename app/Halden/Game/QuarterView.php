@@ -155,6 +155,35 @@ final class QuarterView
             'exitValue' => $data->c('kessana_exit_value'), 'bookValue' => $data->c('kessana_book_value')];
     }
 
+    /**
+     * The Big projects page from Quarter 12: the five-year envelope, the four buckets and the five things Halden could do.
+     *
+     * @param  array<string, mixed>  $previous
+     * @return array{open: bool, envelope: float, floor: float, discretionary: float, years: float, carbon: float, rotterdamClosed: bool, buckets: list<array{key: string, label: string, ceiling: float}>, projects: list<array{key: string, label: string, bucket: string, bucketLabel: string, cost: float, available: bool, before: string}>}|null
+     */
+    private function portfolioDesk(Quarter $quarter, array $previous, ?CompanyState $start): ?array
+    {
+        if (! $this->book->isUnlocked('port_helix_rotterdam', $quarter->number)) {
+            return null;
+        }
+        $data = $this->model->data;
+        $closed = $start !== null && $start->rotStatus === 'closed';
+        $projects = [];
+        foreach ($data->portfolio as $key => $p) {
+            $projects[] = ['key' => $key, 'label' => $p['label'], 'bucket' => $p['bucket'], 'bucketLabel' => $data->buckets[$p['bucket']]['label'],
+                'cost' => $p['cost'], 'available' => ! ($closed && $p['needs_rotterdam']), 'before' => (string) ($previous["port_$key"] ?? 'hold')];
+        }
+        $buckets = [];
+        foreach ($data->buckets as $key => $b) {
+            $buckets[] = ['key' => $key, 'label' => $b['label'], 'ceiling' => $b['ceiling']];
+        }
+
+        return ['open' => $this->book->isOpen('port_helix_rotterdam', $quarter->number) && $this->runner->hasMarket($quarter),
+            'envelope' => $data->c('portfolio_envelope'), 'floor' => $data->c('portfolio_sustaining_floor'), 'discretionary' => $this->model->portfolioDiscretionary(),
+            'years' => $data->c('portfolio_years'), 'carbon' => $this->runner->hasMarket($quarter) ? (float) ($this->runner->marketFor($quarter)['carbon'] ?? 0) : 0.0,
+            'rotterdamClosed' => $closed, 'buckets' => $buckets, 'projects' => $projects];
+    }
+
     /** @return array{title: string, text: string|null, reason: string|null}|null */
     private function carryingFor(?TeamQuarter $tq, bool $forFaculty): ?array
     {
@@ -250,6 +279,7 @@ final class QuarterView
                 'opec' => $this->opecDesk($quarter),
                 'rebrand' => $this->rebrandDesk($quarter, $previous),
                 'kessana' => $this->kessanaDesk($quarter, $start),
+                'portfolio' => $this->portfolioDesk($quarter, $previous, $start),
             ],
             'memo' => [
                 'text' => $tq->memo ?? '',
@@ -331,6 +361,10 @@ final class QuarterView
             $row('Norwegian krone', 'usdnok', 'rate', 'Kroner you get for one dollar'),
             $row('Singapore dollar', 'usdsgd', 'rate', 'Singapore dollars you get for one US dollar'),
         ];
+        if ((float) ($now['carbon'] ?? 0) > 0) {
+            $rows[] = ['name' => 'Carbon price', 'last' => (float) ($last['carbon'] ?? 0) > 0 ? (float) $last['carbon'] : null, 'now' => (float) $now['carbon'],
+                'unit' => 'usd', 'what' => 'Dollars per tonne of carbon dioxide, what a refinery or a power plant pays to emit. New on this page: the five-year projects on the Big projects page are worth more or less depending on where it goes.'];
+        }
         if (isset($now['cordell_nonfuel'])) {
             $usual = $data->c('window3_base_nonfuel');
             $rows[] = ['name' => 'Cordell shop margin', 'last' => $last === null ? null : (float) ($last['cordell_nonfuel'] ?? $usual), 'now' => (float) $now['cordell_nonfuel'],
@@ -453,6 +487,15 @@ final class QuarterView
                 'why' => sprintf('The $%sM paid down debt. The field\'s %s book value came off capital employed, and the Kessana line is gone from the oil fields: %s this quarter.',
                     number_format((float) $r['ops.kessana_exit_proceeds']), ContentPack::money($data->c('kessana_book_value')), ContentPack::money((float) ($r['ops.kessana_forgone'] ?? 0)))];
         }
+        if ((float) ($r['ops.divest_proceeds'] ?? 0) > 0) {
+            $named[] = ['name' => 'Selling the European stations (proceeds, not in EBITDA)', 'amount' => (float) $r['ops.divest_proceeds'],
+                'why' => 'The buyer\'s money paid down debt this quarter. The stations\' earnings leave the Gas stations line from next quarter.'];
+        }
+        if ((float) ($r['ops.portfolio_capex'] ?? 0) > 0) {
+            $named[] = ['name' => 'Five-year projects: this quarter\'s share (capital spending, not in EBITDA)', 'amount' => -(float) $r['ops.portfolio_capex'],
+                'why' => sprintf('The projects you went ahead with in Q4 2029 take their money out evenly over five years: %s of %s. It adds to debt but not to your free cash flow score.',
+                    ContentPack::money((float) $r['ops.portfolio_capex']), ContentPack::money($this->portfolioCost($d)))];
+        }
         if ((float) ($r['history.delacroix_cover'] ?? 0) > 0) {
             $named[] = ['name' => 'Baton Rouge ran harder than you asked', 'amount' => null,
                 'why' => sprintf('You set %s%%. Marcus delivered %s%%: the crude price you set in Q4 2027 leaves his refinery reporting a margin he can point to, and he pointed to it.',
@@ -550,6 +593,13 @@ final class QuarterView
                 : sprintf('The terms you settled with the Kessana government: it takes %s%% of the field\'s profit oil. Against the old contract, that costs %s this quarter.',
                     self::n((float) ($r['ops.kessana_take'] ?? 0) * 100), ContentPack::money(abs((float) $r['line.kessana_take_change'])))];
         }
+        if ($quarter->company_quarter > '2029Q4') {
+            $names = $this->portfolioChosenLabels($d);
+            $sold = $this->europeSoldBy($team, $quarter);
+            $earlier[] = ['when' => 'From Q4 2029', 'text' => ($names === [] ? 'You went ahead with nothing from the five-year portfolio.'
+                : sprintf('The five-year portfolio: %s. %s goes out this quarter, and will every quarter for five years.', self::join($names), ContentPack::money((float) ($r['ops.portfolio_capex'] ?? 0))))
+                .($sold ? ' The European stations are sold: their earnings are gone from Gas stations, and Europe\'s share of the retail fixed cost with them.' : '')];
+        }
         if ($quarter->number >= 2 && $team->first_meeting !== null) {
             $earlier[] = ['when' => 'From your first day', 'text' => $team->first_meeting === 'ingrid'
                 ? 'You met Ingrid Vestergaard first. She has been quicker to approve your plans for the oil fields.'
@@ -559,7 +609,9 @@ final class QuarterView
         $content = $this->content->quarter($quarter->number);
 
         return [
-            'story' => $this->content->story($quarter->number, $r, $d, $base, ['{rebranded_regions}' => $this->rebrandedRegions($d)]),
+            'story' => $this->content->story($quarter->number, $r, $d, $base, ['{rebranded_regions}' => $this->rebrandedRegions($d),
+                '{portfolio_list}' => $this->portfolioChosenLabels($d) === [] ? 'nothing' : self::join($this->portfolioChosenLabels($d)),
+                '{portfolio_cost}' => ContentPack::money($this->portfolioCost($d))]),
             'pnl' => $pnl,
             'named' => $named,
             'bridge' => [
@@ -582,6 +634,52 @@ final class QuarterView
             'relations' => $this->content->relations($quarter->number, $r, $d, $base, $team->first_meeting),
             'money' => ['fcf' => (float) $r['money.fcf'], 'netDebt' => (float) $r['money.net_debt_end'], 'capex' => (float) $r['money.capex'], 'tax' => (float) $r['money.tax']],
         ];
+    }
+
+    /**
+     * @param  array<string, string|float|int|null>  $d
+     * @return list<string>
+     */
+    private function portfolioChosenLabels(array $d): array
+    {
+        $names = [];
+        foreach ($this->model->data->portfolio as $key => $p) {
+            if (($d["port_$key"] ?? 'hold') === 'go' && $p['cost'] > 0) {   // the sale is told on its own line
+                $names[] = str_starts_with($p['label'], 'Helix') ? $p['label'] : strtolower(substr($p['label'], 0, 1)).substr($p['label'], 1);
+            }
+        }
+
+        return $names;
+    }
+
+    /** @param  array<string, string|float|int|null>  $d */
+    private function portfolioCost(array $d): float
+    {
+        $sum = 0.0;
+        foreach ($this->model->data->portfolio as $key => $p) {
+            if (($d["port_$key"] ?? 'hold') === 'go' && $p['cost'] > 0) {
+                $sum += $p['cost'];
+            }
+        }
+
+        return $sum;
+    }
+
+    private function europeSoldBy(Team $team, Quarter $quarter): bool
+    {
+        try {
+            return $this->runner->startState($team, $quarter)->europeSold;
+        } catch (\RuntimeException) {
+            return false;
+        }
+    }
+
+    /** @param  list<string>  $names */
+    private static function join(array $names): string
+    {
+        $last = array_pop($names);
+
+        return $names === [] ? (string) $last : implode(', ', $names).' and '.$last;
     }
 
     /** @param  array<string, string|float|int|null>  $d */
