@@ -335,6 +335,11 @@ const commitText = computed(() => {
                   : 'Baton Rouge pays the market price for Texas crude',
         );
     }
+    if (props.desk.kessana?.open && isOpenLever('kessana_position')) {
+        parts.push(
+            `Kessana: ${props.leverText.choices.kessana_position[String(draft.kessana_position ?? 'accept')] ?? ''}`,
+        );
+    }
 
     return parts.join(' · ');
 });
@@ -382,6 +387,35 @@ function rivalMeans(): string {
         .replace('{cost}', fmt(matchCost.value, 1));
 }
 const hedgeKeys = ['crude_hedge', 'eur_hedge', 'nok_hedge'];
+
+const kessanaBlock = computed(() => {
+    const k = props.desk.kessana;
+    const t = props.leverText.kessana;
+    if (!k || k.open) {
+        return t.fixed;
+    }
+    if (k.exited) {
+        return t.exited;
+    }
+
+    return {
+        ...t.settled,
+        text: t.settled.text.replace('{take}', fmt(k.take * 100)),
+    };
+});
+
+function kessanaMeans(): string {
+    const k = props.desk.kessana;
+    if (!k) {
+        return '';
+    }
+    const text =
+        props.leverText.kessana.means[
+            String(draft.kessana_position ?? 'accept')
+        ] ?? '';
+
+    return ' ' + text.replace('{volume}', fmt(k.volume));
+}
 
 function opecMeans(): string {
     const o = props.desk.opec;
@@ -1117,6 +1151,69 @@ function quarterHref(id: number): string {
                                 </div>
                                 <div class="hx-hint mt-1">{{ f.text }}</div>
                             </div>
+                            <div
+                                v-if="
+                                    desk.kessana &&
+                                    desk.kessana.open &&
+                                    isOpenLever('kessana_position')
+                                "
+                                class="hx-lever"
+                            >
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <span class="text-[16px] font-semibold">{{
+                                        lever('kessana_position').label
+                                    }}</span>
+                                    <span class="hx-badge hx-badge-call">{{
+                                        badge('kessana_position')
+                                    }}</span>
+                                    <span
+                                        v-if="lever('kessana_position').isNew"
+                                        class="hx-badge hx-badge-new"
+                                        >NEW</span
+                                    >
+                                </div>
+                                <div class="hx-hint mt-1 mb-3">
+                                    {{ leverText.help.kessana_position }}
+                                </div>
+                                <div class="flex flex-col gap-2.5">
+                                    <button
+                                        v-for="(label, choice) in leverText
+                                            .choices.kessana_position"
+                                        :key="choice"
+                                        type="button"
+                                        class="hx-opt text-left"
+                                        :aria-pressed="
+                                            draft.kessana_position === choice
+                                        "
+                                        :disabled="!editable"
+                                        @click="
+                                            draft.kessana_position =
+                                                String(choice)
+                                        "
+                                    >
+                                        {{ label }}
+                                    </button>
+                                </div>
+                                <div
+                                    v-if="errors.kessana_position"
+                                    class="hx-error"
+                                >
+                                    {{ errors.kessana_position }}
+                                </div>
+                            </div>
+                            <div v-else class="hx-lever">
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <span class="text-[16px] font-semibold">{{
+                                        kessanaBlock.title
+                                    }}</span>
+                                    <span class="hx-badge hx-badge-fixed">{{
+                                        kessanaBlock.badge
+                                    }}</span>
+                                </div>
+                                <div class="hx-hint mt-1">
+                                    {{ kessanaBlock.text }}
+                                </div>
+                            </div>
                         </div>
                         <div class="hx-desk mt-4">
                             <div>
@@ -1134,6 +1231,15 @@ function quarterHref(id: number): string {
                                             )
                                         }}
                                         barrels a day.</template
+                                    >
+                                    <template
+                                        v-if="
+                                            desk.kessana &&
+                                            desk.kessana.open &&
+                                            isOpenLever('kessana_position')
+                                        "
+                                    >
+                                        {{ kessanaMeans() }}</template
                                     >
                                 </div>
                             </div>

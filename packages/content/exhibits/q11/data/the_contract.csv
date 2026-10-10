@@ -1,0 +1,6 @@
+parameter,value,note
+long_run_brent_usd_bbl,78.5,the long-run Brent price the valuation uses; this quarter's spot price is 72.5
+kessana_discount_usd_bbl,2.0,Kessana crude sells a little below Brent
+lifting_cost_usd_bbl,9.5,what it costs to get each barrel out
+government_take_today,0.62,the government's share of profit oil under the contract as it stands
+government_take_demanded,0.74,what the government has asked for

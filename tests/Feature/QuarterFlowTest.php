@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Halden\Game\DecisionBook;
 use App\Halden\Game\QuarterRunner;
+use App\Halden\Game\QuarterView;
 use App\Halden\OperatingModel\ModelData;
 use App\Models\Quarter;
 use App\Models\Section;
@@ -206,17 +207,41 @@ class QuarterFlowTest extends TestCase
         $this->assertEqualsWithDelta(-10.0, $tq->results['line.capacity_game'], 1e-9, 'Pelican built; the team held, so $10M a quarter');
     }
 
-    public function test_quarter_eleven_cannot_open_until_its_economics_exist(): void
+    public function test_quarter_eleven_settles_kessana_once_and_quarter_twelve_cannot_open_yet(): void
     {
-        [$section] = $this->section(['a']);
+        [$section, $teams] = $this->section(['a', 'b']);
         $runner = app(QuarterRunner::class);
+        $book = app(DecisionBook::class);
         foreach ([1, 2, 3, 4, 5, 6, 7, 8, 9, 10] as $n) {
             $q = $section->quarters()->where('number', $n)->firstOrFail();
             $runner->open($q);
             $runner->close($q->refresh());
             $runner->publish($q->refresh());
         }
-        $this->expectExceptionMessage("The economics for Q3 2029 aren't built yet.");
-        $runner->open($section->quarters()->where('number', 11)->firstOrFail());
+        $q11 = $section->quarters()->where('number', 11)->firstOrFail();
+        $runner->open($q11);
+        $this->assertTrue($book->isOpen('kessana_position', 11));
+        $this->assertFalse($book->isOpen('kessana_position', 12), 'the position is answered once');
+        $this->assertSame('accept', $book->effective($teams['a'], $q11->refresh())['kessana_position'], 'an unanswered team signs the new terms');
+        TeamQuarter::query()->create(['team_id' => $teams['a']->id, 'quarter_id' => $q11->id, 'decisions' => ['kessana_position' => 'counter']]);
+        TeamQuarter::query()->create(['team_id' => $teams['b']->id, 'quarter_id' => $q11->id, 'decisions' => ['kessana_position' => 'exit']]);
+        $runner->close($q11->refresh());
+        $runner->publish($q11->refresh());
+        $a = TeamQuarter::query()->where('team_id', $teams['a']->id)->where('quarter_id', $q11->id)->firstOrFail();
+        $b = TeamQuarter::query()->where('team_id', $teams['b']->id)->where('quarter_id', $q11->id)->firstOrFail();
+        $this->assertEqualsWithDelta(0.68, $a->results['ops.kessana_take'], 1e-9, 'a reasoned counter settles in the middle');
+        $this->assertLessThan(0, $a->results['line.kessana_take_change']);
+        $this->assertSame(0.0, (float) $b->results['line.kessana'], 'leaving ends the line');
+        $this->assertEqualsWithDelta(180.0, $b->results['ops.kessana_exit_proceeds'], 1e-9);
+        $this->assertEqualsWithDelta(2300.0, $a->results['money.capital_employed_end'] - $b->results['money.capital_employed_end'], 1e-6, 'the book value leaves capital employed');
+        $view = app(QuarterView::class)->build($teams['a'], $q11->refresh(), null, readOnly: true);
+        $this->assertSame('counter', $view['results']['story']['band']);
+        $this->assertStringContainsString('Tetteh', $view['results']['story']['paragraphs'][0]);
+        $this->assertContains('Minister Tetteh', array_column($view['results']['relations'], 'who'));
+        $this->assertTrue(collect($view['results']['named'])->contains(fn (array $l) => str_starts_with($l['name'], 'Kessana')));
+        $this->assertTrue($view['desk']['kessana']['open'], 'the Q3 2029 page keeps showing the answer the team gave');
+        $this->assertEqualsWithDelta(0.62, $view['desk']['kessana']['take'], 1e-9, 'the page shows the take the quarter started with');
+        $this->expectExceptionMessage("The economics for Q4 2029 aren't built yet.");
+        $runner->open($section->quarters()->where('number', 12)->firstOrFail());
     }
 }

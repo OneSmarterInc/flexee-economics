@@ -41,7 +41,7 @@ class FacultyController extends Controller
             $tq = $quarter === null ? null : TeamQuarter::query()->where('team_id', $team->id)->where('quarter_id', $quarter->id)->first();
             $fbTq = $fbQuarter === null ? null : TeamQuarter::query()->where('team_id', $team->id)->where('quarter_id', $fbQuarter->id)->first();
             $saved = $tq->saved_pages ?? [];
-            $times = array_filter([...array_column($saved, 'at'), $tq?->memo_saved_at?->toIso8601String()]);
+            $times = array_filter([...array_column($saved, 'at'), $tq?->memo_saved_at?->toIso8601String(), $tq?->ready_at?->toIso8601String()]);
             rsort($times);
             $words = $tq?->memo ? str_word_count(strip_tags($tq->memo)) : 0;
             $teams[] = [

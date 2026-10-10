@@ -105,3 +105,10 @@ rebrand_fills_per_site_year,180000,fills,Wk9 rebrand_params.csv,a calibration fi
 recession_gdp_change,-0.03,fraction,Wk10 recession_params.csv,the economy shrinks 3% in the recession quarter
 delacroix_cover_share,0.5,fraction,design (Vikram decision on Wk10 Delacroix cover),the share of a requested Baton Rouge run cut Marcus refuses when he has cover
 straits_strained_quarters,2,count,design (provisional),asking Singapore for more than Straits Pacific allows this many times in the last four quarters strains the partnership
+kessana_planning_brent,78.5,usd_bbl,Wk11 psc_terms.csv,the long-run Brent price the Kessana valuation uses (not the quarter's spot price)
+kessana_remaining_mbbl,340,million_bbl,Wk11 reserves.csv,Halden's estimate of what is left in the field
+kessana_production_years,10,years,Wk11 reserves.csv,the valuation runs the remaining reserves off level over ten years
+kessana_risk_rate,0.14,fraction,Wk11 reserves.csv,the discount rate for Kessana cash flows (country risk on top of the hurdle)
+kessana_exit_value,180,usd_m,Wk11 exit_and_sunk.csv,what Halden gets for handing the block back
+kessana_sunk_capital,2800,usd_m,Wk11 exit_and_sunk.csv,reference only: already spent and never enters the decision
+kessana_book_value,2300,usd_m,Wk1 book_values.csv,leaves capital employed if Halden exits

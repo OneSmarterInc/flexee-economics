@@ -52,6 +52,24 @@ class ContentPackTest extends TestCase
         $this->assertStringContainsString('better than the usual 42 cents', implode(' ', $calm['paragraphs']));
     }
 
+    public function test_quarter_eleven_story_is_picked_by_the_kessana_answer(): void
+    {
+        $results = ['ops.kessana_take' => 0.68, 'line.kessana_take_change' => -50.1, 'ops.kessana_forgone' => 0.0, 'money.ebitda' => 3244.3];
+        $story = $this->pack()->story(11, $results, ['rigs' => 14, 'kessana_position' => 'counter'], []);
+        $this->assertSame('counter', $story['band']);
+        $this->assertSame('The middle', $story['title']);
+        $text = implode(' ', $story['paragraphs']);
+        $this->assertStringContainsString('costs Halden $50M this quarter', $text);
+        $this->assertStringNotContainsString('{', $text);
+        $this->assertSame('accept', $this->pack()->story(11, $results, ['rigs' => 14], [])['band'], 'an unanswered team signed');
+        $gone = $this->pack()->story(11, ['ops.kessana_forgone' => 317.3, 'line.kessana_take_change' => 0.0] + $results, ['rigs' => 14, 'kessana_position' => 'exit'], []);
+        $this->assertSame('Out of Kessana', $gone['title']);
+        $this->assertStringContainsString('$317M this quarter alone', implode(' ', $gone['paragraphs']));
+        $this->assertSame('The bluff', $this->pack()->story(11, $results, ['rigs' => 14, 'kessana_position' => 'threaten'], [])['title']);
+        $who = array_column($this->pack()->relations(11, $results, ['kessana_position' => 'threaten'], [], null), 'who');
+        $this->assertSame(['Minister Tetteh', 'Grant Whitaker'], $who);
+    }
+
     public function test_quarter_seven_story_is_picked_by_how_many_markets_were_matched(): void
     {
         $results = ['ops.rival_match_cost' => 46.1, 'ops.rival_ignore_cost' => 0.07, 'money.ebitda' => 3862.0];

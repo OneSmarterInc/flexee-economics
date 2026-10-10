@@ -47,6 +47,7 @@ final class OperatingModel
             capitalEmployed: $this->data->c('opening_capital_employed'),
             netDebt: $this->data->c('opening_net_debt'),
             assetHealth: $this->data->c('opening_asset_health'),
+            kessanaTake: $this->data->kessanaTakes['current'],
         );
     }
 
@@ -275,6 +276,56 @@ final class OperatingModel
         return $this->data->c("opec_inventory_days_$case");
     }
 
+    /** Profit oil per barrel at the valuation's long-run Brent: what the government and Halden split. */
+    public function kessanaProfitOil(): float
+    {
+        return $this->data->c('kessana_planning_brent') - $this->data->c('kessana_discount_to_brent') - $this->data->c('kessana_lifting');
+    }
+
+    public function kessanaAnnualMbbl(): float
+    {
+        return $this->data->c('kessana_remaining_mbbl') / $this->data->c('kessana_production_years');
+    }
+
+    public function kessanaAnnuityFactor(): float
+    {
+        $r = $this->data->c('kessana_risk_rate');
+        $n = (int) $this->data->c('kessana_production_years');
+
+        return (1 - (1 + $r) ** -$n) / $r;
+    }
+
+    /** What staying in Kessana is worth (USD m) at a given government take. Sunk capital is not an input. */
+    public function kessanaPvStay(float $take): float
+    {
+        return $this->kessanaProfitOil() * (1 - $take) * $this->kessanaAnnualMbbl() * $this->kessanaAnnuityFactor();
+    }
+
+    /** The take at which staying is worth exactly the exit value: how far the government could push on economics alone. */
+    public function kessanaIndifferenceTake(): float
+    {
+        return 1 - $this->data->c('kessana_exit_value') / ($this->kessanaProfitOil() * $this->kessanaAnnualMbbl() * $this->kessanaAnnuityFactor());
+    }
+
+    /**
+     * Where each negotiating position lands: signing takes the demand, a reasoned counter settles in the middle,
+     * a threat Halden cannot carry out is called and the government goes harsh. Handing the block back exits.
+     *
+     * @return array{0: float, 1: bool} the take and whether Halden has exited
+     */
+    public function kessanaOutcome(string $position, CompanyState $state): array
+    {
+        if ($position === 'exit') {
+            return [$state->kessanaTake, true];
+        }
+        $scenario = ['accept' => 'demanded', 'counter' => 'mid', 'threaten' => 'harsh'][$position] ?? null;
+        if ($scenario !== null) {
+            return [$this->data->kessanaTakes[$scenario], false];
+        }
+
+        return [$state->kessanaTake, $state->kessanaExited];
+    }
+
     /** @param  array<string, mixed>  $mkt  one row of the market path */
     public function step(CompanyState $state, Decisions $dec, array $mkt): QuarterResult
     {
@@ -314,8 +365,24 @@ final class OperatingModel
             - $norVol * $cut * ($brent - $c('norway_discount_to_brent') - $norSavedPerBbl)) * $D / 1e6;
         $lines['norway_cutback_effect'] = -$norVol * $cut * ($brent - $c('norway_discount_to_brent') - $norSavedPerBbl) * $D / 1e6;
         $lines['norway_partner_run'] = $c('norway_nonop_volume') * $norMarginFull * $D / 1e6;
-        $kesNet = ($brent - $c('kessana_discount_to_brent') - $c('kessana_lifting')) * $c('kessana_company_share_profit_oil');
-        $lines['kessana'] = $c('kessana_volume') * $kesNet * $D / 1e6;
+        // Kessana: the government's share of profit oil is set by the contract until the Q3 2029 talks, then by what Halden
+        // answered. Handing the block back ends the line, returns the exit value and takes the book value off capital.
+        $kesTake = $state->kessanaTake;
+        $kesExited = $state->kessanaExited;
+        $kesExitProceeds = 0.0;
+        if (($mkt['kessana'] ?? false) && $dec->kessanaPosition !== 'none') {
+            [$kesTake, $kesExited] = $this->kessanaOutcome($dec->kessanaPosition, $state);
+            if ($kesExited && ! $state->kessanaExited) {
+                $kesExitProceeds = $c('kessana_exit_value');
+                $notes['kessana_exit'] = true;
+            }
+        }
+        $kesProfitOil = $brent - $c('kessana_discount_to_brent') - $c('kessana_lifting');
+        $lines['kessana'] = $kesExited ? 0.0 : $c('kessana_volume') * $kesProfitOil * (1 - $kesTake) * $D / 1e6;
+        // Already inside kessana; shown on its own: what the bigger share costs Halden against the original contract.
+        $lines['kessana_take_change'] = $kesExited ? 0.0 : -$c('kessana_volume') * $kesProfitOil * ($kesTake - $this->data->kessanaTakes['current']) * $D / 1e6;
+        // What the field would have earned this quarter at the carried take, once Halden has left (for the story; not a line)
+        $kesForgone = $kesExited ? $c('kessana_volume') * $kesProfitOil * (1 - $state->kessanaTake) * $D / 1e6 : 0.0;
         $lines['gas_other'] = $c('gas_other_ebitda');
         $upstreamBase = $lines['permian'] + $lines['norway_operated'] + $lines['norway_partner_run'] + $lines['kessana'] + $lines['gas_other'];
 
@@ -548,8 +615,8 @@ final class OperatingModel
         $newCapital = $commitOutlay + $rebrandOutlay;   // the rebrand is capital spending, treated like a project (decision S2)
         $capex = $c('other_sustaining_capex') + $dec->rigs * $c('rig_capex_per_qtr') + $newCapital;
         $fcf = $ebitda - $tax - $capex;
-        $newCe = $state->capitalEmployed + $capex - $da;
-        $newNd = $state->netDebt - $fcf + $c('shareholder_payout');
+        $newCe = $state->capitalEmployed + $capex - $da - ($kesExitProceeds > 0 ? $c('kessana_book_value') : 0.0);
+        $newNd = $state->netDebt - $fcf + $c('shareholder_payout') - $kesExitProceeds;   // exit proceeds pay down debt; the write-down is non-cash
 
         // Plant condition
         $health = $state->assetHealth;
@@ -613,6 +680,8 @@ final class OperatingModel
             projects: $projAge,
             rebranded: $rebrandAge,
             prevBrRun: $brRun,
+            kessanaTake: $kesTake,
+            kessanaExited: $kesExited,
         );
 
         return new QuarterResult(
@@ -626,7 +695,8 @@ final class OperatingModel
                 'fx_effect' => $fxEffect, 'project_outlay' => $commitOutlay, 'nwe' => $mkt['nwe'],
                 'rival_match_cost' => $matchCost / 1e6, 'rival_ignore_cost' => $ignoreCost / 1e6,
                 'wti_shock' => $shock, 'gc' => $mkt['gc'], 'wti' => $wti, 'rebrand_outlay' => $rebrandOutlay,
-                'nonfuel_per_gal' => $nonfuelPerGal, 'br_run' => $brRun],
+                'nonfuel_per_gal' => $nonfuelPerGal, 'br_run' => $brRun,
+                'kessana_take' => $kesTake, 'kessana_exit_proceeds' => $kesExitProceeds, 'kessana_forgone' => $kesForgone],
             notes: $notes,
             state: $newState,
         );
