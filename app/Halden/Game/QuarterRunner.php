@@ -34,9 +34,14 @@ final class QuarterRunner
         if ($quarter->isRotationQuarter() && $quarter->seats_rotated_at === null) {
             $this->rotateSeats($quarter);
         }
-        // The board meeting: the world the five-year portfolio is valued in is drawn once per class when the quarter opens.
-        if ($quarter->isBoardQuarter() && $quarter->world === null) {
-            $quarter->world = $this->drawWorld();
+        // The board meeting: the world the five-year portfolio is valued in is drawn once per class when the quarter
+        // opens (in a 7-week course, when the last week opens, since the board quarter is that week's second half).
+        $board = $quarter->boardQuarter();
+        if ($board !== null && $board->world === null) {
+            $board->world = $this->drawWorld();
+            if ($board->isNot($quarter)) {
+                $board->save();
+            }
         }
         $quarter->update(['status' => Quarter::OPEN, 'opened_at' => now()]);
     }
@@ -123,6 +128,20 @@ final class QuarterRunner
             }
             $quarter->update(['status' => Quarter::CLOSED, 'closed_at' => now()]);
         });
+
+        // A 7-week course: the week's second quarter runs straight after the first, with the same settings. What the
+        // team saved is copied across so that a decision which only opens in the second quarter lands there.
+        $partner = $quarter->isFirstOfWeek() ? $quarter->partner() : null;
+        if ($partner !== null && $partner->status === Quarter::UPCOMING) {
+            DB::transaction(function () use ($quarter, $partner): void {
+                foreach (TeamQuarter::query()->where('quarter_id', $quarter->id)->get() as $tq) {
+                    TeamQuarter::query()->updateOrCreate(['team_id' => $tq->team_id, 'quarter_id' => $partner->id],
+                        ['decisions' => $tq->decisions ?? [], 'saved_pages' => $tq->saved_pages ?? []]);
+                }
+                $partner->update(['status' => Quarter::OPEN, 'opened_at' => now(), 'deadline_at' => $quarter->deadline_at]);
+            });
+            $this->close($partner->refresh());
+        }
     }
 
     public function publish(Quarter $quarter): void
@@ -131,6 +150,11 @@ final class QuarterRunner
             throw new RuntimeException('Close the quarter before publishing results.');
         }
         $quarter->update(['status' => Quarter::PUBLISHED, 'published_at' => now()]);
+        // A 7-week course: the week's two quarters go out together.
+        $partner = $quarter->isFirstOfWeek() ? $quarter->partner() : null;
+        if ($partner !== null && $partner->status === Quarter::CLOSED) {
+            $this->publish($partner);
+        }
     }
 
     /**

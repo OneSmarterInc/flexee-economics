@@ -32,15 +32,20 @@ class FacultyController extends Controller
     {
         $section = $this->section($request);
         $quarter = $section->currentQuarter();
-        $openPages = $quarter === null ? [] : array_values(array_intersect(array_keys(QuarterView::PAGE_TITLES), $book->openPages($quarter->number)));
+        $openPages = $quarter === null ? [] : array_values(array_intersect(array_keys(QuarterView::PAGE_TITLES), $book->openPages($quarter->playEnd())));
 
         // Feedback is written on the latest quarter that has been run: this one once it closes, otherwise the one before.
-        $fbQuarter = $quarter === null ? null : (in_array($quarter->status, [Quarter::CLOSED, Quarter::PUBLISHED], true) ? $quarter : $quarter->previous());
+        $fbQuarter = $quarter === null ? null : (in_array($quarter->status, [Quarter::CLOSED, Quarter::PUBLISHED], true) ? $quarter : $quarter->previous()?->weekStart());
+        // The board quarter this week carries: the quarter itself, or the week's second half in a 7-week course.
+        $boardQ = $quarter?->boardQuarter();
 
         $teams = [];
         foreach ($section->teams()->with('members.user')->orderBy('name')->get() as $team) {
             $tq = $quarter === null ? null : TeamQuarter::query()->where('team_id', $team->id)->where('quarter_id', $quarter->id)->first();
+            $boardTq = $boardQ === null ? null : ($boardQ->is($quarter) ? $tq : TeamQuarter::query()->where('team_id', $team->id)->where('quarter_id', $boardQ->id)->first());
             $fbTq = $fbQuarter === null ? null : TeamQuarter::query()->where('team_id', $team->id)->where('quarter_id', $fbQuarter->id)->first();
+            // The week's score is its last quarter's (the second of the pair in a 7-week course).
+            $endTq = $quarter === null || $quarter->playEnd() === $quarter->number ? $tq : TeamQuarter::query()->where('team_id', $team->id)->whereHas('quarter', fn ($q) => $q->where('section_id', $section->id)->where('number', $quarter->playEnd()))->first();
             $saved = $tq->saved_pages ?? [];
             $times = array_filter([...array_column($saved, 'at'), $tq?->memo_saved_at?->toIso8601String(), $tq?->ready_at?->toIso8601String()]);
             rsort($times);
@@ -53,29 +58,31 @@ class FacultyController extends Controller
                 'memoWords' => $words,
                 'ready' => $tq?->ready_at !== null,
                 'feedback' => $fbTq?->feedback_published_at !== null ? 'published' : ($fbTq !== null && FacultyDraft::query()->where('team_quarter_id', $fbTq->id)->exists() ? 'drafted' : 'none'),
-                'defense' => $tq?->defense_saved_at !== null,
-                'verdict' => $tq?->verdict_published_at !== null ? 'published' : ($tq?->verdict !== null ? 'decided' : 'none'),
+                'defense' => $boardTq?->defense_saved_at !== null,
+                'verdict' => $boardTq?->verdict_published_at !== null ? 'published' : ($boardTq?->verdict !== null ? 'decided' : 'none'),
                 'advisorAnswers' => $quarter === null ? 0 : AdvisorMessage::billable($team->id, $quarter->id),
                 'lastActivity' => $times[0] ?? null,
-                'score' => $tq?->score,
-                'rank' => $tq?->rank,
+                'score' => $endTq?->score,
+                'rank' => $endTq?->rank,
                 'flag' => $words === 0 ? 'No memo yet' : null,
             ];
         }
-        $next = $quarter === null ? null : $section->quarters()->where('number', $quarter->number + 1)->first();
+        $next = $quarter === null ? null : $section->quarters()->where('number', $quarter->playEnd() + 1)->first();
 
         return Inertia::render('halden/FacultyBoard', [
             'section' => ['id' => $section->id, 'name' => $section->name, 'course' => $section->course_name],
             'quarter' => $quarter === null ? null : [
-                'id' => $quarter->id, 'number' => $quarter->number, 'label' => $quarter->label(), 'status' => $quarter->status,
-                'isBoard' => $quarter->isBoardQuarter(), 'world' => $quarter->world,
+                'id' => $quarter->id, 'number' => $quarter->number, 'label' => $quarter->weekLabel(), 'status' => $quarter->status,
+                'week' => $quarter->week(), 'weeks' => (int) $section->weeks, 'paired' => $quarter->isPaired(),
+                'isBoard' => $boardQ !== null, 'boardQuarterId' => $boardQ?->id, 'boardLabel' => $boardQ?->label(), 'world' => $boardQ?->world,
+                'coverage' => $quarter->isPaired() ? ($content->paired()['faculty_coverage'] ?? null) : null,
                 'deadline' => $quarter->deadline_at?->toIso8601String(),
                 'deadlineText' => $quarter->deadline_at?->setTimezone('America/New_York')->format('l j M, g:i a'),
             ],
             'feedbackQuarter' => $fbQuarter === null ? null : ['id' => $fbQuarter->id, 'label' => $fbQuarter->label()],
-            'next' => $next === null ? null : ['id' => $next->id, 'label' => $next->label(), 'buildable' => $runner->hasMarket($next) && $content->hasQuarter($next->number)],
-            // The class-wide draws on this quarter and the next, so the instructor can set one before the quarter that draws it opens or closes.
-            'draws' => $this->draws($runner, array_values(array_filter([$quarter, $next]))),
+            'next' => $next === null ? null : ['id' => $next->id, 'label' => $next->weekLabel(), 'buildable' => $runner->hasMarket($next) && $content->hasQuarter($next->number)],
+            // The class-wide draws on this week's quarters and the next's, so the instructor can set one before the quarter that draws it opens or closes.
+            'draws' => $this->draws($runner, array_values(array_filter([$quarter, $quarter?->partner(), $next, $next?->partner()]))),
             'pages' => array_map(fn (string $p) => ['page' => $p, 'title' => QuarterView::PAGE_TITLES[$p]], $openPages),
             'teams' => $teams,
             'quarters' => $section->quarters()->get()->map(fn (Quarter $q) => ['number' => $q->number, 'label' => $q->label(), 'status' => $q->status])->values(),

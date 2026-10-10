@@ -506,6 +506,13 @@ The conversation so far (the last message is the one to answer):
         $who = $this->book['advisors'][$advisor];
         $card = collect($this->cards())->firstWhere('key', $advisor) ?? [];
         $file = $this->quarterFiles[$quarter->number][$advisor] ?? [];
+        // A 7-week course: the week's second quarter is on the advisor's desk too.
+        $partner = $quarter->isFirstOfWeek() ? $quarter->partner() : null;
+        if ($partner !== null) {
+            foreach ($this->quarterFiles[$partner->number][$advisor] ?? [] as $k => $v) {
+                $file[$k] = trim(($file[$k] ?? '').' '.$v);
+            }
+        }
         $team->loadMissing('section');
 
         $parts = [];

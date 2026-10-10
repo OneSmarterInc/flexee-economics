@@ -60,7 +60,7 @@ final class QuarterView
      */
     private function capitalDesk(Quarter $quarter, array $previous): ?array
     {
-        if (! in_array('capital', $this->book->openPages($quarter->number), true) || ! $this->runner->hasMarket($quarter)) {
+        if (! in_array('capital', $this->book->openPages($quarter->playEnd()), true) || ! $this->runner->hasMarket($quarter)) {
             return null;
         }
         $terms = $this->runner->capitalTerms($quarter);
@@ -84,7 +84,7 @@ final class QuarterView
      */
     private function rivalDesk(Quarter $quarter): ?array
     {
-        if (! $this->book->isUnlocked('resp_urban', $quarter->number) || ! $this->runner->hasMarket($quarter)) {
+        if (! $this->book->isUnlocked('resp_urban', $quarter->playEnd()) || ! $this->runner->hasMarket($quarter)) {
             return null;
         }
         $cut = (float) ($this->runner->marketFor($quarter)['rival_cut'] ?? 0);
@@ -104,7 +104,7 @@ final class QuarterView
      */
     private function opecDesk(Quarter $quarter): ?array
     {
-        if (! $this->book->isUnlocked('opec_case', $quarter->number) || ! $this->runner->hasMarket($quarter)) {
+        if (! $this->book->isUnlocked('opec_case', $quarter->playEnd()) || ! $this->runner->hasMarket($quarter)) {
             return null;
         }
         $m = $this->model->data->quarter($quarter->company_quarter);
@@ -127,7 +127,7 @@ final class QuarterView
      */
     private function rebrandDesk(Quarter $quarter, array $previous): ?array
     {
-        if (! $this->book->isUnlocked('rebrand_core', $quarter->number)) {
+        if (! $this->book->isUnlocked('rebrand_core', $quarter->playEnd())) {
             return null;
         }
         $regions = [];
@@ -146,12 +146,12 @@ final class QuarterView
      */
     private function kessanaDesk(Quarter $quarter, ?CompanyState $start): ?array
     {
-        if (! $this->book->isUnlocked('kessana_position', $quarter->number)) {
+        if (! $this->book->isUnlocked('kessana_position', $quarter->playEnd())) {
             return null;
         }
         $data = $this->model->data;
 
-        return ['open' => $this->book->isOpen('kessana_position', $quarter->number) && $this->runner->hasMarket($quarter),
+        return ['open' => $this->book->isOpen('kessana_position', $quarter->number, $quarter->playEnd()) && $this->runner->hasMarket($quarter),
             'take' => $start === null ? $data->kessanaTakes['current'] : $start->kessanaTake, 'exited' => $start !== null && $start->kessanaExited,
             'volume' => $data->c('kessana_volume'), 'takes' => $data->kessanaTakes,
             'exitValue' => $data->c('kessana_exit_value'), 'bookValue' => $data->c('kessana_book_value')];
@@ -165,7 +165,7 @@ final class QuarterView
      */
     private function portfolioDesk(Quarter $quarter, array $previous, ?CompanyState $start): ?array
     {
-        if (! $this->book->isUnlocked('port_helix_rotterdam', $quarter->number)) {
+        if (! $this->book->isUnlocked('port_helix_rotterdam', $quarter->playEnd())) {
             return null;
         }
         $data = $this->model->data;
@@ -180,7 +180,7 @@ final class QuarterView
             $buckets[] = ['key' => $key, 'label' => $b['label'], 'ceiling' => $b['ceiling']];
         }
 
-        return ['open' => $this->book->isOpen('port_helix_rotterdam', $quarter->number) && $this->runner->hasMarket($quarter),
+        return ['open' => $this->book->isOpen('port_helix_rotterdam', $quarter->number, $quarter->playEnd()) && $this->runner->hasMarket($quarter),
             'envelope' => $data->c('portfolio_envelope'), 'floor' => $data->c('portfolio_sustaining_floor'), 'discretionary' => $this->model->portfolioDiscretionary(),
             'years' => $data->c('portfolio_years'), 'carbon' => $this->runner->hasMarket($quarter) ? (float) ($this->runner->marketFor($quarter)['carbon'] ?? 0) : 0.0,
             'rotterdamClosed' => $closed, 'buckets' => $buckets, 'projects' => $projects];
@@ -194,12 +194,12 @@ final class QuarterView
      */
     private function laborDesk(Quarter $quarter, array $previous, ?CompanyState $start): ?array
     {
-        if (! $this->book->isUnlocked('norway_wage', $quarter->number)) {
+        if (! $this->book->isUnlocked('norway_wage', $quarter->playEnd())) {
             return null;
         }
         $data = $this->model->data;
 
-        return ['open' => $this->book->isOpen('norway_wage', $quarter->number) && $this->runner->hasMarket($quarter),
+        return ['open' => $this->book->isOpen('norway_wage', $quarter->number, $quarter->playEnd()) && $this->runner->hasMarket($quarter),
             'wageBill' => $data->c('norway_wage_bill'), 'demand' => $data->c('norway_union_demand'), 'half' => $data->c('norway_half_offer'), 'taxRate' => $data->c('norway_tax_rate'),
             'uplift' => $start === null ? 0.0 : $start->norwayWageUplift,
             'peakCost' => $this->model->turnaroundPeakCost(), 'offPeakCost' => $data->c('turnaround_labor_base'), 'outageChance' => $data->c('turnaround_outage_probability'),
@@ -297,8 +297,11 @@ final class QuarterView
             'quarter' => [
                 'id' => $quarter->id,
                 'number' => $quarter->number,
-                'total' => $section->weeks,
+                'total' => Quarter::COMPANY_QUARTERS,
                 'label' => $quarter->label(),
+                'heading' => $this->heading($quarter),
+                'paired' => $quarter->isPaired(),
+                'pairedNote' => $this->pairedNote($quarter),
                 'status' => $quarter->status,
                 'deadline' => $quarter->deadline_at?->toIso8601String(),
                 'deadlineText' => $this->deadlineText($quarter),
@@ -311,15 +314,15 @@ final class QuarterView
             'wti' => $this->wtiHistory($quarter),
             'advisors' => $this->room->view($team, $quarter, forFaculty: $readOnly && $me === null),
             'leverText' => $this->content->leverText(),
-            'pages' => $quarter->isBoardQuarter() ? [] : array_values(array_intersect(array_keys(self::PAGE_TITLES), $this->book->openPages($quarter->number))),
-            'board' => $this->board($team, $quarter, $tq, $readOnly && $me === null),
+            'pages' => $quarter->isBoardQuarter() ? [] : array_values(array_intersect(array_keys(self::PAGE_TITLES), $this->book->openPages($quarter->playEnd()))),
+            'board' => $this->boardFor($team, $quarter, $readOnly && $me === null),
             'decisions' => [
                 'previous' => $previous,
                 'current' => $current,
                 'saved' => $tq->decisions ?? [],
                 'savedPages' => $savedPages,
-                'levers' => array_values(array_map(fn (array $l) => $l + ['isOpen' => $this->book->isOpen($l['key'], $quarter->number),
-                    'isNew' => $l['unlock'] === $quarter->number && $quarter->number > 1], $this->book->levers())),
+                'levers' => array_values(array_map(fn (array $l) => $l + ['isOpen' => $this->book->isOpen($l['key'], $quarter->number, $quarter->playEnd()),
+                    'isNew' => $l['unlock'] >= $quarter->number && $l['unlock'] <= $quarter->playEnd() && $quarter->number > 1], $this->book->levers())),
             ],
             'desk' => [
                 'permianNow' => $start?->permianProd,
@@ -354,18 +357,85 @@ final class QuarterView
         ];
     }
 
+    /**
+     * The board quarter's payload: the quarter itself, or the week's second half in the last week of a 7-week course.
+     *
+     * @return array<string, mixed>|null
+     */
+    private function boardFor(Team $team, Quarter $quarter, bool $forFaculty): ?array
+    {
+        $board = $quarter->boardQuarter();
+        if ($board === null) {
+            return null;
+        }
+        $tq = TeamQuarter::query()->where('team_id', $team->id)->where('quarter_id', $board->id)->first();
+
+        return $this->board($team, $board, $tq, $forFaculty);
+    }
+
+    /** "Q4 2027 · Quarter 4 of 14", or "Q3 and Q4 2027 · Week 2 of 7" in a 7-week course. */
+    private function heading(Quarter $quarter): string
+    {
+        if (! $quarter->isPaired()) {
+            return $quarter->label().' · Quarter '.$quarter->number.' of '.Quarter::COMPANY_QUARTERS;
+        }
+
+        return $quarter->weekLabel().' · '.strtr($this->content->paired()['heading'] ?? '', ['{week}' => (string) $quarter->week(), '{total}' => (string) $quarter->section->weeks]);
+    }
+
+    /** @return array<string, string> the placeholders for the 7-week words */
+    private function pairedFill(Quarter $quarter): array
+    {
+        $first = $quarter->weekStart();
+        $second = Quarter::companyQuarterFor($first->number + 1);
+
+        return ['{week}' => (string) $quarter->week(), '{total}' => (string) $quarter->section->weeks, '{label}' => $quarter->weekLabel(),
+            '{first}' => $first->label(), '{second}' => substr($second, 4).' '.substr($second, 0, 4)];
+    }
+
+    /** In a 7-week course, a line on each half of the week pointing at the other: the results on the second, the pages on the first. */
+    private function pairedNote(Quarter $quarter): ?string
+    {
+        if (! $quarter->isPaired()) {
+            return null;
+        }
+        if (! $quarter->isFirstOfWeek()) {
+            return strtr($this->content->paired()['second_note'] ?? '', $this->pairedFill($quarter));
+        }
+
+        return $quarter->status === Quarter::PUBLISHED ? strtr($this->content->paired()['results_note'] ?? '', $this->pairedFill($quarter)) : null;
+    }
+
     /** @return array<string, mixed> */
     private function contentFor(Quarter $quarter): array
     {
         $c = $this->content->quarter($quarter->number);
+        $exhibits = $c['exhibits'];
+        $rule = $c['rule'];
+        $newPages = $c['new_pages_note'];
+        $also = null;
+        $partner = $quarter->isFirstOfWeek() ? $quarter->partner() : null;
+        if ($partner !== null && $this->content->hasQuarter($partner->number)) {
+            // A 7-week course: the week's second quarter brings its question, its reading and its new pages along.
+            $c2 = $this->content->quarter($partner->number);
+            $words = $this->content->paired();
+            $fill = $this->pairedFill($quarter);
+            $also = ['title' => strtr($words['also_title'], $fill), 'intro' => strtr($words['also_intro'], $fill),
+                'headline' => $c2['briefing']['headline'], 'paragraphs' => $c2['briefing']['paragraphs'], 'question' => $c2['briefing']['question'],
+                'rule' => $c2['rule'], 'marchetti' => $c2['marchetti']];
+            $rule = strtr($words['rule'], $fill).($partner->isBoardQuarter() ? ' '.$words['last_week'] : '')."\n\n".$rule;
+            $newPages = (string) ($c['new_pages_note_paired'] ?? trim($newPages.' '.$c2['new_pages_note']));
+            $exhibits = [...$exhibits, ...$c2['exhibits']];
+        }
 
         return [
             'briefing' => $c['briefing'],
-            'rule' => $c['rule'],
-            'newPagesNote' => $c['new_pages_note'],
+            'also' => $also,
+            'rule' => $rule,
+            'newPagesNote' => $newPages,
             'marchetti' => $c['marchetti'],
             'rotationNote' => $quarter->seats_rotated_at !== null ? ($c['rotation_note'] ?? null) : null,
-            'exhibits' => array_map(fn (array $e) => ['title' => $e['title'], 'url' => route('exhibits.show', ['path' => $e['file']])], $c['exhibits']),
+            'exhibits' => array_map(fn (array $e) => ['title' => $e['title'], 'url' => route('exhibits.show', ['path' => $e['file']])], $exhibits),
         ];
     }
 
@@ -596,8 +666,7 @@ final class QuarterView
             'plant_condition' => ['Plant condition', '10%', 'pts', 'How well your refineries and oil fields are holding up, out of 100'],
         ];
         // The midterm and the end: every measure against the whole class (decision D4).
-        $total = (int) $team->section->weeks;
-        $compare = $quarter->number === (int) ceil($total / 2) || $quarter->number === $total;
+        $compare = $quarter->isComparisonQuarter();
         $classValues = [];
         if ($compare) {
             foreach (TeamQuarter::query()->where('quarter_id', $quarter->id)->whereNotNull('results')->get() as $other) {

@@ -71,16 +71,20 @@ final class DecisionBook
         return $lever !== null && $lever['unlock'] <= $quarterNumber;
     }
 
-    /** A one-time decision can only be changed in the quarter it opens; afterwards it is settled. */
-    public function isOpen(string $key, int $quarterNumber): bool
+    /**
+     * A one-time decision can only be changed in the quarter it opens; afterwards it is settled. In a 7-week course a
+     * week spans two quarters ($quarterNumber to $until), and a decision is open for the week if it is open in either.
+     */
+    public function isOpen(string $key, int $quarterNumber, ?int $until = null): bool
     {
         $lever = $this->levers[$key] ?? null;
+        $until ??= $quarterNumber;
 
-        return $lever !== null && $lever['unlock'] <= $quarterNumber && (! $lever['once'] || $lever['unlock'] === $quarterNumber)
+        return $lever !== null && $lever['unlock'] <= $until && (! $lever['once'] || ($lever['unlock'] >= $quarterNumber && $lever['unlock'] <= $until))
             && ($lever['close'] === null || $quarterNumber <= $lever['close']);
     }
 
-    /** @return list<string> pages a team can change in this quarter */
+    /** @return list<string> pages a team can change in this quarter (by the end of the week, in a 7-week course) */
     public function openPages(int $quarterNumber): array
     {
         $pages = [];
@@ -155,12 +159,12 @@ final class DecisionBook
      * @param  array<string, mixed>  $input
      * @return array{0: array<string, string|float|int|null>, 1: array<string, string>}
      */
-    public function validatePage(string $page, array $input, int $quarterNumber): array
+    public function validatePage(string $page, array $input, int $quarterNumber, ?int $until = null): array
     {
         $clean = [];
         $errors = [];
         foreach ($this->levers as $key => $l) {
-            if ($l['page'] !== $page || ! $this->isOpen($key, $quarterNumber)) {
+            if ($l['page'] !== $page || ! $this->isOpen($key, $quarterNumber, $until)) {
                 continue;
             }
             if ($key === 'tp') {
